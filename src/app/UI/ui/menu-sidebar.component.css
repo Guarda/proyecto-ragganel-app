@@ -1,0 +1,79 @@
+/* src/app/app.component.css */
+.menu-container {
+    height: 100vh;
+    background-color: #f0f0f0;
+    border-color: white;
+  }
+  
+  .sidenav {
+    width: 260px;
+    margin: 10px;
+    border-radius: 10px;
+    margin-right: 20px;
+    background: #55595f; /* Dark background for sidenav */
+    color: white; /* White text for sidenav */
+  }
+
+  .sidenav > ul {
+    border-radius: 10px;
+    background-color: #8b7484;
+    display: inline-block;
+  }  
+
+  .mat-list-content{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .mat-toolbar {
+    background: #f0f0f0; /* Dark background for toolbar */
+    color: Black; /* White text for toolbar */
+    border-width: 0;
+    font-family: Quicksand;
+    border-color: white;
+  }
+
+  .mat-list-item {
+    color: white; /* White text for list items */
+    display: flex!important;
+    margin: 0px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center!important;
+    font-size: .7rem;
+  
+  }
+  
+  /* .mat-list-item:hover {
+   /* background: rgb(85, 89, 95); /* Light hover effect 
+    background: rgb(0,0,0);
+
+  } */
+  
+  /* src/styles.scss */
+body {
+    margin: 0;
+    font-family: Quicksand, sans-serif;
+    background-color: white; /* Dark background */
+    color: white; /* White text */
+  }
+  
+  .mat-sidenav-container, .mat-sidenav-content, .mat-sidenav {
+    height: 100%;
+  }
+
+
+  /* mat-list item*/
+  .mat-list-item{
+    font-family: Quicksand, sans-serif;
+    background-color: white; /* Dark background */
+    color: gray;
+  }
+
+  .lits-items-css{
+    color: white!important;
+  }
+
+  
+  

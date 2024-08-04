@@ -1,0 +1,30 @@
+<!-- src/app/app.component.html -->
+<mat-toolbar>
+  <button mat-icon-button (click)="sidenav.toggle()">
+    <mat-icon aria-hidden="true">catching_pokemon</mat-icon>
+  </button>
+  <h3 mat-> SIAGTEC - Administración de taller</h3>
+</mat-toolbar>
+<mat-sidenav-container class="menu-container" style="height: 100vh;">
+    <mat-sidenav #sidenav mode="side" opened class="sidenav">
+      
+      <mat-nav-list  class="lits-items-css">
+        <mat-list-item routerLink="./listado" (click)="sidenav.toggle()">
+            <mat-icon>videogame_asset</mat-icon>
+            Inventario
+        </mat-list-item>
+        <mat-list-item routerLink="./agregar" (click)="sidenav.toggle()">
+            <mat-icon>point_of_sale</mat-icon>
+            Agregar
+        </mat-list-item>
+      </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <!--toolbar here/>
+       Your main content here -->
+      <div class="main-content">
+        <router-outlet/>
+      </div>
+    </mat-sidenav-content>
+</mat-sidenav-container>
+  
