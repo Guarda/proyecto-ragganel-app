@@ -10,32 +10,40 @@ body {
 }
 
 table {
-  width: 125%;  
+  width: 125%;
 }
 
 .mat-mdc-form-field {
   font-size: 14px;
-  width: 20vw;
   border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.columna-descripcion{
+  width: 40vw!important;
 }
 
 
-
-td, th {
-  width: 10vw;
+td,
+th {
+  
+  height: 100%;
+  align-items: center;
+  /* width: 10vw; */
 }
 
-.cabezera{
+.cabezera {
   display: flex;
   align-items: center;
   padding: 2%;
-  justify-content: space-between;
+  justify-content: space-around;
   width: 125%;
 }
 
-.foo-paginator{
- width: 125%;
- background-color: #f0f0f0;
+.foo-paginator {
+  width: 125%;
+  background-color: #f0f0f0;
 }
 
 .white-backgrounded-field .mdc-text-field--outlined .mdc-notched-outline {
@@ -45,12 +53,31 @@ td, th {
 .white-backgrounded-field .mdc-notched-outline__notch,
 .white-backgrounded-field .mdc-notched-outline__leading,
 .white-backgrounded-field .mdc-notched-outline__trailing {
-  background-color: white!important;
-  color: white!important;
+  background-color: white !important;
+  color: white !important;
 }
 
-.btn-create-prod{
-  margin-left: 10%!important;
+.btn-create-prod {
+  margin-left: 10% !important;
+}
+
+.contenedor-botones {
+  display: flex;
+  vertical-align: center;
+  align-items: center;
 }
 
 
+th.mat-header-cell,
+td.mat-cell {
+  
+  text-align: center;
+}
+
+/*
+cambia el tamaño del icono pero no del holder donde esta XD 
+.iconos-custom {
+  font-size: 50px!important;
+  height: 50px !important;
+  width: 50px !important;
+} */

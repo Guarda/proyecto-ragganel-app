@@ -1,22 +1,25 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+// const mysql = require('mysql');
+const db = require('./db')
 const cors = require('cors');
 
 const app = express();
 const port = 3000;
 
+// const utilMiddleware = require('./utilsMiddleware')
+
 
 
 /* MySQL Connection */
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'base_datos_inventario_taller'
+// const db = mysql.createConnection({
+//     host: 'localhost',
+//     user: 'root',
+//     password: 'password',
+//     database: 'base_datos_inventario_taller'
 
-});
+// });
 
 
 
@@ -36,6 +39,7 @@ db.connect(err => {
 
 app.use(bodyParser.json());
 app.use(cors());
+// app.use(utilMiddleware);
 
 
 
@@ -51,46 +55,57 @@ app.get('/productos', (req, res) => {
         }
         res.json(results[0]);
     });
-
 });
 
+/* List all categories */
+
+app.get('/listar-categorias', (req, res) => {
+    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasConsolasBase`();', (err, results) => {
+        if (err) {
+            res.status(500).send('Error fetching categorias');
+            return;
+        }
+        //console.log(res.json(results));
+        res.json(results[0]);
+    });
+});
+
+/* List all console states */
+app.get('/listar-estados', (req, res) => {
+    db.query('CALL `base_datos_inventario_taller`.`ListarEstadosConsolas`();', (err, results) => {
+        if (err) {
+            res.status(500).send('Error fetching estados');
+            return;
+        }
+        //console.log(res.json(results));
+        res.json(results[0]);
+    });
+})
 
 
-// /* Create a new post */
+/* Create a new post */
 
-// app.post('/posts/create', (req, res) => {
-
-//   const { title, body } = req.body;
-
-//   db.query('INSERT INTO posts (title, body) VALUES (?, ?)', [title, body], (err, result) => {
-
-//     if (err) {
-
-//       res.status(500).send('Error creating post');
-
-//       return;
-
-//     }
-
+app.post('/crear-producto', (req, res) => {
+    const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola } = req.body;
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarProductoATablaProductoBase` (?, ?, ?, ?, ?)';
+    // console.log(req.body);
+    db.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Producto agregado', id: result.insertId });
+    });
+});
 //     const postId = result.insertId;
-
 //     db.query('SELECT * FROM posts WHERE id = ?', postId, (err, result) => {
-
 //       if (err) {
-
 //         res.status(500).send('Error fetching created post');
-
 //         return;
-
 //       }
-
 //       res.status(201).json(result[0]);
-
 //     });
-
 //   });
 
-// });
 
 
 

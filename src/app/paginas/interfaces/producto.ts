@@ -3,7 +3,7 @@ export interface Producto {
     DescripcionConsola:    string;
     Color:                 string;
     Estado:                string;
-    Hack:                  string;   
+    Hack:                  boolean;   
     Fecha_Ingreso:          Date;
     Comentario:            string;
 }

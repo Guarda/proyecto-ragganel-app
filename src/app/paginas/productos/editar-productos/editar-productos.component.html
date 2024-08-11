@@ -1,0 +1,60 @@
+
+
+<h3 mat-dialog-title>    
+    <span>Editar Producto</span>
+</h3>
+<form [formGroup]="productoForm" (ngSubmit)="onSubmit()">
+  <div class="contenedor-principal">
+    <div class="contenedor-secundario">
+      <div class="contenedor-img-consola">
+        <img src="/img-consolas/new3dsstockimage.png" alt="imagen-consola">
+      </div>
+      <div class="contendor-form">
+        <mat-dialog-content class="mat-typography">
+          <h3>Ingresa detalles del producto a ingresar</h3>
+            <!--Codigo Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Descripción de producto</mat-label>
+            <mat-select formControlName = "IdModeloConsolaPK" name="cate">              
+                <mat-option >a</mat-option>            
+                <!-- <mat-option *ngFor="let cate of selectedCategoria" [value]="cate.IdModeloConsolaPK">{{cate.DescripcionConsola}} </mat-option>             -->
+            </mat-select>       
+          </mat-form-field>
+            <!--Color Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Color</mat-label>
+            <textarea formControlName = "ColorConsola" name="ColorConsola" matInput></textarea>
+          </mat-form-field>
+            <!--Estado Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName = "EstadoConsola" name="est">             
+                <!-- <mat-option *ngFor="let est of selectedEstado" [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>             -->
+                <mat-option>b </mat-option>            
+            </mat-select> 
+          </mat-form-field>
+          <!-- Hack o Stock -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Select</mat-label>
+            <mat-select formControlName = "HackConsola">
+              <mat-option value=0>Stock</mat-option>
+              <mat-option value=1>Hack</mat-option>
+            </mat-select>
+          </mat-form-field>          
+        </mat-dialog-content>
+      </div>  
+    </div>
+    <!-- Comentarios -->
+    <div class="contenedor-comentario">
+      <h3>Comentarios</h3>
+      <mat-form-field class="example-full-width"  >
+        <mat-label>Describe el estado del producto</mat-label>
+        <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+      </mat-form-field>
+    </div>  
+  </div>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" (Click)="onSubmit()">Submit</button>
+  </mat-dialog-actions>
+</form>

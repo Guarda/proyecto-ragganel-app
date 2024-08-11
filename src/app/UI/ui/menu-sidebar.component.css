@@ -4,7 +4,7 @@
     background-color: #f0f0f0;
     border-color: white;
   }
-  
+
   .sidenav {
     width: 260px;
     margin: 10px;
@@ -74,6 +74,16 @@ body {
   .lits-items-css{
     color: white!important;
   }
+
+  h3{
+    font-family: Quicksand!important;
+    font-weight: bold!important;
+  }
+
+   /* Global styling */
+.iconos_menu{
+  vertical-align: middle;      
+}
 
   
   

@@ -1,0 +1,47 @@
+.contenedor-img-consola{
+    padding-left: 2%;
+    padding-right: 2%;
+  }
+  
+  .contenedor-comentario{
+    margin-left: 2%;
+    margin-right: 2%;
+  }
+  
+  span{
+      font-family: Quicksand;
+      font-size: 30px;
+      display: flex;
+      flex-direction: row;
+      margin-left: 10px;
+      flex-wrap: nowrap;
+  }
+  
+    /* Global styling */
+  .mat-icon {
+      vertical-align: middle;    
+      
+    }
+  .contenedor-secundario{
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center; 
+  }
+  
+  .contenedor-form{
+    width: 500%;
+  }
+  
+  .input-form-prod{
+    width: 100%;
+  }
+  
+  .mat-typography{
+    display: flex;
+    flex-direction: column!important;
+    align-items: flex-start!important;
+    width: 150%;
+  }
+  .example-full-width {
+    width: 100%;
+  }
