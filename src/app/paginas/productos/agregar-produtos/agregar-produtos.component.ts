@@ -34,7 +34,7 @@ export class AgregarProdutosComponent {
   selectedCategoria: any[] = [];
 
   estadoconsolas: EstadosConsolas[] = [];
-  selectedEstado: EstadosConsolas[] = []
+  selectedEstado: EstadosConsolas[] = [];
 
   array: any[] = [];
 

@@ -109,73 +109,53 @@ app.post('/crear-producto', (req, res) => {
 
 
 
-// /* Get a specific post */
+/* Get a specific post */
 
-// app.get('/posts/:id', (req, res) => {
+app.get('/producto/:id', (req, res) => {
+    const id = req.params.id;
+    // console.log(id);
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaProductosBasesXId` (?)';
 
-//   const postId = req.params.id;
+    db.query(sql, id, (err, result) => {
+        // console.log(sql + id);
+        if (err) {
+            res.status(500).send('Error al buscar producto');
+            return;
+        }
 
-//   db.query('SELECT * FROM posts WHERE id = ?', postId, (err, result) => {
-
-//     if (err) {
-
-//       res.status(500).send('Error fetching post');
-
-//       return;
-
-//     }
-
-//     if (result.length === 0) {
-
-//       res.status(404).send('Post not found');
-
-//       return;
-
-//     }
-
-//     res.json(result[0]);
-
-//   });
-
-// });
+        if (result.length === 0) {
+            res.status(404).send('Producto no encontrado');
+            return;
+        }
+        res.json(result[0]);
+        // console.log(result[0]);
+    });
+});
 
 
 
 // /* Update a post */
+app.put('/producto/:id', (req, res) => {
+  const id = req.params.id;
+  const {CodigoConsola, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola } = req.body;
 
-// app.put('/posts/:id', (req, res) => {
+  const sql = 'CALL `base_datos_inventario_taller`.`ActualizarProductoBase` (?, ?, ?, ?, ?, ?)';
+  const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablaProductosBasesXId` (?)';
 
-//   const postId = req.params.id;
-
-//   const { title, body } = req.body;
-
-//   db.query('UPDATE posts SET title = ?, body = ? WHERE id = ?', [title, body, postId], err => {
-
-//     if (err) {
-
-//       res.status(500).send('Error updating post');
-
-//       return;
-
-//     }
-
-//     db.query('SELECT * FROM posts WHERE id = ?', postId, (err, result) => {
-
-//       if (err) {
-
-//         res.status(500).send('Error fetching updated post');
-
-//         return;
-
-//       }
-
-//       res.json(result[0]);
-
-//     });
-
-//   });
-
-// });
+  db.query(sql, [CodigoConsola, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola], err => {
+    if (err) {
+      res.status(500).send('Error actualizando producto');
+      return;
+    }
+    db.query(sql2, id, (err, result) => {
+      if (err) {
+        res.status(500).send('Error al buscar producto actualizado');
+        return;
+      }
+      res.json(result[0]);
+    });
+  });
+});
 
 
 

@@ -1,4 +1,7 @@
-export interface Producto {
+import { CategoriasConsolas } from "./categorias";
+import { EstadosConsolas } from "./estados";
+
+export interface Producto extends EstadosConsolas, CategoriasConsolas {
     CodigoConsola:         string;
     DescripcionConsola:    string;
     Color:                 string;

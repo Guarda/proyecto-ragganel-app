@@ -36,18 +36,23 @@ th {
 .cabezera {
   display: flex;
   align-items: center;
-  padding: 2%;
-  justify-content: space-around;
+  padding: 1%;
+  justify-content: space-evenly;
+  /* justify-content: space-around; */
   width: 125%;
 }
 
 .foo-paginator {
   width: 125%;
   background-color: #f0f0f0;
+  bottom: 0px;
+  position: sticky;
+  z-index: 10;
 }
 
 .white-backgrounded-field .mdc-text-field--outlined .mdc-notched-outline {
-  z-index: 0
+  z-index: 0;
+  width: 50%!important;
 }
 
 .white-backgrounded-field .mdc-notched-outline__notch,
@@ -74,10 +79,16 @@ td.mat-cell {
   text-align: center;
 }
 
-/*
-cambia el tamaño del icono pero no del holder donde esta XD 
+.button-editar-prod{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* cambia el tamaño del icono pero no del holder donde esta XD  */
 .iconos-custom {
-  font-size: 50px!important;
-  height: 50px !important;
-  width: 50px !important;
-} */
+  display: flex;
+  align-items: space-around;
+  justify-content: center;
+}

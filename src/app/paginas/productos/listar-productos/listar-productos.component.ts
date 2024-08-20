@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Inject, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
@@ -40,6 +40,7 @@ export class ListarProductosComponent implements AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @Output() select = new EventEmitter<string>();
 
   constructor(public productoService: ProductosService, private cdr: ChangeDetectorRef, private router: Router, private dialog: MatDialog) {
 
@@ -62,10 +63,21 @@ export class ListarProductosComponent implements AfterViewInit {
     });
   }
 
-  public openDialogEditar() {
+  public openDialogEditar(cons: string) {
     const dialogRef = this.dialog.open(EditarProductosComponent, {
       height: '85%',
       width: '50%',
+      data: { value: cons }      
+    });
+    dialogRef.componentInstance.Editado.subscribe(() => {
+      this.getProductList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getProductList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     });
   }
 
@@ -95,6 +107,10 @@ export class ListarProductosComponent implements AfterViewInit {
 
   ngAfterViewInit() {
 
+  }
+
+  onSelectedProduct() {
+    // this.select.emit(this.);
   }
 
   applyFilter(event: Event) {

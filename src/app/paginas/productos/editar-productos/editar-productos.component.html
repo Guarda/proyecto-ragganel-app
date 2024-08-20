@@ -1,7 +1,7 @@
 
 
 <h3 mat-dialog-title>    
-    <span>Editar Producto</span>
+    <span>Producto</span>
 </h3>
 <form [formGroup]="productoForm" (ngSubmit)="onSubmit()">
   <div class="contenedor-principal">
@@ -11,34 +11,36 @@
       </div>
       <div class="contendor-form">
         <mat-dialog-content class="mat-typography">
-          <h3>Ingresa detalles del producto a ingresar</h3>
+          <h3>Detalles del producto {{ConsoleId}}</h3>
             <!--Codigo Consola  -->
-          <mat-form-field class="input-form-prod">
+          <mat-form-field class="input-form-prod" *ngIf="producto">
             <mat-label>Descripción de producto</mat-label>
-            <mat-select formControlName = "IdModeloConsolaPK" name="cate">              
-                <mat-option >a</mat-option>            
+            <mat-select ngif="producto" formControlName="IdModeloConsolaPK" name="cate" >              
+            <!-- <mat-select ngif="producto" [(value)]="aaa" formControlName="IdModeloConsolaPK" name="cate" >               -->
+                <!-- <mat-option >{{producto.CodigoConsola}}</mat-option>  -->
+                <mat-option *ngFor="let cate of selectedCategoria"  [value]="cate.IdModeloConsolaPK" [disabled]="cate.DescripcionConsola">{{cate.DescripcionConsola}} </mat-option>           
                 <!-- <mat-option *ngFor="let cate of selectedCategoria" [value]="cate.IdModeloConsolaPK">{{cate.DescripcionConsola}} </mat-option>             -->
             </mat-select>       
           </mat-form-field>
             <!--Color Consola  -->
-          <mat-form-field class="input-form-prod">
-            <mat-label>Color</mat-label>
-            <textarea formControlName = "ColorConsola" name="ColorConsola" matInput></textarea>
+          <mat-form-field class="input-form-prod" *ngIf="producto">
+            <mat-label>Color del producto</mat-label>
+            <textarea formControlName = "ColorConsola" name="ColorConsola" matInput> {{producto}}</textarea>
           </mat-form-field>
             <!--Estado Consola  -->
-          <mat-form-field class="input-form-prod">
+          <mat-form-field class="input-form-prod" *ngIf="producto">
             <mat-label>Estado</mat-label>
             <mat-select formControlName = "EstadoConsola" name="est">             
-                <!-- <mat-option *ngFor="let est of selectedEstado" [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>             -->
-                <mat-option>b </mat-option>            
+                <mat-option *ngFor="let est of selectedEstado" placeholder="producto.estado" [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>            
+                <!-- <mat-option> </mat-option>             -->
             </mat-select> 
           </mat-form-field>
           <!-- Hack o Stock -->
           <mat-form-field class="input-form-prod">
             <mat-label>Select</mat-label>
             <mat-select formControlName = "HackConsola">
-              <mat-option value=0>Stock</mat-option>
-              <mat-option value=1>Hack</mat-option>
+              <mat-option [value]=0>Stock</mat-option>
+              <mat-option [value]=1>Hack</mat-option>
             </mat-select>
           </mat-form-field>          
         </mat-dialog-content>
@@ -55,6 +57,6 @@
   </div>
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" (Click)="onSubmit()">Submit</button>
+    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" (Click)="onSubmit()">Guardar Cambios</button>
   </mat-dialog-actions>
 </form>

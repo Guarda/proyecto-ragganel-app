@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-      
-import {  BehaviorSubject, Observable, throwError } from 'rxjs';
+
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Producto } from '../interfaces/producto';
 
@@ -11,8 +11,8 @@ import { Producto } from '../interfaces/producto';
 })
 export class ProductosService {
   private productsSubject = new BehaviorSubject<any[]>([]);
-   products$: Observable<any[]> = this.productsSubject.asObservable();
- 
+  products$: Observable<any[]> = this.productsSubject.asObservable();
+
 
   private apiURL = "http://localhost:3000";
 
@@ -22,7 +22,7 @@ export class ProductosService {
     })
   }
 
-  constructor(private httpClient: HttpClient) { }      
+  constructor(private httpClient: HttpClient) { }
 
   /**
    * Write code on Method
@@ -33,12 +33,12 @@ export class ProductosService {
   getAll(): Observable<any> {
     //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
     return this.httpClient.get(this.apiURL + '/productos/')
-    .pipe(
-      catchError(this.errorHandler)
-    )
+      .pipe(
+        catchError(this.errorHandler)
+      )
   }
-  
-  
+
+
   /**
    * Write code on Method
    *
@@ -47,19 +47,54 @@ export class ProductosService {
 
   create(producto: Producto): Observable<any> {
     return this.httpClient.post(this.apiURL + '/crear-producto/', JSON.stringify(producto), this.httpOptions)
-    .pipe(
-      catchError(this.errorHandler)
-    )
-  }  
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
 
-  errorHandler(error:any) {
+
+  /**
+   * Write code on Method
+   *
+   * @return response()
+   */
+
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/producto/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
+
+  /**
+
+  * Write code on Method
+
+  *
+
+  * @return response()
+
+  */
+
+  update(producto: Producto): Observable<any> {
+    return this.httpClient.put(this.apiURL + '/producto/' + producto.CodigoConsola, JSON.stringify(producto), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+
+
+  errorHandler(error: any) {
     let errorMessage = '';
-    if(error.error instanceof ErrorEvent) {
+    if (error.error instanceof ErrorEvent) {
       errorMessage = error.error.message;
     } else {
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
     return throwError(errorMessage);
- }
+  }
 
 }

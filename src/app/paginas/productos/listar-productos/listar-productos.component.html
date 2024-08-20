@@ -45,7 +45,7 @@
         <!-- Symbol Column -->
         <ng-container matColumnDef="Hack">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Hack </th>
-          <td mat-cell *matCellDef="let element"> {{  element.Hack === 0 ? 'Stock' : element.Hack === 1 ? 'Hackeado' : 'Missing'}} </td>
+          <td mat-cell *matCellDef="let element"> {{  element.Hack === 0 ? 'Stock' : element.Hack === 1 ? 'Hackeado' : 'Indefinido'}} </td>
         </ng-container>
 
         <!-- Symbol Column -->
@@ -64,17 +64,17 @@
          <ng-container matColumnDef="Action">
           <th mat-header-cell *matHeaderCellDef > Acciones </th>
           <td mat-cell *matCellDef="let element" class="contenedor-botones"> 
-            <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar()">
+            <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.CodigoConsola)" color="primary" title="editar producto" >
               <mat-icon class="iconos-custom">mode_edit</mat-icon>
             </a>
-            <a mat-flat-button class="button-eliminar-prod" (click)="openDialogEditar()"  color="error">
+            <a mat-flat-button class="button-eliminar-prod"   color="error" title="borrar producto" >
               <mat-icon>delete</mat-icon>
             </a>
             <!-- <button type="button" class="btn btn-danger">Delete</button>  -->
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
         <!-- Row shown when there is no matching data. -->
@@ -83,5 +83,5 @@
       </tr>
 
       </table>
-      <mat-paginator class="foo-paginator" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100, dataSource.data.length]" aria-label="Select page of users"></mat-paginator>
+      <mat-paginator class="foo-paginator" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100, dataSource.data.length]" aria-label="Select page of users" ></mat-paginator>
 </div>
