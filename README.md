@@ -2,9 +2,27 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.7.
 
+## Installation of dependecies to download project
+
+Install Node and NPM
+Install Vs Code
+Install Angular dependecies using `npm install -g @angular/cli`
+Run the command Powershell execution policy `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
+Install npm packages which will help us to create REST APIs for our Angular CRUD system: in the /backend directory inside the main proyecto-ragganel-app directory using
+`npm install express mysql body-parser` and `npm install cors`
+
+
+## DATABASE
+
+Install Latest MySQL release
+Create a database with the name `base_datos_inventario_taller` and remember the credentials to use then in the Node JS APP.
+Run the sql scripts to build the database and populate it.
+
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files or
+Run `npm start` for a dev server. Navigate to `http://localhost:4200/`. inside the src folder.
+Run `node index.js` inside the backend folder to run the Node JS App.
 
 ## Code scaffolding
 
