@@ -19,6 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AgregarProdutosComponent } from '../agregar-produtos/agregar-produtos.component';
 import { DialogConfig } from '@angular/cdk/dialog';
 import { EditarProductosComponent } from '../editar-productos/editar-productos.component';
+import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 
 
 @Component({
@@ -70,6 +71,22 @@ export class ListarProductosComponent implements AfterViewInit {
       data: { value: cons }      
     });
     dialogRef.componentInstance.Editado.subscribe(() => {
+      this.getProductList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getProductList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogEliminar(cons: string){
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {     
+      data: { value: cons }      
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
       this.getProductList();
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;

@@ -157,6 +157,21 @@ app.put('/producto/:id', (req, res) => {
   });
 });
 
+/* Delete a product */
+
+app.put('/producto-eliminar/:id', (req, res) => {
+    const id = req.params.id;
+    const {CodigoConsola} = req.body;
+
+    const sql = 'CALL `base_datos_inventario_taller`.`BorrarProducto` (?)';
+  
+    db.query(sql, [CodigoConsola],  err => {
+      if (err) {
+        res.status(500).send('Error actualizando producto');
+        return;
+      }      
+    });
+  });
 
 
 // /* Delete a post */

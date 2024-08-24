@@ -7,15 +7,13 @@ DELIMITER //
 CREATE PROCEDURE ListarTablaProductosBases ()
        BEGIN
 			SELECT A.CodigoConsola, B.DescripcionConsola, A.Color, C.DescripcionEstado As 'Estado',
-				Case A.Hackeado 
-				When 0 then 'No'
-				When 1 then 'Si'
-				End as 'Hack',
-                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha Ingreso',
+				A.Hackeado as 'Hack',
+                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha_Ingreso',
                 Comentario
 			FROM ProductosBases A 
             join CatalogoConsolas B on A.Modelo = B.IdModeloConsolaPK
-            join CatalogoEstadosConsolas C on A.Estado = C.CodigoEstado;			
+            join CatalogoEstadosConsolas C on A.Estado = C.CodigoEstado
+			WHERE A.Estado != 7;
        END //
 DELIMITER ;
 
@@ -70,6 +68,16 @@ BEGIN
 END//
 DELIMITER ;
 
+/*PROCEDIMIENTO ListarEstadosConsolas modificado 24 / 08 / 24*/
+DELIMITER //
+	CREATE PROCEDURE ListarEstadosConsolas()
+    BEGIN
+		SELECT * FROM catalogoestadosconsolas;
+    END//
+DELIMITER;
+
+CALL ListarEstadosConsolas();
+
 /*PROCEDIMIENTO ActualizarProductoBase modificado el dia 19 / 08 / 24*/
 DELIMITER //
 CREATE PROCEDURE ActualizarProductoBase(IdCodigoConsola varchar(100), ModeloConsola int, ColorConsola varchar(100), EstadoConsola int, HackConsola boolean, ComentarioConsola varchar(100))
@@ -84,4 +92,18 @@ BEGIN
 	WHERE CodigoConsola = IdCodigoConsola;
 END //
 DELIMITER ;
+
+/*PROCEDIMIENTO BORRAR PRODUCTO*/
+DELIMITER //
+	CREATE PROCEDURE BorrarProducto(IdCodigoConsola varchar(100))
+    BEGIN
+		UPDATE ProductosBases
+        SET
+			Estado = 7
+        WHERE CodigoConsola = IdCodigoConsola;
+    END //
+DELIMITER ;
+
+CALL BorrarProducto('N06-0064-240820240');
+
 
