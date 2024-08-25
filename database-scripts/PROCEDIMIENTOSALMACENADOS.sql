@@ -85,3 +85,11 @@ BEGIN
 END //
 DELIMITER ;
 
+/*PROCEDIMIENTO LISTAR ESTADO CONSOLAS modificado 24 /08 / 24 */
+DELIMITER //
+CREATE PROCEDURE ListarEstadosConsolas()
+BEGIN
+	SELECT * FROM CatalogoEstadosConsolas;
+END//
+DELIMITER ;
+

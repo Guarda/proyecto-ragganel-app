@@ -1,4 +1,5 @@
 /*SCRIPT DE CREACION DE LA DB Y TABLAS*/
+create database base_datos_inventario_taller;
 use base_datos_inventario_taller;
 
 CREATE TABLE CatalogoConsolas (
@@ -114,6 +115,7 @@ Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Reparado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('A reparar');
 
 select * from CatalogoEstadosConsolas;
+select * from catalogoconsolas;
 /* TABLA PRODUCTOSBASES*/
 
 CREATE TABLE ProductosBases (

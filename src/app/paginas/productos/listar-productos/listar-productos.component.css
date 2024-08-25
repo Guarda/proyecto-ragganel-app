@@ -27,8 +27,8 @@ table {
 
 td,
 th {
+  height: 100%!important;
   
-  height: 100%;
   align-items: center;
   /* width: 10vw; */
 }
