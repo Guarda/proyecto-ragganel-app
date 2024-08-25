@@ -113,6 +113,7 @@ Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Para piezas');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Personalizado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Reparado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('A reparar');
+Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Borrado');
 
 select * from CatalogoEstadosConsolas;
 select * from catalogoconsolas;
@@ -129,6 +130,9 @@ CREATE TABLE ProductosBases (
     FOREIGN KEY (Modelo) REFERENCES CatalogoConsolas (IdModeloConsolaPK),
     FOREIGN KEY (Estado) REFERENCES CatalogoEstadosConsolas (CodigoEstado)
 );
+
+ALTER TABLE ProductosBases
+ADD DateOfBirth date; 
     
 
 

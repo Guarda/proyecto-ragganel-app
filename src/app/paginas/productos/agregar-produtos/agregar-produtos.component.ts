@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -63,10 +63,10 @@ export class AgregarProdutosComponent {
     })
 
     this.productoForm = new FormGroup({
-      IdModeloConsolaPK: new FormControl(''),
+      IdModeloConsolaPK: new FormControl('',Validators.required),
       ColorConsola: new FormControl(''),
-      EstadoConsola: new FormControl(''),
-      HackConsola: new FormControl(''),
+      EstadoConsola: new FormControl('',Validators.required),
+      HackConsola: new FormControl('',Validators.required),
       ComentarioConsola: new FormControl('')
 
     });

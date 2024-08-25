@@ -29,6 +29,7 @@ td,
 th {
   height: 100%!important;
   
+  height: 100%;
   align-items: center;
   /* width: 10vw; */
 }
@@ -68,9 +69,9 @@ th {
 
 .contenedor-botones {
   display: flex;
-  vertical-align: center;
-  align-items: center;
-}
+  height: 52px!important;
+  margin-bottom: 0%;
+} 
 
 
 th.mat-header-cell,
@@ -83,12 +84,21 @@ td.mat-cell {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white!important;
+  background-color: green!important;
 }
 
 
 /* cambia el tamaño del icono pero no del holder donde esta XD  */
-.iconos-custom {
+/* .iconos-custom {
   display: flex;
   align-items: space-around;
   justify-content: center;
+} */
+
+.button-eliminar-prod{
+  color: white;
+  background-color: red;
+  display: flex;
+  padding: auto;
 }
