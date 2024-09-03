@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
       
 import {  Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { CategoriasConsolas } from '../paginas/interfaces/categorias';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +31,20 @@ export class CategoriasConsolasService {
     .pipe(
       catchError(this.errorHandler)
     )
-  }    
+  }
+  
+  /**
+   * Write code on Method
+   *
+   * @return response()
+   */
+
+  create(categoria: CategoriasConsolas): Observable<any> {
+    return this.httpClient.post(this.apiURL + '/crear-categoria-producto/', JSON.stringify(categoria), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
 
   errorHandler(error:any) {
     let errorMessage = '';

@@ -174,6 +174,25 @@ app.put('/producto-eliminar/:id', (req, res) => {
   });
 
 
+
+
+/*CATEGORIAS DE PRODUCTOS CONSOLAS*/
+
+/* CREAR CATEGORIA */
+/* Create a new post */
+
+app.post('/crear-categoria-producto', (req, res) => {
+    const { CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen } = req.body;
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaProducto` (?, ?, ?, ?)';
+    // console.log(req.body);
+    db.query(sql, [CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Categoria agregada', id: result.insertId });
+    });
+});
+
 // /* Delete a post */
 
 // app.delete('/posts/:id', (req, res) => {

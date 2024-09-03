@@ -11,13 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 
 import { AgregarProdutosComponent } from '../agregar-produtos/agregar-produtos.component';
-import { DialogConfig } from '@angular/cdk/dialog';
 import { EditarProductosComponent } from '../editar-productos/editar-productos.component';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 
@@ -26,7 +24,7 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
   selector: 'app-listar-productos',
   standalone: true,
   imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatFormFieldModule, MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, AgregarProdutosComponent
+     MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, AgregarProdutosComponent
   ],
   templateUrl: './listar-productos.component.html',
   styleUrl: './listar-productos.component.css'

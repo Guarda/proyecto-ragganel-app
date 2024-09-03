@@ -1,0 +1,50 @@
+<h3 mat-dialog-title>    
+  <span>Agregar Categoria</span>
+</h3>
+<form [formGroup]="CategoriaForm" (ngSubmit)="onSubmit()">
+<div class="contenedor-principal">
+  <div class="contenedor-secundario">
+    <div class="contenedor-img-consola">
+      <img class="img-console"  src="/img-consolas/nestoploader.webp" alt="imagen-consola">
+    </div>
+    <div class="contendor-form">
+      <mat-dialog-content class="mat-typography">
+        <h3>Ingresa detalles de la categoría del producto a ingresar</h3>
+        <!--Codigo Consola  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Prefijo de la consola</mat-label>
+          <textarea formControlName = "CodigoModeloConsola" matInput></textarea>
+        </mat-form-field>
+          <!--Codigo Consola  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Descripción de producto</mat-label>
+          <textarea formControlName = "DescripcionConsola" matInput></textarea>
+        </mat-form-field>
+          <!--Color Consola  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Fabricante</mat-label>
+          <textarea formControlName = "Fabricante" matInput></textarea>
+        </mat-form-field>
+          <!--Link Imagen Categoria  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Link de la imagen</mat-label>
+          <textarea formControlName = "LinkImagen" matInput> </textarea>
+        </mat-form-field>                
+      </mat-dialog-content>
+    </div>  
+  </div>
+  <!-- Comentarios -->
+  <!-- <div class="contenedor-comentario">
+    <h3>Comentarios</h3>
+    <mat-form-field class="example-full-width"  >
+      <mat-label>Describe el estado del producto</mat-label>
+      <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+    </mat-form-field>
+  </div>   -->
+</div>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!CategoriaForm.valid">Ingresar</button>
+ 
+</mat-dialog-actions>
+</form>
