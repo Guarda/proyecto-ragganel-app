@@ -30,6 +30,7 @@ export class EditarProductosComponent {
   id!: string;
   producto!: Producto;
 
+  categoria!: CategoriasConsolas;
   categoriasconsolas: CategoriasConsolas[] = [];
   selectedCategoria: CategoriasConsolas[] = [];
 
@@ -42,6 +43,8 @@ export class EditarProductosComponent {
   public consoleState: any;
   public consoleHack: any;
   public consoleComment: any;
+
+  public ImagePath: any;
 
   consolaEncontrada: any;
 
@@ -72,6 +75,11 @@ export class EditarProductosComponent {
       this.consoleHack = this.producto.Hack;      
       this.consoleComment = this.producto.Comentario;
 
+      this.categorias.find(this.consoleCode).subscribe((data) => {
+        this.categoria = data[0];
+        this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+      });
+
       //Initialize the form with the product data
       this.productoForm = this.fb.group({
       IdModeloConsolaPK: [this.consoleCode],
@@ -84,12 +92,14 @@ export class EditarProductosComponent {
     
 
     this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {
+      
       // Using Object.keys() and map()
       // Convert object to array based on your needs
       this.array = Object.entries(data); // Example
       //console.log(this.array);
       //console.log(data);
       this.selectedCategoria = data;
+      
     })
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
@@ -105,12 +115,16 @@ export class EditarProductosComponent {
       HackConsola: new FormControl(''),
       ComentarioConsola: new FormControl('')
 
-    });
-
-    
+    });   
+  }
   
-       
-
+  getimagePath(l: string | null) {
+    if (l == null || l == '') {
+      return '/img-consolas/' + 'nestoploader.webp';
+    }
+    else {
+      return '/img-consolas/' + l;
+    }
   }
 
   ngAfterViewInit() {

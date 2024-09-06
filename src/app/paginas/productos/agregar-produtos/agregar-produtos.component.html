@@ -7,7 +7,7 @@
     <div class="contenedor-principal">
       <div class="contenedor-secundario">
         <div class="contenedor-img-consola">
-          <img src="/img-consolas/new3dsstockimage.png" alt="imagen-consola">
+          <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
         </div>
         <div class="contendor-form">
           <mat-dialog-content class="mat-typography">
@@ -15,7 +15,7 @@
               <!--Codigo Consola  -->
             <mat-form-field class="input-form-prod">
               <mat-label>Descripción de producto</mat-label>
-              <mat-select formControlName = "IdModeloConsolaPK" name="cate">              
+              <mat-select formControlName = "IdModeloConsolaPK" name="cate" cdkFocusInitial>              
                   <mat-option *ngFor="let cate of selectedCategoria" [value]="cate.IdModeloConsolaPK">{{cate.DescripcionConsola}} </mat-option>            
               </mat-select>       
             </mat-form-field>

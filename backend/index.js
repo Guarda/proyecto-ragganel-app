@@ -193,26 +193,80 @@ app.post('/crear-categoria-producto', (req, res) => {
     });
 });
 
+
+/* Get a specific post */
+
+app.get('/categoria/:id', (req, res) => {
+    const id = req.params.id;
+    // console.log(id);
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';
+
+    db.query(sql, id, (err, result) => {
+        // console.log(sql + id);
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+        // console.log(result[0]);
+    });
+});
+
+
+// /* Update a categoria */
+app.put('/categoria/:id', (req, res) => {
+    const id = req.params.id;
+    const {IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen} = req.body;
+    console.log('reached');
+    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCategoria` (?, ?, ?, ?, ?)';
+    const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';
+  
+    db.query(sql, [IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen], err => {
+      if (err) {
+        res.status(500).send('Error actualizando producto');
+        return;
+      }
+      db.query(sql2, id, (err, result) => {
+        if (err) {
+          res.status(500).send('Error al buscar producto actualizado');
+          return;
+        }
+        res.json(result[0]);
+      });
+    });
+  });
+
+  /* Delete a category */
+
+app.put('/categoria-eliminar/:id', (req, res) => {
+    const id = req.params.id;
+    const {IdModeloConsolaPK} = req.body;
+
+    const sql = 'CALL `base_datos_inventario_taller`.`BorrarCategoria` (?)';
+  
+    db.query(sql, [IdModeloConsolaPK],  err => {
+      if (err) {
+        res.status(500).send('Error actualizando categoria');
+        return;
+      }      
+    });
+  });
+
 // /* Delete a post */
-
 // app.delete('/posts/:id', (req, res) => {
-
 //   const postId = req.params.id;
-
 //   db.query('DELETE FROM posts WHERE id = ?', postId, err => {
-
 //     if (err) {
-
 //       res.status(500).send('Error deleting post');
-
 //       return;
-
 //     }
-
 //     res.status(200).json({ msg: 'Post deleted successfully' });
-
 //   });
-
 // });
 
 

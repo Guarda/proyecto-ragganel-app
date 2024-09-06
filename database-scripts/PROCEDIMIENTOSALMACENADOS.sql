@@ -107,7 +107,7 @@ DELIMITER ;
 CALL BorrarProducto('N06-0064-240820240');
 
 
-/*PROCEDIMIENTO IngresarCategoriaProducto*/
+/*PROCEDIMIENTO IngresarCategoriaProducto 2 / 09 / 2024 */
 DELIMITER //
 	CREATE PROCEDURE IngresarCategoriaProducto(PrefijoProducto varchar(25), DescripcionProducto varchar(100), FabricanteProducto varchar(100), NombreArchivoImagen varchar(100))
     BEGIN
@@ -118,11 +118,37 @@ DELIMITER //
 DELIMITER ;
 
 
+/*PROCEDIMIENTO ListarTablacatalogoconsolasXId creado 03 / 08 / 24*/
+DELIMITER //
+	CREATE PROCEDURE ListarTablacatalogoconsolasXId(IdCategoria int)
+    BEGIN
+		SELECT * FROM catalogoconsolas where IdModeloConsolaPK = IdCategoria;
+    END //
+DELIMITER ;
 
-CALL IngresarCategoriaProducto('P', 'SONY Play Station 2 - FAT - SCPH-18000 (2000)','Sony','ps2fat18000.png');
-CALL IngresarCategoriaProducto('P', 'SONY Play Station 2 - SLIM - SCPH-900XX (2007-2013)','Sony','ps2slim900xx.jpg');
 
-DELETE FROM catalogoconsolas where idmodeloconsolapk = 91;
+
+/*PROCEDIMIENTO ActualizarCategoria creado el dia 03 / 08 / 24*/
+DELIMITER //
+CREATE PROCEDURE ActualizarCategoria(IdModeloMC int, CodigoMC varchar(25), DescripcionMC varchar(100), FabricanteMC varchar(100), LinkMC varchar(100))
+BEGIN
+	UPDATE catalogoconsolas 
+    SET  
+        CodigoModeloConsola = CodigoMC, 
+        DescripcionConsola = DescripcionMC, 
+        Fabricante = FabricanteMC, 
+        LinkImagen = LinkMC
+	WHERE IdModeloConsolaPK = IdModeloMC;
+END //
+DELIMITER ;
+
+call ActualizarCategoria(1, 'N0001', 'NES Estandar NES NTSC-US', 'Nintendo', 'nesstandar.jpg');
+cALL ListarTablacatalogoconsolasXId(1);
+
+
+
+
+
     
 
 

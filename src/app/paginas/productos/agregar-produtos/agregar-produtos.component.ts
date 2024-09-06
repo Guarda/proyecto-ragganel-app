@@ -32,12 +32,16 @@ export class AgregarProdutosComponent {
   productoForm!: FormGroup;
 
   categoriasconsolas: CategoriasConsolas[] = [];
+  categoria!: CategoriasConsolas;
+  categoria2!: CategoriasConsolas;
   selectedCategoria: any[] = [];
 
   estadoconsolas: EstadosConsolas[] = [];
   selectedEstado: EstadosConsolas[] = [];
 
   array: any[] = [];
+
+  public ImagePath: any;
 
 
   constructor(
@@ -52,10 +56,10 @@ export class AgregarProdutosComponent {
     this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {
       // Using Object.keys() and map()
       // Convert object to array based on your needs
-      this.array = Object.entries(data); // Example
-      //console.log(this.array);
-      //console.log(data);
+      this.array = Object.entries(data); // Example      
       this.selectedCategoria = data;
+      this.categoria = data[0];
+      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
     })
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
@@ -71,6 +75,15 @@ export class AgregarProdutosComponent {
       ComentarioConsola: new FormControl('')
 
     });
+
+    // Watch for changes to the selected category
+    this.productoForm.get('IdModeloConsolaPK')?.valueChanges.subscribe(selectedId => {
+      this.categorias.find(selectedId).subscribe((data) =>{
+        this.categoria2 = data[0];
+        this.ImagePath = this.getimagePath(this.categoria2.LinkImagen);
+        this.cdr.detectChanges();
+      });      
+    });
   }
 
   get f() {
@@ -79,11 +92,19 @@ export class AgregarProdutosComponent {
 
   }
 
+  getimagePath(l: string | null) {
+    if (l == null || l == '') {
+      //console.log(l);
+      return '/img-consolas/' + 'nestoploader.webp';
+    }
+    else {
+      return '/img-consolas/' + l;
+    }
+  }
 
-
-
+ 
   onSubmit() {    // TODO: Use EventEmitter with form value 
-    //console.log(this.productoForm.value); 
+    console.log(this.productoForm.value); 
     //console.log("enviado");
     this.productoService.create(this.productoForm.value).subscribe((res: any) => {
       this.Agregado.emit();

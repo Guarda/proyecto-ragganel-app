@@ -1,0 +1,6 @@
+<h2 mat-dialog-title>Eliminar Categoria</h2>
+<mat-dialog-content>¿Realmente quiere eliminar la categoria {{CategoryId}}?</mat-dialog-content>
+<mat-dialog-actions class="contenedor-botones">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-button type="submit" [mat-dialog-close]="true"(click)="onEliminar()"mat-button color="primary">Eliminar</button>
+</mat-dialog-actions>

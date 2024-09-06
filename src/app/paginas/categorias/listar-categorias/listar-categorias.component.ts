@@ -16,6 +16,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { AgregarCategoriasComponent } from '../agregar-categorias/agregar-categorias.component';
+import { EditarCategoriasComponent } from '../editar-categorias/editar-categorias.component';
+import { EliminarCategoriasComponent } from '../eliminar-categorias/eliminar-categorias.component';
 
 @Component({
   selector: 'app-listar-categorias',
@@ -59,6 +61,42 @@ export class ListarCategoriasComponent implements AfterViewInit {
     });
   }
 
+  public openDialogEditar(cons: string){
+    const dialogRef = this.dialog.open(EditarCategoriasComponent, {
+      height: '70%',
+      width: '48%',
+      data: { value: cons }  
+    });
+    dialogRef.componentInstance.Editado.subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogEliminar(cons: string){
+    const dialogRef = this.dialog.open(EliminarCategoriasComponent, {
+      height: '70%',
+      width: '48%',
+      data: { value: cons }  
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
   /**
     * Write code on Method
     *
@@ -84,7 +122,7 @@ export class ListarCategoriasComponent implements AfterViewInit {
   }
 
   getimagePath(l: string | null)  {
-    if (l == null ){
+    if (l == null || l == '' ){
       return '/img-consolas/' + 'nestoploader.webp';
     }
     else {
