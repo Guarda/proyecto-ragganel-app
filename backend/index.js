@@ -86,10 +86,10 @@ app.get('/listar-estados', (req, res) => {
 /* Create a new post */
 
 app.post('/crear-producto', (req, res) => {
-    const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarProductoATablaProductoBase` (?, ?, ?, ?, ?)';
+    const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola, PrecioBase, Moneda } = req.body;
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarProductoATablaProductoBaseV2` (?, ?, ?, ?, ?, ?, ?)';
     // console.log(req.body);
-    db.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola], (err, result) => {
+    db.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, Moneda, ComentarioConsola], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -137,12 +137,12 @@ app.get('/producto/:id', (req, res) => {
 // /* Update a post */
 app.put('/producto/:id', (req, res) => {
   const id = req.params.id;
-  const {CodigoConsola, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola } = req.body;
+  const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola, PrecioBase, Moneda } = req.body;
 
-  const sql = 'CALL `base_datos_inventario_taller`.`ActualizarProductoBase` (?, ?, ?, ?, ?, ?)';
+  const sql = 'CALL `base_datos_inventario_taller`.`ActualizarProductoBase` (?, ?, ?, ?, ?, ?, ?, ?)';
   const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablaProductosBasesXId` (?)';
 
-  db.query(sql, [CodigoConsola, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola], err => {
+  db.query(sql, [id, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, Moneda, ComentarioConsola], err => {
     if (err) {
       res.status(500).send('Error actualizando producto');
       return;

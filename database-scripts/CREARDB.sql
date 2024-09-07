@@ -108,8 +108,9 @@ Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0087','Nintendo Switch V2','Nintendo');
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0088','Nintendo Switch Lite','Nintendo');
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0089','Nintendo Switch OLED','Nintendo');
-Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('P', 'SONY Play Station 2 - FAT - SCPH-18000 (2000)','Sony','ps2fat18000.png');
-Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('P', 'SONY Play Station 2 - SLIM - SCPH-900XX (2007-2013)','Sony','ps2slim900xx.jpg');
+Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - FAT - SCPH-18000 (2000)','Sony','ps2fat18000.png');
+Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - SLIM - SCPH-900XX (2007-2013)','Sony','ps2slim900xx.jpg');
+Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - FAT - SCPH-500xx (2003-2004)','Sony','ps2fat500xx.jpg');
 
 /*TABLA ESTADOS*/
 
@@ -137,9 +138,13 @@ CREATE TABLE ProductosBases (
     Hackeado boolean not null default 0,
     FechaIngreso date,
     Comentario varchar(100),
+    PrecioBase Decimal(6,2),
+	Moneda varchar(25),
     FOREIGN KEY (Modelo) REFERENCES CatalogoConsolas (IdModeloConsolaPK),
     FOREIGN KEY (Estado) REFERENCES CatalogoEstadosConsolas (CodigoEstado)
 );
+
+
 
 /* TABLA */
 

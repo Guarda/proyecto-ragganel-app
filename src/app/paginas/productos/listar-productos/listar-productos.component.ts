@@ -32,7 +32,7 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
 export class ListarProductosComponent implements AfterViewInit {
   productos: Producto[] = [];
   myArray: any[] = [];
-  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'Comentario', 'Action'];
+  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase','Comentario', 'Action'];
   //dataSource = ELEMENT_DATA;
   dataSource = new MatTableDataSource<Producto>;
 
@@ -47,7 +47,7 @@ export class ListarProductosComponent implements AfterViewInit {
 
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarProdutosComponent, {
-      height: '85%',
+      height: '97%',
       width: '50%',
     });
     dialogRef.componentInstance.Agregado.subscribe(() => {
@@ -64,7 +64,7 @@ export class ListarProductosComponent implements AfterViewInit {
 
   public openDialogEditar(cons: string) {
     const dialogRef = this.dialog.open(EditarProductosComponent, {
-      height: '85%',
+      height: '97%',
       width: '50%',
       data: { value: cons }      
     });

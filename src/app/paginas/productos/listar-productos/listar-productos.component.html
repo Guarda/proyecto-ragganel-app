@@ -54,10 +54,16 @@
           <td mat-cell *matCellDef="let element"> {{element.Fecha_Ingreso}} </td>
         </ng-container>
 
+         <!-- Symbol Column -->
+        <ng-container matColumnDef="PrecioBase">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Precio base</th>
+          <td mat-cell *matCellDef="let element"> {{element.PrecioBase | number:'1.1-2'}} </td>
+        </ng-container>
+
         <!-- Symbol Column -->
         <ng-container matColumnDef="Comentario">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Comentario </th>
-          <td mat-cell *matCellDef="let element"> {{element.Comentario}} </td>
+          <td mat-cell *matCellDef="let element"> {{element.Comentario }} </td>
         </ng-container>
 
          <!-- Symbol Column -->

@@ -1,6 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Inject } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,6 +43,8 @@ export class EditarProductosComponent {
   public consoleState: any;
   public consoleHack: any;
   public consoleComment: any;
+  public consolePrice: any;
+  public consoleCurrency: any;
 
   public ImagePath: any;
 
@@ -74,6 +76,8 @@ export class EditarProductosComponent {
       this.consoleState = this.producto.CodigoEstado;
       this.consoleHack = this.producto.Hack;      
       this.consoleComment = this.producto.Comentario;
+      this.consolePrice = this.producto.PrecioBase;
+      this.consoleCurrency = this.producto.Moneda;
 
       this.categorias.find(this.consoleCode).subscribe((data) => {
         this.categoria = data[0];
@@ -86,7 +90,9 @@ export class EditarProductosComponent {
       ColorConsola: [this.consoleColor],
       EstadoConsola: [this.consoleState],
       HackConsola: [this.consoleHack],
-      ComentarioConsola: [this.consoleComment]
+      ComentarioConsola: [this.consoleComment],
+      PrecioBase: [this.formatNumber(this.consolePrice)],
+      Moneda: [this.consoleCurrency]
       });   
     });
     
@@ -111,8 +117,10 @@ export class EditarProductosComponent {
       CodigoConsola: new FormControl(''),
       IdModeloConsolaPK: new FormControl(''),
       ColorConsola: new FormControl(''),
-      EstadoConsola: new FormControl(''),
-      HackConsola: new FormControl(''),
+      Moneda: new FormControl('',Validators.required),
+      PrecioBase: new FormControl('',Validators.required),
+      EstadoConsola: new FormControl('',Validators.required),
+      HackConsola: new FormControl('',Validators.required),
       ComentarioConsola: new FormControl('')
 
     });   
@@ -125,6 +133,15 @@ export class EditarProductosComponent {
     else {
       return '/img-consolas/' + l;
     }
+  }
+
+  formatNumber(value: number | null) {
+    if(value == null){
+      return 0;
+    }
+    else{
+      return value.toFixed(2); // Formats the number to 2 decimal places
+    }    
   }
 
   ngAfterViewInit() {

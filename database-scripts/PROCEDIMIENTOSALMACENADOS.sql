@@ -9,7 +9,9 @@ CREATE PROCEDURE ListarTablaProductosBases ()
 			SELECT A.CodigoConsola, B.DescripcionConsola, A.Color, C.DescripcionEstado As 'Estado',
 				A.Hackeado as 'Hack',
                 DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha_Ingreso',
-                Comentario
+                Comentario, 
+                PrecioBase,
+                Moneda
 			FROM ProductosBases A 
             join CatalogoConsolas B on A.Modelo = B.IdModeloConsolaPK
             join CatalogoEstadosConsolas C on A.Estado = C.CodigoEstado
@@ -19,7 +21,7 @@ DELIMITER ;
 
 /*PROCEDIMIENTO IngresarProductoATablaProductoBase*/
 DELIMITER //
-CREATE PROCEDURE IngresarProductoATablaProductoBase (modeloP int, colorP varchar(100),EstadoP int, hackP boolean, ComentarioP varchar(100))	
+CREATE PROCEDURE IngresarProductoATablaProductoBase (modeloP int, colorP varchar(100),EstadoP int, hackP boolean,Preciob decimal(6,2),MonedaP varchar(25), ComentarioP varchar(100))	
        BEGIN
 			DECLARE fecha varchar(25) default '010120';
             DECLARE ModeloCatCons varchar(25);
@@ -27,7 +29,7 @@ CREATE PROCEDURE IngresarProductoATablaProductoBase (modeloP int, colorP varchar
 			SELECT DATE_FORMAT(NOW(), '%d%m%Y') into fecha;
             SELECT CodigoModeloConsola from CatalogoConsolas where modelop = IdModeloConsolaPK into ModeloCatCons;
             SELECT count(*) into cantidadhoy from ProductosBases where date(FechaIngreso)=date(date_sub(now(),interval 0 day));
-			INSERT into ProductosBases values(concat(ModeloCatCons,'-',fecha,cantidadhoy), modeloP, colorP, EstadoP, hackP, DATE_FORMAT(NOW(), '%Y%m%d'), ComentarioP);			
+			INSERT into ProductosBases values(concat(ModeloCatCons,'-',fecha,cantidadhoy), modeloP, colorP, EstadoP, hackP, DATE_FORMAT(NOW(), '%Y%m%d'), ComentarioP, Preciob, MonedaP);			
        END //
 DELIMITER ;
 
@@ -35,7 +37,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE ListarCategoriasConsolasBase ()
 BEGIN
-	SELECT * FROM catalogoconsolas;
+	SELECT * FROM catalogoconsolas where Activo = 1;
 END//
 DELIMITER ;
 
@@ -144,6 +146,17 @@ DELIMITER ;
 
 call ActualizarCategoria(1, 'N0001', 'NES Estandar NES NTSC-US', 'Nintendo', 'nesstandar.jpg');
 cALL ListarTablacatalogoconsolasXId(1);
+
+/*PROCEDIMIENTO BORRAR CATEGORIA*/
+DELIMITER //
+	CREATE PROCEDURE BorrarCategoria(IdCategoria int)
+    BEGIN
+		UPDATE catalogoconsolas
+        SET
+			Activo = 0
+        WHERE IdModeloConsolaPK = IdCategoria;
+    END //
+DELIMITER ;
 
 
 

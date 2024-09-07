@@ -70,6 +70,8 @@ export class AgregarProdutosComponent {
     this.productoForm = new FormGroup({
       IdModeloConsolaPK: new FormControl('',Validators.required),
       ColorConsola: new FormControl(''),
+      Moneda: new FormControl('',Validators.required),
+      PrecioBase: new FormControl('',Validators.required),
       EstadoConsola: new FormControl('',Validators.required),
       HackConsola: new FormControl('',Validators.required),
       ComentarioConsola: new FormControl('')
