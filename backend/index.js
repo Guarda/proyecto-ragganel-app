@@ -222,7 +222,7 @@ app.get('/categoria/:id', (req, res) => {
 app.put('/categoria/:id', (req, res) => {
     const id = req.params.id;
     const {IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen} = req.body;
-    console.log('reached');
+    // console.log('reached');
     const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCategoria` (?, ?, ?, ?, ?)';
     const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';
   

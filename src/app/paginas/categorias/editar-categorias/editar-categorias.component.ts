@@ -74,7 +74,7 @@ export class EditarCategoriasComponent {
 
   getimagePath(l: string | null) {
     if (l == null || l == '') {
-      return '/img-consolas/' + 'nestoploader.webp';
+      return '/img-consolas/' + 'nestoploader.jpg';
     }
     else {
       return '/img-consolas/' + l;

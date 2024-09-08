@@ -97,7 +97,7 @@ export class AgregarProdutosComponent {
   getimagePath(l: string | null) {
     if (l == null || l == '') {
       //console.log(l);
-      return '/img-consolas/' + 'nestoploader.webp';
+      return '/img-consolas/' + 'nestoploader.jpg';
     }
     else {
       return '/img-consolas/' + l;
