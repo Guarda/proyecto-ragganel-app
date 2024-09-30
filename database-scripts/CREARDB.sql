@@ -2,13 +2,44 @@
 create database base_datos_inventario_taller;
 use base_datos_inventario_taller;
 
+/*TABLAS CREADAS EL 10/09/24 TiposAccesorios, TiposProductos y CatalogoTiposAccesoriosXProducto*/
+CREATE TABLE TiposAccesorios (
+	IdTipoAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    CodigoAccesorio varchar(25),
+    DescripcionAccesorio varchar(100),
+    Activo boolean not null default 1
+);
+
+
+CREATE TABLE TiposProductos (
+	IdTipoProductoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    DescripcionTipoProducto varchar(100),
+    Activo boolean not null default 1
+);
+
+CREATE TABLE CatalogoTiposAccesoriosXProducto (
+	IdCatalogoAccesorioXProductoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    IdTipoAccesorioFK int,
+    IdTipoProductoFK int,
+    Activo boolean not null default 1,
+	FOREIGN KEY (IdTipoAccesorioFK) REFERENCES TiposAccesorios (IdTipoAccesorioPK),
+    FOREIGN KEY (IdTipoProductoFK) REFERENCES TiposProductos (IdTipoProductoPK)
+);    
+
+
 CREATE TABLE CatalogoConsolas (
 	IdModeloConsolaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
-	CodigoModeloConsola varchar(25),
-    DescripcionConsola varchar(100),
-    Fabricante varchar(100),
+    Fabricante int,
+    Categoria int,
+    Subcategoria int,
+	CodigoModeloConsola varchar(25),    
     LinkImagen varchar(100),
-    Activo boolean not null default 1
+    TipoProducto int,
+    Activo boolean not null default 1,
+    FOREIGN KEY (TipoProducto) REFERENCES TiposProductos (IdTipoProductoPK),
+    FOREIGN KEY (Fabricante) REFERENCES Fabricantes (IdFabricantePK),
+    FOREIGN KEY (Categoria) REFERENCES categoriasproductos (IdcategoriaPK),
+    FOREIGN KEY (Subcategoria) REFERENCES subcategoriasproductos (IdSubcategoria)
 );
 
 
@@ -18,7 +49,7 @@ UPDATE CatalogoConsolas SET Fabricante = 'Nintendo';
 SET SQL_SAFE_UPDATES = 1;*/
 
 /*INSERTAR VALORES A LA TABLA CATALOGO*/
-
+/*
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0001','NES Estandar NES NTSC-US','Nintendo');
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0002','NES Estandar FAMICON NTSC-J','Nintendo');
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0003','NES Estandar NES PAL','Nintendo');
@@ -110,7 +141,7 @@ Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola) values('N0089','Nintendo Switch OLED','Nintendo');
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - FAT - SCPH-18000 (2000)','Sony','ps2fat18000.png');
 Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - SLIM - SCPH-900XX (2007-2013)','Sony','ps2slim900xx.jpg');
-Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - FAT - SCPH-500xx (2003-2004)','Sony','ps2fat500xx.jpg');
+Insert into CatalogoConsolas (CodigoModeloConsola,DescripcionConsola,Fabricante, LinkImagen) values('P', 'SONY Play Station 2 - FAT - SCPH-500xx (2003-2004)','Sony','ps2fat500xx.jpg');*/
 
 /*TABLA ESTADOS*/
 
@@ -137,16 +168,97 @@ CREATE TABLE ProductosBases (
     Estado int not null,
     Hackeado boolean not null default 0,
     FechaIngreso date,
-    Comentario varchar(100),
+    Comentario varchar(255),
     PrecioBase Decimal(6,2),
-	Moneda varchar(25),
+    NumeroSerie varchar(100),    
+    Accesorios varchar(500),
     FOREIGN KEY (Modelo) REFERENCES CatalogoConsolas (IdModeloConsolaPK),
     FOREIGN KEY (Estado) REFERENCES CatalogoEstadosConsolas (CodigoEstado)
 );
 
 
+/*NO USAR
+CREATE TABLE AccesoriosdeProductos (
+/*TABLA ACCESORIOSDEPRODUCTOS CREADA 23/09/2024 
+	IdAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    DescripcionAccesorio varchar(100),
+    Activo boolean not null default 1,
+    IdCodigoConsolaFK varchar(25),
+    FOREIGN KEY (IdCodigoConsolaFK) REFERENCES ProductosBases (CodigoConsola)
+);*/
 
-/* TABLA */
+CREATE TABLE TareasdeProductos (
+/*TABLA TareasdeProductos CREADA 23/09/2024 */
+	IdTareaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    DescripcionTarea varchar(100),
+    Realizado boolean not null default 0,
+    Activo boolean not null default 1,
+    IdCodigoConsolaFK varchar(25),
+    FOREIGN KEY (IdCodigoConsolaFK) REFERENCES ProductosBases (CodigoConsola)
+);
+
+/*TABLA FABRICANTES CREADO 14/09/24*/
+
+CREATE TABLE FABRICANTES (
+	IdFabricantePK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NombreFabricante varchar(100),
+    Activo boolean not null default 1
+);
+
+INSERT INTO FABRICANTES (NombreFabricante) values ('Nintendo');
+INSERT INTO FABRICANTES (NombreFabricante) values ('Sony');
+INSERT INTO FABRICANTES (NombreFabricante) values ('Microsoft');
+
+
+/* TABLA CATEGORIAS CREADO 14/09/24*/
+
+CREATE TABLE CategoriasProductos (
+	IdCategoriaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NombreCategoria varchar(100),
+    IdFabricanteFK int,
+    Activo boolean not null default 1,
+    FOREIGN KEY (IdFabricanteFK) REFERENCES FABRICANTES (IdFabricantePK)
+);
+
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Gamecube',1);
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('3DS',1);
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Nintendo 64',1);
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Play Station 2 - FAT',2);
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Play Station 2 - SLIM',2);
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Xbox 360',3);
+INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Xbox 360 S',3);
+/* TABLA SUBCATEGORIAS CREADO 14/09/24*/
+
+CREATE TABLE SubcategoriasProductos (
+	IdSubcategoria int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NombreSubcategoria varchar(100),
+    IdCategoriaFK int,
+    Activo boolean not null default 1,
+    FOREIGN KEY (IdCategoriaFK) REFERENCES CategoriasProductos (IdCategoriaPK)
+);
+
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('Indigo',1);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('Jet Black',1);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('Platinum Silver',1);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('Spice Orange',1);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('Pearl White',1);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('Metroid Prime Bundle',1);
+
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('SCPH-700xx (2004-2005)',5);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('SCPH-750xx (2005-2006)',5);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('SCPH-770xx (2006-2007)',5);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('SCPH-790xx (2007)',5);
+INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('SCPH-900xx (2007-2013)',5);
+
+/*
+CREATE TABLE TareasdeProductos (
+	IdTareaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    DescripcionTarea varchar(100),
+    Realizado boolean not null default 0,
+	Activo boolean not null default 1,
+    CodigoConsola VARCHAR(25),
+	FOREIGN KEY (CodigoConsola) REFERENCES ProductosBases(CodigoConsola)
+);*/
 
 
     

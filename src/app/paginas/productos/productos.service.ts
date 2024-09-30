@@ -46,7 +46,7 @@ export class ProductosService {
    */
 
   create(producto: Producto): Observable<any> {
-    return this.httpClient.post(this.apiURL + '/crear-producto/', JSON.stringify(producto), this.httpOptions)
+    return this.httpClient.post(this.apiURL + '/productos/crear-producto/', JSON.stringify(producto), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )

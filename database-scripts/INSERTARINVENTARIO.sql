@@ -63,6 +63,30 @@ CALL IngresarProductoATablaProductoBase(81,'Gris',6,0,'Parte atras dañada');
 CALL IngresarProductoATablaProductoBase(81,'Blanco',2,0,'');
 CALL IngresarProductoATablaProductoBase(81,'Blanco',2,1,'');
 
+CALL IngresarProductoATablaProductoBaseV3(
+    9,                                   -- modeloP (IdModeloConsolaPK)
+    'Verde',                             -- colorP (ColorConsola)
+    1,                                   -- EstadoP (EstadoConsola)
+    0,                                   -- hackP (HackConsola)
+    160.00,                              -- Preciob (PrecioBase)
+    'Reservado para cliente especial',   -- ComentarioP (ComentarioConsola)
+    'XXX2',                              -- NumeroS (NumeroSerie)
+    'Mando de juego,Cable HDMI'          -- AccesoriosP (comma-separated accessories)
+);
+
+CALL IngresarProductoATablaProductoBaseV4(
+    9,                                   -- modeloP (IdModeloConsolaPK)
+    'Verde',                             -- colorP (ColorConsola)
+    1,                                   -- EstadoP (EstadoConsola)
+    0,                                   -- hackP (HackConsola)
+    160.00,                              -- Preciob (PrecioBase)
+    'Reservado para cliente especial',   -- ComentarioP (ComentarioConsola)
+    'XXX2',                              -- NumeroS (NumeroSerie)
+    'Mando de juego,Cable HDMI',         -- AccesoriosP (comma-separated accessories)
+    'Limpiar, Poner Fibra de vidrio'                            -- TareasP (comma-separated TodoList)
+);
+
+
 
 
 

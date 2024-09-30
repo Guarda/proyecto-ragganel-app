@@ -37,7 +37,7 @@ export class EliminarCategoriasComponent {
   onEliminar(){
     this.categoriaService.eliminar(this.categoriaForm.value).subscribe((res: any) => {
       this.Borrado.emit();
-      this.router.navigateByUrl('listado-productos');
+      this.router.navigateByUrl('listado-categorias');
     })
   }
 }

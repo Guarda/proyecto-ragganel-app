@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -27,7 +27,28 @@ export class CategoriasConsolasService {
 
   getAll(): Observable<any> {
     //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
-    return this.httpClient.get(this.apiURL + '/listar-categorias/')
+    return this.httpClient.get(this.apiURL + '/productos/listar-categorias/')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  /**
+   * Write code on Method
+   *
+   * @return response()
+   */
+
+  getbymanufacturer(fabricante: number, categoria: number, subcategoria: number): Observable<any> {
+    
+    
+    let params = new HttpParams()
+    .set('Fabricante', fabricante)
+    .set('Categoria', categoria)
+    .set('Subcategoria', subcategoria);
+
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/categorias/categoria/', {params})
       .pipe(
         catchError(this.errorHandler)
       )
@@ -40,7 +61,7 @@ export class CategoriasConsolasService {
    */
 
   create(categoria: CategoriasConsolas): Observable<any> {
-    return this.httpClient.post(this.apiURL + '/crear-categoria-producto/', JSON.stringify(categoria), this.httpOptions)
+    return this.httpClient.post(this.apiURL + '/categorias/crear-categoria-producto/', JSON.stringify(categoria), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
@@ -53,14 +74,14 @@ export class CategoriasConsolasService {
    */
 
   find(id: string): Observable<any> {
-    return this.httpClient.get(this.apiURL + '/categoria/' + id)
+    return this.httpClient.get(this.apiURL + '/categorias/categoria/' + id)
       .pipe(
         catchError(this.errorHandler)
       )
   }
 
   update(categoria: CategoriasConsolas): Observable<any> {
-    return this.httpClient.put(this.apiURL + '/categoria/' + categoria.IdModeloConsolaPK, JSON.stringify(categoria), this.httpOptions)
+    return this.httpClient.put(this.apiURL + '/categorias/categoria/' + categoria.IdModeloConsolaPK, JSON.stringify(categoria), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
@@ -68,7 +89,7 @@ export class CategoriasConsolasService {
 
   eliminar(categoria: CategoriasConsolas): Observable<any> {   
     console.log(categoria) 
-    return this.httpClient.put(this.apiURL + '/categoria-eliminar/' + categoria.IdModeloConsolaPK, JSON.stringify(categoria), this.httpOptions)
+    return this.httpClient.put(this.apiURL + '/categorias/categoria-eliminar/' + categoria.IdModeloConsolaPK, JSON.stringify(categoria), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )

@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-      
-import {  Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { TipoAccesorios
+
+ } from '../paginas/interfaces/accesorios';
 @Injectable({
   providedIn: 'root'
 })
-export class EstadoConsolasService {
+export class TiposAccesoriosService {
+
   private apiURL = "http://localhost:3000";
 
   httpOptions = {
@@ -18,19 +21,18 @@ export class EstadoConsolasService {
 
   constructor(private httpClient: HttpClient) { }
 
-   /**
+  /**
    * Write code on Method
    *
    * @return response()
    */
 
-   getAll(): Observable<any> {
-    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
-    return this.httpClient.get(this.apiURL + '/productos/listar-estados/')
-    .pipe(
-      catchError(this.errorHandler)
-    )
-  }    
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/accesorios/accesorio/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
 
   errorHandler(error:any) {
     let errorMessage = '';

@@ -47,7 +47,8 @@ export class ListarProductosComponent implements AfterViewInit {
 
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarProdutosComponent, {
-      height: '97%',
+      disableClose: true,
+      height: '100%',
       width: '50%',
     });
     dialogRef.componentInstance.Agregado.subscribe(() => {
@@ -64,6 +65,7 @@ export class ListarProductosComponent implements AfterViewInit {
 
   public openDialogEditar(cons: string) {
     const dialogRef = this.dialog.open(EditarProductosComponent, {
+      disableClose: true,
       height: '97%',
       width: '50%',
       data: { value: cons }      
@@ -81,7 +83,8 @@ export class ListarProductosComponent implements AfterViewInit {
   }
 
   public openDialogEliminar(cons: string){
-    const dialogRef = this.dialog.open(EliminarProductosComponent, {     
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {  
+      disableClose: true,   
       data: { value: cons }      
     });
     dialogRef.componentInstance.Borrado.subscribe(() => {

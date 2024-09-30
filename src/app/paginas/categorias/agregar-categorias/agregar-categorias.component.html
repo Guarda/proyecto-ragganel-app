@@ -10,26 +10,54 @@
     <div class="contendor-form">
       <mat-dialog-content class="mat-typography">
         <h3>Ingresa detalles de la categoría del producto a ingresar</h3>
+        <!--Fabricante  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Fabricante</mat-label>
+          <mat-select formControlName ="Fabricante" name="Fabricante">             
+              <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricantePK">{{est.NombreFabricante}} </mat-option>            
+          </mat-select> 
+        </mat-form-field>
+        <!-- Categoria  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Categoria</mat-label>
+          <mat-select formControlName ="Cate" name="Cate">             
+              <mat-option *ngFor="let est of selectedCategoriaProducto" [value]="est.IdCategoriaPK">{{est.NombreCategoria}} </mat-option>            
+          </mat-select> 
+        </mat-form-field>  
+        <!-- SubCategoria  -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Modelo</mat-label>
+          <mat-select formControlName ="SubCategoria" name="SubCategoria">             
+              <mat-option *ngFor="let est of selectedSubCategoriaProducto" [value]="est.IdSubcategoria">{{est.NombreSubCategoria}} </mat-option>            
+          </mat-select> 
+        </mat-form-field> 
         <!--Codigo Consola  -->
         <mat-form-field class="input-form-prod">
           <mat-label>Prefijo de la consola</mat-label>
-          <textarea formControlName = "CodigoModeloConsola" matInput></textarea>
+          <textarea formControlName = "CodigoModeloConsola" matInput cdkFocusInitial></textarea>
         </mat-form-field>
-          <!--Codigo Consola  -->
-        <mat-form-field class="input-form-prod">
+          <!--desc Consola  -->
+        <!-- <mat-form-field class="input-form-prod">
           <mat-label>Descripción de producto</mat-label>
           <textarea formControlName = "DescripcionConsola" matInput></textarea>
-        </mat-form-field>
+        </mat-form-field> -->
           <!--Color Consola  -->
-        <mat-form-field class="input-form-prod">
+        <!-- <mat-form-field class="input-form-prod">
           <mat-label>Fabricante</mat-label>
           <textarea formControlName = "Fabricante" matInput></textarea>
-        </mat-form-field>
+        </mat-form-field> -->
           <!--Link Imagen Categoria  -->
         <mat-form-field class="input-form-prod">
           <mat-label>Link de la imagen</mat-label>
           <textarea formControlName = "LinkImagen" matInput> </textarea>
-        </mat-form-field>                
+        </mat-form-field>
+          <!--Tipo de Producto  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Tipo de producto</mat-label>
+            <mat-select formControlName ="TipoProducto" name="TipoProducto">             
+                <mat-option *ngFor="let est of selectedTipoProducto" [value]="est.IdTipoProductoPK">{{est.DescripcionTipoProducto}} </mat-option>            
+            </mat-select> 
+          </mat-form-field>                
       </mat-dialog-content>
     </div>  
   </div>

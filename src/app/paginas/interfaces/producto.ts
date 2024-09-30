@@ -10,7 +10,9 @@ export interface Producto extends EstadosConsolas, CategoriasConsolas {
     Fecha_Ingreso:          Date;
     Comentario:            string;
     PrecioBase: number;
-    Moneda: string;
+    NumeroSerie: string;
+    Accesorios: string;
+    // Moneda: string;
 }
 
 // export enum Publisher {

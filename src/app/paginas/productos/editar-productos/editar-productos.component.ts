@@ -44,7 +44,7 @@ export class EditarProductosComponent {
   public consoleHack: any;
   public consoleComment: any;
   public consolePrice: any;
-  public consoleCurrency: any;
+  // public consoleCurrency: any;
 
   public ImagePath: any;
 
@@ -77,7 +77,7 @@ export class EditarProductosComponent {
       this.consoleHack = this.producto.Hack;      
       this.consoleComment = this.producto.Comentario;
       this.consolePrice = this.producto.PrecioBase;
-      this.consoleCurrency = this.producto.Moneda;
+      // this.consoleCurrency = this.producto.Moneda;
 
       this.categorias.find(this.consoleCode).subscribe((data) => {
         this.categoria = data[0];
@@ -92,7 +92,7 @@ export class EditarProductosComponent {
       HackConsola: [this.consoleHack],
       ComentarioConsola: [this.consoleComment],
       PrecioBase: [this.formatNumber(this.consolePrice)],
-      Moneda: [this.consoleCurrency]
+      // Moneda: [this.consoleCurrency]
       });   
     });
     
@@ -117,7 +117,7 @@ export class EditarProductosComponent {
       CodigoConsola: new FormControl(''),
       IdModeloConsolaPK: new FormControl(''),
       ColorConsola: new FormControl(''),
-      Moneda: new FormControl('',Validators.required),
+      // Moneda: new FormControl('',Validators.required),
       PrecioBase: new FormControl('',Validators.required),
       EstadoConsola: new FormControl('',Validators.required),
       HackConsola: new FormControl('',Validators.required),

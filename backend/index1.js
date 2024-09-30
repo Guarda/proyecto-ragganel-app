@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 // const mysql = require('mysql');
-const db = require('./db')
+const db = require('./config/db')
 const cors = require('cors');
 
 const app = express();
@@ -51,6 +51,7 @@ app.get('/productos', (req, res) => {
     db.query('CALL `base_datos_inventario_taller`.`ListarTablaProductosBases`();', (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
+            console.log(err);
             return;
         }
         res.json(results[0]);
@@ -82,6 +83,17 @@ app.get('/listar-estados', (req, res) => {
     });
 })
 
+/* List all product types */
+app.get('/listar-tipos-productos', (req, res) => {
+  db.query('CALL `base_datos_inventario_taller`.`ListarTiposProductos`();', (err, results) => {
+      if (err) {
+          res.status(500).send('Error fetching estados');
+          return;
+      }
+      //console.log(res.json(results));
+      res.json(results[0]);
+  });
+})
 
 /* Create a new post */
 
@@ -182,10 +194,10 @@ app.put('/producto-eliminar/:id', (req, res) => {
 /* Create a new post */
 
 app.post('/crear-categoria-producto', (req, res) => {
-    const { CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaProducto` (?, ?, ?, ?)';
+    const { CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen, TipoProducto } = req.body;
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaProducto` (?, ?, ?, ?, ?)';
     // console.log(req.body);
-    db.query(sql, [CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen], (err, result) => {
+    db.query(sql, [CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen, TipoProducto], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -221,12 +233,12 @@ app.get('/categoria/:id', (req, res) => {
 // /* Update a categoria */
 app.put('/categoria/:id', (req, res) => {
     const id = req.params.id;
-    const {IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen} = req.body;
+    const {IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen, TipoProducto} = req.body;
     // console.log('reached');
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCategoria` (?, ?, ?, ?, ?)';
+    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCategoria` (?, ?, ?, ?, ?, ?)';
     const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';
   
-    db.query(sql, [IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen], err => {
+    db.query(sql, [IdModeloConsolaPK, CodigoModeloConsola, DescripcionConsola, Fabricante, LinkImagen, TipoProducto], err => {
       if (err) {
         res.status(500).send('Error actualizando producto');
         return;

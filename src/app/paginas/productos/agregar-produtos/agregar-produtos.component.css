@@ -51,3 +51,7 @@ span {
 .imagen-consola{
   width: 360px!important;
 }
+
+.example-form-field {
+  width: 100%;
+}
