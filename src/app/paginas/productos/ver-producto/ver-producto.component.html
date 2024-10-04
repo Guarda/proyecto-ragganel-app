@@ -1,0 +1,174 @@
+<div class="contenedor-componente-ver-producto">
+    <div class="header1">
+        <h3 class="cabezera">      
+            <span>Producto</span>
+            <span>{{ConsoleId}}</span>
+            
+        </h3>
+        <h3 class="cabezera1">
+            <a mat-raised-button class="button-crear-prod" href="#" [routerLink]="['/listado-productos']" color="primary" ><mat-icon class="iconos-custom">close</mat-icon></a>                 
+        </h3>
+    </div>
+    
+
+    <form [formGroup]="productoForm" (ngSubmit)="onSubmit()">
+        <div class="contenedor-principal">            
+            <div class="contenedor-secundario">                
+                <div class="contenedor1">
+                    <div class="contenedor5">
+                        <div class="contenedor-datos-consola">
+                            <div class="contenedor-img-consola">
+                                <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
+                                <h5>Imagen del producto {{ConsoleId}}</h5>  
+                            </div>                                      
+                            <div class="contenedor-datos-principales">
+                                <h5>Detalles del modelo</h5>
+                                    <!-- FABRICANTE -->
+                                <mat-form-field class="input-form-prod">
+                                    <mat-label>Fabricante</mat-label>
+                                    <mat-select formControlName ="Fabricante" name="Fabricante">             
+                                        <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricantePK" [disabled]="est.NombreFabricante">{{est.NombreFabricante}} </mat-option>
+                                    </mat-select> 
+                                </mat-form-field>
+                                <!-- CATEGORIA -->
+                                <mat-form-field class="input-form-prod">
+                                    <mat-label>Categoria</mat-label>
+                                    <mat-select formControlName ="Cate" name="Cate">             
+                                        <mat-option *ngFor="let est of selectedCategoriaProducto" [value]="est.IdCategoriaPK" [disabled]="est.NombreCategoria">{{est.NombreCategoria}} </mat-option>            
+                                    </mat-select> 
+                                </mat-form-field> 
+                                <!-- SUBCATEGORIA -->
+                                <mat-form-field class="input-form-prod">
+                                    <mat-label>Modelo</mat-label>
+                                    <mat-select formControlName ="SubCategoria" name="SubCategoria">             
+                                        <mat-option *ngFor="let est of selectedSubCategoriaProducto" [value]="est.IdSubcategoria" [disabled]="est.NombreSubCategoria">{{est.NombreSubCategoria}} </mat-option>            
+                                    </mat-select> 
+                                  </mat-form-field>                          
+                                    <!--Estado Consola  -->
+                                
+                            </div>                        
+                        </div>
+                        <!-- Color de consola -->
+                        <div class="contenedor-detalles">
+                            <div class="contenedor3">
+                                <h5>Serie y Estado </h5>
+                                <!--Numero de serie Consola  -->
+                                <mat-form-field class="input-form-prod">
+                                    <mat-label>Numero de serie</mat-label>
+                                    <textarea formControlName = "NumeroSerie" name="NumeroSerie" matInput> {{producto}}</textarea>
+                                </mat-form-field>    
+                                <mat-form-field class="input-form-prod" *ngIf="producto">
+                                    <mat-label>Estado</mat-label>
+                                    <mat-select formControlName = "EstadoConsola" name="est">             
+                                        <mat-option *ngFor="let est of selectedEstado" placeholder="producto.consoleState"  [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>
+                                    </mat-select> 
+                                </mat-form-field>
+                            </div>
+                            <div class="contenedor4">
+                                <h5> Color y Hack</h5>
+                                <mat-form-field class="input-form-prod" *ngIf="producto">
+                                    <mat-label>Color del producto</mat-label>
+                                    <textarea formControlName = "ColorConsola" name="ColorConsola" matInput> {{producto}}</textarea>
+                                </mat-form-field>
+                                <mat-form-field class="input-form-prod">
+                                    <mat-label>Select</mat-label>
+                                    <mat-select formControlName = "HackConsola">
+                                      <mat-option [value]=0>Stock</mat-option>
+                                      <mat-option [value]=1>Hack</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>    
+                            </div>                        
+                        </div>
+                    </div>
+                    <div class="contenedor6">
+                        <h5> Precio y comentarios </h5>
+                        <mat-form-field class="input-form-prod">
+                            <mat-label>Precio Base</mat-label>
+                            <textarea formControlName = "PrecioBase" name="PrecioBase" matInput></textarea>
+                        </mat-form-field>
+                        <mat-form-field class="example-full-width"  >
+                            <mat-label>Describe el estado del producto</mat-label>
+                            <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div class="contenedor2">
+                    <div class="botonedicion">
+                        <button mat-button type="submit" class="btn-editar" (Click)="onSubmit()">Guardar Cambios</button> 
+                    </div>  
+                    <div  class="contenedorQR"></div>
+                        <h5 class="h5qr">Código QR</h5>
+                        <qrcode 
+                            [qrdata]="ConsoleId"
+                            [allowEmptyString]="true"
+                            [ariaLabel]="'QR Code image with the following content...'"
+                            [cssClass]="'center'"
+                            [colorDark]="'#000000ff'"
+                            [colorLight]="'#ffffffff'"
+                            [elementType]="'canvas'"
+                            [errorCorrectionLevel]="'M'"
+                            [imageSrc]="'logo-ragganel.png'"
+                            [imageHeight]="70"
+                            [imageWidth]="70"                           
+                            [margin]="4"
+                            [scale]="1"
+                            [title]="'A custom title attribute'"
+                            [width]="300"
+                            class="qr">
+                        </qrcode>
+                        <!--   -->
+                    <div class="contenedorAccesorios" *ngIf="producto">
+                        <mat-form-field class="input-form-prod">
+                            <mat-label>Accesorios</mat-label>
+                            <mat-chip-grid #chipGrid aria-label="Enter keywords" formControlName="Accesorios">
+                              <mat-chip-row *ngFor="let keyword of keywords(); trackBy: trackByAccessory" 
+                                            (removed)="removeKeyword(keyword)">
+                                {{ keyword }}
+                                <button matChipRemove aria-label="'remove ' + keyword">
+                                  <mat-icon>cancel</mat-icon>
+                                </button>
+                              </mat-chip-row>
+                            </mat-chip-grid>
+                            <input
+                              placeholder="Agrega accesorios..."
+                              [matChipInputFor]="chipGrid"
+                              (matChipInputTokenEnd)="add($event)"
+                            />
+                          </mat-form-field>
+                    </div>
+                    <div class="contenedorTodoList">
+                        <h5 class="h5qr">Tareas a realizar</h5>
+                        <h5 class="h5qr">proximamente</h5>
+                    </div>                   
+                </div>
+                           
+            </div>
+            
+        </div>      
+    </form>
+
+</div>
+
+
+
+<!-- 
+<mat-form-field class="input-form-prod">
+    <mat-label>Fabricante</mat-label>
+    <mat-select formControlName ="Fabricante" name="Fabricante">             
+        <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricantePK" >{{est.NombreFabricante}} </mat-option>            
+    </mat-select> 
+</mat-form-field>
+
+<mat-form-field class="input-form-prod">
+    <mat-label>Categoria</mat-label>
+    <mat-select formControlName ="Cate" name="Cate">             
+        <mat-option *ngFor="let est of selectedCategoriaProducto" [value]="est.IdCategoriaPK" >{{est.NombreCategoria}} </mat-option>            
+    </mat-select> 
+</mat-form-field> 
+
+<mat-form-field class="input-form-prod">
+    <mat-label>Modelo</mat-label>
+    <mat-select formControlName ="SubCategoria" name="SubCategoria">             
+        <mat-option *ngFor="let est of selectedSubCategoriaProducto" [value]="est.IdSubcategoria" >{{est.NombreSubCategoria}} </mat-option>            
+    </mat-select> 
+</mat-form-field> -->

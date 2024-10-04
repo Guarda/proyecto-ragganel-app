@@ -7,7 +7,7 @@
   <div class="contenedor-principal">
     <div class="contenedor-secundario">
       <div class="contenedor-img-consola">
-        <img src="/img-consolas/new3dsstockimage.png" alt="imagen-consola">
+        <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
       </div>
       <div class="contendor-form">
         <mat-dialog-content class="mat-typography">
@@ -27,14 +27,26 @@
             <mat-label>Color del producto</mat-label>
             <textarea formControlName = "ColorConsola" name="ColorConsola" matInput> {{producto}}</textarea>
           </mat-form-field>
+          
             <!--Estado Consola  -->
           <mat-form-field class="input-form-prod" *ngIf="producto">
             <mat-label>Estado</mat-label>
             <mat-select formControlName = "EstadoConsola" name="est">             
-                <mat-option *ngFor="let est of selectedEstado" placeholder="producto.estado" [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>            
-                <!-- <mat-option> </mat-option>             -->
+                <mat-option *ngFor="let est of selectedEstado" placeholder="producto.estado" [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>
             </mat-select> 
           </mat-form-field>
+
+          <!--Precio Base Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Precio Base</mat-label>
+            <textarea formControlName = "PrecioBase" name="PrecioBase" matInput></textarea>
+          </mat-form-field>
+
+          <!--Precio Base Consola  -->
+          <!-- <mat-form-field class="input-form-prod">
+            <mat-label>Moneda</mat-label>
+            <textarea formControlName = "Moneda" name="Moneda" matInput></textarea>
+          </mat-form-field> -->
           <!-- Hack o Stock -->
           <mat-form-field class="input-form-prod">
             <mat-label>Select</mat-label>

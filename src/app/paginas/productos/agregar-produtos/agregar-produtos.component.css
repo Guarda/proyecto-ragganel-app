@@ -47,3 +47,11 @@ span {
 .example-full-width {
   width: 100%;
 }
+
+.imagen-consola{
+  width: 360px!important;
+}
+
+.example-form-field {
+  width: 100%;
+}

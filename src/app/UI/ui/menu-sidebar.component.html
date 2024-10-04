@@ -5,19 +5,23 @@
   </button>
   <h3 mat-> SIAGTEC - Administración de taller</h3>
 </mat-toolbar>
-<mat-sidenav-container class="menu-container" style="height: 100vh;">
+<mat-sidenav-container class="menu-container" style="height: 94vh;">
     <mat-sidenav #sidenav mode="side" opened class="sidenav">
       
       <mat-nav-list  class="lits-items-css">
         <!-- <mat-list-item routerLink="./listado-productos" (click)="sidenav.toggle()"> -->
-        <mat-list-item routerLink="./listado-productos">
+        <mat-list-item routerLink="./listado-productos" class="color-texto-sidenav">
                     <mat-icon class="iconos_menu">videogame_asset</mat-icon>
             Inventario
         </mat-list-item>
-        <mat-list-item routerLink="./agregar-productos">
-            <mat-icon class="iconos_menu">point_of_sale</mat-icon>
-            Agregar
+        <mat-list-item routerLink="./listado-categorias" class="color-texto-sidenav">
+            <mat-icon class="iconos_menu">list_alt</mat-icon>
+            Categorias de productos
         </mat-list-item>
+        <mat-list-item routerLink="./agregar-productos" class="color-texto-sidenav">
+          <mat-icon class="iconos_menu">point_of_sale</mat-icon>
+          Punto de venta
+      </mat-list-item>
       </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content>

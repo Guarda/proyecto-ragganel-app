@@ -26,7 +26,7 @@ export class EstadoConsolasService {
 
    getAll(): Observable<any> {
     //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
-    return this.httpClient.get(this.apiURL + '/listar-estados/')
+    return this.httpClient.get(this.apiURL + '/productos/listar-estados/')
     .pipe(
       catchError(this.errorHandler)
     )

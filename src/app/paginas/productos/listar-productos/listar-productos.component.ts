@@ -11,13 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 
 import { AgregarProdutosComponent } from '../agregar-produtos/agregar-produtos.component';
-import { DialogConfig } from '@angular/cdk/dialog';
 import { EditarProductosComponent } from '../editar-productos/editar-productos.component';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 
@@ -26,7 +24,7 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
   selector: 'app-listar-productos',
   standalone: true,
   imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatFormFieldModule, MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, AgregarProdutosComponent
+     MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, AgregarProdutosComponent
   ],
   templateUrl: './listar-productos.component.html',
   styleUrl: './listar-productos.component.css'
@@ -34,7 +32,7 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
 export class ListarProductosComponent implements AfterViewInit {
   productos: Producto[] = [];
   myArray: any[] = [];
-  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'Comentario', 'Action'];
+  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase','Comentario', 'Action'];
   //dataSource = ELEMENT_DATA;
   dataSource = new MatTableDataSource<Producto>;
 
@@ -49,7 +47,8 @@ export class ListarProductosComponent implements AfterViewInit {
 
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarProdutosComponent, {
-      height: '85%',
+      disableClose: true,
+      height: '100%',
       width: '50%',
     });
     dialogRef.componentInstance.Agregado.subscribe(() => {
@@ -63,27 +62,10 @@ export class ListarProductosComponent implements AfterViewInit {
       this.dataSource.sort = this.sort;
     });
   }
-
-  public openDialogEditar(cons: string) {
-    const dialogRef = this.dialog.open(EditarProductosComponent, {
-      height: '85%',
-      width: '50%',
-      data: { value: cons }      
-    });
-    dialogRef.componentInstance.Editado.subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
+ 
   public openDialogEliminar(cons: string){
-    const dialogRef = this.dialog.open(EliminarProductosComponent, {     
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {  
+      disableClose: true,   
       data: { value: cons }      
     });
     dialogRef.componentInstance.Borrado.subscribe(() => {

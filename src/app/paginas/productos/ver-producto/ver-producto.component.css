@@ -1,0 +1,145 @@
+.contenedor-componente-ver-producto {
+  margin-left: 5%;
+  margin-right: 5%;
+
+}
+
+.header1 {
+  display: flex;
+  flex-direction: row;
+}
+
+.cabezera {
+  display: flex;
+  align-items: left;
+  padding: 1%;
+  justify-content: space-around;
+  /* justify-content: flex-end; */
+  width: 25%;
+}
+
+.cabezera1 {
+  display: flex;
+  align-items: end;
+  padding: 1%;
+  justify-content: flex-end;
+  width: 75%;
+}
+
+.contenedor-img-consola {
+  padding-left: 2%;
+  padding-right: 2%;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  flex-direction: column;
+  padding: auto;
+}
+
+.contenedor-secundario {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  border: 2px solid black;
+  border-radius: 20px;
+  background-color: white;
+}
+
+.contenedor1 {
+  width: 70%;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: left;
+  flex-direction: column;
+  padding: auto;
+}
+
+.contenedor2 {
+  width: 30%;
+}
+
+.contenedor-detalles {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.contenedor3 {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: left;
+  padding: 5px;
+}
+
+.contenedor4 {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: left;
+  padding: 5px;
+}
+
+.contenedor-datos-consola {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.contenedor-datos-principales {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: left;
+}
+
+.contenedor6 {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: left;
+}
+
+.imagen-consola {
+  padding: 10px;
+  width: 300px !important;
+  height: 300px !important;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.contenedorAccesorios {
+  padding: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.contenedorQR {  
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.h5qr{
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.qr{
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.input-form-prod {
+  width: 100%;
+}

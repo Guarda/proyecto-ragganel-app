@@ -1,6 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Inject } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -30,6 +30,7 @@ export class EditarProductosComponent {
   id!: string;
   producto!: Producto;
 
+  categoria!: CategoriasConsolas;
   categoriasconsolas: CategoriasConsolas[] = [];
   selectedCategoria: CategoriasConsolas[] = [];
 
@@ -42,6 +43,10 @@ export class EditarProductosComponent {
   public consoleState: any;
   public consoleHack: any;
   public consoleComment: any;
+  public consolePrice: any;
+  // public consoleCurrency: any;
+
+  public ImagePath: any;
 
   consolaEncontrada: any;
 
@@ -71,6 +76,13 @@ export class EditarProductosComponent {
       this.consoleState = this.producto.CodigoEstado;
       this.consoleHack = this.producto.Hack;      
       this.consoleComment = this.producto.Comentario;
+      this.consolePrice = this.producto.PrecioBase;
+      // this.consoleCurrency = this.producto.Moneda;
+
+      this.categorias.find(this.consoleCode).subscribe((data) => {
+        this.categoria = data[0];
+        this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+      });
 
       //Initialize the form with the product data
       this.productoForm = this.fb.group({
@@ -78,18 +90,22 @@ export class EditarProductosComponent {
       ColorConsola: [this.consoleColor],
       EstadoConsola: [this.consoleState],
       HackConsola: [this.consoleHack],
-      ComentarioConsola: [this.consoleComment]
+      ComentarioConsola: [this.consoleComment],
+      PrecioBase: [this.formatNumber(this.consolePrice)],
+      // Moneda: [this.consoleCurrency]
       });   
     });
     
 
     this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {
+      
       // Using Object.keys() and map()
       // Convert object to array based on your needs
       this.array = Object.entries(data); // Example
       //console.log(this.array);
       //console.log(data);
       this.selectedCategoria = data;
+      
     })
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
@@ -101,16 +117,31 @@ export class EditarProductosComponent {
       CodigoConsola: new FormControl(''),
       IdModeloConsolaPK: new FormControl(''),
       ColorConsola: new FormControl(''),
-      EstadoConsola: new FormControl(''),
-      HackConsola: new FormControl(''),
+      // Moneda: new FormControl('',Validators.required),
+      PrecioBase: new FormControl('',Validators.required),
+      EstadoConsola: new FormControl('',Validators.required),
+      HackConsola: new FormControl('',Validators.required),
       ComentarioConsola: new FormControl('')
 
-    });
-
-    
+    });   
+  }
   
-       
+  getimagePath(l: string | null) {
+    if (l == null || l == '') {
+      return '/img-consolas/' + 'nestoploader.jpg';
+    }
+    else {
+      return '/img-consolas/' + l;
+    }
+  }
 
+  formatNumber(value: number | null) {
+    if(value == null){
+      return 0;
+    }
+    else{
+      return value.toFixed(2); // Formats the number to 2 decimal places
+    }    
   }
 
   ngAfterViewInit() {
