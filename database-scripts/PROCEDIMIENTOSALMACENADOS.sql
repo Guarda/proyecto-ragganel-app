@@ -251,8 +251,8 @@ DELIMITER //
 	CREATE PROCEDURE ListarEstadosConsolas()
     BEGIN
 		SELECT * FROM catalogoestadosconsolas;
-    END//
-DELIMITER;
+    END //
+DELIMITER ;
 
 CALL ListarEstadosConsolas();
 
