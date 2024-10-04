@@ -60,7 +60,7 @@ export class ProductosService {
    */
 
   find(id: string): Observable<any> {
-    return this.httpClient.get(this.apiURL + '/producto/' + id)
+    return this.httpClient.get(this.apiURL + '/productos/producto/' + id)
       .pipe(
         catchError(this.errorHandler)
       )

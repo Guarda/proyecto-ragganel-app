@@ -12,6 +12,7 @@ export interface Producto extends EstadosConsolas, CategoriasConsolas {
     PrecioBase: number;
     NumeroSerie: string;
     Accesorios: string;
+    Modelo: number;
     // Moneda: string;
 }
 

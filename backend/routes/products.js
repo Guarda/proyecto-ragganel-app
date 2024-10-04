@@ -70,7 +70,7 @@ router.post('/crear-producto', (req, res) => {
 // Get a specific product
 router.get('/producto/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaProductosBasesXId` (?)';
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaProductosBasesXIdV2` (?)';
     db.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar producto');

@@ -14,5 +14,5 @@ export const routes: Routes = [
     { path: 'agregar-productos', component: PruebaComponent   },
     { path: 'editar-productos', component: EditarProductosComponent},
     { path: 'listado-categorias', component: ListarCategoriasComponent},
-    { path: 'listado-productos/ver-producto', component: VerProductoComponent}
+    { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent}
 ];

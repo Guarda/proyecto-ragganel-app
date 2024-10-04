@@ -215,6 +215,21 @@ BEGIN
        END
 DELIMITER //
 */
+
+DELIMITER //
+CREATE PROCEDURE `ListarTablaProductosBasesXIdV2`(IdCodigoConsola varchar(100))
+/* procedimiento almacenado ListarTablaProductosBasesXIdV2 02/10/2024*/
+BEGIN
+	SELECT 
+		A.CodigoConsola, A.Modelo, A.Color, A.Estado, A.Hackeado as 'Hack', A.FechaIngreso, A.Comentario, A.PrecioBase, A.NumeroSerie, A.Accesorios,
+        B.Fabricante, B.Categoria, B.Subcategoria
+    FROM ProductosBases A
+    JOIN CatalogoConsolas B
+    ON A.Modelo = B.IdModeloConsolaPK 
+    WHERE A.CodigoConsola = IdCodigoConsola;
+END //
+DELIMITER ;
+
 DELIMITER //
 CREATE PROCEDURE ListarTablaProductosBasesXId(IdCodigoConsola varchar(100))
 BEGIN
@@ -527,6 +542,16 @@ BEGIN
 END //
 
 DELIMITER ;
+
+
+DELIMITER //
+CREATE PROCEDURE ListarTareasxProducto(Codigoproducto varchar(25))
+/*PROCEDIMIENTO ALMACENADO ListarTareasxProducto creado 02/10/2024*/
+BEGIN
+	SELECT * FROM Tareasdeproductos
+    WHERE IdCodigoConsolaFK = Codigoproducto;
+END //
+DELIMITER ; 
 
 
 CALL InsertTareas('12345', "Reparar pantalla, Chipear, Pintar");

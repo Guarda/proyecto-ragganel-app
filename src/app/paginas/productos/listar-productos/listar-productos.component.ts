@@ -62,26 +62,7 @@ export class ListarProductosComponent implements AfterViewInit {
       this.dataSource.sort = this.sort;
     });
   }
-
-  public openDialogEditar(cons: string) {
-    const dialogRef = this.dialog.open(EditarProductosComponent, {
-      disableClose: true,
-      height: '97%',
-      width: '50%',
-      data: { value: cons }      
-    });
-    dialogRef.componentInstance.Editado.subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
+ 
   public openDialogEliminar(cons: string){
     const dialogRef = this.dialog.open(EliminarProductosComponent, {  
       disableClose: true,   
