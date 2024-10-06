@@ -94,7 +94,8 @@
                 </div>
                 <div class="contenedor2">
                     <div class="botonedicion">
-                        <button mat-button type="submit" class="btn-editar" (Click)="onSubmit()">Guardar Cambios</button> 
+                        <button mat-button type="submit" class="btn-editar" (Click)="onSubmit()" [disabled]="!productoForm.dirty">Guardar Cambios</button>
+                        <a mat-flat-button  (click)="openDialogEliminar(ConsoleId)" color="warn" title="borrar producto" >Eliminar producto</a>
                     </div>  
                     <div  class="contenedorQR"></div>
                         <h5 class="h5qr">Código QR</h5>
@@ -107,7 +108,7 @@
                             [colorLight]="'#ffffffff'"
                             [elementType]="'canvas'"
                             [errorCorrectionLevel]="'M'"
-                            [imageSrc]="'logo_ragganel.png'"
+                            [imageSrc]="'logo-ragganel.png'"
                             [imageHeight]="70"
                             [imageWidth]="70"                           
                             [margin]="4"
@@ -138,7 +139,15 @@
                     </div>
                     <div class="contenedorTodoList">
                         <h5 class="h5qr">Tareas a realizar</h5>
-                        <h5 class="h5qr">proximamente</h5>
+                        <!-- Loop through tasks and display checkboxes -->
+                        <!-- Loop through tasks and display checkboxes -->
+                        <mat-checkbox 
+                            class="checkboxes" 
+                            *ngFor="let task of tasks" 
+                            [checked]="task.RealizadoNumber === 1"  
+                            (change)="onCheckboxChange(task)">
+                            {{ task.DescripcionTarea }}
+                        </mat-checkbox>
                     </div>                   
                 </div>
                            

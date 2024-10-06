@@ -3,7 +3,7 @@ import { CategoriasConsolasService } from '../../../services/categorias-consolas
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
 import { ProductosService } from '../productos.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 
 import { Producto } from '../../interfaces/producto';
@@ -25,13 +25,19 @@ import { SubcategoriaProductoService } from '../../../services/subcategoria-prod
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { QRCodeModule } from 'angularx-qrcode';
+import { MatDialog } from '@angular/material/dialog';
+
+import { TareasProductosService } from '../../../services/tareas-productos.service';
+import { TareasProducto } from '../../interfaces/tareasproductos';
+import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
+import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 
 
 @Component({
   selector: 'app-ver-producto',
   standalone: true,
   imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor,NgIf, MatOption, MatInputModule, MatOptionModule
-     ,MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule,  MatChipsModule, QRCodeModule
+     ,MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule,  MatChipsModule, QRCodeModule, MatCheckboxModule
   ],
   templateUrl: './ver-producto.component.html',
   styleUrl: './ver-producto.component.css'
@@ -53,6 +59,11 @@ export class VerProductoComponent {
 
   estadoconsolas: EstadosConsolas[] = [];
   selectedEstado: EstadosConsolas[] = [];
+
+  tareasproducto: TareasProducto[] = [];
+  tasks: TareasProducto[] = [
+    // Your initial tasks data
+  ];
 
   selectedTipoProducto: TipoProducto[] = [];
   selectedFabricante: FabricanteProducto[] = [];
@@ -81,11 +92,13 @@ export class VerProductoComponent {
     public fabricanteService: FabricanteService,
     public categoriaproductoService: CategoriaProductoService,
     public subcategoriaproductoService: SubcategoriaProductoService,
+    public tareasproductoService: TareasProductosService,
     private changeDetectorRef: ChangeDetectorRef,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private fb: FormBuilder   
+    private fb: FormBuilder,
+    private dialog: MatDialog   
   ) {
     
   }
@@ -142,7 +155,7 @@ export class VerProductoComponent {
       //   this.selectedSubCategoriaProducto = data;
       // })
 
-      this.subcategoriaproductoService.find(String(this.consoleCate)).subscribe((data: SubcategoriasProductos[]) => {
+      this.subcategoriaproductoService.find(this.consoleCate).subscribe((data: SubcategoriasProductos[]) => {        
         this.selectedSubCategoriaProducto = data;
       }) 
 
@@ -159,6 +172,7 @@ export class VerProductoComponent {
       //Initialize the form with the product data
       this.productoForm = this.fb.group({
         Fabricante: [this.consoleManufacturer],
+        IdModeloConsolaPK: [this.consoleCode],
         ColorConsola: [this.consoleColor],
         EstadoConsola: [this.consoleState],
         HackConsola: [this.consoleHack],
@@ -180,12 +194,14 @@ export class VerProductoComponent {
       // });
     });
     
-    // Initialize the form
-    this.tareasForm = this.fb.group({
-      // tasks: this.fb.array(this.taskData.map(task => this.createTaskGroup(task)))
-    });
-
-   
+    this.tareasproductoService.find(this.id).subscribe((data: TareasProducto[]) => {
+      // Map each task to include RealizadoNumber
+      this.tasks = data.map(task => ({
+      ...task,
+      RealizadoNumber: task.Realizado ? 1 : 0 // Set RealizadoNumber based on Realizado
+      }));
+      console.log('Tareas Form:', this.tasks);
+    }) 
 
     this.productoForm = new FormGroup({
       Fabricante: new FormControl('',Validators.required),
@@ -198,9 +214,25 @@ export class VerProductoComponent {
       HackConsola: new FormControl('',Validators.required),
       ComentarioConsola: new FormControl(''),
       Accesorios: new FormControl(''),
-      NumeroSerie: new FormControl(''),
-      TodoList: new FormControl('')
+      NumeroSerie: new FormControl('')      
     });
+
+    
+  }
+
+  onCheckboxChange(task: TareasProducto) {
+    // Toggle the Realizado value between true and false
+    task.Realizado = !task.Realizado; // This will toggle the value
+
+    // Assuming that your backend expects 1 for true and 0 for false,
+    // you can convert the boolean to a number before sending the update.
+    // Llamamos al service para actualizar la tarea
+    // Convert to number (1 for true, 0 for false)
+    const realizadoValue = task.Realizado ? 1 : 0;
+    this.tareasproductoService.update(task.IdTareaPK,realizadoValue).subscribe((res: any) => {
+      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);      
+    }) 
+    
   }
 
   removeKeyword(keyword: string) {
@@ -270,15 +302,30 @@ export class VerProductoComponent {
     }    
   }
 
+  public openDialogEliminar(cons: string){
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {  
+      disableClose: true,   
+      data: { value: cons }      
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      this.router.navigateByUrl('listado-productos');
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.ngOnInit();
+    });
+  }
+
   
 
   onSubmit() {    // TODO: Use EventEmitter with form value 
-    //console.log(this.productoForm.value); 
+    //console.log(this.productoForm.value);
+    if (!this.productoForm.dirty) {
+      return; // Exit if the form has not been modified
+    } 
     this.productoForm.value.CodigoConsola = this.id;
     console.log(this.productoForm.value);
-    this.productoService.update(this.productoForm.value).subscribe((res: any) => {
-      
-      this.router.navigateByUrl('listado-productos');
+    this.productoService.update(this.productoForm.value).subscribe((res: any) => {      
+      this.ngOnInit();
     })
 
   }

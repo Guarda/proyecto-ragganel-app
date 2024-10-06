@@ -22,84 +22,6 @@ CREATE PROCEDURE ListarTablaProductosBases ()
        END //
 DELIMITER ;
 
-/*PROCEDIMIENTO IngresarProductoATablaProductoBase*/
-DELIMITER //
-CREATE PROCEDURE IngresarProductoATablaProductoBase (modeloP int, colorP varchar(100),EstadoP int, hackP boolean,Preciob decimal(6,2),MonedaP varchar(25), ComentarioP varchar(100))	
-       BEGIN
-			DECLARE fecha varchar(25) default '010120';
-            DECLARE ModeloCatCons varchar(25);
-            DECLARE cantidadhoy int default 0;
-			SELECT DATE_FORMAT(NOW(), '%d%m%Y') into fecha;
-            SELECT CodigoModeloConsola from CatalogoConsolas where modelop = IdModeloConsolaPK into ModeloCatCons;
-            SELECT count(*) into cantidadhoy from ProductosBases where date(FechaIngreso)=date(date_sub(now(),interval 0 day));
-			INSERT into ProductosBases values(concat(ModeloCatCons,'-',fecha,cantidadhoy), modeloP, colorP, EstadoP, hackP, DATE_FORMAT(NOW(), '%Y%m%d'), ComentarioP, Preciob, MonedaP);			
-       END //
-DELIMITER ;
-
-/*PROCEDIMIENTO IngresarProductoATablaProductoBaseV2 07 / 09 / 24*/
-DELIMITER //
-CREATE PROCEDURE IngresarProductoATablaProductoBaseV2 (modeloP int, colorP varchar(100),EstadoP int, hackP boolean,Preciob decimal(6,2),MonedaP varchar(25), ComentarioP varchar(100))	
-       BEGIN
-			DECLARE fecha varchar(25) default '010120';
-            DECLARE ModeloCatCons varchar(25);
-            DECLARE cantidadRegistros int default 0;
-            SELECT CodigoModeloConsola from CatalogoConsolas where modelop = IdModeloConsolaPK into ModeloCatCons;
-            SELECT count(*) from productosBases into cantidadRegistros;
-			INSERT into ProductosBases values(concat(ModeloCatCons,'-',cantidadRegistros), modeloP, colorP, EstadoP, hackP, DATE_FORMAT(NOW(), '%Y%m%d'), ComentarioP, Preciob, MonedaP);			
-       END //
-DELIMITER ;
-
-/*PROCEDIMIENTO IngresarProductoATablaProductoBaseV3 25 / 09 / 24*/
-DELIMITER //
-CREATE PROCEDURE IngresarProductoATablaProductoBaseV3 (
-    modeloP INT, 
-    colorP VARCHAR(100), 
-    EstadoP INT, 
-    hackP BOOLEAN, 
-    Preciob DECIMAL(6,2), 
-    ComentarioP VARCHAR(100), 
-    NumeroS VARCHAR(100), 
-    AccesoriosP TEXT
-)
-BEGIN
-    DECLARE fecha VARCHAR(25) DEFAULT '010120';
-    DECLARE ModeloCatCons VARCHAR(25);
-    DECLARE cantidadRegistros INT DEFAULT 0;
-    DECLARE AccesoriosConcatenados TEXT;
-
-    -- Get the console model code
-    SELECT CodigoModeloConsola INTO ModeloCatCons 
-    FROM CatalogoConsolas 
-    WHERE IdModeloConsolaPK = modeloP;
-
-    -- Get the total number of records for creating a unique CodigoConsola
-    SELECT COUNT(*) INTO cantidadRegistros 
-    FROM ProductosBases;
-
-    -- Format the Accesorios array as a comma-separated string
-    SET AccesoriosConcatenados = REPLACE(AccesoriosP, '","', ',');
-
-    -- Insert the new product base into the table
-    INSERT INTO ProductosBases (
-        CodigoConsola, Modelo, Color, Estado, Hackeado, FechaIngreso, Comentario, PrecioBase, NumeroSerie, Accesorios
-    )
-    VALUES (
-        CONCAT(ModeloCatCons, '-', cantidadRegistros), 
-        modeloP, 
-        colorP, 
-        EstadoP, 
-        hackP, 
-        DATE_FORMAT(NOW(), '%Y%m%d'), 
-        ComentarioP, 
-        Preciob, 
-        NumeroS, 
-        AccesoriosConcatenados
-    );
-    
-    
-END //
-DELIMITER ;
-
 /*PROCEDIMIENTO IngresarProductoATablaProductoBaseV4 25 / 09 / 24*/
 DELIMITER //
 CREATE PROCEDURE IngresarProductoATablaProductoBaseV4 (
@@ -182,13 +104,7 @@ DELIMITER ;
 DELIMITER //
 /*PROCEDIMIENTO ListarCategoriasConsolasBase actualizado 16/09/2024*/
 CREATE PROCEDURE ListarCategoriasConsolasBase ()
-BEGIN
-	/*SELECT a.IdModeloConsolaPK, b.NombreFabricante, c.NombreCategoria, d.NombreSubcategoria, a.CodigoModeloConsola, a.LinkImagen, e.DescripcionTipoProducto FROM catalogoconsolas a
-    join Fabricantes b on a.Fabricante = b.IdFabricantePK
-    join Categoriasproductos c on a.Categoria = c.IdCategoriaPK
-    join Subcategoriasproductos d on a.Subcategoria = d.IdSubcategoria
-    join Tiposproductos e on a.TipoProducto = e.IdTipoProductoPK
-    WHERE a.ACTIVO = 1;*/
+BEGIN	
     SELECT * FROM catalogoconsolas a
     join Fabricantes b on a.Fabricante = b.IdFabricantePK
     join Categoriasproductos c on a.Categoria = c.IdCategoriaPK
@@ -197,24 +113,6 @@ BEGIN
     WHERE a.ACTIVO = 1;
 END //
 DELIMITER ;
-
-call ListarCategoriasConsolasBase();
-
-/*PROCEDIMIENTO ListarTablaProductosBasesXId modificado el dia 14 / 08 / 24*/
-/*
-CREATE DEFINER=`root`@`localhost` PROCEDURE `ListarTablaProductosBasesXId`(IdCodigoConsola varchar(100))
-BEGIN
-			SELECT A.CodigoConsola, B.DescripcionConsola, A.Color, C.DescripcionEstado As 'Estado',
-				A.Hackeado as 'Hack',
-                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha_Ingreso',
-                Comentario
-			FROM ProductosBases A 
-            join CatalogoConsolas B on A.Modelo = B.IdModeloConsolaPK
-            join CatalogoEstadosConsolas C on A.Estado = C.CodigoEstado
-			where A.CodigoConsola = IdCodigoConsola;
-       END
-DELIMITER //
-*/
 
 DELIMITER //
 CREATE PROCEDURE `ListarTablaProductosBasesXIdV2`(IdCodigoConsola varchar(100))
@@ -254,35 +152,43 @@ DELIMITER //
     END //
 DELIMITER ;
 
-CALL ListarEstadosConsolas();
-
-/*PROCEDIMIENTO ActualizarProductoBase modificado el dia 19 / 08 / 24*/
+/* PROCEDURE Actualizarproductobasev2 05/10/2024*/
 DELIMITER //
-CREATE PROCEDURE ActualizarProductoBase(IdCodigoConsola varchar(100), ModeloConsola int, ColorConsola varchar(100), EstadoConsola int, HackConsola boolean, Preciob decimal(6,2),MonedaP varchar(25), ComentarioConsola varchar(100))
+CREATE PROCEDURE Actualizarproductobasev2 (
+    CodigoConsolaP VARCHAR(50), -- Assuming you want to update by CodigoConsola
+    modeloP INT, 
+    colorP VARCHAR(100), 
+    EstadoP INT, 
+    hackP BOOLEAN, 
+    Preciob DECIMAL(6,2), 
+    ComentarioP VARCHAR(100), 
+    NumeroS VARCHAR(100), 
+    AccesoriosP TEXT
+)
 BEGIN
-	UPDATE ProductosBases 
-    SET  
-        Modelo = ModeloConsola, 
-        Color = ColorConsola, 
-        Estado = EstadoConsola, 
-        Hackeado = HackConsola,        
-        Comentario = ComentarioConsola,
-        PrecioBase = Preciob,
-        Moneda = MonedaP
-	WHERE CodigoConsola = IdCodigoConsola;
+    DECLARE AccesoriosConcatenados TEXT;
+
+    -- Format the Accesorios array as a comma-separated string
+    SET AccesoriosConcatenados = REPLACE(AccesoriosP, '","', ',');
+
+    -- Update the existing product base in the table
+    UPDATE ProductosBases
+    SET 
+        Modelo = modeloP, 
+        Color = colorP, 
+        Estado = EstadoP, 
+        Hackeado = hackP, 
+        Comentario = ComentarioP, 
+        PrecioBase = Preciob, 
+        NumeroSerie = NumeroS, 
+        Accesorios = AccesoriosConcatenados
+    WHERE CodigoConsola = CodigoConsolaP;
+
+    -- Optionally, you can return a message or status here if needed
+    SELECT 'Product updated successfully' AS message;
 END //
 DELIMITER ;
 
-<<<<<<< HEAD
-/*PROCEDIMIENTO LISTAR ESTADO CONSOLAS modificado 24 /08 / 24 */
-DELIMITER //
-CREATE PROCEDURE ListarEstadosConsolas()
-BEGIN
-	SELECT * FROM CatalogoEstadosConsolas;
-END//
-DELIMITER ;
-
-=======
 /*PROCEDIMIENTO BORRAR PRODUCTO*/
 DELIMITER //
 	CREATE PROCEDURE BorrarProducto(IdCodigoConsola varchar(100))
@@ -291,20 +197,6 @@ DELIMITER //
         SET
 			Estado = 7
         WHERE CodigoConsola = IdCodigoConsola;
-    END //
-DELIMITER ;
-
-/*CALL BorrarProducto('N06-0064-240820240');*/
-
-
-DELIMITER //
-/*PROCEDIMIENTO IngresarCategoriaProducto 2 / 09 / 2024, Actualizado 16/09/24 */
-	CREATE PROCEDURE IngresarCategoriaProducto(FabricanteP int, CategoriaP int, SubcategoriaP int, PrefijoProducto varchar(25), NombreArchivoImagen varchar(100), TipoProductoP int)
-    BEGIN
-		DECLARE cantidad varchar(24);
-        select count(idmodeloconsolapk)+1 from catalogoconsolas into cantidad;
-		INSERT INTO catalogoconsolas(Fabricante, Categoria, Subcategoria, CodigoModeloConsola, LinkImagen, TipoProducto) 
-        values (FabricanteP, CategoriaP, SubcategoriaP,concat(PrefijoProducto,cantidad), NombreArchivoImagen, TipoProductoP);
     END //
 DELIMITER ;
 
@@ -319,9 +211,6 @@ DELIMITER //
     END //
 DELIMITER ;
 
-
-
-
 /*PROCEDIMIENTO ListarTablacatalogoconsolasXId creado 03 / 08 / 24*/
 DELIMITER //
 	CREATE PROCEDURE ListarTablacatalogoconsolasXId(IdCategoria int)
@@ -329,17 +218,7 @@ DELIMITER //
 		SELECT 
 			*
         FROM catalogoconsolas 
-        where IdModeloConsolaPK = IdCategoria;
-    /*
-		SELECT 
-			a.IdModeloConsolaPK,
-            a.CodigoModeloConsola,
-            a.DescripcionConsola,
-            a.Fabricante,
-            a.LinkImagen,
-            a.TipoProducto,
-            b.IdTipoProductoPK
-        FROM catalogoconsolas where IdModeloConsolaPK = IdCategoria;*/
+        where IdModeloConsolaPK = IdCategoria;    
     END //
 DELIMITER ;
 
@@ -353,10 +232,6 @@ DELIMITER //
         AND Subcategoria = IdSubcategoriaP;
     END //
 DELIMITER ;
-
-CALL BuscarIdCategoriaCatalogo(2,5,10);
- 
-
 
 DELIMITER //
 /*PROCEDIMIENTO ActualizarCategoria creado el dia 03 / 08 / 24
@@ -374,9 +249,6 @@ BEGIN
 	WHERE IdModeloConsolaPK = IdModeloP;
 END //
 DELIMITER ;
-
-/*call ActualizarCategoria(1, 'N0001', 'NES Estandar NES NTSC-US', 'Nintendo', 'nesstandar.jpg');
-cALL ListarTablacatalogoconsolasXId(1);*/
 
 /*PROCEDIMIENTO BORRAR CATEGORIA*/
 DELIMITER //
@@ -420,8 +292,6 @@ DELIMITER //
         END //
 DELIMITER ;
 
-call ListarCategoriasXFabricante('Nintendo');
-
 DELIMITER //
 /*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES CREADO 14/09/2024*/
 CREATE PROCEDURE ListarFabricantes()
@@ -439,8 +309,6 @@ CREATE PROCEDURE ListarCategoriasProductos()
             WHERE Activo = 1;
         END //
 DELIMITER ;
-
-call ListarCategoriasProductos();
 
 DELIMITER //
 /*PROCEDIMIENTO LISTAR TODOS LAS SUBCATEGORIAS CREADO 14/09/2024*/
@@ -472,51 +340,6 @@ CREATE PROCEDURE ListarSubCategoriasProductosxCategoria(IdCategoriaP int)
         AND a.Activo = 1;
     END //
 DELIMITER ;
-
-call ListarSubCategoriasProductosxCategoria(5);
-
-
-/*
-NO SE USA
-DELIMITER //
-
-CREATE PROCEDURE InsertAccesorios(
-    IN IdCodigoConsolaFK VARCHAR(25), 
-    IN Accesorios TEXT -- Passed as a comma-separated string
-)
-BEGIN
-    DECLARE accesorio VARCHAR(100);
-    DECLARE pos INT DEFAULT 1;
-    DECLARE next_comma INT;
-    
-    -- Loop through the comma-separated string
-    WHILE LENGTH(Accesorios) > 0 DO
-        SET next_comma = LOCATE(',', Accesorios);
-        
-        IF next_comma = 0 THEN
-            -- No more commas, insert the last accessory
-            SET accesorio = TRIM(Accesorios);
-            INSERT INTO AccesoriosdeProductos (DescripcionAccesorio, Activo, IdCodigoConsolaFK)
-            VALUES (accesorio, 1, IdCodigoConsolaFK);
-            SET Accesorios = '';
-        ELSE
-            -- Extract the accessory before the next comma
-            SET accesorio = TRIM(SUBSTRING(Accesorios, 1, next_comma - 1));
-            INSERT INTO AccesoriosdeProductos (DescripcionAccesorio, Activo, IdCodigoConsolaFK)
-            VALUES (accesorio, 1, IdCodigoConsolaFK);
-            
-            -- Update the string to exclude the inserted accessory
-            SET Accesorios = SUBSTRING(Accesorios, next_comma + 1);
-        END IF;
-    END WHILE;
-END //
-
-DELIMITER ;
-
-CALL InsertAccesorios('12345', 'Mando de juego, Cable HDMI');
-CALL InsertAccesorios('12345', "control, Cable AC");
-
-*/
 
 DELIMITER //
 
@@ -565,7 +388,21 @@ DELIMITER ;
 
 
 CALL InsertTareas('12345', "Reparar pantalla, Chipear, Pintar");
+CALL ListarTareasxProducto('GCSO004-3');
+
+DELIMITER //
+
+CREATE PROCEDURE ActualizarTareaRealizado(
+    IN p_IdTareaPK INT,
+    IN p_Realizado BOOLEAN
+)
+BEGIN
+    -- Update the Realizado field for the specific task
+    UPDATE TareasdeProductos
+    SET Realizado = p_Realizado
+    WHERE IdTareaPK = p_IdTareaPK;
+END //
+
+DELIMITER ;
 
 
-
->>>>>>> 39766ecbbc2f7b9d7d7225e1bb5c2a7402e7f110

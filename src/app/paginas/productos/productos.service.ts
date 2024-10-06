@@ -79,11 +79,12 @@ export class ProductosService {
   */
 
   update(producto: Producto): Observable<any> {
-    return this.httpClient.put(this.apiURL + '/producto/' + producto.CodigoConsola, JSON.stringify(producto), this.httpOptions)
+    return this.httpClient.put(this.apiURL + '/productos/producto/' + producto.CodigoConsola, JSON.stringify(producto), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
   }
+
 
   elininar(producto: Producto): Observable<any> {   
     console.log(producto) 

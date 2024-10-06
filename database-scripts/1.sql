@@ -20,3 +20,6 @@ WHERE idCategoriaPK = 1;
 select * from categoriasproductos;
 
 select  * from tiposaccesorios;
+
+SELECT * FROM base_datos_inventario_taller.tareasdeproductos where IdTareaPK = 2;
+CALL `base_datos_inventario_taller`.`ActualizarTareaRealizado`('2',false);

@@ -6,6 +6,7 @@ const categoriesRouter = require('./routes/categories');
 const manufacturerRouter = require('./routes/manufacturer');
 const catesubcateRouter = require('./routes/cate-subcategories');
 const accesroriesRouter = require('./routes/accesories');
+const tasksRouter = require('./routes/tasks');
 // const utilsMiddleware = require('./middleware/utilsMiddleware');
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/categorias', categoriesRouter);
 app.use('/fabricantes', manufacturerRouter);
 app.use('/catesubcate', catesubcateRouter);
 app.use('/accesorios', accesroriesRouter);
+app.use('/tareas', tasksRouter);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
