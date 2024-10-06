@@ -88,7 +88,7 @@ export class ProductosService {
 
   elininar(producto: Producto): Observable<any> {   
     console.log(producto) 
-    return this.httpClient.put(this.apiURL + '/producto-eliminar/' + producto.CodigoConsola, JSON.stringify(producto), this.httpOptions)
+    return this.httpClient.put(this.apiURL + '/productos/producto-eliminar/' + producto.CodigoConsola, JSON.stringify(producto), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )

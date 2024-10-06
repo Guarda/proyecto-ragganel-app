@@ -154,3 +154,23 @@
 .mat-checkbox-checked .mat-checkbox-background {
   background-color: transparent !important; /* Or another color */
 }
+
+.botonedicion{
+  display: flex;
+  justify-content: space-around;
+  padding-bottom: 5%;
+}
+
+.btn-editar{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white!important;
+  background-color: green!important;
+}
+
+.btn-editar:disabled {
+  background-color: gray !important;
+  color: lightgray !important; /* Adjust text color if needed */
+  cursor: not-allowed; /* Optional: show not-allowed cursor */
+}

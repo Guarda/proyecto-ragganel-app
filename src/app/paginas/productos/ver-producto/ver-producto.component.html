@@ -94,7 +94,7 @@
                 </div>
                 <div class="contenedor2">
                     <div class="botonedicion">
-                        <button mat-button type="submit" class="btn-editar" (Click)="onSubmit()" [disabled]="!productoForm.dirty">Guardar Cambios</button>
+                        <button mat-flat-button type="submit" class="button-editar-prod" class="btn-editar" (Click)="onSubmit()" color="accent" [disabled]="!productoForm.dirty">Guardar Cambios</button>
                         <a mat-flat-button  (click)="openDialogEliminar(ConsoleId)" color="warn" title="borrar producto" >Eliminar producto</a>
                     </div>  
                     <div  class="contenedorQR"></div>

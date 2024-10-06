@@ -1,4 +1,5 @@
 use base_datos_inventario_taller;
+/*ACCESORIOS*/
 
 INSERT INTO TiposAccesorios (CodigoAccesorio, DescripcionAccesorio) values ('J001','Mando de juego');
 INSERT INTO TiposAccesorios (CodigoAccesorio, DescripcionAccesorio) values ('C001','Cable HDMI');
