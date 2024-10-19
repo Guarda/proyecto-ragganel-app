@@ -1,35 +1,65 @@
-<!-- src/app/app.component.html -->
 <mat-toolbar>
   <button mat-icon-button (click)="sidenav.toggle()">
     <mat-icon aria-hidden="true">catching_pokemon</mat-icon>
   </button>
-  <h3 mat-> SIAGTEC - Administración de taller</h3>
+  <h3>SIAGTEC - Administración de taller</h3>
 </mat-toolbar>
+
 <mat-sidenav-container class="menu-container" style="height: 94vh;">
-    <mat-sidenav #sidenav mode="side" opened class="sidenav">
+  <mat-sidenav #sidenav mode="side" opened class="sidenav">
+    <mat-nav-list class="lits-items-css">
       
-      <mat-nav-list  class="lits-items-css">
-        <!-- <mat-list-item routerLink="./listado-productos" (click)="sidenav.toggle()"> -->
-        <mat-list-item routerLink="./listado-productos" class="color-texto-sidenav">
-                    <mat-icon class="iconos_menu">videogame_asset</mat-icon>
-            Inventario
-        </mat-list-item>
-        <mat-list-item routerLink="./listado-categorias" class="color-texto-sidenav">
-            <mat-icon class="iconos_menu">list_alt</mat-icon>
-            Categorias de productos
-        </mat-list-item>
-        <mat-list-item routerLink="./agregar-productos" class="color-texto-sidenav">
-          <mat-icon class="iconos_menu">point_of_sale</mat-icon>
-          Punto de venta
+      <!-- Inventario -->
+      <mat-list-item routerLink="./listado-productos" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">videogame_asset</mat-icon>
+        Inventario
       </mat-list-item>
-      </mat-nav-list>
-    </mat-sidenav>
-    <mat-sidenav-content>
-      <!--toolbar here/>
-       Your main content here -->
-      <div class="main-content">
-        <router-outlet/>
-      </div>
-    </mat-sidenav-content>
+      
+      <!-- Categorias de productos
+      <mat-list-item [matMenuTriggerFor]="categoriaMenu" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">list_alt</mat-icon>
+        Categorias de productos
+      </mat-list-item> -->
+      <mat-list-item routerLink="./listado-categorias" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">list_alt</mat-icon>
+        Categorias de productos
+      </mat-list-item>
+
+      <!-- Punto de venta -->
+      <mat-list-item routerLink="./agregar-productos" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">point_of_sale</mat-icon>
+        Punto de venta
+      </mat-list-item>
+      
+      <!-- Preferencias -->
+      <mat-list-item routerLink="./preferencias/index-categorias" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">developer_board</mat-icon>
+        Preferencias
+      </mat-list-item>
+
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
 </mat-sidenav-container>
-  
+
+<!-- Submenu Definitions -->
+
+<!-- Wrap submenus in custom divs for CSS targeting -->
+<!-- <div class="custom-menu-wrapper">
+  <mat-menu #categoriaMenu="matMenu">
+    <button mat-menu-item routerLink="./listado-categorias">Categoría 1</button>
+    <button mat-menu-item [matMenuTriggerFor]="subcategoriaMenu">Subcategoría 1</button>
+  </mat-menu>
+</div>
+
+<div class="custom-submenu-wrapper">
+  <mat-menu #subcategoriaMenu="matMenu">
+    <button mat-menu-item routerLink="./listado-subcategorias">Subcategoría 1.1</button>
+    <button mat-menu-item routerLink="./listado-subcategorias">Subcategoría 1.2</button>
+  </mat-menu>
+</div> -->

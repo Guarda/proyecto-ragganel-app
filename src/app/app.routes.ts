@@ -6,6 +6,7 @@ import { MenuSidebarComponent } from './UI/ui/menu-sidebar.component';
 import { EditarProductosComponent } from './paginas/productos/editar-productos/editar-productos.component';
 import { ListarCategoriasComponent } from './paginas/categorias/listar-categorias/listar-categorias.component';
 import { VerProductoComponent } from './paginas/productos/ver-producto/ver-producto.component';
+import { IndexEdicioncategoriasComponent } from './paginas/preferencias/edicioncategorias/index-edicioncategorias/index-edicioncategorias.component';
 
 export const routes: Routes = [
     
@@ -14,5 +15,6 @@ export const routes: Routes = [
     { path: 'agregar-productos', component: PruebaComponent   },
     { path: 'editar-productos', component: EditarProductosComponent},
     { path: 'listado-categorias', component: ListarCategoriasComponent},
-    { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent}
+    { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent},
+    { path: 'preferencias/index-categorias', component: IndexEdicioncategoriasComponent}
 ];

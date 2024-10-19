@@ -93,10 +93,22 @@ body {
   padding: auto;
 }
 
+
+
 /* .color-texto-sidenav:hover {
   background-color: white;
   color: white!important;
 } */
 
+/* Scope the styles to only the sidebar component */
+.custom-menu-wrapper .mat-menu-panel {
+  margin-left: 20vw; /* Move submenu further to the right */
+  margin-top: 10px;  /* Move submenu lower */
+}
+
+.custom-submenu-wrapper .mat-menu-panel {
+  margin-left: 40px; /* Further adjustment for submenus */
+  margin-top: 15px;  /* Further adjustment for submenus */
+}
   
   

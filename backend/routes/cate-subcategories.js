@@ -60,4 +60,30 @@ router.get('/listar-subcate/:id', (req, res) => {
     });
 });
 
+// Delete a category
+router.put('/categoria-eliminar/:id', (req, res) => {
+    const id = req.params.id;    
+    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteCategoria` (?)';
+    db.query(sql, [id], err => {
+        if (err) {
+            res.status(500).send('Error al eliminar Categoria');
+            return;
+        }
+        res.send({ message: 'Categoria eliminada' });
+    });
+});
+
+// Delete a category
+router.put('/subcategoria-eliminar/:id', (req, res) => {
+    const id = req.params.id;    
+    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteSubCategoria` (?)';
+    db.query(sql, [id], err => {
+        if (err) {
+            res.status(500).send('Error al eliminar Subcategoria');
+            return;
+        }
+        res.send({ message: 'Subategoria eliminada' });
+    });
+});
+
 module.exports = router;

@@ -32,6 +32,13 @@ export class FabricanteService {
       )
   }
 
+  eliminar(Id: string): Observable<any> { 
+    return this.httpClient.put(this.apiURL + '/fabricantes/fabricante-eliminar/' + Id, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }  
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

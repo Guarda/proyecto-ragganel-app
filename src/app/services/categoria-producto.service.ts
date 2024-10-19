@@ -45,6 +45,14 @@ export class CategoriaProductoService {
       )
   }
 
+  eliminar(Id: string): Observable<any> { 
+    return this.httpClient.put(this.apiURL + '/catesubcate/categoria-eliminar/' + Id, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }  
+
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

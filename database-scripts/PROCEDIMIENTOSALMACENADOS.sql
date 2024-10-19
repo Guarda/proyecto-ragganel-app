@@ -30,7 +30,7 @@ CREATE PROCEDURE IngresarProductoATablaProductoBaseV4 (
     EstadoP INT, 
     hackP BOOLEAN, 
     Preciob DECIMAL(6,2), 
-    ComentarioP VARCHAR(100), 
+    ComentarioP VARCHAR(255), 
     NumeroS VARCHAR(100), 
     AccesoriosP TEXT,
     TareasP TEXT -- Add the TodoList parameter (comma-separated)
@@ -402,6 +402,71 @@ BEGIN
     SET Realizado = p_Realizado
     WHERE IdTareaPK = p_IdTareaPK;
 END //
+
+DELIMITER ;
+
+
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR FABRICANTE y ASOCIADOS CREADO 17/10/2024*/
+CREATE PROCEDURE SoftDeleteFabricante(IN p_IdFabricantePK INT)
+BEGIN
+    -- Step 1: Soft delete the fabricante by setting Activo to 0
+    UPDATE FABRICANTES
+    SET Activo = 0
+    WHERE IdFabricantePK = p_IdFabricantePK;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    UPDATE CategoriasProductos
+    SET Activo = 0
+    WHERE IdFabricanteFK = p_IdFabricantePK;
+
+    -- Step 3: Soft delete all subcategories related to the affected categories
+    UPDATE SubcategoriasProductos
+    SET Activo = 0
+    WHERE IdCategoriaFK IN (
+        SELECT IdCategoriaPK 
+        FROM CategoriasProductos 
+        WHERE IdFabricanteFK = p_IdFabricantePK
+    );
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR CATEGORIA y ASOCIADOS CREADO 17/10/2024*/
+CREATE PROCEDURE SofDeleteCategoria(IN p_IdCategoria INT)
+BEGIN
+    -- Step 1: Soft delete the fabricante by setting Activo to 0
+    UPDATE CategoriasProductos
+    SET Activo = 0
+    WHERE IdCategoriaPK = p_IdCategoria;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    UPDATE SubcategoriasProductos
+    SET Activo = 0
+    WHERE IdCategoriaFK = p_IdCategoria;
+   
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR CATEGORIA y ASOCIADOS CREADO 19/10/2024*/
+CREATE PROCEDURE SofDeleteSubCategoria(IN p_IdSubCategoria INT)
+BEGIN
+    -- Step 1: Soft delete the subcategoria by setting Activo to 0
+    UPDATE SubcategoriasProductos
+    SET Activo = 0
+    WHERE IdSubcategoria = p_IdSubCategoria;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    /*UPDATE SubcategoriasProductos
+    SET Activo = 0
+    WHERE IdCategoriaFK = p_IdCategoria;*/
+   
+END$$
 
 DELIMITER ;
 

@@ -14,4 +14,17 @@ router.get('/listar-fabricantes', (req, res) => {
     });
 });
 
+// Delete a category
+router.put('/fabricante-eliminar/:id', (req, res) => {
+    const id = req.params.id;    
+    const sql = 'CALL `base_datos_inventario_taller`.`SoftDeleteFabricante` (?)';
+    db.query(sql, [id], err => {
+        if (err) {
+            res.status(500).send('Error al eliminar Fabricante');
+            return;
+        }
+        res.send({ message: 'Fabricante eliminado' });
+    });
+});
+
 module.exports = router;
