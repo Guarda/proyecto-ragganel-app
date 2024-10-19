@@ -1,0 +1,32 @@
+.contenedor-principal{
+    margin-left: 1%;
+}
+
+.contenedor-secundario{
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-between;
+}
+
+.tabla-1{
+    width: 30%;
+    border-radius: 30px;
+   justify-content: center;
+}
+.tabla-2{
+    width: 30%;
+}
+.tabla-3{
+    width: 30%;
+}
+
+
+/* Add this to your component's CSS file or global styles */
+button.mat-icon-button {
+    color: red!important; /* Change the icon color to red */
+  }
+  
+  button.mat-icon-button:hover {
+    background-color: rgba(255, 0, 0, 0.1)!important; /* Optional hover effect */
+  }

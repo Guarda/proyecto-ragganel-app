@@ -1,0 +1,50 @@
+<div>Subcategorias</div>
+
+<table mat-table [dataSource]="selectedSubCategoria" class="mat-elevation-z8 demo-table">
+    <!-- Position Column -->
+    <ng-container matColumnDef="IdSubCategoria">
+      <th mat-header-cell *matHeaderCellDef>No.</th>
+      <td mat-cell *matCellDef="let element">{{element.IdSubcategoria}}</td>
+    </ng-container>
+  
+    <!-- Name Column -->
+    <ng-container matColumnDef="NombreSubCategoria">
+      <th mat-header-cell *matHeaderCellDef>Nombre Categoria</th>
+      <td mat-cell *matCellDef="let element">{{element.NombreSubCategoria}}</td>
+    </ng-container>
+  
+     <!-- Delete Column -->
+    <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>Acción</th>
+        <td mat-cell *matCellDef="let element">
+        <button mat-icon-button color="warn" (click)="deleteSubcategoria(element.IdSubcategoria)">
+            <mat-icon>close</mat-icon> <!-- X icon for delete -->
+        </button>
+        </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr
+        mat-row
+        (click)="clickedRows.add(row)"
+        [class.demo-row-is-clicked]="clickedRows.has(row)"
+        *matRowDef="let row; columns: displayedColumns;"
+    ></tr>
+  </table>
+  
+  <div>
+    <h3>
+      Click Log
+    </h3>
+  </div>
+  
+  @if (!clickedRows.size) {
+    <div>Clicked rows will be logged here</div>
+  }
+  
+  <ul>
+    @for (clickedRow of clickedRows; track clickedRow) {
+      <li>Clicked on {{clickedRow.NombreSubCategoria}}</li>
+    }
+  </ul>
+  
