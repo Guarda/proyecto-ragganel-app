@@ -1,6 +1,17 @@
-<div>Categorias</div>
+<div class="Titulotabla">Categorias</div>
 
-<table mat-table [dataSource]="selectedCategoria" class="mat-elevation-z8 demo-table">
+<div class="filtrado_agregar">
+  <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
+    <mat-label>Filtro Categoria</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="3DS, Gamecube ..." #input>
+  </mat-form-field>
+  <a mat-raised-button class="button-crear-prod" (click)="openDialogAgregar()" color="primary">
+    <mat-icon>add</mat-icon>
+    Añade Categoria
+  </a>
+</div>
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8 demo-table">
     <!-- Position Column -->
     <ng-container matColumnDef="IdCategoria">
       <th mat-header-cell *matHeaderCellDef>No.</th>
@@ -32,7 +43,7 @@
     ></tr>
   </table>
   
-  <div>
+  <!-- <div>
     <h3>
       Click Log
     </h3>
@@ -47,4 +58,4 @@
       <li>Clicked on {{clickedRow.NombreCategoria}}</li>
     }
   </ul>
-  
+   -->

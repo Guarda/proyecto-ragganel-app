@@ -1,15 +1,18 @@
 import { Component } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 
 import { SubcategoriasProductos } from '../../../interfaces/subcategoriasproductos';
 import { SubcategoriaProductoService } from '../../../../services/subcategoria-producto.service';
 import { SharedService } from '../../../../services/shared.service';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-tabla-subcategorias',
   standalone: true,
-  imports: [MatTableModule, MatIcon],
+  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
   templateUrl: './tabla-subcategorias.component.html',
   styleUrl: './tabla-subcategorias.component.css'
 })
@@ -18,7 +21,7 @@ export class TablaSubcategoriasComponent {
 
   clickedRows = new Set<SubcategoriasProductos>();
 
-  selectedSubCategoria: SubcategoriasProductos[] = [];
+  dataSource = new MatTableDataSource<SubcategoriasProductos>();  
   receivedCodigoCategoria!: number;
 
   constructor(
@@ -33,7 +36,7 @@ export class TablaSubcategoriasComponent {
     // Listen for changes in Fabricante selection
     this.sharedService.dataFabricante$.subscribe(() => {
       // Clear subcategories when a new Fabricante is selected
-      this.selectedSubCategoria = [];
+      this.dataSource.data = [];
     });
 
     // Listen for Categoria selection
@@ -43,12 +46,17 @@ export class TablaSubcategoriasComponent {
 
       // Fetch subcategories based on the updated Categoria ID
       this.subcategoriaService.find(String(this.receivedCodigoCategoria)).subscribe((data: SubcategoriasProductos[]) => {
-        this.selectedSubCategoria = data;
+        this.dataSource.data = data;
       });
     });
   }
 
-  deleteRow(cons: string) {
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();  // Filter is case insensitive
+  }
+
+  openDialogAgregar(){
 
   }
 
@@ -64,7 +72,7 @@ export class TablaSubcategoriasComponent {
 
       // Fetch subcategories based on the updated Categoria ID
       this.subcategoriaService.find(String(this.receivedCodigoCategoria)).subscribe((data: SubcategoriasProductos[]) => {
-        this.selectedSubCategoria = data;
+        this.dataSource.data = data;
       });
     });
     

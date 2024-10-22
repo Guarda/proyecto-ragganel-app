@@ -1,15 +1,18 @@
 import { Component } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 
 import { categoriasProductos } from '../../../interfaces/categoriasproductos';
 import { CategoriaProductoService } from '../../../../services/categoria-producto.service';
 import { SharedService } from '../../../../services/shared.service';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-tabla-categorias',
   standalone: true,
-  imports: [MatTableModule, MatIcon],
+  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
   templateUrl: './tabla-categorias.component.html',
   styleUrl: './tabla-categorias.component.css'
 })
@@ -18,8 +21,7 @@ export class TablaCategoriasComponent {
 
   clickedRows = new Set<categoriasProductos>();
 
-  selectedCategoria: categoriasProductos[] = [];
-
+  dataSource = new MatTableDataSource<categoriasProductos>();
   receivedCodigoFabricante!: number;
 
   constructor(
@@ -38,12 +40,17 @@ export class TablaCategoriasComponent {
 
       // Fetch categories based on the updated fabricante ID
       this.categoriaService.find(String(this.receivedCodigoFabricante)).subscribe((data: categoriasProductos[]) => {
-        this.selectedCategoria = data;
+        this.dataSource.data = data;
       });
     });
   }
 
-  deleteRow(cons: string) {
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();  // Filter is case insensitive
+  }
+
+  openDialogAgregar(){
 
   }
 
@@ -59,7 +66,7 @@ export class TablaCategoriasComponent {
 
       // Fetch categories based on the updated fabricante ID
       this.categoriaService.find(String(this.receivedCodigoFabricante)).subscribe((data: categoriasProductos[]) => {
-        this.selectedCategoria = data;
+        this.dataSource.data = data;
       });
     });
   }
