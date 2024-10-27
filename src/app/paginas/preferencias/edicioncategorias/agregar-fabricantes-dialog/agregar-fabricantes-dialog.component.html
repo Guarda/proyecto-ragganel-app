@@ -1,0 +1,18 @@
+<div class="contenedor-principal">
+    <h5>Agregar un nuevo fabricante</h5>
+
+    <form [formGroup]="FabricanteForm" (ngSubmit)="onSubmit()">
+        <div class="contenedor-campo">
+            <!--Nombre del fabricante  -->
+            <mat-form-field class="input-form-prod">
+                <mat-label>Nombre de Fabricante</mat-label>
+                <textarea formControlName = "NombreFabricante" name="NombreFabricante" matInput cdkFocusInitial></textarea>
+            </mat-form-field>
+        </div> 
+        <mat-dialog-actions align="end">
+            <button mat-button mat-dialog-close>Cancelar</button>
+            <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!FabricanteForm.valid">Ingresar</button>
+        </mat-dialog-actions>
+
+    </form>
+</div>

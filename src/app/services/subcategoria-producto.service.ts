@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -43,6 +43,18 @@ export class SubcategoriaProductoService {
       .pipe(
         catchError(this.errorHandler)
       )
+  }
+
+  
+  create(IdCategoria: number, NombreSubCategoria: string): Observable<any> {
+    let params = new HttpParams()
+        .set('IdCategoria', IdCategoria.toString())  
+        .set('NombreSubCategoria', NombreSubCategoria); 
+
+    return this.httpClient.post(this.apiURL + '/catesubcate/ingresar-subcategoria/', null, { params, ...this.httpOptions })
+      .pipe(
+        catchError(this.errorHandler)
+      )      
   }
 
   eliminar(Id: string): Observable<any> { 

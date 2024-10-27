@@ -14,6 +14,21 @@ router.get('/listar-fabricantes', (req, res) => {
     });
 });
 
+// Create a new product
+router.post('/ingresar-fabricante', (req, res) => {
+    const { NombreFabricante  } = req.body;
+    console.log(NombreFabricante );
+    //console.log(req.body);
+
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarFabricante` (?)';
+    db.query(sql, [NombreFabricante ], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Fabricante agregado', id: result.insertId });
+    });
+});
+
 // Delete a category
 router.put('/fabricante-eliminar/:id', (req, res) => {
     const id = req.params.id;    

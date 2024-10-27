@@ -28,7 +28,7 @@
     <ng-container matColumnDef="delete">
       <th mat-header-cell *matHeaderCellDef>Acción</th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="warn" (click)="deleteFabricante(element.IdFabricantePK)">
+        <button mat-icon-button color="warn" (click)="deleteFabricante(element.IdFabricantePK, element.NombreFabricante)">
           <mat-icon>close</mat-icon> <!-- X icon for delete -->
         </button>
       </td>
@@ -37,7 +37,7 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr
         mat-row
-        (click)="clickedRows.add(row); sendData(row.IdFabricantePK)"
+        (click)="clickedRows.add(row); sendData(row.IdFabricantePK, row.NombreFabricante)"
         [class.demo-row-is-clicked]="clickedRows.has(row)"
         *matRowDef="let row; columns: displayedColumns;"
     ></tr>

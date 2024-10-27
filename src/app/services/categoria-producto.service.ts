@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -43,6 +43,17 @@ export class CategoriaProductoService {
       .pipe(
         catchError(this.errorHandler)
       )
+  }
+
+  create(IdFabricante: number, NombreCategoria: string): Observable<any> {
+    let params = new HttpParams()
+        .set('IdFabricante', IdFabricante.toString())  
+        .set('NombreCategoria', NombreCategoria); 
+
+    return this.httpClient.post(this.apiURL + '/catesubcate/ingresar-categoria/', null, { params, ...this.httpOptions })
+      .pipe(
+        catchError(this.errorHandler)
+      )      
   }
 
   eliminar(Id: string): Observable<any> { 

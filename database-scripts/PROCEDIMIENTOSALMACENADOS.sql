@@ -471,3 +471,33 @@ END$$
 DELIMITER ;
 
 
+
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR FABRICANTE 22/10/2024*/
+CREATE PROCEDURE IngresarFabricante(PNombreFabricante varchar(100))
+BEGIN
+   INSERT INTO FABRICANTES (NombreFabricante, Activo) values (PNombreFabricante, 1);   
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR CATEGORIA 22/10/2024*/
+CREATE PROCEDURE IngresarCategoria(PNombreCategoria varchar(100), PIdFabricante int)
+BEGIN
+   INSERT INTO CATEGORIASPRODUCTOS (NombreCategoria, IdFabricanteFK, Activo) values (PNombreCategoria, PIdFabricante, 1);   
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR SUBCATEGORIA 22/10/2024*/
+CREATE PROCEDURE IngresarSubcategoria(PNombreSubcategoria varchar(100), PIdCategoria int)
+BEGIN
+   INSERT INTO SUBCATEGORIASPRODUCTOS (NombreSubcategoria, IdCategoriaFK, Activo) values (PNombreSubcategoria, PIdCategoria, 1);   
+END$$
+
+DELIMITER ;
+
+

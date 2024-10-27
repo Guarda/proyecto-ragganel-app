@@ -7,11 +7,14 @@ import { SharedService } from '../../../../services/shared.service';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { AgregarFabricantesDialogComponent } from '../agregar-fabricantes-dialog/agregar-fabricantes-dialog.component';
+import { EliminarFabricanteDialogComponent } from '../eliminar-fabricante-dialog/eliminar-fabricante-dialog.component';
 
 @Component({
   selector: 'app-tabla-fabricantes',
   standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesDialogComponent],
   templateUrl: './tabla-fabricantes.component.html',
   styleUrl: './tabla-fabricantes.component.css'
 })
@@ -22,7 +25,8 @@ export class TablaFabricantesComponent {
   
   constructor(
     public fabricanteService: FabricanteService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private dialog: MatDialog
   ) {
     this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {      
       this.dataSource.data = data;
@@ -35,21 +39,37 @@ export class TablaFabricantesComponent {
   }
 
   openDialogAgregar(){
-
-  }
-
-  deleteFabricante(codigo: number) {
-    this.fabricanteService.eliminar(String(codigo)).subscribe((res: any) => {
-      console.log(res);
-      // Refresh the fabricante list after deletion
-      this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {
+    const dialogRef = this.dialog.open(AgregarFabricantesDialogComponent, {
+      disableClose: true,
+      height: '30%',
+      width: '35%',
+    });
+    dialogRef.componentInstance.Agregado.subscribe(() => {
+      //Mensaje de agregado
+      this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {      
         this.dataSource.data = data;
       });
     });
   }
 
-  sendData(codigo: number) {
-    console.log(codigo);
+  deleteFabricante(codigo: number, nombre: string) {
+    const dialogRef = this.dialog.open(EliminarFabricanteDialogComponent, {
+      disableClose: true,
+      height: '30%',
+      width: '35%',
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      //Mensaje de agregado
+      this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {      
+        this.dataSource.data = data;
+      });
+    });
+  }
+
+  sendData(codigo: number, nombre: string) {
+    console.log(nombre)
     this.sharedService.codigoFabricante(codigo);
+    this.sharedService.codigoCategoria(0);
+    this.sharedService.nombreFabricante(nombre);
   }
 }

@@ -73,6 +73,38 @@ router.put('/categoria-eliminar/:id', (req, res) => {
     });
 });
 
+// Create a new categorie
+router.post('/ingresar-categoria', (req, res) => {
+    const IdFabricante = req.query.IdFabricante;
+    // Convert RealizadoValue to a number (0 or 1)
+    const NombreCategoria = req.query.NombreCategoria; 
+    //console.log(req.body);
+
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoria` (?, ?)';
+    db.query(sql, [NombreCategoria, IdFabricante ], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Categoria agregada', id: result.insertId });
+    });
+});
+
+// Create a new subcategorie
+router.post('/ingresar-subcategoria', (req, res) => {
+    const IdCategoria = req.query.IdCategoria;
+    // Convert RealizadoValue to a number (0 or 1)
+    const NombreSubCategoria = req.query.NombreSubCategoria; 
+    //console.log(req.body);
+
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarSubcategoria` (?, ?)';
+    db.query(sql, [NombreSubCategoria, IdCategoria ], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Categoria agregada', id: result.insertId });
+    });
+});
+
 // Delete a category
 router.put('/subcategoria-eliminar/:id', (req, res) => {
     const id = req.params.id;    

@@ -32,6 +32,21 @@ export class FabricanteService {
       )
   }
 
+  /**
+   * Write code on Method
+   *
+   * @return response()
+   */
+
+  create(NombreFabricante: string): Observable<any> {
+    const fabricanteData = { NombreFabricante }; // Wrap the string in an object
+    console.log(fabricanteData);
+    return this.httpClient.post(this.apiURL + '/fabricantes/ingresar-fabricante/', fabricanteData, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   eliminar(Id: string): Observable<any> { 
     return this.httpClient.put(this.apiURL + '/fabricantes/fabricante-eliminar/' + Id, this.httpOptions)
       .pipe(
