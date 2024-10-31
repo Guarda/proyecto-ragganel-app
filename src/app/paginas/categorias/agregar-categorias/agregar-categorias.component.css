@@ -30,6 +30,10 @@ span {
   align-items: center;
 }
 
+.contenedor-image{
+  width: 38%;
+}
+
 .contenedor-form {
   width: 500%;
 }

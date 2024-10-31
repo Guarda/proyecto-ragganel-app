@@ -24,11 +24,15 @@ import { SubcategoriasProductos } from '../../interfaces/subcategoriasproductos'
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
 
+import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
+import { SharedService } from '../../../services/shared.service';
+
 @Component({
   selector: 'app-agregar-categorias',
   standalone: true,
   imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
+    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
+    ImageUploadComponent ],
   templateUrl: './agregar-categorias.component.html',
   styleUrl: './agregar-categorias.component.css'
 })
@@ -40,6 +44,7 @@ export class AgregarCategoriasComponent {
   categoriasconsolas: CategoriasConsolas[] = [];
 
   TextoFabricante!: string;
+  recievedFileName!: string;
 
   selectedTipoProducto: TipoProducto[] = [];
   selectedFabricante: FabricanteProducto[] = [];
@@ -54,6 +59,7 @@ export class AgregarCategoriasComponent {
     public categoriaproductoService: CategoriaProductoService,
     public subcategoriaproductoService: SubcategoriaProductoService,
     private cdr: ChangeDetectorRef,
+    private sharedService: SharedService,
     private router: Router) {
 
     this.CategoriaForm = new FormGroup({
@@ -98,7 +104,17 @@ export class AgregarCategoriasComponent {
 
   }
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
+  ngAfterView(){
+    
+  }
+
+  onSubmit() {    // TODO: Use EventEmitter with form value
+    // Subscribe to the shared service to listen for the updated fabricante ID
+    this.sharedService.dataNombreArchivo$.subscribe(data => {
+      // console.log('Received Fabricante ID:', data);
+      this.recievedFileName = data;
+      this.CategoriaForm.get('LinkImagen')?.setValue(this.recievedFileName);      
+    }); 
     // console.log(this.CategoriaForm.value); 
     // console.log("enviado");
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {

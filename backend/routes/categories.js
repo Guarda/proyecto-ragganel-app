@@ -14,7 +14,7 @@ router.post('/crear-categoria-producto', (req, res) => {
     });
 });
 
-// Get a specific category
+// Get a specific active category
 router.get('/categoria/:id', (req, res) => {
     const id = req.params.id;
     const sql = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';

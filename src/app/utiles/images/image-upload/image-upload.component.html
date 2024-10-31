@@ -1,0 +1,29 @@
+<!-- src/app/components/image-upload/image-upload.component.html -->
+<div class="upload-container">
+  <!-- Drag-and-Drop Zone -->
+
+  <p *ngIf="!selectedFile">Imagen Obligatoria</p>
+  <div
+    class="drop-zone"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    [class.dragover]="isDragOver"
+  >
+    <p *ngIf="!selectedFile">Arrastre y suelte imagen acá</p>
+    
+    <!-- Preview and Upload Controls -->
+  <div *ngIf="previewUrl" class="image-preview">
+    <img [src]="previewUrl" alt="Image Preview" />
+  </div>
+    <p *ngIf="selectedFile">{{ selectedFile.name }}</p>
+  </div>
+
+  
+  <!-- <input type="file" (change)="onFileSelected($event)" /> -->
+  <button (click)="onUpload()" [disabled]="!selectedFile">Upload</button>
+
+  <div *ngIf="uploadSuccess" class="success-message">
+    Image uploaded successfully!
+  </div>
+</div>

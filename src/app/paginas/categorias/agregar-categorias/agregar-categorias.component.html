@@ -4,8 +4,11 @@
 <form [formGroup]="CategoriaForm" (ngSubmit)="onSubmit()">
 <div class="contenedor-principal">
   <div class="contenedor-secundario">
-    <div class="contenedor-img-consola">
+    <!-- <div class="contenedor-img-consola">
       <img class="img-console"  src="/img-consolas/nestoploader.jpg" alt="imagen-consola">
+    </div> -->
+    <div class="contenedor-image">
+      <app-image-upload></app-image-upload>
     </div>
     <div class="contendor-form">
       <mat-dialog-content class="mat-typography">
@@ -61,6 +64,7 @@
       </mat-dialog-content>
     </div>  
   </div>
+  
   <!-- Comentarios -->
   <!-- <div class="contenedor-comentario">
     <h3>Comentarios</h3>

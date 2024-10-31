@@ -14,7 +14,6 @@ export class SharedService {
   dataNombreFabricante$ = this.dataSubjectNombreFabricante.asObservable();
   dataCategoria$ = this.dataSubjectCategoria.asObservable();
   dataNombreCategoria$ = this.dataSubjectNombreCategoria.asObservable();
-  
 
   codigoFabricante(newData: number) {
     this.dataSubjectFabricante.next(newData);
@@ -31,4 +30,16 @@ export class SharedService {
   nombreCategoria(newData: string){
     this.dataSubjectNombreCategoria.next(newData);
   }
+
+
+  //APARTADO PARA LA IMAGEN QUE SE SUBE AL SISTEMA DE LAS CATEGORIAS
+
+  private dataSubjectNombreImagen = new BehaviorSubject<string>("");
+  dataNombreArchivo$ = this.dataSubjectNombreImagen.asObservable();
+
+  nombreImagen(newData: string){
+    this.dataSubjectNombreImagen.next(newData);
+  }
+
+
 }

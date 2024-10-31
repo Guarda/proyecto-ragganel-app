@@ -32,7 +32,7 @@ export class SubcategoriaProductoService {
       )
   }
 
-   /**
+    /**
    * Write code on Method
    *
    * @return response()
@@ -40,6 +40,13 @@ export class SubcategoriaProductoService {
 
    find(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/catesubcate/listar-subcate/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  findBase(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate/listar-subcate-b/' + id)
       .pipe(
         catchError(this.errorHandler)
       )

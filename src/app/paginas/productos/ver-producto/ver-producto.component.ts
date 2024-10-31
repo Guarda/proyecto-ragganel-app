@@ -138,13 +138,13 @@ export class VerProductoComponent {
       })
 
       //FABRICANTE
-      this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {
+      this.fabricanteService.getAllBase().subscribe((data: FabricanteProducto[]) => {
         // console.log(data);
         this.selectedFabricante = data;
       })
 
       //CATEGORIA
-      this.categoriaproductoService.getAll().subscribe((data: categoriasProductos[]) => {
+      this.categoriaproductoService.getAllBase().subscribe((data: categoriasProductos[]) => {
         // console.log(data);
         this.selectedCategoriaProducto = data;
       })
@@ -155,7 +155,7 @@ export class VerProductoComponent {
       //   this.selectedSubCategoriaProducto = data;
       // })
 
-      this.subcategoriaproductoService.find(this.consoleCate).subscribe((data: SubcategoriasProductos[]) => {        
+      this.subcategoriaproductoService.findBase(this.consoleCate).subscribe((data: SubcategoriasProductos[]) => {        
         this.selectedSubCategoriaProducto = data;
       }) 
 

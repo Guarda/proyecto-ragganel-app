@@ -32,6 +32,16 @@ export class FabricanteService {
       )
   }
 
+  getAllBase(): Observable<any> {
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/fabricantes/listar-fabricantes-b/')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  
+
   /**
    * Write code on Method
    *

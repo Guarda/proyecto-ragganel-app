@@ -14,6 +14,7 @@ import { CategoriasConsolas } from '../../interfaces/categorias';
 import { EstadosConsolas } from '../../interfaces/estados';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
+import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 
 @Component({
   selector: 'app-editar-productos',
@@ -53,6 +54,7 @@ export class EditarProductosComponent {
   array: any[] = [];
 
   constructor(public categorias: CategoriasConsolasService,
+    public categoriaProducto: CategoriaProductoService,
     public estados: EstadoConsolasService,
     public productoService: ProductosService,
     private changeDetectorRef: ChangeDetectorRef,
