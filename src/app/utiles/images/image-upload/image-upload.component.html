@@ -21,7 +21,7 @@
 
   
   <!-- <input type="file" (change)="onFileSelected($event)" /> -->
-  <button (click)="onUpload()" [disabled]="!selectedFile">Upload</button>
+  <button type="button" (click)="onUpload($event)" [disabled]="!selectedFile">Upload</button>
 
   <div *ngIf="uploadSuccess" class="success-message">
     Image uploaded successfully!

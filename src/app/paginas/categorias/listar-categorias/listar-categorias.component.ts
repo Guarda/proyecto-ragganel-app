@@ -152,14 +152,25 @@ export class ListarCategoriasComponent implements AfterViewInit {
     return element.IdModeloConsolaPK; // Ensure this ID is unique
   }
 
+  // getimagePath(l: string | null) {
+  //   if (l == null || l == '') {
+  //     return '/img-consolas/' + 'nestoploader.jpg';
+  //   }
+  //   else {
+  //     return '/img-consolas/' + l;
+  //   }
+  // }
+
   getimagePath(l: string | null) {
-    if (l == null || l == '') {
-      return '/img-consolas/' + 'nestoploader.jpg';
-    }
-    else {
-      return '/img-consolas/' + l;
+    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+  
+    if (l == null || l === '') {
+      return `${baseUrl}/img-consolas/nestoploader.jpg`;
+    } else {
+      return `${baseUrl}/img-consolas/${l}`;
     }
   }
+  
 
 
   onAdd(a: any) {

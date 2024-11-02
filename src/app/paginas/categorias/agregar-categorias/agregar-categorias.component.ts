@@ -32,7 +32,7 @@ import { SharedService } from '../../../services/shared.service';
   standalone: true,
   imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
     NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-    ImageUploadComponent ],
+    ImageUploadComponent],
   templateUrl: './agregar-categorias.component.html',
   styleUrl: './agregar-categorias.component.css'
 })
@@ -66,23 +66,23 @@ export class AgregarCategoriasComponent {
       Fabricante: new FormControl('', Validators.required),
       Cate: new FormControl('', Validators.required),
       SubCategoria: new FormControl('', Validators.required),
-      CodigoModeloConsola: new FormControl('', Validators.required),    
+      CodigoModeloConsola: new FormControl('', Validators.required),
       LinkImagen: new FormControl('', Validators.required),
       TipoProducto: new FormControl('', Validators.required)
     });
 
     this.TiposProductosService.getAll().subscribe((data: TipoProducto[]) => {
-      
+
       this.selectedTipoProducto = data;
     })
 
-    this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {      
+    this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {
       this.selectedFabricante = data;
     })
 
     /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
     this.CategoriaForm.get('Fabricante')?.valueChanges.subscribe(selectedId => {
-      this.categoriaproductoService.find(selectedId).subscribe((data: categoriasProductos[]) => {        
+      this.categoriaproductoService.find(selectedId).subscribe((data: categoriasProductos[]) => {
         this.selectedCategoriaProducto = data;
       })
       this.CategoriaForm.get('SubCategoria')?.reset();
@@ -100,21 +100,21 @@ export class AgregarCategoriasComponent {
   }
 
   ngOnInit(): void {
-
-
-  }
-
-  ngAfterView(){
-    
-  }
-
-  onSubmit() {    // TODO: Use EventEmitter with form value
-    // Subscribe to the shared service to listen for the updated fabricante ID
+    // Subscribe once to updates for the uploaded image name
     this.sharedService.dataNombreArchivo$.subscribe(data => {
-      // console.log('Received Fabricante ID:', data);
       this.recievedFileName = data;
-      this.CategoriaForm.get('LinkImagen')?.setValue(this.recievedFileName);      
-    }); 
+      this.CategoriaForm.get('LinkImagen')?.setValue(this.recievedFileName);
+    });
+
+  }
+
+  ngAfterView() {
+
+  }
+
+  onSubmit() { 
+    console.log("enviado");
+    // TODO: Use EventEmitter with form value
     // console.log(this.CategoriaForm.value); 
     // console.log("enviado");
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {

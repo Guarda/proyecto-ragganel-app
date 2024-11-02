@@ -55,7 +55,8 @@ export class ImageUploadComponent {
     reader.readAsDataURL(file);
   }
 
-  onUpload(): void {
+  onUpload(event: Event): void {
+    event.preventDefault(); // Prevents any form-like behavior
     if (!this.selectedFile) {
       console.error('No file selected!');
       return;
