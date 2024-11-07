@@ -429,6 +429,12 @@ BEGIN
         FROM CategoriasProductos 
         WHERE IdFabricanteFK = p_IdFabricantePK
     );
+    
+    -- Step 4: Soft delete all categories of products with the fabricante
+    UPDATE catalogoconsolas
+    SET Activo = 0
+    WHERE Fabricante = p_IdFabricantePK;
+    
 END$$
 
 DELIMITER ;
@@ -447,6 +453,11 @@ BEGIN
     UPDATE SubcategoriasProductos
     SET Activo = 0
     WHERE IdCategoriaFK = p_IdCategoria;
+    
+     -- Step 3: Soft delete all categories of products with the categorie
+    UPDATE catalogoconsolas
+    SET Activo = 0
+    WHERE Categoria = p_IdCategoria;
    
 END$$
 
@@ -461,10 +472,10 @@ BEGIN
     SET Activo = 0
     WHERE IdSubcategoria = p_IdSubCategoria;
 
-    -- Step 2: Soft delete all categories related to this fabricante
-    /*UPDATE SubcategoriasProductos
+    -- Step 3: Soft delete all categories of products with the categorie
+    UPDATE catalogoconsolas
     SET Activo = 0
-    WHERE IdCategoriaFK = p_IdCategoria;*/
+    WHERE Subcategoria = p_IdSubCategoria;
    
 END$$
 
@@ -499,5 +510,41 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES EN CUALQUIER ESTADO CREADO 30/10/2024*/
+CREATE PROCEDURE ListarFabricantesBase()
+		BEGIN
+			SELECT * FROM Fabricantes;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LAS CATEGORIAS CREADO 30/10/2024*/
+CREATE PROCEDURE ListarCategoriasProductosBase()
+		BEGIN
+			SELECT * FROM categoriasproductos;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LAS SUBCATEGORIAS CREADO 30/10/2024*/
+CREATE PROCEDURE ListarSubCategoriasProductosBase()
+		BEGIN
+			SELECT * FROM subcategoriasproductos ;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR SUBCATEGORIAS POR CATEGORIA EN CUALQUIER ESTADO CREADO 30/10/2024*/
+CREATE PROCEDURE ListarSubCategoriasProductosxCategoriaBase(IdCategoriaP int)
+	BEGIN
+		SELECT a.IdSubcategoria, a.NombreSubCategoria from Subcategoriasproductos a
+        join categoriasproductos b on a.IdCategoriaFK = b.IdCategoriaPK
+        WHERE b.IdCategoriaPK = IdCategoriaP;
+    END //
+DELIMITER ;
+/**/
+
 
 
