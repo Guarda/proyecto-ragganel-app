@@ -2,19 +2,18 @@ import { AfterViewInit, Component, EventEmitter, Inject, Output, ViewChild } fro
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
-import { ProductosService } from '../productos.service';
-import { Producto } from '../../interfaces/producto';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 
+import { Producto } from '../../interfaces/producto';
+import { ProductosService } from '../productos.service';
 import { AgregarProdutosComponent } from '../agregar-produtos/agregar-produtos.component';
 import { EditarProductosComponent } from '../editar-productos/editar-productos.component';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
@@ -23,8 +22,18 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
 @Component({
   selector: 'app-listar-productos',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-     MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, AgregarProdutosComponent
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    MatTableModule, 
+    MatLabel, 
+    MatFormField, 
+    MatInputModule,
+    MatInputModule, 
+    MatSortModule, 
+    MatPaginatorModule, 
+    MatIcon, 
+    MatButtonModule    
   ],
   templateUrl: './listar-productos.component.html',
   styleUrl: './listar-productos.component.css'

@@ -13,6 +13,7 @@ const catesubcateRouter = require('./routes/cate-subcategories');
 const accesroriesRouter = require('./routes/accesories');
 const tasksRouter = require('./routes/tasks');
 const uploadRouter = require('./routes/upload');
+const accessoriesbaseRouter = require('./routes/accessories-base');
 
 // Middleware
 app.use(bodyParser.json());
@@ -35,6 +36,7 @@ app.use('/catesubcate', catesubcateRouter);
 app.use('/accesorios', accesroriesRouter);
 app.use('/tareas', tasksRouter);
 app.use('/upload', uploadRouter);
+app.use('/accesorios-base', accessoriesbaseRouter);
 
 // Start the server
 app.listen(port, () => {

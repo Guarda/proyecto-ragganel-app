@@ -544,7 +544,25 @@ CREATE PROCEDURE ListarSubCategoriasProductosxCategoriaBase(IdCategoriaP int)
         WHERE b.IdCategoriaPK = IdCategoriaP;
     END //
 DELIMITER ;
-/**/
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR ACCESORIOS BASE*/
+CREATE PROCEDURE ListarTablaAccesoriosBase ()
+       BEGIN
+			SELECT A.CodigoAccesorio, concat(NombreCategoriaAccesorio,' ',NombreSubcategoriaAccesorio) as DescripcionAccesorio, A.ColorAccesorio, C.DescripcionEstado As 'Estado',
+                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'FechaIngreso',
+                Comentario, 
+                PrecioBase,
+                NumeroSerie
+			FROM AccesoriosBase A 
+            join Catalogoaccesorios B on A.ModeloAccesorio = B.IdModeloAccesorioPK
+            join CatalogoEstadosConsolas C on A.EstadoAccesorio = C.CodigoEstado
+            join CategoriasAccesorios D on B.CategoriaAccesorio = D.IdCategoriaAccesorioPK
+            join Subcategoriasaccesorios E on B.SubcategoriaAccesorio = E.IdSubcategoriaAccesorio
+			WHERE A.EstadoAccesorio != 7;
+       END //
+DELIMITER ;
+
 
 
 
