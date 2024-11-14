@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
 import { AccesorioBaseService } from '../../../../services/accesorio-base.service';
+import { AgregarAccesoriosComponent } from '../../agregar-accesorios/agregar-accesorios/agregar-accesorios.component';
 
 @Component({
   selector: 'app-listar-accesorios',
@@ -35,6 +36,24 @@ export class ListarAccesoriosComponent {
 
   }
 
+  public openDialogAgregar() {
+    const dialogRef = this.dialog.open(AgregarAccesoriosComponent, {
+      disableClose: true,
+      height: '100%',
+      width: '50%',
+    });
+    dialogRef.componentInstance.Agregado.subscribe(() => {
+      this.getAccesorioList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getAccesorioList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
   ngOnInit(): void {
     this.getAccesorioList();
   }
@@ -46,6 +65,10 @@ export class ListarAccesoriosComponent {
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
     })
+  }
+
+  onAdd(a: any) {
+    this.ngOnInit();
   }
 
   applyFilter(event: Event) {

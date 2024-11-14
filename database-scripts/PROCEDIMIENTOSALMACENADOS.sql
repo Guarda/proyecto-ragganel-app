@@ -563,6 +563,45 @@ CREATE PROCEDURE ListarTablaAccesoriosBase ()
        END //
 DELIMITER ;
 
+DELIMITER //
+/*PROCEDIMIENTO ListarCategoriasAccesoriosBase creado 12/11/2024*/
+CREATE PROCEDURE ListarCategoriasAccesoriosBase ()
+BEGIN	
+    SELECT * FROM catalogoaccesorios a
+    join Fabricanteaccesorios b on a.FabricanteAccesorio = b.IdFabricanteAccesorioPK
+    join CategoriasAccesorios c on a.CategoriaAccesorio = c.IdCategoriaAccesorioPK
+    join Subcategoriasaccesorios d on a.Subcategoriaaccesorio = d.IdSubcategoriaaccesorio
+    WHERE a.ACTIVO = 1;
+END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES DE ACCESORIOS CREADO 13/10/2024*/
+CREATE PROCEDURE ListarFabricantesAccesorios()
+		BEGIN
+			SELECT * FROM Fabricanteaccesorios 
+            WHERE Activo = 1;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LAS CATEGORIAS DE ACCESORIOS CREADO 13/10/2024*/
+CREATE PROCEDURE ListarCategoriasAccesorios()
+		BEGIN
+			SELECT * FROM categoriasaccesorios 
+            WHERE Activo = 1;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LAS SUBCATEGORIAS DE ACCESORIOS CREADO 13/10/2024*/
+CREATE PROCEDURE ListarSubCategoriasAccesorios()
+		BEGIN
+			SELECT * FROM subcategoriasaccesorios 
+            WHERE Activo = 1;
+        END //
+DELIMITER ;
+
 
 
 

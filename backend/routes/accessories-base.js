@@ -14,4 +14,15 @@ router.get('/', (req, res) => {
     });
 });
 
+// List all accesories categories
+router.get('/listar-categorias-accesorios', (req, res) => {
+    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasAccesoriosBase`();', (err, results) => {
+        if (err) {
+            res.status(500).send('Error fetching categorias');
+            return;
+        }
+        res.json(results[0]);
+    });
+});
+
 module.exports = router;
