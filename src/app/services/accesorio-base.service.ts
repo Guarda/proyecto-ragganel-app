@@ -36,6 +36,38 @@ export class AccesorioBaseService {
       )
   }
 
+
+
+  create(producto: AccesoriosBase): Observable<any> {
+    return this.httpClient.post(this.apiURL + '/accesorios-base/crear-accesorio/', JSON.stringify(producto), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/accesorios-base/accesorio/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
+  update(accesorio: AccesoriosBase): Observable<any> {
+    return this.httpClient.put(this.apiURL + '/accesorios-base/accesorio/' + accesorio.CodigoAccesorio, JSON.stringify(accesorio), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  eliminar(accesorio: AccesoriosBase): Observable<any> {   
+    // console.log(accesorio) 
+    return this.httpClient.put(this.apiURL + '/accesorios-base/accesorio-eliminar/' + accesorio.CodigoAccesorio, JSON.stringify(accesorio), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

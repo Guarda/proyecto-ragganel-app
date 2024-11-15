@@ -16,6 +16,7 @@ const uploadRouter = require('./routes/upload');
 const accessoriesbaseRouter = require('./routes/accessories-base');
 const accessoriesmanufacturerRouter = require('./routes/accessories-manufacturer');
 const accesoriescatesubcateRouter = require('./routes/accesories-cate-subcategories');
+const accesoriestasksRouter = require('./routes/accesories-tasks');
 
 // Middleware
 app.use(bodyParser.json());
@@ -41,6 +42,7 @@ app.use('/upload', uploadRouter);
 app.use('/accesorios-base', accessoriesbaseRouter);
 app.use('/fabricantes-accesorios', accessoriesmanufacturerRouter);
 app.use('/catesubcate-accesorios', accesoriescatesubcateRouter);
+app.use('/tareas-accesorios',accesoriestasksRouter);
 
 // Start the server
 app.listen(port, () => {

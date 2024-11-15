@@ -1,0 +1,104 @@
+body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    padding: 0;
+    margin-right: 0;
+    margin-left: 1%;
+  }
+  
+  table {
+    width: 125%;
+  }
+  
+  .mat-mdc-form-field {
+    font-size: 14px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .columna-descripcion{
+    width: 40vw!important;
+  }
+  
+  
+  td,
+  th {
+    height: 100%!important;
+    
+    height: 100%;
+    align-items: center;
+    /* width: 10vw; */
+  }
+  
+  .cabezera {
+    display: flex;
+    align-items: center;
+    padding: 1%;
+    justify-content: space-evenly;
+    /* justify-content: space-around; */
+    width: 125%;
+  }
+  
+  .foo-paginator {
+    width: 125%;
+    background-color: #f0f0f0;
+    bottom: 0px;
+    position: sticky;
+    z-index: 10;
+  }
+  
+  .white-backgrounded-field .mdc-text-field--outlined .mdc-notched-outline {
+    z-index: 0;
+    width: 50%!important;
+  }
+  
+  .white-backgrounded-field .mdc-notched-outline__notch,
+  .white-backgrounded-field .mdc-notched-outline__leading,
+  .white-backgrounded-field .mdc-notched-outline__trailing {
+    background-color: white !important;
+    color: white !important;
+  }
+  
+  .btn-create-prod {
+    margin-left: 10% !important;
+  }
+  
+  .contenedor-botones {
+    display: flex;
+    height: 52px!important;
+    margin-bottom: 0%;
+  } 
+  
+  
+  th.mat-header-cell,
+  td.mat-cell {
+    
+    text-align: center;
+  }
+  
+  .button-editar-prod{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white!important;
+    background-color: green!important;
+  }
+  
+  
+  /* cambia el tamaño del icono pero no del holder donde esta XD  */
+  /* .iconos-custom {
+    display: flex;
+    align-items: space-around;
+    justify-content: center;
+  } */
+  
+  .button-eliminar-prod{
+    color: white;
+    background-color: red;
+    display: flex;
+    padding: auto;
+  }

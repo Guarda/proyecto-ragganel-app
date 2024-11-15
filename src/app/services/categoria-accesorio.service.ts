@@ -31,6 +31,27 @@ export class CategoriaAccesorioService {
       )
   }
 
+  getAllBase(): Observable<any> {
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-cate-accesorio-b/')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  /**
+   * Write code on Method
+   *
+   * @return response()
+   */
+
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-cate-accesorio/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

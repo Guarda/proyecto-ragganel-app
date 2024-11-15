@@ -11,9 +11,10 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
-import { AccesorioBaseService } from '../../../../services/accesorio-base.service';
-import { AgregarAccesoriosComponent } from '../../agregar-accesorios/agregar-accesorios/agregar-accesorios.component';
+import { AccesoriosBase } from '../../interfaces/accesoriosbase';
+import { AccesorioBaseService } from '../../../services/accesorio-base.service';
+import { AgregarAccesoriosComponent } from '../agregar-accesorios/agregar-accesorios.component';
+import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-accesorios.component';
 
 @Component({
   selector: 'app-listar-accesorios',
@@ -43,6 +44,23 @@ export class ListarAccesoriosComponent {
       width: '50%',
     });
     dialogRef.componentInstance.Agregado.subscribe(() => {
+      this.getAccesorioList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getAccesorioList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogEliminar(cons: string){
+    const dialogRef = this.dialog.open(EliminarAccesoriosComponent, {  
+      disableClose: true,   
+      data: { value: cons }      
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
       this.getAccesorioList();
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;

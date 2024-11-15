@@ -7,7 +7,8 @@ import { EditarProductosComponent } from './paginas/productos/editar-productos/e
 import { ListarCategoriasComponent } from './paginas/categorias/listar-categorias/listar-categorias.component';
 import { VerProductoComponent } from './paginas/productos/ver-producto/ver-producto.component';
 import { IndexEdicioncategoriasComponent } from './paginas/preferencias/edicioncategorias/index-edicioncategorias/index-edicioncategorias.component';
-import { ListarAccesoriosComponent } from './paginas/accesorios/listar-accesorios/listar-accesorios/listar-accesorios.component';
+import { ListarAccesoriosComponent } from './paginas/accesorios/listar-accesorios/listar-accesorios.component';
+import { VerAccesorioComponent } from './paginas/accesorios/ver-accesorio/ver-accesorio.component';
 
 export const routes: Routes = [
     
@@ -18,5 +19,6 @@ export const routes: Routes = [
     { path: 'listado-categorias', component: ListarCategoriasComponent},
     { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent},
     { path: 'preferencias/index-categorias', component: IndexEdicioncategoriasComponent},
-    { path: 'listado-accesorios', component: ListarAccesoriosComponent}
+    { path: 'listado-accesorios', component: ListarAccesoriosComponent},
+    { path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view', component: VerAccesorioComponent},
 ];

@@ -7,7 +7,7 @@ import { catchError } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
-export class SubcategoriaAccesorioService {
+export class TareasAccesoriosService {
   private apiURL = "http://localhost:3000";
 
   httpOptions = {
@@ -15,30 +15,26 @@ export class SubcategoriaAccesorioService {
       'Content-Type': 'application/json'
     })
   }
+
   constructor(private httpClient: HttpClient) { }
 
-  getAll(): Observable<any> {
-    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
-    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-subcate-accesorio/')
-      .pipe(
-        catchError(this.errorHandler)
-      )
-  }
-
   find(id: string): Observable<any> {
-    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-subcate-accesorio/' + id)
+    return this.httpClient.get(this.apiURL + '/tareas-accesorios/tareas/' + id)
       .pipe(
         catchError(this.errorHandler)
       )
   }
 
-  findBase(id: string): Observable<any> {
-    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-subcate-accesorio-b/' + id)
-      .pipe(
-        catchError(this.errorHandler)
-      )
-  }
+  update(idtarea: number, rvalue: number): Observable<any> {
+    let params = new HttpParams()
+        .set('IdTareaPK', idtarea.toString())  // Ensure the parameter is a string
+        .set('RealizadoValue', rvalue ? '1' : '0'); // Convert boolean to string '1' or '0'
 
+    return this.httpClient.put(this.apiURL + '/tareas-accesorios/tareas/', null, { params, ...this.httpOptions })
+        .pipe(
+            catchError(this.errorHandler)
+        );
+  }
 
   errorHandler(error: any) {
     let errorMessage = '';

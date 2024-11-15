@@ -32,6 +32,14 @@ export class FabricanteAccesorioService {
         )
     }
 
+    getAllBase(): Observable<any> {
+      //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+      return this.httpClient.get(this.apiURL + '/fabricantes-accesorios/listar-fabricantes-accesorios-b/')
+        .pipe(
+          catchError(this.errorHandler)
+        )
+    }
+
     errorHandler(error: any) {
       let errorMessage = '';
       if (error.error instanceof ErrorEvent) {

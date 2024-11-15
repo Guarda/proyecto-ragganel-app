@@ -12,21 +12,21 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgFor } from '@angular/common';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 
-import { CategoriasAccesoriosService } from '../../../../services/categorias-accesorios.service';
-import { EstadosConsolas } from '../../../interfaces/estados';
-import { EstadoConsolasService } from '../../../../services/estado-consolas.service';
-import { AccesorioBaseService } from '../../../../services/accesorio-base.service';
-import { FabricanteAccesorio } from '../../../interfaces/fabricantesaccesorios';
-import { categoriasAccesorios } from '../../../interfaces/categoriasaccesorios';
-import { SubcategoriasAccesorios } from '../../../interfaces/subcategoriasaccesorios';
+import { CategoriasAccesoriosService } from '../../../services/categorias-accesorios.service';
+import { EstadosConsolas } from '../../interfaces/estados';
+import { EstadoConsolasService } from '../../../services/estado-consolas.service';
+import { AccesorioBaseService } from '../../../services/accesorio-base.service';
+import { FabricanteAccesorio } from '../../interfaces/fabricantesaccesorios';
+import { categoriasAccesorios } from '../../interfaces/categoriasaccesorios';
+import { SubcategoriasAccesorios } from '../../interfaces/subcategoriasaccesorios';
 
 
-import { FabricanteAccesorioService } from '../../../../services/fabricante-accesorio.service';
-import { CategoriaAccesorioService } from '../../../../services/categoria-accesorio.service';
-import { SubcategoriaAccesorioService } from '../../../../services/subcategoria-accesorio.service';
+import { FabricanteAccesorioService } from '../../../services/fabricante-accesorio.service';
+import { CategoriaAccesorioService } from '../../../services/categoria-accesorio.service';
+import { SubcategoriaAccesorioService } from '../../../services/subcategoria-accesorio.service';
 
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
+import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosbase';
 
 // import { Categorias}
 @Component({
@@ -110,15 +110,59 @@ export class AgregarAccesoriosComponent {
       this.selectedFabricanteAccesorio = data;
     });
 
-    this.categoriaaccesorioService.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
-      this.selectedCategoriaAccesorio = data;
-    });
+    // this.categoriaaccesorioService.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
+    //   this.selectedCategoriaAccesorio = data;
+    // });
 
-    this.subcategoriaaccesrorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => {
-      this.selectedSubCategoriaAccesorio = data;
-    });
+    // this.subcategoriaaccesrorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => {
+    //   this.selectedSubCategoriaAccesorio = data;
+    // });
 
     this.accesorioForm.get('TodoList')?.setValue(this.nkeywords());
+
+    /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
+    this.accesorioForm.get('FabricanteAccesorio')?.valueChanges.subscribe(selectedId => {
+      // this.accesorioForm.get('Cate')?.reset();
+      // this.accesorioForm.get('SubCategoria')?.reset();
+      this.categoriaaccesorioService.find(selectedId).subscribe((data: categoriasAccesorios[]) => {        
+        this.selectedCategoriaAccesorio = data;
+      })
+      this.accesorioForm.get('SubCategoriaAccesorio')?.reset();
+    });
+
+    this.accesorioForm.get('CateAccesorio')?.valueChanges.subscribe(selectedId => {      
+      this.subcategoriaaccesrorioService.find(selectedId).subscribe((data: SubcategoriasAccesorios[]) => {
+        this.selectedSubCategoriaAccesorio = data;
+        console.log(data);
+      })      
+    });
+
+    this.accesorioForm.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId =>{
+      //console.log(this.accesorioForm.value.Fabricante, this.accesorioForm.value.Cate, this.accesorioForm.get('SubCategoria')?.value);
+      if (this.accesorioForm.value.FabricanteAccesorio != undefined && this.accesorioForm.value.CateAccesorio != undefined &&  this.accesorioForm.get('SubCategoriaAccesorio')?.value != undefined){      
+        this.categorias.getbymanufacturer(this.accesorioForm.value.FabricanteAccesorio, this.accesorioForm.value.CateAccesorio, this.accesorioForm.get('SubCategoriaAccesorio')?.value).subscribe((data) => {
+          this.idModeloAccesorioPK = data[0].IdModeloAccesorioPK;          
+
+          // //UPDATES THE CHIPS OF ACCESORIES OF GIVEN PRODUCT TYPE
+          // this.IdTipoProd = data[0].TipoProducto;
+          // this.accesoriosService.find(this.IdTipoProd).subscribe((data) => {     
+          //   this.keywords.update(() => []);        
+          //   for (var val of data) {             
+          //     this.addt(val.DescripcionAccesorio); // prints values: 10, 20, 30, 40
+          //   }
+          //   //this.keywords.update(() => []); 
+          // })
+          // console.log(data[0].IdModeloConsolaPK);
+          // console.log(this.IdModeloPK);
+          this.categorias.find(this.idModeloAccesorioPK).subscribe((data) => {
+            this.categoria = data[0];
+            this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+            this.cdr.detectChanges();
+            this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(this.idModeloAccesorioPK);
+          });       
+        })
+      }
+    });  
 
   }
 
@@ -209,13 +253,25 @@ export class AgregarAccesoriosComponent {
     }
   }
 
+  ngAfterViewInit() {
+    this.accesorioForm.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId =>{
+      console.log(selectedId);
+    });
+  }
+
+  get f() {
+
+    return this.accesorioForm.controls;
+
+  }
+
   onSubmit() {    // TODO: Use EventEmitter with form value 
-    console.log(this.accesorioForm.value);
-    console.log("enviado");
-    // this.productoService.create(this.accesorioForm.value).subscribe((res: any) => {
-    //   this.Agregado.emit();
-    //   this.router.navigateByUrl('listado-productos');
-    // })
+    // console.log(this.accesorioForm.value);
+    // console.log("enviado");
+    this.accesorioService.create(this.accesorioForm.value).subscribe((res: any) => {
+      this.Agregado.emit();
+      this.router.navigateByUrl('listado-accesorios');
+    })
 
   }
 

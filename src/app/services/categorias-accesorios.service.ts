@@ -32,6 +32,36 @@ export class CategoriasAccesoriosService {
       )
   }
 
+  getAllBase(): Observable<any> {
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-cate-accesorio-b/')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+  
+  getbymanufacturer(fabricante: number, categoria: number, subcategoria: number): Observable<any> {
+    
+    console.log('reached');
+    let params = new HttpParams()
+    .set('Fabricante', fabricante)
+    .set('Categoria', categoria)
+    .set('Subcategoria', subcategoria);
+
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/accesorios-base/categoria/', {params})
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/accesorios-base/categoria/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

@@ -214,7 +214,7 @@ CREATE TABLE AccesoriosBase (
     ColorAccesorio varchar(100) not null,
     EstadoAccesorio int not null,
     FechaIngreso date,
-    Comentario varchar(255),
+    Comentario varchar(2000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),
     FOREIGN KEY (ModeloAccesorio) REFERENCES CatalogoAccesorios (IdModeloAccesorioPK),

@@ -18,13 +18,13 @@ export class SubcategoriaProductoService {
   }
   constructor(private httpClient: HttpClient) { }
 
-   /**
-   * Write code on Method
-   *
-   * @return response()
-   */
+  /**
+  * Write code on Method
+  *
+  * @return response()
+  */
 
-   getAll(): Observable<any> {
+  getAll(): Observable<any> {
     //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
     return this.httpClient.get(this.apiURL + '/catesubcate/listar-subcate/')
       .pipe(
@@ -32,13 +32,13 @@ export class SubcategoriaProductoService {
       )
   }
 
-    /**
-   * Write code on Method
-   *
-   * @return response()
-   */
+  /**
+ * Write code on Method
+ *
+ * @return response()
+ */
 
-   find(id: string): Observable<any> {
+  find(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/catesubcate/listar-subcate/' + id)
       .pipe(
         catchError(this.errorHandler)
@@ -52,24 +52,24 @@ export class SubcategoriaProductoService {
       )
   }
 
-  
+
   create(IdCategoria: number, NombreSubCategoria: string): Observable<any> {
     let params = new HttpParams()
-        .set('IdCategoria', IdCategoria.toString())  
-        .set('NombreSubCategoria', NombreSubCategoria); 
+      .set('IdCategoria', IdCategoria.toString())
+      .set('NombreSubCategoria', NombreSubCategoria);
 
     return this.httpClient.post(this.apiURL + '/catesubcate/ingresar-subcategoria/', null, { params, ...this.httpOptions })
       .pipe(
         catchError(this.errorHandler)
-      )      
+      )
   }
 
-  eliminar(Id: string): Observable<any> { 
+  eliminar(Id: string): Observable<any> {
     return this.httpClient.put(this.apiURL + '/catesubcate/subcategoria-eliminar/' + Id, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
-  } 
+  }
 
   errorHandler(error: any) {
     let errorMessage = '';
