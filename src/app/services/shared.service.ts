@@ -32,7 +32,36 @@ export class SharedService {
   }
 
 
-  //APARTADO PARA LA IMAGEN QUE SE SUBE AL SISTEMA DE LAS CATEGORIAS
+
+  private dataSubjectFabricanteAccesorio = new BehaviorSubject<number>(0);
+  private dataSubjectCategoriaAccesorio = new BehaviorSubject<number>(0);
+  private dataSubjectNombreFabricanteAccesorio  = new BehaviorSubject<string>('');
+  private dataSubjectNombreCategoriaAccesorio = new BehaviorSubject<string>('');
+
+  dataFabricanteAccesorio$ = this.dataSubjectFabricanteAccesorio.asObservable();
+  dataNombreFabricanteAccesorio$ = this.dataSubjectNombreFabricanteAccesorio.asObservable();
+  dataCategoriaAccesorio$ = this.dataSubjectCategoriaAccesorio.asObservable();
+  dataNombreCategoriaAccesorio$ = this.dataSubjectNombreCategoriaAccesorio.asObservable();
+
+  codigoFabricanteAccesorio(newData: number) {
+    this.dataSubjectFabricanteAccesorio.next(newData);
+  }
+
+  nombreFabricanteAccesorio(newData: string){
+    this.dataSubjectNombreFabricanteAccesorio.next(newData);
+  }
+
+  codigoCategoriaAccesorio(newData: number){
+    this.dataSubjectCategoriaAccesorio.next(newData);
+  }
+
+  nombreCategoriaAccesorio(newData: string){
+    this.dataSubjectNombreCategoriaAccesorio.next(newData);
+  }
+
+
+
+  //APARTADO PARA LA IMAGEN QUE SE SUBE AL SISTEMA DE LAS CATEGORIAS PRODUCTOS
 
   private dataSubjectNombreImagen = new BehaviorSubject<string>("");
   dataNombreArchivo$ = this.dataSubjectNombreImagen.asObservable();
@@ -40,6 +69,16 @@ export class SharedService {
   nombreImagen(newData: string){
     this.dataSubjectNombreImagen.next(newData);
   }
+
+  //APARTADO PARA LA IMAGEN QUE SE SUBE AL SISTEMA DE LAS CATEGORIAS ACCESORIOS
+
+  private dataSubjectNombreImagenAccesorio = new BehaviorSubject<string>("");
+  dataNombreArchivoAccesorio$ = this.dataSubjectNombreImagenAccesorio.asObservable();
+
+  nombreImagenAccesorio(newData: string){
+    this.dataSubjectNombreImagenAccesorio.next(newData);
+  }
+
 
 
 }

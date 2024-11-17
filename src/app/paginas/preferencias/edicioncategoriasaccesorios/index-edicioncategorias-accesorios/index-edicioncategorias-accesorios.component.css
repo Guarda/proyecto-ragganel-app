@@ -1,0 +1,45 @@
+.contenedor-principal{
+    margin-left: 1%;
+}
+
+.contenedor-secundario{
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-between;
+}
+
+.contenedor-secundario > div {    
+    border: 2px solid #ccc; /* Change the color and width as needed */
+    border-radius: 10px; /* Rounded corners */
+    padding: 10px; /* Optional, adds spacing inside the divs */
+    margin-bottom: 15px; /* Optional, adds space between each div */
+  }
+  
+  /* You can add individual styles for each table if needed */
+  .tabla-1, .tabla-2, .tabla-3 {
+    background-color: #f9f9f9; /* Optional, background color */
+    width: 33%;
+  }
+
+/* .tabla-1{
+    width: 30%;
+    border-radius: 30px;
+   justify-content: center;
+}
+.tabla-2{
+    width: 30%;
+}
+.tabla-3{
+    width: 30%;
+} */
+
+
+/* Add this to your component's CSS file or global styles */
+button.mat-icon-button {
+    color: red!important; /* Change the icon color to red */
+  }
+  
+  button.mat-icon-button:hover {
+    background-color: rgba(255, 0, 0, 0.1)!important; /* Optional hover effect */
+  }

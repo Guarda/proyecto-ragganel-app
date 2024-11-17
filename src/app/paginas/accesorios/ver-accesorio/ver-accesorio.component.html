@@ -113,7 +113,23 @@
                         </qrcode>
                         <!--   -->
                     <div class="contenedorAccesorios" *ngIf="accesorio">
-                        
+                        <mat-form-field class="input-form-prod">
+                            <mat-label>Productos Compatibles</mat-label>
+                            <mat-chip-grid #chipGrid aria-label="Enter keywords" formControlName="ProductosCompatibles">
+                              <mat-chip-row *ngFor="let keyword of keywords(); trackBy: trackByComaptibleProduct" 
+                                            (removed)="removeKeyword(keyword)">
+                                {{ keyword }}
+                                <button matChipRemove aria-label="'remove ' + keyword">
+                                  <mat-icon>cancel</mat-icon>
+                                </button>
+                              </mat-chip-row>
+                            </mat-chip-grid>
+                            <input
+                              placeholder="Agrega productos compatibles..."
+                              [matChipInputFor]="chipGrid"
+                              (matChipInputTokenEnd)="add($event)"
+                            />
+                          </mat-form-field>
                     </div>
                     <div class="contenedorTodoList">
                         <h5 class="h5qr">Tareas a realizar</h5>

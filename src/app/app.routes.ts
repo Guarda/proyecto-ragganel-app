@@ -9,6 +9,8 @@ import { VerProductoComponent } from './paginas/productos/ver-producto/ver-produ
 import { IndexEdicioncategoriasComponent } from './paginas/preferencias/edicioncategorias/index-edicioncategorias/index-edicioncategorias.component';
 import { ListarAccesoriosComponent } from './paginas/accesorios/listar-accesorios/listar-accesorios.component';
 import { VerAccesorioComponent } from './paginas/accesorios/ver-accesorio/ver-accesorio.component';
+import { ListarCategoriasAccesoriosComponent } from './paginas/categoriasaccesorios/listar-categorias-accesorios/listar-categorias-accesorios.component';
+import { IndexEdicioncategoriasAccesoriosComponent } from './paginas/preferencias/edicioncategoriasaccesorios/index-edicioncategorias-accesorios/index-edicioncategorias-accesorios.component';
 
 export const routes: Routes = [
     
@@ -21,4 +23,6 @@ export const routes: Routes = [
     { path: 'preferencias/index-categorias', component: IndexEdicioncategoriasComponent},
     { path: 'listado-accesorios', component: ListarAccesoriosComponent},
     { path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view', component: VerAccesorioComponent},
+    { path: 'listado-categorias-accesorios', component: ListarCategoriasAccesoriosComponent},
+    { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent},
 ];

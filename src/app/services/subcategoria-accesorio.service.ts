@@ -39,6 +39,25 @@ export class SubcategoriaAccesorioService {
       )
   }
 
+  create(IdCategoriaAccesorio: number, NombreSubCategoriaAccesorio: string): Observable<any> {
+    let params = new HttpParams()
+      .set('IdCategoriaAccesorio', IdCategoriaAccesorio.toString())
+      .set('NombreSubCategoriaAccesorio', NombreSubCategoriaAccesorio);
+
+    return this.httpClient.post(this.apiURL + '/catesubcate-accesorios/ingresar-subcategoria-accesorio/', null, { params, ...this.httpOptions })
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  eliminar(Id: string): Observable<any> {
+    console.log('sent:'+Id);
+    return this.httpClient.put(this.apiURL + '/catesubcate-accesorios/subcategoria-eliminar-accesorio/' + Id, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
 
   errorHandler(error: any) {
     let errorMessage = '';

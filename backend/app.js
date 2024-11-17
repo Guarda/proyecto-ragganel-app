@@ -13,10 +13,12 @@ const catesubcateRouter = require('./routes/cate-subcategories');
 const accesroriesRouter = require('./routes/accesories');
 const tasksRouter = require('./routes/tasks');
 const uploadRouter = require('./routes/upload');
+const uploadimageaccesoriesRouter = require('./routes/upload-image-accesories');
 const accessoriesbaseRouter = require('./routes/accessories-base');
 const accessoriesmanufacturerRouter = require('./routes/accessories-manufacturer');
 const accesoriescatesubcateRouter = require('./routes/accesories-cate-subcategories');
 const accesoriestasksRouter = require('./routes/accesories-tasks');
+const categoriesaccesoriesRouter = require('./routes/categories-accesories');
 
 // Middleware
 app.use(bodyParser.json());
@@ -30,6 +32,7 @@ app.use(cors({
 
 // Serve static files from the public/img-consolas directory
 app.use('/img-consolas', express.static(path.join(__dirname, '..', 'public', 'img-consolas')));
+app.use('/img-accesorios', express.static(path.join(__dirname, '..', 'public', 'img-accesorios')));
 
 // Define your routes
 app.use('/productos', productsRouter);
@@ -43,6 +46,8 @@ app.use('/accesorios-base', accessoriesbaseRouter);
 app.use('/fabricantes-accesorios', accessoriesmanufacturerRouter);
 app.use('/catesubcate-accesorios', accesoriescatesubcateRouter);
 app.use('/tareas-accesorios',accesoriestasksRouter);
+app.use('/upload-imagen-accesorios', uploadimageaccesoriesRouter);
+app.use('/categorias-accesorios', categoriesaccesoriesRouter);
 
 // Start the server
 app.listen(port, () => {

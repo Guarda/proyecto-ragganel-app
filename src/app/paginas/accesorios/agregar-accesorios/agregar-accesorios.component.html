@@ -55,7 +55,27 @@
           <mat-form-field class="input-form-prod">
             <mat-label>Precio Base</mat-label>
             <textarea formControlName = "PrecioBase" name="PrecioBase" matInput></textarea>
-          </mat-form-field>         
+          </mat-form-field>        
+          
+          <!-- Productos Compatibles -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Productos Compatibles</mat-label>
+            <mat-chip-grid #chipGrid aria-label="Enter keywords" formControlName = "ProductosCompatibles">
+              @for (keyword of keywords(); track keyword) {
+                <mat-chip-row (removed)="removeKeyword(keyword)">
+                  {{keyword}}
+                  <button matChipRemove aria-label="'remove ' + keyword">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              placeholder="Agrega Productos Compatibles..."
+              [matChipInputFor]="chipGrid"
+              (matChipInputTokenEnd)="add($event)"
+            />
+        </mat-form-field>
           <!--Tareas -->         
         <mat-form-field class="example-form-field">
           <mat-label>Tareas a realizar</mat-label>

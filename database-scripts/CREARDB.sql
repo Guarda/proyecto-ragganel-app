@@ -217,6 +217,7 @@ CREATE TABLE AccesoriosBase (
     Comentario varchar(2000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),
+    ProductosCompatibles varchar(500),
     FOREIGN KEY (ModeloAccesorio) REFERENCES CatalogoAccesorios (IdModeloAccesorioPK),
     FOREIGN KEY (EstadoAccesorio) REFERENCES CatalogoEstadosConsolas (CodigoEstado)
 );
@@ -230,6 +231,8 @@ CREATE TABLE TareasdeAccesorios (
     IdCodigoAccesorioFK varchar(25),
     FOREIGN KEY (IdCodigoAccesorioFK) REFERENCES AccesoriosBase (CodigoAccesorio)
 );
+
+TRUNCATE TABLE AccesoriosBase;
 
 /*SECCION DE PEDIDOS*/
 

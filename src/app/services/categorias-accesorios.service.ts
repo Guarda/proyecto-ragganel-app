@@ -62,6 +62,29 @@ export class CategoriasAccesoriosService {
       )
   }
 
+  create(categoria: CategoriasAccesoriosBase): Observable<any> {
+    return this.httpClient.post(this.apiURL + '/categorias-accesorios/crear-categoria-accesorio/', JSON.stringify(categoria), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  update(categoria: CategoriasAccesoriosBase): Observable<any> {
+    return this.httpClient.put(this.apiURL + '/categorias-accesorios/categoria/' + categoria.IdModeloAccesorioPK, JSON.stringify(categoria), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  
+  eliminar(categoria: CategoriasAccesoriosBase): Observable<any> {   
+    console.log(categoria) 
+    return this.httpClient.put(this.apiURL + '/categorias-accesorios/categoria-eliminar/' + categoria.IdModeloAccesorioPK, JSON.stringify(categoria), this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

@@ -52,6 +52,24 @@ export class CategoriaAccesorioService {
       )
   }
 
+  create(IdFabricanteAccesorio: number, NombreCategoriaAccesorio: string): Observable<any> {
+    let params = new HttpParams()
+        .set('IdFabricanteAccesorio', IdFabricanteAccesorio.toString())  
+        .set('NombreCategoriaAccesorio', NombreCategoriaAccesorio); 
+
+    return this.httpClient.post(this.apiURL + '/catesubcate-accesorios/ingresar-categoria-accesorio/', null, { params, ...this.httpOptions })
+      .pipe(
+        catchError(this.errorHandler)
+      )      
+  }
+
+  eliminar(Id: string): Observable<any> { 
+    return this.httpClient.put(this.apiURL + '/catesubcate-accesorios/categoria-eliminar-accesorio/' + Id, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }  
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

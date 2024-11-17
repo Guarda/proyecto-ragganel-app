@@ -26,7 +26,7 @@ router.get('/listar-fabricantes-b', (req, res) => {
     });
 });
 
-// Create a new product
+// Create a new fabricante
 router.post('/ingresar-fabricante', (req, res) => {
     const { NombreFabricante  } = req.body;
     console.log(NombreFabricante );

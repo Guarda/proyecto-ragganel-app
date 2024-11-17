@@ -71,14 +71,15 @@ router.get('/categoria', (req, res) => {
 
 // Create a new product
 router.post('/crear-accesorio', (req, res) => {
-    const { IdModeloAccesorioPK, ColorAccesorio, PrecioBase, EstadoAccesorio, ComentarioAccesorio, NumeroSerie, TodoList } = req.body;
-    // console.log(req.body);
+    const { IdModeloAccesorioPK, ColorAccesorio, PrecioBase, EstadoAccesorio, ComentarioAccesorio, NumeroSerie, TodoList, ProductosCompatibles } = req.body;
+    console.log(req.body);
 
     // Convert arrays to comma-separated strings
+    const CompatibleProductsString = ProductosCompatibles.join(',');
     const TodoListString = TodoList.join(',');
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarAccesorioATablaAccesoriosBase` (?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, TodoListString], (err, result) => {
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarAccesorioATablaAccesoriosBaseV2` (?, ?, ?, ?, ?, ?, ?, ?)';
+    db.query(sql, [IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString, TodoListString], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -106,14 +107,15 @@ router.get('/accesorio/:id', (req, res) => {
 // Update an accessorie
 router.put('/accesorio/:id', (req, res) => {
     const id = req.params.id; // Assuming this is the CodigoConsola
-    const { IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, ComentarioAccesorio, PrecioBase, NumeroSerie } = req.body;
-
+    const { IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, ComentarioAccesorio, PrecioBase, NumeroSerie, ProductosCompatibles } = req.body;
+    console.log(req.body);
     // Convert arrays to comma-separated strings
+    const CompatibleProductsString = ProductosCompatibles.join(',');
     // Adjust the SQL query to call the new stored procedure
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarAccesorioBase` (?, ?, ?, ?, ?, ?, ?)';
+    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarAccesorioBase` (?, ?, ?, ?, ?, ?, ?, ?)';
 
     // Call the new stored procedure with the updated parameters
-    db.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie], err => {
+    db.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString], err => {
         if (err) {
             res.status(500).send('Error actualizando producto');
             return;

@@ -553,7 +553,8 @@ CREATE PROCEDURE ListarTablaAccesoriosBase ()
                 DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'FechaIngreso',
                 Comentario, 
                 PrecioBase,
-                NumeroSerie
+                NumeroSerie,
+                ProductosCompatibles
 			FROM AccesoriosBase A 
             join Catalogoaccesorios B on A.ModeloAccesorio = B.IdModeloAccesorioPK
             join CatalogoEstadosConsolas C on A.EstadoAccesorio = C.CodigoEstado
@@ -747,7 +748,7 @@ CREATE PROCEDURE `ListarTablaAccesoriosBasesXId`(IdCodigoAccesorio varchar(100))
 /* procedimiento almacenado ListarTablaProductosBasesXIdV2 14/11/2024*/
 BEGIN
 	SELECT 
-		A.CodigoAccesorio, A.ModeloAccesorio, A.ColorAccesorio, A.EstadoAccesorio, A.FechaIngreso, A.Comentario, A.PrecioBase, A.NumeroSerie, 
+		A.CodigoAccesorio, A.ModeloAccesorio, A.ColorAccesorio, A.EstadoAccesorio, A.FechaIngreso, A.Comentario, A.PrecioBase, A.NumeroSerie, A.ProductosCompatibles,
         B.FabricanteAccesorio, B.CategoriaAccesorio, B.SubcategoriaAccesorio
     FROM AccesoriosBase A
     JOIN CatalogoAccesorios B
@@ -784,29 +785,36 @@ DELIMITER ;
 
 DELIMITER //
 CREATE PROCEDURE ActualizarAccesorioBase (
-    CodigoAccesorioA VARCHAR(50), -- Assuming you want to update by CodigoConsola
+    CodigoAccesorioA VARCHAR(50), -- Código del accesorio a actualizar
     modeloAccesorioA INT, 
     colorAccesorioA VARCHAR(100), 
     EstadoAccesorioA INT, 
     PrecioAccesorioA DECIMAL(6,2), 
     ComentariAccesorioA VARCHAR(100), 
-    NumeroSAccesorioA VARCHAR(100)
+    NumeroSAccesorioA VARCHAR(100),
+    ProductosCompatiblesA TEXT -- Lista de productos compatibles (cadena separada por comas)
 )
 BEGIN
-	/* PROCEDURE ActualizarAccesorioBase 14/11/2024*/
-    -- Update the existing accessories base in the table
-    UPDATE accesoriosbase
+    /* PROCEDURE ActualizarAccesorioBase 14/11/2024 */
+    
+    -- Procesar la cadena de productos compatibles (en caso de necesitar limpieza o formateo)
+    DECLARE productosConcatenados TEXT;
+    SET productosConcatenados = REPLACE(ProductosCompatiblesA, '","', ',');
+
+    -- Actualizar el accesorio en la tabla AccesoriosBase
+    UPDATE AccesoriosBase
     SET 
         ModeloAccesorio = modeloAccesorioA, 
         ColorAccesorio = colorAccesorioA, 
         EstadoAccesorio = EstadoAccesorioA, 
         Comentario = ComentariAccesorioA, 
         PrecioBase = PrecioAccesorioA, 
-        NumeroSerie = NumeroSAccesorioA 
+        NumeroSerie = NumeroSAccesorioA, 
+        ProductosCompatibles = productosConcatenados -- Actualizar la lista de productos compatibles
     WHERE CodigoAccesorio = CodigoAccesorioA;
 
-    -- Optionally, you can return a message or status here if needed
-    SELECT 'Accessorie updated successfully' AS message;
+    -- Opcionalmente, devolver un mensaje de éxito
+    SELECT 'Accesorio actualizado correctamente' AS mensaje;
 END //
 DELIMITER ;
 
@@ -821,6 +829,208 @@ DELIMITER //
         WHERE CodigoAccesorio = IdCodigoAccesorio;
     END //
 DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO IngresarCategoriaAccesorio Creado 16/11/24 */
+	CREATE PROCEDURE IngresarCategoriaAccesorio(FabricanteA int, CategoriaA int, SubcategoriaA int, PrefijoAccesorio varchar(25), NombreArchivoImagen varchar(100))
+    BEGIN
+		DECLARE cantidad varchar(24);
+        select count(idmodeloaccesoriopk)+1 from catalogoaccesorios into cantidad;        
+		INSERT INTO catalogoaccesorios(FabricanteAccesorio, CategoriaAccesorio, SubcategoriaAccesorio, CodigoModeloAccesorio, LinkImagen) 
+        values (FabricanteA, CategoriaA, SubcategoriaA,concat(PrefijoAccesorio,cantidad), NombreArchivoImagen);
+    END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ActualizarCategoriaAccesorio(IdModeloA int, FabricanteA int, CategoriaA int, SubcategoriaA int, CodigoA varchar(25), LinkA varchar(100))
+BEGIN
+/*PROCEDIMIENTO ActualizarCategoriaAccesorio creado el dia 16 / 11 / 24*/
+	UPDATE catalogoaccesorios 
+    SET  
+        FabricanteAccesorio = FabricanteA, 
+        CategoriaAccesorio = CategoriaA, 
+        SubcategoriaAccesorio = SubcategoriaA,
+        CodigoModeloAccesorio = CodigoA,
+        LinkImagen = LinkA
+	WHERE IdModeloAccesorioPK = IdModeloA;
+END //
+DELIMITER ;
+
+
+DELIMITER //
+	CREATE PROCEDURE BorrarCategoriaAccesorio(IdCategoria int)
+    BEGIN
+    /*PROCEDIMIENTO BORRAR CATEGORIA ACCESORIO*/
+		UPDATE catalogoaccesorios
+        SET
+			Activo = 0
+        WHERE IdModeloAccesorioPK = IdCategoria;
+    END //
+DELIMITER ;
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR CATEGORIA 16/11/2024*/
+CREATE PROCEDURE IngresarCategoriaAccesorioB(NombreCategoriaA varchar(100), IdFabricanteA int)
+BEGIN
+   INSERT INTO categoriasaccesorios (NombreCategoriaAccesorio, IdFabricanteAccesorioFK, Activo) values (NombreCategoriaA, IdFabricanteA, 1);   
+END$$
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR FABRICANTE ACCESORIO 16/11/2024*/
+CREATE PROCEDURE IngresarFabricanteAccesorio(NombreFabricanteAccesorio varchar(100))
+BEGIN
+   INSERT INTO FABRICANTEACCESORIOS (NombreFabricanteAccesorio, Activo) values (NombreFabricanteAccesorio, 1);   
+END$$
+
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR FABRICANTE DE ACCESORIOS y ASOCIADOS CREADO 16/11/2024*/
+CREATE PROCEDURE SoftDeleteFabricanteAccesorio(IN IdFabricantePKA INT)
+BEGIN
+    -- Step 1: Soft delete the fabricante by setting Activo to 0
+    UPDATE fabricanteaccesorios
+    SET Activo = 0
+    WHERE IdFabricanteAccesorioPK = IdFabricantePKA;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    UPDATE categoriasaccesorios
+    SET Activo = 0
+    WHERE IdFabricanteAccesorioFK = IdFabricantePKA;
+
+    -- Step 3: Soft delete all subcategories related to the affected categories
+    UPDATE subcategoriasaccesorios
+    SET Activo = 0
+    WHERE IdCategoriaAccesorioFK IN (
+        SELECT IdCategoriaAccesorioPK 
+        FROM categoriasaccesorios 
+        WHERE IdFabricanteAccesorioFK = IdFabricantePKA
+    );
+    
+    -- Step 4: Soft delete all categories of products with the fabricante
+    UPDATE catalogoaccesorios
+    SET Activo = 0
+    WHERE FabricanteAccesorio = IdFabricantePKA;    
+END$$
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR SUBCATEGORIA 16/11/2024*/
+CREATE PROCEDURE IngresarSubcategoriaAccesorio(NombreSubcategoriaAccesorio varchar(100), IdCategoriaAccesorio int)
+BEGIN
+   INSERT INTO SUBCATEGORIASACCESORIOS (NombreSubcategoriaAccesorio, IdCategoriaAccesorioFK, Activo) values (NombreSubcategoriaAccesorio, IdCategoriaAccesorio, 1);   
+END$$
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR CATEGORIA DE ACCESORIOS y ASOCIADOS CREADO 16/11/2024*/
+CREATE PROCEDURE SofDeleteSubCategoriaAccesorio(IN IdSubCategoriaA INT)
+BEGIN
+    -- Step 1: Soft delete the subcategoria by setting Activo to 0
+    UPDATE subcategoriasaccesorios
+    SET Activo = 0
+    WHERE IdSubcategoriaAccesorio = IdSubCategoriaA;
+
+    -- Step 3: Soft delete all categories of products with the categorie
+    UPDATE catalogoaccesorios
+    SET Activo = 0
+    WHERE SubcategoriaAccesorio = IdSubCategoriaA;   
+END$$
+
+DELIMITER $$
+CREATE PROCEDURE SofDeleteCategoriaAccesorio(IN IdCategoriaA INT)
+BEGIN
+    -- Step 1: Soft delete the fabricante by setting Activo to 0
+    UPDATE categoriasaccesorios
+    SET Activo = 0
+    WHERE IdCategoriaAccesorioPK = IdCategoriaA;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    UPDATE subcategoriasaccesorios
+    SET Activo = 0
+    WHERE IdCategoriaAccesorioFK = IdCategoriaA;
+    
+     -- Step 3: Soft delete all categories of products with the categorie
+    UPDATE catalogoaccesorios
+    SET Activo = 0
+    WHERE CategoriaAccesorio = IdCategoriaA;   
+END$$
+
+DELIMITER //
+CREATE PROCEDURE IngresarAccesorioATablaAccesoriosBaseV2 (
+    modeloAcc INT, 
+    colorAcc VARCHAR(100), 
+    estadoAcc INT, 
+    precioBase DECIMAL(6,2), 
+    comentarioAcc VARCHAR(2000), 
+    numeroSerie VARCHAR(100), 
+    productosCompatibles TEXT, -- Comma-separated list of compatible products
+    tareasP TEXT -- Comma-separated list of tasks
+)
+BEGIN
+    DECLARE codigoAccesorioGenerated VARCHAR(50);
+    DECLARE cantidadRegistros INT DEFAULT 0;
+    DECLARE tarea VARCHAR(100);
+    DECLARE next_comma INT;
+    DECLARE ModeloCatCons VARCHAR(25);
+    DECLARE productosConcatenados TEXT;
+
+    -- Get the accessory model code
+    SELECT CodigoModeloAccesorio INTO ModeloCatCons 
+    FROM CatalogoAccesorios 
+    WHERE IdModeloAccesorioPK = modeloAcc;
+    
+    -- Get the total count of records for creating a unique CodigoAccesorio
+    SELECT COUNT(*) INTO cantidadRegistros 
+    FROM AccesoriosBase;
+
+    -- Generate a unique CodigoAccesorio by combining modeloAcc with record count
+    SET codigoAccesorioGenerated = CONCAT(ModeloCatCons, '-', cantidadRegistros + 1);
+
+    -- Clean and process the ProductosCompatibles list
+    SET productosConcatenados = REPLACE(productosCompatibles, '","', ',');
+
+    -- Insert the new accessory into AccesoriosBase
+    INSERT INTO AccesoriosBase (
+        CodigoAccesorio, ModeloAccesorio, ColorAccesorio, EstadoAccesorio, FechaIngreso, Comentario, PrecioBase, NumeroSerie, ProductosCompatibles
+    )
+    VALUES (
+        codigoAccesorioGenerated, 
+        modeloAcc, 
+        colorAcc, 
+        estadoAcc, 
+        DATE_FORMAT(NOW(), '%Y%m%d'), 
+        comentarioAcc, 
+        precioBase, 
+        numeroSerie, 
+        productosConcatenados
+    );
+
+    -- Insert tasks into TareasdeAccesorios for the accessory
+    WHILE LENGTH(tareasP) > 0 DO
+        SET next_comma = LOCATE(',', tareasP);
+
+        IF next_comma = 0 THEN
+            -- No more commas, insert the last task
+            SET tarea = TRIM(tareasP);
+            INSERT INTO TareasdeAccesorios (DescripcionTarea, Realizado, Activo, IdCodigoAccesorioFK)
+            VALUES (tarea, 0, 1, codigoAccesorioGenerated);
+            SET tareasP = '';
+        ELSE
+            -- Extract the task before the next comma
+            SET tarea = TRIM(SUBSTRING(tareasP, 1, next_comma - 1));
+            INSERT INTO TareasdeAccesorios (DescripcionTarea, Realizado, Activo, IdCodigoAccesorioFK)
+            VALUES (tarea, 0, 1, codigoAccesorioGenerated);
+            
+            -- Update the string to exclude the inserted task
+            SET tareasP = SUBSTRING(tareasP, next_comma + 1);
+        END IF;
+    END WHILE;
+
+END //
+DELIMITER ;
+
+
+
+
+
 
 
 

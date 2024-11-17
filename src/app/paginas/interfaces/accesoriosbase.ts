@@ -2,6 +2,7 @@ import { CategoriasAccesoriosBase } from "./categoriasaccesoriosbase";
 import { EstadosConsolas } from "./estados";
 
 export interface AccesoriosBase extends EstadosConsolas, CategoriasAccesoriosBase{
+    ProductosCompatibles: string;
     CodigoAccesorio: number;
     ModeloAccesorio: number;
     ColorAccesorio: number;
@@ -10,4 +11,5 @@ export interface AccesoriosBase extends EstadosConsolas, CategoriasAccesoriosBas
     Comentario: string;
     PrecioBase: number;
     NumeroSerie: string;
+    
 }

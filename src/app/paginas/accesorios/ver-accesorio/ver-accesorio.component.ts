@@ -79,6 +79,7 @@ export class VerAccesorioComponent {
   public accessorieCate: any;
   public accessorieSubCate: any;
   public accessorieSerialCode: any;
+  public accessorieCompatibleProducts: any;
 
   public ImagePath: any;
 
@@ -116,6 +117,7 @@ export class VerAccesorioComponent {
       this.accessorieCate = this.accesorio.CategoriaAccesorio;
       this.accessorieSubCate = this.accesorio.SubcategoriaAccesorio;
       this.accessorieSerialCode = this.accesorio.NumeroSerie;
+      this.accessorieCompatibleProducts = this.accesorio.ProductosCompatibles.split(',');
 
 
       this.categorias.find(this.accessorieCode).subscribe((data) => {
@@ -148,9 +150,19 @@ export class VerAccesorioComponent {
       //   this.selectedSubCategoriaProducto = data;
       // })
 
-      this.subcategoriaaccesorioService.findBase(this.accessorieCate).subscribe((data: SubcategoriasAccesorios[]) => {
+      this.subcategoriaaccesorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => {
+        console.log(data);
         this.selectedSubCategoriaAccesorio = data;
       })
+
+      //ACCESORIOS
+      console.log(this.accessorieCompatibleProducts);
+      this.keywords.update(() => []);        
+      for (var val of this.accessorieCompatibleProducts) {             
+        this.addt(this.trackByComaptibleProduct(val.index, val)); // prints values: 10, 20, 30, 40
+        console.log(val)
+       }       
+
 
       // console.log(this.consoleHack);      
 
@@ -164,8 +176,8 @@ export class VerAccesorioComponent {
         PrecioBase: [this.formatNumber(this.accessoriePrice)],
         NumeroSerie: [this.accessorieSerialCode],
         CateAccesorio: [this.accessorieCate],
-        SubCategoriaAccesorio: [this.accessorieSubCate]
-        
+        SubCategoriaAccesorio: [this.accessorieSubCate],
+        ProductosCompatibles: [this.accessorieCompatibleProducts]
       });
 
 
@@ -195,10 +207,55 @@ export class VerAccesorioComponent {
       PrecioBase: new FormControl('', Validators.required),
       EstadoAccesorio: new FormControl('', Validators.required),
       ComentarioAccesorio: new FormControl(''),
+      ProductosCompatibles: new FormControl(''),
       NumeroSerie: new FormControl('')
     });
 
 
+  }
+
+  add(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+
+    // Add our keyword
+    if (value) {
+      this.keywords.update(keywords => [...keywords, value]);      
+      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update the form control
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
+  }
+
+  addt(valor: String): void {
+    const value = (valor || '').trim();    
+
+    // Add our keyword
+    console.log(value);
+    if (value) {
+      this.keywords.update(keywords => [...keywords, value]);
+      console.log(this.keywords());
+      
+      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords());
+      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty(); 
+       // Force change detection
+      this.cdr.detectChanges();
+    }
+
+    // Clear the input value
+    //   
+  }
+  removeKeyword(keyword: string) {
+    this.keywords.update(keywords => {
+      const index = keywords.indexOf(keyword);
+      if (index < 0) {
+        return keywords;
+      }
+
+      keywords.splice(index, 1);
+      this.announcer.announce(`removed ${keyword}`);
+      return [...keywords];
+    });
   }
 
   onCheckboxChange(task: TareasAccesorio) {
@@ -227,12 +284,16 @@ export class VerAccesorioComponent {
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-
+  
     if (l == null || l === '') {
-      return `${baseUrl}/img-consolas/nestoploader.jpg`;
+      return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
     } else {
-      return `${baseUrl}/img-consolas/${l}`;
+      return `${baseUrl}/img-accesorios/${l}`;
     }
+  }
+
+  trackByComaptibleProduct(index: number, compatibleproduct: string): string {
+    return compatibleproduct; // or index, depending on your unique identifiers
   }
 
   public openDialogEliminar(cons: string){

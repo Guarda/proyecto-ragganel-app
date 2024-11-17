@@ -40,6 +40,22 @@ export class FabricanteAccesorioService {
         )
     }
 
+    create(NombreFabricanteAccesorio: string): Observable<any> {
+      const fabricanteData = { NombreFabricanteAccesorio }; // Wrap the string in an object
+      console.log(fabricanteData);
+      return this.httpClient.post(this.apiURL + '/fabricantes-accesorios/ingresar-fabricante-accesorios/', fabricanteData, this.httpOptions)
+        .pipe(
+          catchError(this.errorHandler)
+        )
+    }
+
+    eliminar(Id: string): Observable<any> { 
+      return this.httpClient.put(this.apiURL + '/fabricantes-accesorios/fabricante-eliminar-accesorios/' + Id, this.httpOptions)
+        .pipe(
+          catchError(this.errorHandler)
+        )
+    } 
+
     errorHandler(error: any) {
       let errorMessage = '';
       if (error.error instanceof ErrorEvent) {

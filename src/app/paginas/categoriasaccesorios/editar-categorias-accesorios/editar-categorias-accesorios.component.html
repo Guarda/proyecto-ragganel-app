@@ -1,0 +1,62 @@
+<h3 mat-dialog-title>    
+    <span>Editar Categoria</span>
+  </h3>
+  <form [formGroup]="categoriaForm" (ngSubmit)="onSubmit()">
+  <div class="contenedor-principal">
+    <div class="contenedor-secundario">
+      <div class="contenedor-img-consola">
+        <img class="img-console"  [src]="ImagePath" alt="imagen-consola">
+      </div>
+      <div class="contendor-form">
+        <mat-dialog-content class="mat-typography">
+          <h3>Edita los detalles de la categoria {{IdModeloAccesorioPK}}</h3>
+          <!-- FABRICANTE -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Fabricante</mat-label>
+            <mat-select formControlName ="FabricanteAccesorio" name="FabricanteAccesorio">             
+                <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricanteAccesorioPK" >{{est.NombreFabricanteAccesorio}} </mat-option>            
+            </mat-select> 
+          </mat-form-field>
+          <!-- CATEGORIA -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Categoria</mat-label>
+            <mat-select formControlName ="CateAccesorio" name="CateAccesorio">             
+                <mat-option *ngFor="let est of selectedCategoriaAccesorio" [value]="est.IdCategoriaAccesorioPK" >{{est.NombreCategoriaAccesorio}} </mat-option>            
+            </mat-select> 
+          </mat-form-field> 
+          <!-- SUBCATEGORIA -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Modelo</mat-label>
+            <mat-select formControlName ="SubCategoriaAccesorio" name="SubCategoriaAccesorio">             
+                <mat-option *ngFor="let est of selectedSubCategoriaAccesorio" [value]="est.IdSubcategoriaAccesorio" >{{est.NombreSubcategoriaAccesorio}} </mat-option>            
+            </mat-select> 
+          </mat-form-field>    
+          <!--Codigo Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Prefijo de la consola</mat-label>
+            <textarea formControlName = "CodigoModeloAccesorio" matInput cdkFocusInitial ></textarea>
+          </mat-form-field>         
+            <!--Link Imagen Categoria  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Link de la imagen</mat-label>
+            <textarea formControlName = "LinkImagen" matInput> </textarea>
+          </mat-form-field>          
+        </mat-dialog-content>
+      </div>  
+    </div>
+    <!-- Comentarios -->
+    <!-- <div class="contenedor-comentario">
+      <h3>Comentarios</h3>
+      <mat-form-field class="example-full-width"  >
+        <mat-label>Describe el estado del producto</mat-label>
+        <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+      </mat-form-field>
+    </div>   -->
+  </div>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!categoriaForm.valid">Ingresar</button>
+   
+  </mat-dialog-actions>
+  </form>
+  

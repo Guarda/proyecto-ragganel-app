@@ -98,7 +98,8 @@ export class AgregarAccesoriosComponent {
       EstadoAccesorio: new FormControl('', Validators.required),
       ComentarioAccesorio: new FormControl(''),
       NumeroSerie: new FormControl(''),
-      TodoList: new FormControl('')
+      TodoList: new FormControl(''),
+      ProductosCompatibles: new FormControl('')
     });
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
@@ -185,7 +186,7 @@ export class AgregarAccesoriosComponent {
     // Add our keyword
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
-      this.accesorioForm.get('Accesorios')?.setValue(this.keywords()); // Update the form control
+      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update the form control
     }
 
     // Clear the input value
@@ -200,8 +201,8 @@ export class AgregarAccesoriosComponent {
       this.keywords.update(keywords => [...keywords, value]);
       console.log(this.keywords());
 
-      this.accesorioForm.get('Accesorios')?.setValue(this.keywords());
-      this.accesorioForm.get('Accesorios')?.markAsDirty();
+      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords());
+      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
       // Force change detection
       this.cdr.detectChanges();
     }
@@ -247,9 +248,9 @@ export class AgregarAccesoriosComponent {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
 
     if (l == null || l === '') {
-      return `${baseUrl}/img-consolas/nestoploader.jpg`;
+      return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
     } else {
-      return `${baseUrl}/img-consolas/${l}`;
+      return `${baseUrl}/img-accesorios/${l}`;
     }
   }
 

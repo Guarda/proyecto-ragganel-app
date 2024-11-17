@@ -89,4 +89,62 @@ router.get('/listar-subcate-accesorio-b/:id', (req, res) => {
     });
 });
 
+// Create a new categorie
+router.post('/ingresar-categoria-accesorio', (req, res) => {
+    const IdFabricante = req.query.IdFabricanteAccesorio;
+    // Convert RealizadoValue to a number (0 or 1)
+    const NombreCategoria = req.query.NombreCategoriaAccesorio; 
+    console.log(req.body);
+
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaAccesorioB` (?, ?)';
+    db.query(sql, [NombreCategoria, IdFabricante ], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Categoria agregada', id: result.insertId });
+    });
+});
+
+// Delete a category
+router.put('/categoria-eliminar-accesorio/:id', (req, res) => {
+    const id = req.params.id;    
+    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteCategoriaAccesorio` (?)';
+    db.query(sql, [id], err => {
+        if (err) {
+            res.status(500).send('Error al eliminar Subcategoria');
+            return;
+        }
+        res.send({ message: 'Subategoria eliminada' });
+    });
+});
+
+// Create a new subcategorie
+router.post('/ingresar-subcategoria-accesorio', (req, res) => {
+    const IdCategoria = req.query.IdCategoriaAccesorio;
+    // Convert RealizadoValue to a number (0 or 1)
+    const NombreSubCategoria = req.query.NombreSubCategoriaAccesorio; 
+    //console.log(NombreSubCategoria);
+
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarSubcategoriaAccesorio` (?, ?)';
+    db.query(sql, [NombreSubCategoria, IdCategoria ], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Categoria agregada', id: result.insertId });
+    });
+});
+
+// Delete a category
+router.put('/subcategoria-eliminar-accesorio/:id', (req, res) => {    
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteSubCategoriaAccesorio` (?)';
+    db.query(sql, [id], err => {
+        if (err) {
+            res.status(500).send('Error al eliminar Subcategoria');
+            return;
+        }
+        res.send({ message: 'Subategoria eliminada' });
+    });
+});
+
 module.exports = router;

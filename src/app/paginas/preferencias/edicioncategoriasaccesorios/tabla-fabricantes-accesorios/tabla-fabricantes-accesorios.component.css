@@ -1,0 +1,51 @@
+.demo-table {
+    width: 100%;
+  }
+  
+  .mat-mdc-row .mat-mdc-cell {
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+    cursor: pointer;
+  }
+  
+  .mat-mdc-row:hover .mat-mdc-cell {
+    border-color: currentColor;
+  }
+  
+  .demo-row-is-clicked {
+    font-weight: bold;
+  }
+
+  .Titulotabla {
+    text-align: center;
+    font-size: 24px; /* Optional */
+    margin: 0 auto; /* Centers the div horizontally */
+    width: fit-content; /* Ensures the div is only as wide as its content */
+  }
+
+  .filtrado_agregar {    
+    display: flex;
+    align-items: center; /* Aligns button and input field vertically */
+    justify-content: center; /* Optionally, centers the content horizontally */
+    gap: 20px; /* Adds space between the form field and the button */
+  }
+  
+  .button-crear-prod {
+    height: 56px; /* Matches the height of the mat-form-field by default */
+    display: flex;
+    align-items: center; /* Centers the icon and text vertically */
+    justify-content: center; /* Centers the button content */
+    /* padding: 0 16px; Adjusts padding inside the button */
+  }
+  
+  .mat-form-field {
+    flex-grow: 1; /* Makes the input field take up as much width as possible */
+    margin: 0; /* Removes any default margin */
+  }
+  
+  .white-backgrounded-field {
+    background-color: #fff; /* Optional: keeping the white background for the input field */
+    width: 60%!important;
+    margin-top: 20px; /* Offsets the input field to match the button height */
+  
+  }

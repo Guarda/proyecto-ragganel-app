@@ -26,4 +26,33 @@ router.get('/listar-fabricantes-accesorios-b', (req, res) => {
     });
 });
 
+// Create a new fabricante
+router.post('/ingresar-fabricante-accesorios', (req, res) => {
+    const { NombreFabricanteAccesorio  } = req.body;
+    // console.log(NombreFabricanteAccesorio );
+    // console.log(req.body);
+
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarFabricanteAccesorio` (?)';
+    db.query(sql, [NombreFabricanteAccesorio ], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send({ message: 'Fabricante agregado', id: result.insertId });
+    });
+});
+
+
+// Delete a category
+router.put('/fabricante-eliminar-accesorios/:id', (req, res) => {
+    const id = req.params.id;    
+    const sql = 'CALL `base_datos_inventario_taller`.`SoftDeleteFabricanteAccesorio` (?)';
+    db.query(sql, [id], err => {
+        if (err) {
+            res.status(500).send('Error al eliminar Fabricante');
+            return;
+        }
+        res.send({ message: 'Fabricante eliminado' });
+    });
+});
+
 module.exports = router;
