@@ -11,6 +11,8 @@ import { ListarAccesoriosComponent } from './paginas/accesorios/listar-accesorio
 import { VerAccesorioComponent } from './paginas/accesorios/ver-accesorio/ver-accesorio.component';
 import { ListarCategoriasAccesoriosComponent } from './paginas/categoriasaccesorios/listar-categorias-accesorios/listar-categorias-accesorios.component';
 import { IndexEdicioncategoriasAccesoriosComponent } from './paginas/preferencias/edicioncategoriasaccesorios/index-edicioncategorias-accesorios/index-edicioncategorias-accesorios.component';
+import { ListarPedidosComponent } from './paginas/pedidos/listar-pedidos/listar-pedidos.component';
+import { AgregarPedidoComponent } from './paginas/pedidos/agregar-pedido/agregar-pedido.component';
 
 export const routes: Routes = [
     
@@ -25,4 +27,6 @@ export const routes: Routes = [
     { path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view', component: VerAccesorioComponent},
     { path: 'listado-categorias-accesorios', component: ListarCategoriasAccesoriosComponent},
     { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent},
+    { path: 'listado-pedidos', component: ListarPedidosComponent},
+    { path: 'crear-pedido', component: AgregarPedidoComponent}
 ];

@@ -1,0 +1,13 @@
+<div class="cabezera">
+    <h1>Pedidos</h1>      
+    <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
+      <mat-label>Filter</mat-label>
+      <!-- <input matInput (keyup)="applyFilter($event)" placeholder="Gameboy" #input> -->
+      <input matInput placeholder="Pedido X" #input>
+    </mat-form-field>
+    <a mat-raised-button  title="crear/pedido accesorio" class="button-crear-prod" [routerLink]="['/crear-pedido']" (Agregado)="onAdd($event)" color="primary">
+      <mat-icon>add</mat-icon>
+      Crear un nuevo Pedido
+    </a>
+  </div>
+

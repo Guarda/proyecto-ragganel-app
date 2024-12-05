@@ -293,6 +293,30 @@ CREATE TABLE PedidoBase
     FOREIGN KEY (EstadoPedidoFK) REFERENCES EstadoPedido (CodigoEstadoPedido)
 );
 
+CREATE TABLE DetalleProductoPedido 
+(
+	/*Tabla Detalle Producto Pedido, esta tabla se agrega para poder asociar los productos ya ingresados en el inventario a un pedido*/
+    IdDetalleProcutoPedidoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    IdProductoBaseFK varchar(25) not null,
+    IdCodigoPedidoFK varchar(25) not null,
+    EnlaceArticulo varchar(1000), /*Se agrega para que cada producto pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
+    Comentario varchar(2000),
+    FOREIGN KEY (IdProductoBaseFK) REFERENCES productosbases (CodigoConsola),
+    FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
+);
+
+CREATE TABLE DetalleAccesorioPedido 
+(
+	/*Tabla Detalle Producto Pedido, esta tabla se agrega para poder asociar los accesorios ya ingresados en el inventario a un pedido*/
+    IdDetalleAccesorioPedidoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    IdAccesorioBaseFK varchar(25) not null,
+    IdCodigoPedidoFK varchar(25) not null,
+    EnlaceArticulo varchar(1000), /*Se agrega para que cada accesorios pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
+    Comentario varchar(2000),
+    FOREIGN KEY (IdAccesorioBaseFK) REFERENCES accesoriosbase (CodigoAccesorio),
+    FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
+);  
+
 
 CREATE TABLE PedidoDetalles
 (
@@ -305,7 +329,79 @@ CREATE TABLE PedidoDetalles
     SubcategoriaArticulo int not null,
     CantidadArticulo int not null,
     EnlaceArticulo varchar(1000),
-    EstadoArticuloPedido boolean not null default 1
+    EstadoArticuloPedido boolean not null default 1,
+	FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido),
+    FOREIGN KEY (TipoArticuloFK) REFERENCES TipoArticulo (IdTipoArticuloPK)    
+);
+
+
+/*CREAR TABLAS DE INSUMOS */
+
+CREATE TABLE FabricanteInsumos
+(
+	/*TABLA FABRICANTE INSUMOS CREADA 23/11/24*/
+	IdFabricanteInsumosPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NombreFabricanteInsumos varchar(100),
+    Activo boolean not null default 1
+);
+
+CREATE TABLE CategoriasInsumos
+(
+	/*TABLA Categoria ACCESORIOS CREADA 23/11/24*/
+	IdCategoriaInsumosPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NombreCategoriaInsumos varchar(100),
+    IdFabricanteInsumosFK int,
+    Activo boolean not null default 1,
+    FOREIGN KEY (IdFabricanteInsumosFK) REFERENCES FabricanteInsumos (IdFabricanteInsumosPK)
+);
+
+CREATE TABLE SubcategoriasInsumos 
+(
+	/*TABLA SUBCATEGORIA INSUMOS CREADA 23/11/24*/
+	IdSubcategoriaInsumos int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NombreSubcategoriaInsumos varchar(100),
+    IdCategoriaInsumosFK int,
+    Activo boolean not null default 1,
+    FOREIGN KEY (IdCategoriaInsumosFK) REFERENCES CategoriasInsumos (IdCategoriaInsumosPK)
+);
+
+CREATE TABLE CatalogoInsumos (
+/*TABLA CATALGOINSUMOS CREADA 23/11/24*/
+	IdModeloInsumosPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    FabricanteInsumos int,
+    CategoriaInsumos int,
+    SubcategoriaInsumos int,
+	CodigoModeloInsumos varchar(25),    
+    LinkImagen varchar(100),
+    Activo boolean not null default 1,
+    FOREIGN KEY (FabricanteInsumos) REFERENCES FabricanteInsumos (IdFabricanteInsumosPK),
+    FOREIGN KEY (CategoriaInsumos) REFERENCES CategoriasInsumos (IdCategoriaInsumosPK),
+    FOREIGN KEY (SubcategoriaInsumos) REFERENCES SubcategoriasInsumos (IdSubcategoriaInsumos)
+);
+
+CREATE TABLE InsumosBase (
+/*TABLA InsumosBase CREADA 23/11/24*/
+	CodigoInsumo varchar(25) primary key not null,
+    ModeloInsumo int not null,
+    EstadoInsumo int not null,
+    FechaIngreso date,
+    Comentario varchar(2000),
+    PrecioBase Decimal(6,2),
+    NumeroSerie varchar(100),
+    ServiciosCompatibles varchar(500),
+    Cantidad int unsigned not null,
+    FOREIGN KEY (ModeloInsumo) REFERENCES CatalogoInsumos (IdModeloInsumosPK),
+    FOREIGN KEY (EstadoInsumo) REFERENCES CatalogoEstadosconsolas (CodigoEstado)
+);
+
+CREATE TABLE TareasdeInsumos (
+/*TABLA TareasdeInsumos CREADA 23/11/24*/
+	IdTareaInsumosPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    DescripcionTarea varchar(100),
+    Realizado boolean not null default 0,
+    Activo boolean not null default 1,
+    IdCodigoInsumoFK varchar(25),
+    FOREIGN KEY (IdCodigoInsumoFK) REFERENCES InsumosBase (CodigoInsumo)
 );
 
 

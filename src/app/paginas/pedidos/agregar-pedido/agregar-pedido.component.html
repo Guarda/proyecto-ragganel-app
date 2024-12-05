@@ -1,0 +1,129 @@
+<div class="contenedor-componente-crear-pedido">
+    <h3 mat-dialog-title>    
+        <span>Agregar Pedido</span>
+    </h3>
+    <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()">
+
+
+        <div class="contenedor-principal">
+            <div class="contenedor-secundario">
+                <div class="contenedor-row">               
+                    <div class="contenedor-img-consola">
+                        <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
+                    </div>             
+                    <div class="contenedor-fechas">
+                        <!-- Fecha Creación Pedido -->
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Fecha Creación Pedido</mat-label>
+                            <input matInput type="date" formControlName="FechaCreacionPedido" required />
+                        </mat-form-field>
+                        
+                        <!-- Fecha Arrivo USA -->
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Fecha Arrivo USA</mat-label>
+                            <input matInput type="date" formControlName="FechaArrivoUSA" required />
+                        </mat-form-field>
+                        
+                        <!-- Fecha Estimada Recepción -->
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Fecha Estimada Recepción</mat-label>
+                            <input matInput type="date" formControlName="FechaEstimadaRecepcion" required />
+                        </mat-form-field>
+                    </div> 
+                    <div class="contenedor-tracking">
+                            <!-- Número Tracking 1 -->
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Número Tracking 1</mat-label>
+                            <input matInput type="text" formControlName="NumeroTracking1" required />
+                        </mat-form-field>
+                        
+                        <!-- Número Tracking 2 -->
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Número Tracking 2</mat-label>
+                            <input matInput type="text" formControlName="NumeroTracking2" />
+                        </mat-form-field>
+                        
+                        <!-- Sitio Web -->
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Sitio Web</mat-label>
+                            <mat-select formControlName="SitioWeb" required>
+                            <!-- <mat-option *ngFor="let sitio of sitiosWeb" [value]="sitio">{{ sitio }}</mat-option> -->
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                    <!-- New container for additional inputs -->
+                    <div class="contenedor-adicional">
+                        <!-- Vía Pedido -->
+                        <mat-form-field class="input-form-pedido">
+                        <mat-label>Vía Pedido</mat-label>
+                        <mat-select formControlName="ViaPedido" required>
+                            <!-- <mat-option *ngFor="let via of viasPedido" [value]="via">{{ via }}</mat-option> -->
+                        </mat-select>
+                        </mat-form-field>
+
+                        <!-- Precio Estimado del Pedido -->
+                        <mat-form-field class="input-form-pedido">
+                        <mat-label>Precio Estimado del Pedido</mat-label>
+                        <input matInput type="number" formControlName="PrecioEstimadoDelPedido" />
+                        </mat-form-field>
+
+                        <!-- Estado -->
+                        <mat-form-field class="input-form-pedido">
+                        <mat-label>Estado</mat-label>
+                        <mat-select formControlName="Estado">
+                            <!-- <mat-option *ngFor="let estado of estadosPedido" [value]="estado">{{ estado }}</mat-option> -->
+                        </mat-select>
+                        </mat-form-field>
+
+                        <!-- Comentarios -->
+                        <mat-form-field class="input-form-pedido">
+                        <mat-label>Comentarios</mat-label>
+                        <textarea matInput formControlName="Comentarios"></textarea>
+                        </mat-form-field>
+                    </div>  
+            </div>
+                        
+                           
+                            
+                            <!-- Vía Pedido -->
+                            <!-- <mat-form-field class="input-form-pedido">
+                                <mat-label>Vía Pedido</mat-label>
+                                <mat-select formControlName="ViaPedido" required>
+                                <mat-option *ngFor="let via of viasPedido" [value]="via">{{ via }}</mat-option>
+                                </mat-select>
+                            </mat-form-field> -->
+                            
+                            <!-- Precio Estimado del Pedido -->
+                            <!-- <mat-form-field class="input-form-pedido">
+                                <mat-label>Precio Estimado del Pedido</mat-label>
+                                <input matInput type="number" formControlName="PrecioEstimadoDelPedido" />
+                            </mat-form-field>
+                             -->
+                            <!-- Estado -->
+                            <!-- <mat-form-field class="input-form-pedido">
+                                <mat-label>Estado</mat-label>
+                                <mat-select formControlName="Estado">
+                                <mat-option *ngFor="let estado of estadosPedido" [value]="estado">{{ estado }}</mat-option>
+                                </mat-select>
+                            </mat-form-field> -->
+                            
+                            <!-- Comentarios -->
+                            <!-- <mat-form-field class="input-form-pedido">
+                                <mat-label>Comentarios</mat-label>
+                                <textarea matInput formControlName="Comentarios"></textarea>
+                            </mat-form-field> -->
+            
+                        
+        </div>        
+
+        <mat-dialog-actions align="end">
+            <button mat-button mat-dialog-close>Cancelar</button>
+            <!-- <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!accesorioForm.valid">Ingresar</button> -->
+        </mat-dialog-actions>
+    </form>
+</div>
+
+<h5>
+    LISTADO DE ARTICULOS
+</h5>
