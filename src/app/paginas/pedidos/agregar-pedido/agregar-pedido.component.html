@@ -12,25 +12,45 @@
                         <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
                     </div>             
                     <div class="contenedor-fechas">
-                        <!-- Fecha Creación Pedido -->
-                        <mat-form-field class="input-form-pedido">
+                        <mat-label style="font-weight: bold; color: black;">Fechas</mat-label>
+                        <mat-form-field class="input-form-pedido">                            
                             <mat-label>Fecha Creación Pedido</mat-label>
-                            <input matInput type="date" formControlName="FechaCreacionPedido" required />
-                        </mat-form-field>
-                        
-                        <!-- Fecha Arrivo USA -->
-                        <mat-form-field class="input-form-pedido">
+                            <input matInput [matDatepicker]="creationDatePicker" formControlName="FechaCreacionPedido" required />
+                            <mat-datepicker-toggle matSuffix [for]="creationDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #creationDatePicker></mat-datepicker>
+                            <mat-error *ngIf="pedidoForm.get('FechaCreacionPedido')?.hasError('required')">
+                              Fecha Creación Pedido es requerida.
+                            </mat-error>
+                          </mat-form-field>
+                          
+                          <mat-form-field class="input-form-pedido">
                             <mat-label>Fecha Arrivo USA</mat-label>
-                            <input matInput type="date" formControlName="FechaArrivoUSA" required />
-                        </mat-form-field>
-                        
-                        <!-- Fecha Estimada Recepción -->
-                        <mat-form-field class="input-form-pedido">
+                            <input matInput [matDatepicker]="arrivoDatePicker" formControlName="FechaArrivoUSA" required />
+                            <mat-datepicker-toggle matSuffix [for]="arrivoDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #arrivoDatePicker [matDatepickerFilter]="dateFilter"></mat-datepicker>
+                            <mat-error *ngIf="pedidoForm.get('FechaArrivoUSA')?.hasError('required')">
+                              Fecha Arrivo USA es requerida.
+                            </mat-error>
+                            <mat-error *ngIf="pedidoForm.hasError('invalidFechaArrivoUSA')">
+                              {{ pedidoForm.errors?.['invalidFechaArrivoUSA'] }}
+                            </mat-error>
+                          </mat-form-field>
+                          
+                          <mat-form-field class="input-form-pedido">
                             <mat-label>Fecha Estimada Recepción</mat-label>
-                            <input matInput type="date" formControlName="FechaEstimadaRecepcion" required />
-                        </mat-form-field>
+                            <input matInput [matDatepicker]="estimadaDatePicker" formControlName="FechaEstimadaRecepcion" required />
+                            <mat-datepicker-toggle matSuffix [for]="estimadaDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #estimadaDatePicker [matDatepickerFilter]="dateFilter"></mat-datepicker>
+                            <mat-error *ngIf="pedidoForm.get('FechaEstimadaRecepcion')?.hasError('required')">
+                              Fecha Estimada Recepción es requerida.
+                            </mat-error>
+                            <mat-error *ngIf="pedidoForm.hasError('invalidFechaEstimadaRecepcion')">
+                              {{ pedidoForm.errors?.['invalidFechaEstimadaRecepcion'] }}
+                            </mat-error>
+                          </mat-form-field>           
                     </div> 
                     <div class="contenedor-tracking">
+                        <mat-label style="font-weight: bold; color: black;">Tracking</mat-label>
                             <!-- Número Tracking 1 -->
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Número Tracking 1</mat-label>
@@ -54,76 +74,121 @@
                 </div>
                     <!-- New container for additional inputs -->
                     <div class="contenedor-adicional">
-                        <!-- Vía Pedido -->
-                        <mat-form-field class="input-form-pedido">
-                        <mat-label>Vía Pedido</mat-label>
-                        <mat-select formControlName="ViaPedido" required>
-                            <!-- <mat-option *ngFor="let via of viasPedido" [value]="via">{{ via }}</mat-option> -->
-                        </mat-select>
-                        </mat-form-field>
-
-                        <!-- Precio Estimado del Pedido -->
-                        <mat-form-field class="input-form-pedido">
-                        <mat-label>Precio Estimado del Pedido</mat-label>
-                        <input matInput type="number" formControlName="PrecioEstimadoDelPedido" />
-                        </mat-form-field>
-
-                        <!-- Estado -->
-                        <mat-form-field class="input-form-pedido">
-                        <mat-label>Estado</mat-label>
-                        <mat-select formControlName="Estado">
-                            <!-- <mat-option *ngFor="let estado of estadosPedido" [value]="estado">{{ estado }}</mat-option> -->
-                        </mat-select>
-                        </mat-form-field>
-
-                        <!-- Comentarios -->
-                        <mat-form-field class="input-form-pedido">
-                        <mat-label>Comentarios</mat-label>
-                        <textarea matInput formControlName="Comentarios"></textarea>
-                        </mat-form-field>
-                    </div>  
-            </div>
-                        
-                           
-                            
-                            <!-- Vía Pedido -->
-                            <!-- <mat-form-field class="input-form-pedido">
-                                <mat-label>Vía Pedido</mat-label>
-                                <mat-select formControlName="ViaPedido" required>
-                                <mat-option *ngFor="let via of viasPedido" [value]="via">{{ via }}</mat-option>
-                                </mat-select>
-                            </mat-form-field> -->
-                            
-                            <!-- Precio Estimado del Pedido -->
-                            <!-- <mat-form-field class="input-form-pedido">
-                                <mat-label>Precio Estimado del Pedido</mat-label>
-                                <input matInput type="number" formControlName="PrecioEstimadoDelPedido" />
-                            </mat-form-field>
-                             -->
+                        <div class="contenedor-detalles">
+                            <mat-label style="font-weight: bold; color: black;">Detalles del pedido</mat-label>
+                          
                             <!-- Estado -->
-                            <!-- <mat-form-field class="input-form-pedido">
-                                <mat-label>Estado</mat-label>
-                                <mat-select formControlName="Estado">
-                                <mat-option *ngFor="let estado of estadosPedido" [value]="estado">{{ estado }}</mat-option>
-                                </mat-select>
-                            </mat-form-field> -->
-                            
+                            <mat-form-field class="input-form-pedido">
+                              <mat-label>Estado</mat-label>
+                              <mat-select formControlName="Estado">
+                                <!-- <mat-option *ngFor="let estado of estadosPedido" [value]="estado">{{ estado }}</mat-option> -->
+                              </mat-select>
+                            </mat-form-field>
+                          
+                            <!-- PesoPedido -->
+                            <mat-form-field class="input-form-pedido">
+                                <mat-label>Peso del pedido</mat-label>
+                                <input 
+                                matInput 
+                                type="text" 
+                                formControlName="PesoPedido" 
+                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                (input)="enforceTwoDecimals($event)" />
+                            </mat-form-field>
+                          
                             <!-- Comentarios -->
-                            <!-- <mat-form-field class="input-form-pedido">
+                            <mat-form-field class="input-form-pedido grow">
                                 <mat-label>Comentarios</mat-label>
-                                <textarea matInput formControlName="Comentarios"></textarea>
-                            </mat-form-field> -->
-            
-                        
+                                <textarea 
+                                  matInput
+                                  rows="1"  
+                                  class="comentario" 
+                                  formControlName="Comentarios" 
+                                  (input)="adjustTextareaHeight($event)" 
+                                  maxlength="2000">
+                                </textarea>
+                                <mat-hint align="end">{{ pedidoForm.get('Comentarios')?.value?.length || 0 }}/2000</mat-hint>
+                            </mat-form-field>
+                              <!-- <mat-error *ngIf="pedidoForm.get('Comentarios')?.hasError('maxlength')">
+                                Máximo de 2000 caracteres permitidos.
+                              </mat-error> -->
+                        </div>
+                        <div class="contenedor-tarifas">
+                            <mat-label style="font-weight: bold; color: black;">Costos/Tarifas pedido</mat-label>  
+                            <!-- Vía Pedido -->
+                            <mat-form-field class="input-form-pedido">
+                            <mat-label>Vía Pedido</mat-label>
+                            <mat-select formControlName="ViaPedido" required>
+                                <!-- <mat-option *ngFor="let via of viasPedido" [value]="via">{{ via }}</mat-option> -->
+                            </mat-select>
+                            </mat-form-field>
+
+                            <!-- Subtotal Articulos -->
+                            <mat-form-field class="input-form-pedido">
+                                <mat-label>Subtotal de los artículos</mat-label>
+                                <input 
+                                matInput 
+                                type="text" 
+                                formControlName="SubTotalArticulos" 
+                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                (input)="enforceTwoDecimals($event)" />
+                            </mat-form-field>
+                            <!-- Impuestos -->
+                            <mat-form-field class="input-form-pedido">
+                                <mat-label>Impuestos</mat-label>
+                                <input 
+                                matInput 
+                                type="text" 
+                                formControlName="Impuestos" 
+                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                (input)="enforceTwoDecimals($event)" />
+                            </mat-form-field>
+                            <!-- Shipping a USA -->
+                            <mat-form-field class="input-form-pedido">
+                                <mat-label>Envio a USA</mat-label>
+                                <input 
+                                matInput 
+                                type="text" 
+                                formControlName="ShippingUSA" 
+                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                (input)="enforceTwoDecimals($event)" />
+                            </mat-form-field>
+                            <!-- Shipping a NIC -->
+                            <mat-form-field class="input-form-pedido">
+                                <mat-label>Envio a NIC</mat-label>
+                                <input 
+                                matInput 
+                                type="text" 
+                                formControlName="ShuppingNIC" 
+                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                (input)="enforceTwoDecimals($event)" />
+                            </mat-form-field>
+                            <mat-label style="font-weight: bold; color: red;">TOTAL DEL PEDIDO</mat-label>  
+                            <!-- Precio Estimado del Pedido -->
+                            <mat-form-field class="input-form-pedido">
+                                <mat-label>Precio Estimado del Pedido</mat-label>
+                                <input 
+                                matInput 
+                                type="text" 
+                                formControlName="PrecioEstimadoDelPedido" 
+                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                (input)="enforceTwoDecimals($event)" />
+                            </mat-form-field>
+                        </div>
+                    </div>  
+            </div>          
         </div>        
 
-        <mat-dialog-actions align="end">
+        <div class="botones">
             <button mat-button mat-dialog-close>Cancelar</button>
-            <!-- <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!accesorioForm.valid">Ingresar</button> -->
-        </mat-dialog-actions>
+            <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!pedidoForm.valid">Ingresar</button>
+        </div>
+        
     </form>
 </div>
 
 <h5>
     LISTADO DE ARTICULOS
 </h5>
+
+<app-prueba>
