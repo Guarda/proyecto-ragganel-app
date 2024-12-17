@@ -67,7 +67,7 @@
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Sitio Web</mat-label>
                             <mat-select formControlName="SitioWeb" required>
-                            <!-- <mat-option *ngFor="let sitio of sitiosWeb" [value]="sitio">{{ sitio }}</mat-option> -->
+                                <mat-option *ngFor="let est of selectedSitioWebPedido" [value]="est.CodigoSitioWeb">{{est.DescripcionSitioWeb}} </mat-option>   
                             </mat-select>
                         </mat-form-field>
                     </div>
@@ -81,19 +81,21 @@
                             <mat-form-field class="input-form-pedido">
                               <mat-label>Estado</mat-label>
                               <mat-select formControlName="Estado">
-                                <!-- <mat-option *ngFor="let estado of estadosPedido" [value]="estado">{{ estado }}</mat-option> -->
+                                <mat-option *ngFor="let est of selectedEstadoPedido" [value]="est.CodigoEstadoPedido">{{est.DescripcionEstadoPedido}} </mat-option>   
                               </mat-select>
                             </mat-form-field>
                           
                             <!-- PesoPedido -->
                             <mat-form-field class="input-form-pedido">
                                 <mat-label>Peso del pedido</mat-label>
-                                <input 
-                                matInput 
-                                type="text" 
-                                formControlName="PesoPedido" 
-                                pattern="^\\d*(\\.\\d{0,2})?$" 
-                                (input)="enforceTwoDecimals($event)" />
+                                <input
+                                matInput
+                                type="number"
+                                formControlName="PesoPedido"
+                                step="0.01"
+                                min="0"
+                                (input)="enforceTwoDecimals($event)"
+                                />
                             </mat-form-field>
                           
                             <!-- Comentarios -->
@@ -119,7 +121,7 @@
                             <mat-form-field class="input-form-pedido">
                             <mat-label>Vía Pedido</mat-label>
                             <mat-select formControlName="ViaPedido" required>
-                                <!-- <mat-option *ngFor="let via of viasPedido" [value]="via">{{ via }}</mat-option> -->
+                                <mat-option *ngFor="let est of selectedTipoPedido" [value]="est.CodigoTipoPedido">{{est.DescripcionTipoPedido}} </mat-option>   
                             </mat-select>
                             </mat-form-field>
 
@@ -128,9 +130,10 @@
                                 <mat-label>Subtotal de los artículos</mat-label>
                                 <input 
                                 matInput 
-                                type="text" 
+                                type="number" 
                                 formControlName="SubTotalArticulos" 
-                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                step="0.01"
+                                min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
                             <!-- Impuestos -->
@@ -138,9 +141,10 @@
                                 <mat-label>Impuestos</mat-label>
                                 <input 
                                 matInput 
-                                type="text" 
+                                type="number" 
                                 formControlName="Impuestos" 
-                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                step="0.01"
+                                min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
                             <!-- Shipping a USA -->
@@ -148,9 +152,10 @@
                                 <mat-label>Envio a USA</mat-label>
                                 <input 
                                 matInput 
-                                type="text" 
+                                type="number" 
                                 formControlName="ShippingUSA" 
-                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                step="0.01"
+                                min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
                             <!-- Shipping a NIC -->
@@ -158,9 +163,10 @@
                                 <mat-label>Envio a NIC</mat-label>
                                 <input 
                                 matInput 
-                                type="text" 
+                                type="number" 
                                 formControlName="ShuppingNIC" 
-                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                step="0.01"
+                                min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
                             <mat-label style="font-weight: bold; color: red;">TOTAL DEL PEDIDO</mat-label>  
@@ -169,9 +175,10 @@
                                 <mat-label>Precio Estimado del Pedido</mat-label>
                                 <input 
                                 matInput 
-                                type="text" 
+                                type="number" 
                                 formControlName="PrecioEstimadoDelPedido" 
-                                pattern="^\\d*(\\.\\d{0,2})?$" 
+                                step="0.01"
+                                min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
                         </div>
@@ -180,8 +187,8 @@
         </div>        
 
         <div class="botones">
-            <button mat-button mat-dialog-close>Cancelar</button>
-            <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!pedidoForm.valid">Ingresar</button>
+            <button mat-button >Cancelar</button>
+            <button mat-button type="submit"  cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!pedidoForm.valid">Ingresar</button>
         </div>
         
     </form>

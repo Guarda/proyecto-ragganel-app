@@ -1027,6 +1027,32 @@ BEGIN
 END //
 DELIMITER ;
 
+/*PEDIDOS*/
+
+/*PROCEDIMIENTO ListarTiposPedidos modificado 16 / 12 / 24*/
+DELIMITER //
+	CREATE PROCEDURE ListarTiposPedidos()
+    BEGIN
+		SELECT * FROM tipopedido;
+    END //
+DELIMITER ;
+
+/*PROCEDIMIENTO ListarWebsites modificado 16 / 12 / 24*/
+DELIMITER //
+	CREATE PROCEDURE ListarWebsites()
+    BEGIN
+		SELECT * FROM sitioweb;
+    END //
+DELIMITER ;
+
+/*PROCEDIMIENTO ListarEstadosPedidos modificado 16 / 12 / 24*/
+DELIMITER //
+	CREATE PROCEDURE ListarEstadosPedidos()
+    BEGIN
+		select * FROM base_datos_inventario_taller.estadopedido;
+    END //
+DELIMITER ;
+
 
 
 

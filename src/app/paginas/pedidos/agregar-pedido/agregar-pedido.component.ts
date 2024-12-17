@@ -22,16 +22,23 @@ import { MatNativeDateModule } from '@angular/material/core';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
+import { EstadoPedido } from '../../interfaces/estadopedido';
+import { TipoPedido } from '../../interfaces/tipopedido';
+import { SitioWeb } from '../../interfaces/sitioweb';
+
+import { TipoPedidoService } from '../../../services/tipo-pedido.service';
+import { EstadoPedidoService } from '../../../services/estado-pedido.service';
+import { SitiowebPedidoService } from '../../../services/sitioweb-pedido.service';
 
 
 
 @Component({
   selector: 'app-agregar-pedido',
   standalone: true,
-  imports: [CommonModule,NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, 
-    MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, 
+  imports: [CommonModule, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule,
+    MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule,
     MatChipsModule, PruebaComponent, MatDatepickerModule, MatNativeDateModule, MatHint
-    ],
+  ],
   templateUrl: './agregar-pedido.component.html',
   styleUrl: './agregar-pedido.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]  // Add this line
@@ -46,8 +53,15 @@ export class AgregarPedidoComponent {
 
   public ImagePath: any;
 
+  selectedTipoPedido: TipoPedido[] = [];
+  selectedEstadoPedido: EstadoPedido[] = [];
+  selectedSitioWebPedido: SitioWeb[] = [];
+
   constructor(
     private cdr: ChangeDetectorRef,
+    private tipopedidos: TipoPedidoService,
+    private estadopedidos: EstadoPedidoService,
+    private sitioweb: SitiowebPedidoService,
     private router: Router,
     private fb: FormBuilder
   ) {
@@ -72,13 +86,28 @@ export class AgregarPedidoComponent {
       PrecioEstimadoDelPedido: new FormControl<number | null>(null),
       Estado: new FormControl<string | null>(''),
       Comentarios: new FormControl<string | null>('')
-    },{
+    }, {
       validators: CustomDateValidators.datesRelationship()
     }
-  );
+    );
 
 
     this.ImagePath = this.getimagePath("");
+
+    this.tipopedidos.getAll().subscribe((data: TipoPedido[]) => {
+      //console.log(data);
+      this.selectedTipoPedido = data;
+    });
+
+    this.estadopedidos.getAll().subscribe((data: EstadoPedido[]) => {
+      //console.log(data);
+      this.selectedEstadoPedido = data;
+    });
+
+    this.sitioweb.getAll().subscribe((data: SitioWeb[]) => {
+      //console.log(data);
+      this.selectedSitioWebPedido = data;
+    });
 
   }
 
@@ -86,15 +115,11 @@ export class AgregarPedidoComponent {
     const input = event.target as HTMLInputElement;
     const value = input.value;
   
-    // Regular expression to match a number with up to 2 decimals
-    const decimalPattern = /^\d*(\.\d{0,2})?$/;
-  
-    if (!decimalPattern.test(value)) {
-      // Remove invalid characters
-      input.value = value.slice(0, -1);
-    }
+    // Remove leading zeros and limit to 2 decimal places
+    const sanitizedValue = value.replace(/^0+(?!\.)/, '').match(/^\d*(\.\d{0,2})?/);
+    input.value = sanitizedValue ? sanitizedValue[0] : '';
   }
-  
+
   adjustTextareaHeight(event: Event): void {
     const textarea = event.target as HTMLTextAreaElement;
     textarea.style.height = 'auto'; // Resetea la altura para recalcular
@@ -117,16 +142,16 @@ export class AgregarPedidoComponent {
       const newHeight = Math.min(textarea.scrollHeight, availableHeight);
       textarea.style.height = `${newHeight}px`;
     }
-  }  
+  }
 
-  
-  
+
+
   // Custom filter to disable dates that are not allowed
   dateFilter = (date: Date | null): boolean => {
     const fechaCreacionPedido = this.pedidoForm.get('FechaCreacionPedido')?.value;
-    
+
     if (!fechaCreacionPedido || !date) return true; // Allow all dates before FechaCreacionPedido is set
-    
+
     // Disable dates before FechaCreacionPedido
     return date >= fechaCreacionPedido;
   };
@@ -145,48 +170,48 @@ export class AgregarPedidoComponent {
     const fechaCreacionPedido = control.get('FechaCreacionPedido')?.value;
     const fechaArrivoUSA = control.get('FechaArrivoUSA')?.value;
     const fechaEstimadaRecepcion = control.get('FechaEstimadaRecepcion')?.value;
-  
+
     // Ensure FechaArrivoUSA is not before FechaCreacionPedido
     if (fechaArrivoUSA && fechaCreacionPedido && fechaArrivoUSA < fechaCreacionPedido) {
       return { invalidFechaArrivoUSA: 'Fecha Arrivo USA no puede ser antes de Fecha Creación Pedido' };
     }
-  
+
     // Ensure FechaEstimadaRecepcion is not before FechaCreacionPedido or FechaArrivoUSA
     if (
-      fechaEstimadaRecepcion && 
+      fechaEstimadaRecepcion &&
       (fechaEstimadaRecepcion < fechaCreacionPedido || fechaEstimadaRecepcion < fechaArrivoUSA)
     ) {
       return { invalidFechaEstimadaRecepcion: 'Fecha Estimada Recepción no puede ser antes de Fecha Arrivo USA o Fecha Creación Pedido' };
     }
-  
+
     return null; // No errors
   }
 
   onSubmit() {    // TODO: Use EventEmitter with form value 
 
-     // Get values of the dates
-  const fechaCreacionPedido = this.pedidoForm.get('FechaCreacionPedido')?.value;
-  const fechaArrivoUSA = this.pedidoForm.get('FechaArrivoUSA')?.value;
-  const fechaEstimadaRecepcion = this.pedidoForm.get('FechaEstimadaRecepcion')?.value;
+    // Get values of the dates
+    const fechaCreacionPedido = this.pedidoForm.get('FechaCreacionPedido')?.value;
+    const fechaArrivoUSA = this.pedidoForm.get('FechaArrivoUSA')?.value;
+    const fechaEstimadaRecepcion = this.pedidoForm.get('FechaEstimadaRecepcion')?.value;
 
-  // Validation check: Ensure FechaArrivoUSA is not before FechaCreacionPedido
-  if (fechaArrivoUSA && fechaCreacionPedido && fechaArrivoUSA < fechaCreacionPedido) {
-    alert('Fecha Arrivo USA cannot be before Fecha Creacion Pedido');
-    return;
-  }
+    // Validation check: Ensure FechaArrivoUSA is not before FechaCreacionPedido
+    if (fechaArrivoUSA && fechaCreacionPedido && fechaArrivoUSA < fechaCreacionPedido) {
+      alert('Fecha Arrivo USA cannot be before Fecha Creacion Pedido');
+      return;
+    }
 
-  // Validation check: Ensure FechaEstimadaRecepcion is not before FechaArrivoUSA or FechaCreacionPedido
-  if (fechaEstimadaRecepcion && fechaCreacionPedido && fechaArrivoUSA && 
+    // Validation check: Ensure FechaEstimadaRecepcion is not before FechaArrivoUSA or FechaCreacionPedido
+    if (fechaEstimadaRecepcion && fechaCreacionPedido && fechaArrivoUSA &&
       fechaEstimadaRecepcion < fechaArrivoUSA) {
-    alert('Fecha Estimada Recepcion cannot be before Fecha Arrivo USA');
-    return;
-  }
+      alert('Fecha Estimada Recepcion cannot be before Fecha Arrivo USA');
+      return;
+    }
 
-  // Validation check: Ensure FechaEstimadaRecepcion is not before FechaCreacionPedido
-  if (fechaEstimadaRecepcion && fechaCreacionPedido && fechaEstimadaRecepcion < fechaCreacionPedido) {
-    alert('Fecha Estimada Recepcion cannot be before Fecha Creacion Pedido');
-    return;
-  }
+    // Validation check: Ensure FechaEstimadaRecepcion is not before FechaCreacionPedido
+    if (fechaEstimadaRecepcion && fechaCreacionPedido && fechaEstimadaRecepcion < fechaCreacionPedido) {
+      alert('Fecha Estimada Recepcion cannot be before Fecha Creacion Pedido');
+      return;
+    }
 
     console.log(this.pedidoForm.value);
     console.log("enviado");

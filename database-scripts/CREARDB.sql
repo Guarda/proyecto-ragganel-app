@@ -286,12 +286,26 @@ CREATE TABLE PedidoBase
     SitioWebFK int not null,
     ViaPedidoFK int not null,
     EstadoPedidoFK int not null,
+    
     PrecioEstimado Decimal(6,2),
     Comentarios varchar(2000),
     FOREIGN KEY (SitioWebFK) REFERENCES SitioWeb (CodigoSitioWeb),
     FOREIGN KEY (ViaPedidoFK) REFERENCES TipoPedido (CodigoTipoPedido),
     FOREIGN KEY (EstadoPedidoFK) REFERENCES EstadoPedido (CodigoEstadoPedido)
 );
+
+-- Agregar las nuevas columnas
+ALTER TABLE PedidoBase
+ADD Peso DECIMAL(6,2),
+ADD SubtotalArticulos DECIMAL(6,2),
+ADD Impuestos DECIMAL(6,2),
+ADD EnvioUSA DECIMAL(6,2),
+ADD EnvioNIC DECIMAL(6,2);
+
+-- Renombrar la columna PrecioEstimado a TotalPedido
+ALTER TABLE PedidoBase
+CHANGE PrecioEstimado TotalPedido DECIMAL(6,2);
+
 
 CREATE TABLE DetalleProductoPedido 
 (
