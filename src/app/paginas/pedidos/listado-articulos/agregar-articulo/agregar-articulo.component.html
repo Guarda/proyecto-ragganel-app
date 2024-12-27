@@ -1,0 +1,73 @@
+<h3 mat-dialog-title>    
+    <span>Agregar Articulo al pedido</span>
+</h3>
+
+<form [formGroup]="articulosForm" (ngSubmit)="onSubmit()">
+    <div class="contenedor-secundario">
+        <div class="contenedor-img-consola">
+            <img [src]="ImagePath" class="imagen-consola" alt="Imagen del modelo seleccionado" />
+            <h5>Imagen del articulo</h5>
+        </div>
+        <div class="contendor-form">
+            <mat-dialog-content class="mat-typography">
+                <h3>Ingresa detalles del articulo a ingresar</h3>
+                    <!--Codigo Consola  -->
+                <!-- Tipo Articulo -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Tipo Articulo</mat-label>
+                    <mat-select formControlName ="TipoArticulo" name="TipoArticulo">             
+                        <mat-option *ngFor="let est of selectedTipoArticulo" [value]="est.IdTipoArticuloPK" >{{est.DescripcionTipoArticulo}} </mat-option>            
+                    </mat-select> 
+                </mat-form-field>
+                <!-- FABRICANTE -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Fabricante</mat-label>
+                    <mat-select formControlName="Fabricante" name="Fabricante">
+                      <mat-option *ngFor="let fabricante of selectedFabricante" [value]="fabricante.id">
+                        {{ fabricante.nombre }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                <!-- CATEGORIA -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Categoria</mat-label>
+                    <mat-select formControlName="Cate" name="Cate">
+                    <mat-option *ngFor="let categoria of selectedCategoria" [value]="categoria.id">
+                        {{ categoria.nombre }}
+                    </mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- SUBCATEGORIA -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Subcategoria</mat-label>
+                    <mat-select formControlName="SubCategoria" name="SubCategoria">
+                    <mat-option *ngFor="let subCategoria of selectedSubCategoria" [value]="subCategoria.id">
+                        {{ subCategoria.nombre }}
+                    </mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!--Numero de serie Consola  -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Enlace</mat-label>
+                    <textarea formControlName = "EnlaceCompra" name="EnlaceCompra" matInput ></textarea>
+                </mat-form-field>    
+                    <!--Color Consola  -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Cantidad</mat-label>
+                    <textarea formControlName = "Cantidad" name="Cantidad" matInput ></textarea>
+                </mat-form-field>
+                
+                <!--Precio Base Consola  -->
+                <mat-form-field class="input-form-art">
+                    <mat-label>Precio Compra</mat-label>
+                    <textarea formControlName = "Precio" name="Precio" matInput></textarea>
+                </mat-form-field>
+        
+            </mat-dialog-content>
+        </div>
+    </div>
+    <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>Cancelar</button>
+        <!-- <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!productoForm.valid">Ingresar</button> -->
+    </mat-dialog-actions>
+</form>

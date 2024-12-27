@@ -1,0 +1,46 @@
+.contenedor-componente-index-articulos {
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+
+  .demo-button-container{
+    padding: auto;
+  }
+  
+
+.contenedor-principal {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: auto; /* Permite que crezca con el contenido */
+    overflow: visible; /* Asegura que no limite el tamaño */
+  }
+.contenedor-secundario {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border: 2px solid black;
+    border-radius: 20px;
+    background-color: white;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    /* padding-bottom: 5px; */
+    gap: 15px;
+    max-height: auto; /* Define el límite máximo del contenedor */
+    overflow: hidden; /* Asegura que nada salga del contenedor */
+  }
+
+.demo-table {
+    width: 100%;
+  }
+  
+  .demo-button-container {
+    padding-bottom: 16px;
+  }
+  
+  .demo-button + .demo-button {
+    margin-left: 8px;
+  }

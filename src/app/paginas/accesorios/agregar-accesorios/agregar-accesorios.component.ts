@@ -142,19 +142,9 @@ export class AgregarAccesoriosComponent {
       //console.log(this.accesorioForm.value.Fabricante, this.accesorioForm.value.Cate, this.accesorioForm.get('SubCategoria')?.value);
       if (this.accesorioForm.value.FabricanteAccesorio != undefined && this.accesorioForm.value.CateAccesorio != undefined &&  this.accesorioForm.get('SubCategoriaAccesorio')?.value != undefined){      
         this.categorias.getbymanufacturer(this.accesorioForm.value.FabricanteAccesorio, this.accesorioForm.value.CateAccesorio, this.accesorioForm.get('SubCategoriaAccesorio')?.value).subscribe((data) => {
-          this.idModeloAccesorioPK = data[0].IdModeloAccesorioPK;          
+          this.idModeloAccesorioPK = data[0].IdModeloAccesorioPK;        
 
-          // //UPDATES THE CHIPS OF ACCESORIES OF GIVEN PRODUCT TYPE
-          // this.IdTipoProd = data[0].TipoProducto;
-          // this.accesoriosService.find(this.IdTipoProd).subscribe((data) => {     
-          //   this.keywords.update(() => []);        
-          //   for (var val of data) {             
-          //     this.addt(val.DescripcionAccesorio); // prints values: 10, 20, 30, 40
-          //   }
-          //   //this.keywords.update(() => []); 
-          // })
-          // console.log(data[0].IdModeloConsolaPK);
-          // console.log(this.IdModeloPK);
+       
           this.categorias.find(this.idModeloAccesorioPK).subscribe((data) => {
             this.categoria = data[0];
             this.ImagePath = this.getimagePath(this.categoria.LinkImagen);

@@ -25,7 +25,7 @@ router.get('/listar-websites', (req, res) => {
     });
 });
 
-// List all websites
+// List all estados pedidos
 router.get('/listar-estados-pedidos', (req, res) => {
     db.query('CALL `base_datos_inventario_taller`.`ListarEstadosPedidos`();', (err, results) => {
         if (err) {

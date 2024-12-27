@@ -1053,6 +1053,14 @@ DELIMITER //
     END //
 DELIMITER ;
 
+/*PROCEDIMIENTO ListarTipoArticulo creado 18 / 12 / 24*/
+DELIMITER //
+	CREATE PROCEDURE ListarTipoArticulo()
+    BEGIN
+		select * FROM base_datos_inventario_taller.tipoarticulo;
+    END //
+DELIMITER ;
+
 
 
 

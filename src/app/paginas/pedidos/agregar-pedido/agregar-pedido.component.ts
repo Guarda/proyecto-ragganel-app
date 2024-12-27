@@ -11,7 +11,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule, NgFor } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
-import { PruebaComponent } from '../../prueba/prueba.component';
+// import { PruebaComponent } from '../../prueba/prueba.component';
+import { IndexListadoArticulosComponent } from '../listado-articulos/index-listado-articulos/index-listado-articulos.component';
 
 import { CustomDateValidators } from '../../../utiles/customs/custom-date-validators';
 import { PedidoFormGroup } from '../../interfaces/pedidoformgroup';
@@ -37,7 +38,7 @@ import { SitiowebPedidoService } from '../../../services/sitioweb-pedido.service
   standalone: true,
   imports: [CommonModule, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule,
     MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule,
-    MatChipsModule, PruebaComponent, MatDatepickerModule, MatNativeDateModule, MatHint
+    MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatHint, IndexListadoArticulosComponent
   ],
   templateUrl: './agregar-pedido.component.html',
   styleUrl: './agregar-pedido.component.css',

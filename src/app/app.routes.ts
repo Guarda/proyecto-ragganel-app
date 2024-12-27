@@ -13,6 +13,7 @@ import { ListarCategoriasAccesoriosComponent } from './paginas/categoriasaccesor
 import { IndexEdicioncategoriasAccesoriosComponent } from './paginas/preferencias/edicioncategoriasaccesorios/index-edicioncategorias-accesorios/index-edicioncategorias-accesorios.component';
 import { ListarPedidosComponent } from './paginas/pedidos/listar-pedidos/listar-pedidos.component';
 import { AgregarPedidoComponent } from './paginas/pedidos/agregar-pedido/agregar-pedido.component';
+import { IndexListadoArticulosComponent } from './paginas/pedidos/listado-articulos/index-listado-articulos/index-listado-articulos.component';
 
 export const routes: Routes = [
     
@@ -28,5 +29,6 @@ export const routes: Routes = [
     { path: 'listado-categorias-accesorios', component: ListarCategoriasAccesoriosComponent},
     { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent},
     { path: 'listado-pedidos', component: ListarPedidosComponent},
-    { path: 'crear-pedido', component: AgregarPedidoComponent}
+    { path: 'crear-pedido', component: AgregarPedidoComponent},
+    { path: 'index-listado-articulos', component: IndexListadoArticulosComponent}
 ];

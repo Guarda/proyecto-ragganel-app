@@ -1,0 +1,42 @@
+h3[mat-dialog-title] {
+  text-align: center; /* Centra el contenido horizontalmente */
+}
+
+.contenedor-secundario {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+}
+
+.contenedor-form {
+  width: 100%;
+  max-width: 600px;
+}
+
+.input-form-art {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.contenedor-img-consola {
+  flex: 1;
+  max-width: 360px;
+  text-align: center;
+}
+
+.imagen-consola {
+  max-width: 100%;
+  height: auto;
+  border: 2px solid black;
+  border-radius: 20px;
+  padding: 10px;
+  background-color: white;
+}
+
+mat-dialog-content {
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+}

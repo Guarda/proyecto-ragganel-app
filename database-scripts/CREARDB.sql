@@ -9,6 +9,10 @@ CREATE TABLE TipoArticulo
     Estado boolean not null default 1
 );
 
+INSERT INTO TipoArticulo (DescripcionTipoArticulo) values ('Producto');
+INSERT INTO TipoArticulo (DescripcionTipoArticulo) values ('Accesorio');
+INSERT INTO TipoArticulo (DescripcionTipoArticulo) values ('Insumo');
+
 /*TABLAS CREADAS EL 10/09/24 TiposAccesorios, TiposProductos y CatalogoTiposAccesoriosXProducto*/
 CREATE TABLE TiposAccesorios (
 	IdTipoAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -347,6 +351,9 @@ CREATE TABLE PedidoDetalles
 	FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido),
     FOREIGN KEY (TipoArticuloFK) REFERENCES TipoArticulo (IdTipoArticuloPK)    
 );
+
+ALTER TABLE PedidoDetalles
+ADD PrecioArticulo DECIMAL(6,2);
 
 
 /*CREAR TABLAS DE INSUMOS */
