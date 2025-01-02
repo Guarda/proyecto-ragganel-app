@@ -43,6 +43,42 @@ router.get('/listar-cate/:id', (req, res) => {
     });
 });
 
+// List all cate with an active model
+router.get('/listar-cate-b/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarCategoriasProductosxModeloActivo` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
+// List cate info by id
+router.get('/informacion-categoria/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionCategoriaxId` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
+
+
 // List all active subcate
 router.get('/listar-subcate', (req, res) => {
     db.query('CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductos`();', (err, results) => {
@@ -77,6 +113,41 @@ router.get('/listar-subcate/:id', (req, res) => {
 router.get('/listar-subcate-b/:id', (req, res) => {
     const id = req.params.id;
     const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductosxCategoriaBase` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
+// List all subcate with an active model
+router.get('/listar-subcate-c/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductosxModeloActivo` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
+// List cate info by id
+router.get('/informacion-subcategoria/:id', (req, res) => {
+    const id = req.params.id;
+    // console.log(id);
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionSubCategoriaxId` (?)';
     db.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');

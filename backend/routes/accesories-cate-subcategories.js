@@ -55,6 +55,40 @@ router.get('/listar-cate-accesorio/:id', (req, res) => {
     });
 });
 
+// List all cate by active model
+router.get('/listar-cate-accesorio-b/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarCategoriasAccesoriosxModeloActivo` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
+// List cate info by id
+router.get('/informacion-categoria/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionCategoriaAccesorioxId` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
 // List all subcate by cate
 router.get('/listar-subcate-accesorio/:id', (req, res) => {
     const id = req.params.id;
@@ -89,6 +123,23 @@ router.get('/listar-subcate-accesorio-b/:id', (req, res) => {
     });
 });
 
+// List all subcate with an active model
+router.get('/listar-subcate-accesorio-c/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasAccesoriosxModeloActivo` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
 // Create a new categorie
 router.post('/ingresar-categoria-accesorio', (req, res) => {
     const IdFabricante = req.query.IdFabricanteAccesorio;
@@ -102,6 +153,25 @@ router.post('/ingresar-categoria-accesorio', (req, res) => {
             return res.status(500).send(err);
         }
         res.send({ message: 'Categoria agregada', id: result.insertId });
+    });
+});
+
+
+// List cate info by id
+router.get('/informacion-subcategoria/:id', (req, res) => {
+    const id = req.params.id;
+    // console.log(id);
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionSubCategoriaAccesorioxId` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
     });
 });
 

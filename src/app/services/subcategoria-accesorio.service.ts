@@ -32,8 +32,23 @@ export class SubcategoriaAccesorioService {
       )
   }
 
+  findById(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/informacion-subcategoria/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   findBase(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-subcate-accesorio-b/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  
+  findWithModel(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-subcate-accesorio-c/' + id)
       .pipe(
         catchError(this.errorHandler)
       )

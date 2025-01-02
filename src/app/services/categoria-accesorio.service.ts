@@ -52,6 +52,20 @@ export class CategoriaAccesorioService {
       )
   }
 
+  findById(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/informacion-categoria/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  findWithModel(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate-accesorios/listar-cate-accesorio-b/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   create(IdFabricanteAccesorio: number, NombreCategoriaAccesorio: string): Observable<any> {
     let params = new HttpParams()
         .set('IdFabricanteAccesorio', IdFabricanteAccesorio.toString())  

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButton, MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
@@ -31,6 +31,8 @@ import { TipoPedidoService } from '../../../services/tipo-pedido.service';
 import { EstadoPedidoService } from '../../../services/estado-pedido.service';
 import { SitiowebPedidoService } from '../../../services/sitioweb-pedido.service';
 
+import { SharedPedidoService } from '../../../services/shared-pedido.service';
+
 
 
 @Component({
@@ -38,7 +40,7 @@ import { SitiowebPedidoService } from '../../../services/sitioweb-pedido.service
   standalone: true,
   imports: [CommonModule, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule,
     MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule,
-    MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatHint, IndexListadoArticulosComponent
+    MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatHint, IndexListadoArticulosComponent, MatButton
   ],
   templateUrl: './agregar-pedido.component.html',
   styleUrl: './agregar-pedido.component.css',
@@ -51,6 +53,7 @@ export class AgregarPedidoComponent {
 
   Agregado = new EventEmitter();
   pedidoForm!: FormGroup;
+  totalPrecio: number = 0;
 
   public ImagePath: any;
 
@@ -64,7 +67,8 @@ export class AgregarPedidoComponent {
     private estadopedidos: EstadoPedidoService,
     private sitioweb: SitiowebPedidoService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private sharedPedidoService: SharedPedidoService
   ) {
 
   }
@@ -91,9 +95,16 @@ export class AgregarPedidoComponent {
       validators: CustomDateValidators.datesRelationship()
     }
     );
+    this.ImagePath = this.getimagePath("");    
 
+    // Suscríbete al servicio para obtener el subtotal
+    this.sharedPedidoService.SubTotalArticulosPedido$.subscribe((total) => {
+      this.totalPrecio = total;
+      console.log(this.totalPrecio);
 
-    this.ImagePath = this.getimagePath("");
+      // Actualiza el valor del campo en el formulario
+      this.pedidoForm.patchValue({ SubTotalArticulos: this.totalPrecio });
+    });
 
     this.tipopedidos.getAll().subscribe((data: TipoPedido[]) => {
       //console.log(data);
@@ -115,7 +126,7 @@ export class AgregarPedidoComponent {
   enforceTwoDecimals(event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = input.value;
-  
+
     // Remove leading zeros and limit to 2 decimal places
     const sanitizedValue = value.replace(/^0+(?!\.)/, '').match(/^\d*(\.\d{0,2})?/);
     input.value = sanitizedValue ? sanitizedValue[0] : '';

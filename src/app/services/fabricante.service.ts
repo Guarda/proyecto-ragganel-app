@@ -40,6 +40,21 @@ export class FabricanteService {
       )
   }
 
+  getManufacturerWithModel(): Observable<any> {
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/fabricantes/listar-fabricantes-c/')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/fabricantes/info-farbicante/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   
 
   /**

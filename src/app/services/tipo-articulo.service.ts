@@ -30,7 +30,14 @@ export class TipoArticuloService {
     .pipe(
       catchError(this.errorHandler)
     )
-  }    
+  }
+  
+  findById(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/articulos/informacion-tipo-articulo/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
 
   errorHandler(error:any) {
     let errorMessage = '';

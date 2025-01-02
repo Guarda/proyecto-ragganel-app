@@ -44,3 +44,7 @@
   .demo-button + .demo-button {
     margin-left: 8px;
   }
+
+  .bold-text {
+    font-weight: bold;
+  }

@@ -6,6 +6,7 @@ import { MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/mat
 import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialogRef } from '@angular/material/dialog';
 // import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { TipoArticulo } from '../../../interfaces/tipoarticulos';
@@ -64,6 +65,7 @@ export class AgregarArticuloComponent {
   selectedFabricante: any;
   selectedCategoria: any;
   selectedSubCategoria: any;
+  // dialogRef: any;
 
   constructor(
     private tipoarticulo: TipoArticuloService,
@@ -76,13 +78,14 @@ export class AgregarArticuloComponent {
     public subcategoriaproductoService: SubcategoriaProductoService,
     public subcategoriaaccesorioService: SubcategoriaAccesorioService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef, private router: Router) {
+    private cdr: ChangeDetectorRef, private router: Router,
+    private dialogRef: MatDialogRef<AgregarArticuloComponent>) {
 
   }
 
   ngOnInit(): void {
 
-    this.ImagePath = this.getImagePath('',1);
+    this.ImagePath = this.getImagePath('', 1);
     this.articulosForm = this.fb.group({
       TipoArticulo: new FormControl('', Validators.required),
       Fabricante: new FormControl('', Validators.required),
@@ -102,15 +105,15 @@ export class AgregarArticuloComponent {
     this.articulosForm.get('TipoArticulo')?.valueChanges.subscribe(selectedId => {
       switch (selectedId) {
         case 1: // Producto
-          console.log("Producto selected");
+          // console.log("Producto selected");
           this.updateCategoriesForProducto();
           break;
         case 2: // Accesorio
-          console.log("Accesorio selected");
+          // console.log("Accesorio selected");
           this.updateCategoriesForAccesorio();
           break;
         case 3: // Insumo
-          console.log("Insumo selected");
+          // console.log("Insumo selected");
           this.updateCategoriesForInsumo();
           break;
         default:
@@ -119,6 +122,7 @@ export class AgregarArticuloComponent {
 
       // Resetear el campo de fabricante
       this.articulosForm.get('Fabricante')?.reset();
+      this.articulosForm.get('SubCategoria')?.reset();
     });
 
     this.articulosForm.get('Fabricante')?.valueChanges.subscribe(fabricanteId => {
@@ -143,16 +147,17 @@ export class AgregarArticuloComponent {
           console.error('Tipo de artículo desconocido');
           this.selectedCategoria = [];
       }
+      this.articulosForm.get('Cate')?.reset();
     });
 
     this.articulosForm.get('Cate')?.valueChanges.subscribe(categoriaId => {
       const tipoArticulo = this.articulosForm.get('TipoArticulo')?.value;
-    
+
       if (!categoriaId || !tipoArticulo) {
         this.selectedSubCategoria = [];
         return;
       }
-    
+
       switch (tipoArticulo) {
         case 1: // Producto
           this.fetchSubCategoriasForProducto(categoriaId);
@@ -167,6 +172,7 @@ export class AgregarArticuloComponent {
           console.error('Tipo de artículo desconocido');
           this.selectedSubCategoria = [];
       }
+      this.articulosForm.get('SubCategoria')?.reset();
     });
 
 
@@ -174,11 +180,11 @@ export class AgregarArticuloComponent {
       const fabricanteId = this.articulosForm.get('Fabricante')?.value;
       const categoriaId = this.articulosForm.get('Cate')?.value;
       const tipoArticulo = this.articulosForm.get('TipoArticulo')?.value;
-    
+
       if (fabricanteId && categoriaId && selectedSubCategoriaId && tipoArticulo) {
         // Llama al servicio adecuado según el tipo de artículo
         let categoriasService;
-    
+
         switch (tipoArticulo) {
           case 1: // Producto
             categoriasService = this.categoriasProductos;
@@ -193,30 +199,48 @@ export class AgregarArticuloComponent {
             console.error("Tipo de artículo desconocido");
             return;
         }
-    
+
         // Llama al servicio con los tres valores
         categoriasService?.getbymanufacturer(fabricanteId, categoriaId, selectedSubCategoriaId)
           .subscribe((data: any[]) => {
-            console.log(fabricanteId, categoriaId, selectedSubCategoriaId);
-            console.log(data)
+            // console.log(fabricanteId, categoriaId, selectedSubCategoriaId);
 
             switch (tipoArticulo) {
               case 1: // Producto
                 if (data.length > 0) {
                   const modelo = data[0]; // Asumimos que el backend devuelve el modelo correcto
-                  this.idModelo = modelo.IdModeloPK; // ID del modelo
-                  this.ImagePath = this.getImagePath(modelo.LinkImagen, tipoArticulo);
-                  this.cdr.detectChanges(); // Notifica al ChangeDetectorRef para actualizar la vista
-        
+                  this.idModelo = modelo.IdModeloConsolaPK; // ID del modelo
+                  // console.log(this.idModelo)
+                  this.categoriasProductos.find(this.idModelo).subscribe((data) => {
+                    // console.log(data)
+                    this.ImagePath = this.getImagePath(data[0].LinkImagen, tipoArticulo);
+                    this.cdr.detectChanges();
+                  });
+
                   // Opcional: Actualiza un control del formulario
                   // this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
                 } else {
                   // Si no hay datos, muestra una imagen por defecto
                   this.ImagePath = this.getImagePath(null, tipoArticulo);
-                }   
+                }
                 break;
               case 2: // Accesorio
-                categoriasService = this.categoriasAccesorios;
+                if (data.length > 0) {
+                  const modelo = data[0]; // Asumimos que el backend devuelve el modelo correcto
+                  this.idModelo = modelo.IdModeloAccesorioPK; // ID del modelo
+                  // console.log(this.idModelo)
+                  this.categoriasAccesorios.find(this.idModelo).subscribe((data) => {
+                    // console.log(data)
+                    this.ImagePath = this.getImagePath(data[0].LinkImagen, tipoArticulo);
+                    this.cdr.detectChanges();
+                  });
+
+                  // Opcional: Actualiza un control del formulario
+                  // this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
+                } else {
+                  // Si no hay datos, muestra una imagen por defecto
+                  this.ImagePath = this.getImagePath(null, tipoArticulo);
+                }
                 break;
               case 3: // Insumo
                 // categoriasService = this.insumoCategoriasService;
@@ -225,7 +249,6 @@ export class AgregarArticuloComponent {
                 console.error("Tipo de artículo desconocido");
                 return;
             }
-            
           });
       } else {
         // Si faltan datos, muestra una imagen por defecto
@@ -236,10 +259,17 @@ export class AgregarArticuloComponent {
   }
 
 
-
+  enforceTwoDecimals(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+  
+    // Remove leading zeros and limit to 2 decimal places
+    const sanitizedValue = value.replace(/^0+(?!\.)/, '').match(/^\d*(\.\d{0,2})?/);
+    input.value = sanitizedValue ? sanitizedValue[0] : '';
+  }
   //metodos para fabricantes
   updateCategoriesForProducto() {
-    this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {
+    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteProducto[]) => {
       // Transformar los datos para usar claves consistentes
       this.selectedFabricante = data.map(item => ({
         id: item.IdFabricantePK,
@@ -249,13 +279,13 @@ export class AgregarArticuloComponent {
   }
 
   updateCategoriesForAccesorio() {
-    this.fabricanteaccesorioService.getAll().subscribe((data: FabricanteAccesorio[]) => {
+    this.fabricanteaccesorioService.getManufacturerWithModel().subscribe((data: FabricanteAccesorio[]) => {
       // Transformar los datos para usar claves consistentes
       this.selectedFabricante = data.map(item => ({
         id: item.IdFabricanteAccesorioPK,
         nombre: item.NombreFabricanteAccesorio
       }));
-      console.log(this.selectedFabricante);
+      // console.log(this.selectedFabricante);
     });
   }
 
@@ -266,23 +296,23 @@ export class AgregarArticuloComponent {
 
   //metodos para categorias
   fetchCategoriasForProducto(fabricanteId: number) {
-    this.categoriaproductoService.find(fabricanteId.toString()).subscribe((data: categoriasProductos[]) => {
+    this.categoriaproductoService.findWithModel(fabricanteId.toString()).subscribe((data: categoriasProductos[]) => {
       this.selectedCategoria = data.map(item => ({
         id: item.IdCategoriaPK,
         nombre: item.NombreCategoria
       }));
     });
   }
-  
+
   fetchCategoriasForAccesorio(fabricanteId: number) {
-    this.categoriaaccesorioService.find(fabricanteId.toString()).subscribe((data: categoriasAccesorios[]) => {
+    this.categoriaaccesorioService.findWithModel(fabricanteId.toString()).subscribe((data: categoriasAccesorios[]) => {
       this.selectedCategoria = data.map(item => ({
         id: item.IdCategoriaAccesorioPK,
         nombre: item.NombreCategoriaAccesorio
       }));
     });
   }
-  
+
   fetchCategoriasForInsumo(fabricanteId: number) {
     // this.categoriaInsumoService.getByFabricante(fabricanteId).subscribe((data: CategoriaInsumo[]) => {
     //   this.selectedCategoria = data.map(item => ({
@@ -295,66 +325,65 @@ export class AgregarArticuloComponent {
   //metodos para las subcategorias
 
   // Métodos para obtener las subcategorías
-fetchSubCategoriasForProducto(categoriaId: number) {
-  this.subcategoriaproductoService.find(categoriaId.toString()).subscribe((data: SubcategoriasProductos[]) => {
-    this.selectedSubCategoria = data.map(item => ({
-      id: item.IdSubcategoria,
-      nombre: item.NombreSubCategoria
-    }));
-  });
-}
-
-fetchSubCategoriasForAccesorio(categoriaId: number) {
-  this.subcategoriaaccesorioService.find(categoriaId.toString()).subscribe((data: SubcategoriasAccesorios[]) => {
-    this.selectedSubCategoria = data.map(item => ({
-      id: item.IdSubcategoriaAccesorio,
-      nombre: item.NombreSubcategoriaAccesorio
-    }));
-  });
-}
-
-fetchSubCategoriasForInsumo(categoriaId: number) {
-  // this.subcategoriaInsumoService.getByCategoria(categoriaId).subscribe((data: SubCategoriaInsumo[]) => {
-  //   this.selectedSubCategoria = data.map(item => ({
-  //     id: item.IdSubcategoriaInsumosPK,
-  //     nombre: item.NombreSubCategoriaInsumos
-  //   }));
-  // });
-}
-
-// Función para construir la ruta de la imagen
-getImagePath(link: string | null, tipoArticulo: number | null) {
-  console.log(link)
-  console.log(tipoArticulo)
-  const baseUrl = 'http://localhost:3000';
-  let folder = '';
-
-  switch (tipoArticulo) {
-    case 1: // Producto
-      folder = 'img-consolas';
-      break;
-    case 2: // Accesorio
-      folder = 'img-accesorios';
-      break;
-    case 3: // Insumo
-      folder = 'img-insumos';
-      break;
-    default:
-      folder = 'img-consolas'; // Carpeta por defecto
+  fetchSubCategoriasForProducto(categoriaId: number) {
+    this.subcategoriaproductoService.findWithModel(categoriaId.toString()).subscribe((data: SubcategoriasProductos[]) => {
+      this.selectedSubCategoria = data.map(item => ({
+        id: item.IdSubcategoria,
+        nombre: item.NombreSubCategoria
+      }));
+    });
   }
 
-  return link ? `${baseUrl}/${folder}/${link}` : `${baseUrl}/${folder}/2ds.jpg`;
-}
+  fetchSubCategoriasForAccesorio(categoriaId: number) {
+    this.subcategoriaaccesorioService.findWithModel(categoriaId.toString()).subscribe((data: SubcategoriasAccesorios[]) => {
+      this.selectedSubCategoria = data.map(item => ({
+        id: item.IdSubcategoriaAccesorio,
+        nombre: item.NombreSubcategoriaAccesorio
+      }));
+    });
+  }
+
+  fetchSubCategoriasForInsumo(categoriaId: number) {
+    // this.subcategoriaInsumoService.getByCategoria(categoriaId).subscribe((data: SubCategoriaInsumo[]) => {
+    //   this.selectedSubCategoria = data.map(item => ({
+    //     id: item.IdSubcategoriaInsumosPK,
+    //     nombre: item.NombreSubCategoriaInsumos
+    //   }));
+    // });
+  }
+
+  // Función para construir la ruta de la imagen
+  getImagePath(link: string | null, tipoArticulo: number | null) {
+    // console.log(link)
+    // console.log(tipoArticulo)
+    const baseUrl = 'http://localhost:3000';
+    let folder = '';
+
+    switch (tipoArticulo) {
+      case 1: // Producto
+        folder = 'img-consolas';
+        break;
+      case 2: // Accesorio
+        folder = 'img-accesorios';
+        break;
+      case 3: // Insumo
+        folder = 'img-insumos';
+        break;
+      default:
+        folder = 'img-consolas'; // Carpeta por defecto
+    }
+
+    return link ? `${baseUrl}/${folder}/${link}` : `${baseUrl}/${folder}/2ds.jpg`;
+  }
 
   onSubmit() {    // TODO: Use EventEmitter with form value 
-    console.log(this.articulosForm.value);
-    // console.log(this.productoForm.get('Accesorios')?.value) 
-    console.log("enviado");
-    // this.productoService.create(this.productoForm.value).subscribe((res: any) => {
-    //   this.Agregado.emit();
-    //   this.router.navigateByUrl('listado-productos');
-    // })
-
+    if (this.articulosForm.valid) {
+      // console.log(this.articulosForm.value);
+      this.Agregado.emit(this.articulosForm.value); // Emitir datos
+      this.dialogRef.close(this.articulosForm.value); // Cerrar el diálogo con los datos
+    } else {
+      console.log('Formulario no válido');
+    }
   }
 
 }

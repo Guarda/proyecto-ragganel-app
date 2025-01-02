@@ -28,8 +28,8 @@ h3[mat-dialog-title] {
 }
 
 .imagen-consola {
-  max-width: 100%;
-  height: auto;
+  max-width: 250pxcccccccc;
+  height: 200px;
   border: 2px solid black;
   border-radius: 20px;
   padding: 10px;
@@ -39,4 +39,41 @@ h3[mat-dialog-title] {
 mat-dialog-content {
   max-height: calc(100vh - 64px);
   overflow-y: auto;
+}
+
+.example-container mat-form-field + mat-form-field {
+  margin-left: 8px;
+}
+
+.example-right-align {
+  text-align: right;
+}
+
+input.example-right-align::-webkit-outer-spin-button,
+input.example-right-align::-webkit-inner-spin-button {
+  display: none;
+}
+
+input.example-right-align {
+  -moz-appearance: textfield;
+}
+
+.botonedicion{
+  display: flex;
+  justify-content: space-around;
+  padding-bottom: 5%;
+}
+
+.btn-editar{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white!important;
+  background-color: green!important;
+}
+
+.btn-editar:disabled {
+  background-color: gray !important;
+  color: lightgray !important; /* Adjust text color if needed */
+  cursor: not-allowed; /* Optional: show not-allowed cursor */
 }

@@ -53,6 +53,20 @@ export class CategoriaProductoService {
       )
   }
 
+  findById(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate/informacion-categoria/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  findWithModel(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate/listar-cate-b/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   create(IdFabricante: number, NombreCategoria: string): Observable<any> {
     let params = new HttpParams()
         .set('IdFabricante', IdFabricante.toString())  

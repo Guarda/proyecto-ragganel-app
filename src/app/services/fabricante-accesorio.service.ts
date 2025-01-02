@@ -40,6 +40,21 @@ export class FabricanteAccesorioService {
         )
     }
 
+    find(id: string): Observable<any> {
+      return this.httpClient.get(this.apiURL + '/fabricantes-accesorios/info-farbicante/' + id)
+        .pipe(
+          catchError(this.errorHandler)
+        )
+    }
+
+    getManufacturerWithModel(): Observable<any> {
+      //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+      return this.httpClient.get(this.apiURL + '/fabricantes-accesorios/listar-fabricantes-accesorios-c/')
+        .pipe(
+          catchError(this.errorHandler)
+        )
+    }
+
     create(NombreFabricanteAccesorio: string): Observable<any> {
       const fabricanteData = { NombreFabricanteAccesorio }; // Wrap the string in an object
       console.log(fabricanteData);

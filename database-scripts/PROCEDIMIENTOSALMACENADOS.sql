@@ -1062,10 +1062,145 @@ DELIMITER //
 DELIMITER ;
 
 
+/*ADICION DE PROCEDIMIENTOS ALMACENADOS PARA FABRICANTES, CATEGORIAS, SUBCATEGORIAS de TODOS LOS TIPOS DE ARTICULOS*/
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES DE PRODUCTOS CON UN MODELO ASOCIADO CREADO 28/12/2024*/
+CREATE PROCEDURE ListarFabricantesModelo()
+		BEGIN
+			SELECT DISTINCT a.IdFabricantePK, a.NombreFabricante FROM fabricantes a
+            JOIN catalogoconsolas b ON a.IdFabricantePK = b.Fabricante
+            WHERE a.Activo = 1
+            AND b.Activo = 1;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODAS LAS CATEGORIAS DE PRODUCTOS CON UN MODELO ASOCIADO CREADO 28/12/2024*/
+CREATE PROCEDURE ListarCategoriasProductosxModeloActivo(FabricanteP INT)
+		BEGIN
+			SELECT DISTINCT a.IdCategoriaPK, a.NombreCategoria FROM categoriasproductos a
+            JOIN catalogoconsolas b ON a.IdCategoriaPK = b.Categoria
+            WHERE a.Activo = 1
+            AND b.Activo = 1
+            AND b.Fabricante = FabricanteP;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODAS LAS SUBCATEGORIAS DE PRODUCTOS CON UN MODELO ASOCIADO CREADO 28/12/2024*/
+CREATE PROCEDURE ListarSubCategoriasProductosxModeloActivo(CategoriaP INT)
+		BEGIN
+			SELECT DISTINCT a.IdSubcategoria, a.NombreSubCategoria FROM subcategoriasproductos a
+            JOIN catalogoconsolas b ON a.IdSubcategoria = b.Subcategoria
+            WHERE a.Activo = 1
+            AND b.Activo = 1
+            AND b.Categoria = CategoriaP;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES DE ACCESORIOS CON UN MODELO ASOCIADO CREADO 28/12/2024*/
+CREATE PROCEDURE ListarFabricantesAccesoriosModelo()
+		BEGIN
+			SELECT DISTINCT a.IdFabricanteAccesorioPK, a.NombreFabricanteAccesorio FROM fabricanteaccesorios a
+            JOIN catalogoaccesorios b ON a.IdFabricanteAccesorioPK = b.FabricanteAccesorio
+            WHERE a.Activo = 1
+            AND b.Activo = 1;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODAS LAS CATEGORIAS DE ACCESORIOS CON UN MODELO ASOCIADO CREADO 28/12/2024*/
+CREATE PROCEDURE ListarCategoriasAccesoriosxModeloActivo(FabricanteP INT)
+		BEGIN
+			SELECT DISTINCT a.IdCategoriaAccesorioPK, a.NombreCategoriaAccesorio FROM categoriasaccesorios a
+            JOIN catalogoaccesorios b ON a.IdCategoriaAccesorioPK = b.CategoriaAccesorio
+            WHERE a.Activo = 1
+            AND b.Activo = 1
+            AND b.FabricanteAccesorio = FabricanteP;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODAS LAS SUBCATEGORIAS DE ACCESORIOS CON UN MODELO ASOCIADO CREADO 28/12/2024*/
+CREATE PROCEDURE ListarSubCategoriasAccesoriosxModeloActivo(CategoriaP INT)
+		BEGIN
+			SELECT DISTINCT a.IdSubcategoriaAccesorio, a.NombreSubcategoriaAccesorio FROM subcategoriasaccesorios a
+            JOIN catalogoaccesorios b ON a.IdSubcategoriaAccesorio = b.SubcategoriaAccesorio
+            WHERE a.Activo = 1
+            AND b.Activo = 1
+            AND b.CategoriaAccesorio = CategoriaP;
+        END //
+DELIMITER ;
 
 
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE FABRICANTE POR ID CREADO 30/12/2024*/
+CREATE PROCEDURE ListarInformacionFabricantexId(IdFabricante int)
+	BEGIN
+		SELECT * FROM fabricantes
+        WHERE IdFabricantePK = IdFabricante;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE CATEGORIA DE PRODUCTO POR ID CREADO 30/12/2024*/
+CREATE PROCEDURE ListarInformacionCategoriaxId(IdCategoria int)
+	BEGIN
+		SELECT * FROM categoriasproductos
+        WHERE IdCategoriaPK = IdCategoria;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE SUBCATEGORIA DE PRODUCTO POR ID CREADO 30/12/2024*/
+CREATE PROCEDURE ListarInformacionSubCategoriaxId(IdSubcategoriaProducto int)
+	BEGIN
+		SELECT IdSubcategoria, NombreSubcategoria as NombreSubCategoria, IdCategoriaFK, Activo FROM subcategoriasproductos
+        WHERE IdSubcategoria = IdSubcategoriaProducto;
+    END //
+DELIMITER ;
 
 
+/*ACCESORIOS*/
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE FABRICANTE POR ID CREADO 01/01/2025*/
+CREATE PROCEDURE ListarInformacionFabricanteAccesorioxId(IdFabricante int)
+	BEGIN
+		SELECT * FROM fabricanteaccesorios
+        WHERE IdFabricanteAccesorioPK = IdFabricante;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE CATEGORIA DE ACCESORIO POR ID CREADO 01/01/2025*/
+CREATE PROCEDURE ListarInformacionCategoriaAccesorioxId(IdCategoria int)
+	BEGIN
+		SELECT * FROM categoriasaccesorios
+        WHERE IdCategoriaAccesorioPK = IdCategoria;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE SUBCATEGORIA DE ACCESORIO POR ID CREADO 01/01/2025*/
+CREATE PROCEDURE ListarInformacionSubCategoriaAccesorioxId(IdSubcategoriaAccesorio int)
+	BEGIN
+		SELECT * FROM subcategoriasaccesorios
+        WHERE IdSubcategoriaAccesorio = IdSubcategoriaAccesorio;
+    END //
+DELIMITER ;
+
+/*INFORMACION TIPO ARTICULO*/
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE TIPO ARTICULO CREADO 01/01/2025*/
+CREATE PROCEDURE ListarInformacionTipoArticuloXId(TipoArticuloid int)
+	BEGIN
+		SELECT * FROM tipoarticulo
+        WHERE IdTipoArticuloPK = TipoArticuloid;
+    END //
+DELIMITER ;
 
 
 

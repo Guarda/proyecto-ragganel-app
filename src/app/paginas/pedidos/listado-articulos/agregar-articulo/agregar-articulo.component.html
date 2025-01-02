@@ -51,23 +51,45 @@
                     <mat-label>Enlace</mat-label>
                     <textarea formControlName = "EnlaceCompra" name="EnlaceCompra" matInput ></textarea>
                 </mat-form-field>    
-                    <!--Color Consola  -->
-                <mat-form-field class="input-form-art">
-                    <mat-label>Cantidad</mat-label>
-                    <textarea formControlName = "Cantidad" name="Cantidad" matInput ></textarea>
+                
+                <!--Cantidad Consola  -->
+                <mat-form-field class="input-form-art" >
+                    <mat-label>Cantidad a comprar</mat-label>
+                    <input
+                    matInput
+                    type="number"
+                    formControlName="Cantidad"
+                    step="1"
+                    min="1"
+                    (input)="enforceTwoDecimals($event)"
+                    />
                 </mat-form-field>
                 
-                <!--Precio Base Consola  -->
-                <mat-form-field class="input-form-art">
+                <!--Precio compra lote articulo  -->                
+                <mat-form-field class="input-form-art" floatLabel="always">
                     <mat-label>Precio Compra</mat-label>
-                    <textarea formControlName = "Precio" name="Precio" matInput></textarea>
+                    <input
+                    matInput
+                    type="number"
+                    formControlName="Precio"
+                    step="0.01"
+                    min="0"
+                    (input)="enforceTwoDecimals($event)"
+                    /><span matTextPrefix>$&nbsp;</span>
                 </mat-form-field>
+
+                <!-- <mat-form-field class="input-form-art" floatLabel="always">
+                    <mat-label>Amount</mat-label>
+                    <input matInput type="number" class="example-right-align" placeholder="0" formControlName="Precio" />
+                    <span matTextPrefix>$&nbsp;</span>
+                    <span matTextSuffix>.00</span>
+                  </mat-form-field> -->
         
             </mat-dialog-content>
         </div>
     </div>
     <mat-dialog-actions align="end">
         <button mat-button mat-dialog-close>Cancelar</button>
-        <!-- <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!productoForm.valid">Ingresar</button> -->
+        <button mat-flat-button type="submit" class="button-editar-prod" class="btn-editar" (Click)="onSubmit()" color="accent" [disabled]="!articulosForm.valid">Agregar al pedido</button>
     </mat-dialog-actions>
 </form>

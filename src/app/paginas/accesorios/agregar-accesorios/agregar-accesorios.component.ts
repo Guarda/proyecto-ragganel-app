@@ -107,7 +107,7 @@ export class AgregarAccesoriosComponent {
       this.selectedEstado = data;
     });
 
-    this.fabricanteService.getAll().subscribe((data: FabricanteAccesorio[]) => {
+    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteAccesorio[]) => {
       this.selectedFabricanteAccesorio = data;
     });
 
@@ -125,14 +125,14 @@ export class AgregarAccesoriosComponent {
     this.accesorioForm.get('FabricanteAccesorio')?.valueChanges.subscribe(selectedId => {
       // this.accesorioForm.get('Cate')?.reset();
       // this.accesorioForm.get('SubCategoria')?.reset();
-      this.categoriaaccesorioService.find(selectedId).subscribe((data: categoriasAccesorios[]) => {        
+      this.categoriaaccesorioService.findWithModel(selectedId).subscribe((data: categoriasAccesorios[]) => {        
         this.selectedCategoriaAccesorio = data;
       })
       this.accesorioForm.get('SubCategoriaAccesorio')?.reset();
     });
 
     this.accesorioForm.get('CateAccesorio')?.valueChanges.subscribe(selectedId => {      
-      this.subcategoriaaccesrorioService.find(selectedId).subscribe((data: SubcategoriasAccesorios[]) => {
+      this.subcategoriaaccesrorioService.findWithModel(selectedId).subscribe((data: SubcategoriasAccesorios[]) => {
         this.selectedSubCategoriaAccesorio = data;
         console.log(data);
       })      

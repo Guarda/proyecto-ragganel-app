@@ -26,6 +26,35 @@ router.get('/listar-fabricantes-accesorios-b', (req, res) => {
     });
 });
 
+// List all manufacturers on any state
+router.get('/listar-fabricantes-accesorios-c', (req, res) => {
+    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesAccesoriosModelo`();', (err, results) => {
+        if (err) {
+            res.status(500).send('Error fetching posts');
+            console.log(err);
+            return;
+        }
+        res.json(results[0]);
+    });
+});
+
+// Get a specific active category
+router.get('/info-farbicante/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionFabricanteAccesorioxId` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
 // Create a new fabricante
 router.post('/ingresar-fabricante-accesorios', (req, res) => {
     const { NombreFabricanteAccesorio  } = req.body;

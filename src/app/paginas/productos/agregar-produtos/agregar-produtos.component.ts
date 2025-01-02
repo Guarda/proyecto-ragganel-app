@@ -121,7 +121,7 @@ export class AgregarProdutosComponent {
       console.log(this.selectedTipoProducto);
     })
 
-    this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {      
+    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteProducto[]) => {      
       this.selectedFabricante = data;
     })
     
@@ -135,7 +135,7 @@ export class AgregarProdutosComponent {
     this.productoForm.get('Fabricante')?.valueChanges.subscribe(selectedId => {
       // this.productoForm.get('Cate')?.reset();
       // this.productoForm.get('SubCategoria')?.reset();
-      this.categoriaproductoService.find(selectedId).subscribe((data: categoriasProductos[]) => {        
+      this.categoriaproductoService.findWithModel(selectedId).subscribe((data: categoriasProductos[]) => {        
         this.selectedCategoriaProducto = data;
       })
       this.productoForm.get('SubCategoria')?.reset();
@@ -143,7 +143,7 @@ export class AgregarProdutosComponent {
 
         
     this.productoForm.get('Cate')?.valueChanges.subscribe(selectedId => {      
-      this.subcategoriaproductoService.find(selectedId).subscribe((data: SubcategoriasProductos[]) => {
+      this.subcategoriaproductoService.findWithModel(selectedId).subscribe((data: SubcategoriasProductos[]) => {
         this.selectedSubCategoriaProducto = data;
       })
       

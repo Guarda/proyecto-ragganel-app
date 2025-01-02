@@ -45,8 +45,22 @@ export class SubcategoriaProductoService {
       )
   }
 
+  findById(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate/informacion-subcategoria/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   findBase(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/catesubcate/listar-subcate-b/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  findWithModel(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/catesubcate/listar-subcate-c/' + id)
       .pipe(
         catchError(this.errorHandler)
       )
