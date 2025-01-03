@@ -1,0 +1,16 @@
+<div class="card">
+    <div class="card-header">
+      <h3>{{ articulo.NombreTipoArticulo }}</h3>
+      <button mat-icon-button color="warn" (click)="onEliminar()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="card-content">
+      <p><strong>Fabricante:</strong> {{ articulo.NombreFabricante }}</p>
+      <p><strong>Categoría:</strong> {{ articulo.NombreCategoria }}</p>
+      <p><strong>Subcategoría:</strong> {{ articulo.NombreSubCategoria }}</p>
+      <p><strong>Enlace:</strong> <a [href]="articulo.EnlaceCompra" target="_blank">Ver</a></p>
+      <p><strong>Cantidad:</strong> {{ articulo.Cantidad }}</p>
+      <p><strong>Precio:</strong> {{ articulo.Precio | currency }}</p>
+    </div>
+  </div>

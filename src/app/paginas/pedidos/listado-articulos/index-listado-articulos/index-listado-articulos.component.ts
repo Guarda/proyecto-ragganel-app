@@ -7,8 +7,10 @@ import { SharedPedidoService } from '../../../../services/shared-pedido.service'
 
 
 import { AgregarArticuloComponent } from '../agregar-articulo/agregar-articulo.component';
+import { TarjetaArticuloComponent } from '../tarjeta-articulo/tarjeta-articulo.component';
+
 import { MatDialog } from '@angular/material/dialog';
-import { CurrencyPipe } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Articulo } from '../../../interfaces/articulo-pedido';
 
 
@@ -41,19 +43,20 @@ import { SubcategoriasAccesorios } from '../../../interfaces/subcategoriasacceso
 //Tipo Articulo
 import { TipoArticuloService } from '../../../../services/tipo-articulo.service';
 import { TipoArticulo } from '../../../interfaces/tipoarticulos';
+import { MatIcon } from '@angular/material/icon';
 
 
 @Component({
   selector: 'app-index-listado-articulos',
   standalone: true,
-  imports: [MatButtonModule, MatTableModule, CurrencyPipe],
+  imports: [MatButtonModule, MatTableModule, CurrencyPipe, MatIcon, TarjetaArticuloComponent, CommonModule],
   templateUrl: './index-listado-articulos.component.html',
   styleUrl: './index-listado-articulos.component.css'
 })
 export class IndexListadoArticulosComponent {
   displayedColumns: string[] = [
     'TipoArticulo', 'Fabricante', 'Cate', 'SubCategoria',
-    'EnlaceCompra', 'Cantidad', 'Precio'
+    'EnlaceCompra', 'Cantidad', 'Precio', 'Acciones'
   ];
 
   tipoArticulo: any;
@@ -81,6 +84,12 @@ export class IndexListadoArticulosComponent {
   
   get totalPrecio(): number {
     return this.dataToDisplay.reduce((total, articulo) => total + (articulo.Precio || 0), 0);
+  }
+
+  removeArticulo(articulo: Articulo) {
+    this.dataToDisplay = this.dataToDisplay.filter(item => item !== articulo);
+    this.dataSource.setData(this.dataToDisplay);
+    this.updateSharedTotal(); // Actualiza el total compartido
   }
 
   private updateSharedTotal() {

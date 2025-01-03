@@ -1,73 +1,31 @@
 <div class="contenedor-componente-index-articulos">
-    <h5>LISTADO DE ARTICULOS</h5>
-  
-    <div class="contenedor-principal">
-      <div class="contenedor-secundario">
-        <div class="demo-button-container">
-          <button mat-raised-button (click)="openDialogAgregar()" class="demo-button">
-            Añadir articulo al pedido
-          </button>
-        </div>
-  
-        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 demo-table">
-          <!-- TipoArticulo Column -->
-          <ng-container matColumnDef="TipoArticulo">
-            <th mat-header-cell *matHeaderCellDef>Tipo</th>
-            <td mat-cell *matCellDef="let element">{{ element.NombreTipoArticulo }}</td>
-            <td mat-footer-cell *matFooterCellDef></td>
-          </ng-container>
-        
-          <!-- Fabricante Column -->
-          <ng-container matColumnDef="Fabricante">
-            <th mat-header-cell *matHeaderCellDef>Fabricante</th>
-            <td mat-cell *matCellDef="let element">{{ element.NombreFabricante }}</td> <!-- Display Fabricante Name -->
-            <td mat-footer-cell *matFooterCellDef></td>
-          </ng-container>
+    <h5>LISTADO DE ARTÍCULOS</h5>
 
-          <!-- Categoria Column -->
-          <ng-container matColumnDef="Cate">
-            <th mat-header-cell *matHeaderCellDef>Categoría</th>
-            <td mat-cell *matCellDef="let element">{{ element.NombreCategoria }}</td> <!-- Display Categoria Name -->
-            <td mat-footer-cell *matFooterCellDef></td>
-          </ng-container>
 
-          <!-- SubCategoria Column -->
-          <ng-container matColumnDef="SubCategoria">
-            <th mat-header-cell *matHeaderCellDef>Subcategoría</th>
-            <td mat-cell *matCellDef="let element">{{ element.NombreSubCategoria }}</td> <!-- Display SubCategoria Name -->
-            <td mat-footer-cell *matFooterCellDef></td>
-          </ng-container>
-        
-          <!-- EnlaceCompra Column -->
-          <ng-container matColumnDef="EnlaceCompra">
-            <th mat-header-cell *matHeaderCellDef>Enlace</th>
-            <td mat-cell *matCellDef="let element">
-              <a [href]="element.EnlaceCompra" target="_blank">Ver</a>
-            </td>
-            <td mat-footer-cell *matFooterCellDef></td>
-          </ng-container>
-        
-          <!-- Cantidad Column -->
-          <ng-container matColumnDef="Cantidad">
-            <th mat-header-cell *matHeaderCellDef>Cantidad</th>
-            <td mat-cell *matCellDef="let element">{{ element.Cantidad }}</td>
-            <td mat-footer-cell *matFooterCellDef></td>
-          </ng-container>
-        
-          <!-- Precio Column -->
-          <ng-container matColumnDef="Precio">
-            <th mat-header-cell *matHeaderCellDef>Precio</th>
-            <td mat-cell *matCellDef="let element">{{ element.Precio | currency }}</td>
-            <td mat-footer-cell *matFooterCellDef class="bold-text">{{ totalPrecio | currency }}</td>
-          </ng-container>
-        
-          <!-- Header and Data Rows -->
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        
-          <!-- Footer Row -->
-          <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
-        </table>
-      </div>
+    <div class="demo-button-container">
+        <button
+            mat-raised-button
+            (click)="openDialogAgregar()"
+            class="demo-button"
+        >
+            Añadir artículo al pedido
+        </button>
     </div>
-  </div>
+
+
+    <div class="tarjetas-container">
+        <div *ngFor="let articulo of dataToDisplay">
+            <app-tarjeta-articulo
+                [articulo]="articulo"
+                (borrar)="removeArticulo(articulo)"
+            >
+            </app-tarjeta-articulo>
+        </div>
+        <div class="total-container">
+            <p>
+                <strong>Total:</strong>
+                {{ totalPrecio | currency }}
+            </p>
+        </div>
+    </div>
+</div>
