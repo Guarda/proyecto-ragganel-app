@@ -13,5 +13,26 @@ export class SharedPedidoService {
     this.dataSubjectSubTotalArticulosPedido.next(newData);
   }
 
+  private data = {
+    SubTotalArticulos: 0,
+    Impuestos: 0,
+    ShippingUSA: 0,
+    ShuppingNIC: 0,
+  };
+
+  private totalSubject = new BehaviorSubject<number>(0);
+  total$ = this.totalSubject.asObservable();
+
+  updateField(field: keyof typeof this.data, value: number) {
+    this.data[field] = value || 0; // Asigna un valor por defecto de 0
+    this.calculateTotal();
+  }
+
+  private calculateTotal() {
+    const { SubTotalArticulos, Impuestos, ShippingUSA, ShuppingNIC } = this.data;
+    const total = SubTotalArticulos + Impuestos + ShippingUSA + ShuppingNIC;
+    this.totalSubject.next(total);
+  }
+
   constructor() { }
 }

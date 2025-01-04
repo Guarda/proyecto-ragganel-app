@@ -127,61 +127,64 @@
 
                             <!-- Subtotal Articulos -->
                             <mat-form-field class="input-form-pedido">
-                                <mat-label>Subtotal de los artículos</mat-label>
-                                <input
+                              <mat-label>Subtotal de los Artículos</mat-label>
+                              <input
                                 matInput
                                 type="number"
                                 formControlName="SubTotalArticulos"
-                                step="0.01"
-                                min="0"
-                                [value]="totalPrecio"
                                 readonly />
                             </mat-form-field>
+                            
+
                             <!-- Impuestos -->
                             <mat-form-field class="input-form-pedido">
-                                <mat-label>Impuestos</mat-label>
-                                <input 
-                                matInput 
-                                type="number" 
-                                formControlName="Impuestos" 
+                              <mat-label>Impuestos</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="Impuestos"
                                 step="0.01"
                                 min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
-                            <!-- Shipping a USA -->
+                            
+                            <!-- envio a usa -->
                             <mat-form-field class="input-form-pedido">
-                                <mat-label>Envio a USA</mat-label>
-                                <input 
-                                matInput 
-                                type="number" 
-                                formControlName="ShippingUSA" 
+                              <mat-label>Envio a USA</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="ShippingUSA"
                                 step="0.01"
                                 min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
-                            <!-- Shipping a NIC -->
+
+                            <!-- envio a nic -->
                             <mat-form-field class="input-form-pedido">
-                                <mat-label>Envio a NIC</mat-label>
-                                <input 
-                                matInput 
-                                type="number" 
-                                formControlName="ShuppingNIC" 
+                              <mat-label>Envio a NIC</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="ShuppingNIC"
                                 step="0.01"
                                 min="0"
                                 (input)="enforceTwoDecimals($event)" />
                             </mat-form-field>
-                            <mat-label style="font-weight: bold; color: red;">TOTAL DEL PEDIDO</mat-label>  
-                            <!-- Precio Estimado del Pedido -->
-                            <mat-form-field class="input-form-pedido">
-                                <mat-label>Precio Estimado del Pedido</mat-label>
-                                <input 
+                            
+
+                            <!-- Total Pedido -->
+                            
+                            <mat-form-field>
+                              <mat-label style="font-weight: bold; color: red;">TOTAL DEL PEDIDO</mat-label>
+                              <input 
                                 matInput 
                                 type="number" 
                                 formControlName="PrecioEstimadoDelPedido" 
-                                step="0.01"
-                                min="0"
-                                (input)="enforceTwoDecimals($event)" />
+                                readonly 
+                                value="{{ pedidoForm.get('PrecioEstimadoDelPedido')?.value | number:'1.2-2' }}" />
                             </mat-form-field>
+
                         </div>
                     </div>  
             </div>          

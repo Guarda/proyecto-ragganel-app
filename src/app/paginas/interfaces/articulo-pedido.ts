@@ -10,4 +10,6 @@ export interface Articulo {
     EnlaceCompra: string;
     Cantidad: number;
     Precio: number;
+    IdModeloPK: number;
+    ImagePath: string;
   }

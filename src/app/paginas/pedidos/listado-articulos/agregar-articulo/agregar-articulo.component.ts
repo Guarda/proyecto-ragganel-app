@@ -93,7 +93,8 @@ export class AgregarArticuloComponent {
       SubCategoria: new FormControl('', Validators.required),
       EnlaceCompra: new FormControl(''),
       Cantidad: new FormControl('', Validators.required),
-      Precio: new FormControl('', Validators.required)
+      Precio: new FormControl('', Validators.required),
+      IdModeloPK: new FormControl('', Validators.required)
     });
 
     this.tipoarticulo.getAll().subscribe((data: TipoArticulo[]) => {
@@ -218,7 +219,7 @@ export class AgregarArticuloComponent {
                   });
 
                   // Opcional: Actualiza un control del formulario
-                  // this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
+                   this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
                 } else {
                   // Si no hay datos, muestra una imagen por defecto
                   this.ImagePath = this.getImagePath(null, tipoArticulo);
@@ -236,7 +237,7 @@ export class AgregarArticuloComponent {
                   });
 
                   // Opcional: Actualiza un control del formulario
-                  // this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
+                  this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
                 } else {
                   // Si no hay datos, muestra una imagen por defecto
                   this.ImagePath = this.getImagePath(null, tipoArticulo);

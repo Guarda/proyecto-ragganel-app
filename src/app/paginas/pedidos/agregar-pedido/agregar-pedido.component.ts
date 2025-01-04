@@ -61,6 +61,8 @@ export class AgregarPedidoComponent {
   selectedEstadoPedido: EstadoPedido[] = [];
   selectedSitioWebPedido: SitioWeb[] = [];
 
+  totalPedido: number = 0;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private tipopedidos: TipoPedidoService,
@@ -97,7 +99,38 @@ export class AgregarPedidoComponent {
     );
     this.ImagePath = this.getimagePath("");    
 
-    // Suscríbete al servicio para obtener el subtotal
+    this.pedidoForm = this.fb.group({
+      FechaCreacionPedido: [new Date()],
+      FechaArrivoUSA: [null],
+      FechaEstimadaRecepcion: [null],
+      NumeroTracking1: [''],
+      NumeroTracking2: [''],
+      PesoPedido: [null],
+      SitioWeb: [''],
+      ViaPedido: [''],
+      SubTotalArticulos: [0],
+      ShippingUSA: [0],
+      Impuestos: [0],
+      ShuppingNIC: [0],
+      PrecioEstimadoDelPedido: [{ value: 0, disabled: true }],
+      Estado: [''],
+      Comentarios: [''],
+    });
+    
+    // Suscribirse a los cambios del formulario y actualizar el servicio
+    this.pedidoForm.valueChanges.subscribe((values) => {
+      this.sharedPedidoService.updateField('SubTotalArticulos', values.SubTotalArticulos);
+      this.sharedPedidoService.updateField('Impuestos', values.Impuestos);
+      this.sharedPedidoService.updateField('ShippingUSA', values.ShippingUSA);
+      this.sharedPedidoService.updateField('ShuppingNIC', values.ShuppingNIC);
+    });
+
+    // Escuchar el total desde el servicio y actualizar el formulario
+      this.pedidoForm.valueChanges.subscribe(() => {
+        this.calcularTotalPedido();
+      });
+    
+       // Suscríbete al servicio para obtener el subtotal
     this.sharedPedidoService.SubTotalArticulosPedido$.subscribe((total) => {
       this.totalPrecio = total;
       console.log(this.totalPrecio);
@@ -127,9 +160,26 @@ export class AgregarPedidoComponent {
     const input = event.target as HTMLInputElement;
     const value = input.value;
 
-    // Remove leading zeros and limit to 2 decimal places
     const sanitizedValue = value.replace(/^0+(?!\.)/, '').match(/^\d*(\.\d{0,2})?/);
     input.value = sanitizedValue ? sanitizedValue[0] : '';
+  }
+  
+  calcularTotalPedido(): void {
+    const impuestos = this.pedidoForm.get('Impuestos')?.value || 0;
+    const shippingUSA = this.pedidoForm.get('ShippingUSA')?.value || 0;
+    const shippingNIC = this.pedidoForm.get('ShuppingNIC')?.value || 0;
+    const subTotalArticulos = this.pedidoForm.get('SubTotalArticulos')?.value || 0;
+  
+    // Limitar cada campo a 2 decimales
+    const impuestosRounded = parseFloat(impuestos.toFixed(2));
+    const shippingUSARounded = parseFloat(shippingUSA.toFixed(2));
+    const shippingNICRounded = parseFloat(shippingNIC.toFixed(2));
+  
+    // Recalcular el total
+    const total = parseFloat((subTotalArticulos + impuestosRounded + shippingUSARounded + shippingNICRounded).toFixed(2));
+  
+    // Actualiza el total en el formulario
+    this.pedidoForm.patchValue({ PrecioEstimadoDelPedido: total }, { emitEvent: false });
   }
 
   adjustTextareaHeight(event: Event): void {

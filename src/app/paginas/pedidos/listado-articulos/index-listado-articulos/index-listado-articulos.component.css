@@ -41,14 +41,24 @@
   }
   
   .total-container {
-    position: sticky; /* Hace que el contenedor sea fijo en un punto */
-    bottom: 0; /* Lo fija al fondo de la ventana */
-    background-color: #ffffff; /* Fondo blanco para contraste */
-    padding: 16px; /* Espaciado interno */
-    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.1); /* Sombra superior para separar del contenido */
-    text-align: right; /* Alinea el texto a la derecha */
-    font-size: 18px; /* Tamaño de fuente más grande */
-    font-weight: bold;
-    z-index: 100; /* Asegura que quede por encima de otros elementos */
+    display: flex;
+    justify-content: flex-end; /* Alinea al fondo a la derecha */
+    align-items: center;
+    gap: 30px; /* Espacio entre los totales */
+    padding: 15px;
+    border-top: 2px solid #ccc; /* Borde superior */
+    background-color: #f9f9f9; /* Fondo suave */
+    border-radius: 8px; /* Bordes redondeados */
+    position: sticky; /* Hace que sea sticky */
+    bottom: 0; /* Se fija en la parte inferior */
+    z-index: 100; /* Asegura que esté sobre otros elementos */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
+  }
+  
+  .total-container p {
+    margin: 0;
+    font-size: 1.2em; /* Tamaño de fuente más grande */
+    font-weight: bold; /* Negrita para resaltar */
+    color: #333; /* Texto más oscuro */
   }
   

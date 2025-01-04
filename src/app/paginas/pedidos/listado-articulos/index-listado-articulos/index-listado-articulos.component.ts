@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { DataSource } from '@angular/cdk/collections';
 import { Observable, ReplaySubject } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
@@ -13,6 +13,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Articulo } from '../../../interfaces/articulo-pedido';
 
+//CATEGORIAS / PRODUCTOS / ACCESORIOS / INSUMOS
+import { CategoriasConsolas } from '../../../interfaces/categorias';
+import { CategoriasConsolasService } from '../../../../services/categorias-consolas.service';
+
+import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
+import { CategoriasAccesoriosService } from '../../../../services/categorias-accesorios.service';
 
 
 
@@ -59,6 +65,7 @@ export class IndexListadoArticulosComponent {
     'EnlaceCompra', 'Cantidad', 'Precio', 'Acciones'
   ];
 
+  public ImagePath: any;
   tipoArticulo: any;
   dataToDisplay: Articulo[] = [];
 
@@ -76,11 +83,18 @@ export class IndexListadoArticulosComponent {
     private categoriaaccesorioService: CategoriaAccesorioService,
     private subcategoriaproductoService: SubcategoriaProductoService,
     private subcategoriaaccesorioService: SubcategoriaAccesorioService,
-    private tipoarticuloService: TipoArticuloService
+    private tipoarticuloService: TipoArticuloService,
+    private cateproductoService: CategoriasConsolasService,
+    private cateaccesorioService: CategoriasAccesoriosService,
+    private cdr: ChangeDetectorRef
   ) {
     this.updateSharedTotal();
   }
 
+  
+  get totalArticulos(): number {
+    return this.dataToDisplay.reduce((total, articulo) => total + (articulo.Cantidad || 0), 0);
+  }
   
   get totalPrecio(): number {
     return this.dataToDisplay.reduce((total, articulo) => total + (articulo.Precio || 0), 0);
@@ -169,6 +183,14 @@ export class IndexListadoArticulosComponent {
         newArticulo.NombreSubCategoria = subcategoria.NombreSubCategoria;
       }
     });
+
+    this.cateproductoService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
+      // console.log(data)
+      this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
+      newArticulo.ImagePath = this.ImagePath;
+      this.cdr.detectChanges();
+    });
+
   
     // After the data is fetched and updated, you can add the articulo to the display list
     this.addData(newArticulo);
@@ -213,6 +235,13 @@ export class IndexListadoArticulosComponent {
         newArticulo.NombreSubCategoria = subcategoria.NombreSubcategoriaAccesorio;
       }
     });
+
+    this.cateaccesorioService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
+      // console.log(data)
+      this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
+      newArticulo.ImagePath = this.ImagePath;
+      this.cdr.detectChanges();
+    });
   
     // After the data is fetched and updated, you can add the articulo to the display list
     this.addData(newArticulo);
@@ -230,6 +259,32 @@ export class IndexListadoArticulosComponent {
     this.dataSource.setData(this.dataToDisplay);
     this.updateSharedTotal(); // Actualiza el total compartido
   }
+
+
+  // Función para construir la ruta de la imagen
+  getImagePath(link: string | null, tipoArticulo: number | null) {
+    // console.log(link)
+    // console.log(tipoArticulo)
+    const baseUrl = 'http://localhost:3000';
+    let folder = '';
+
+    switch (tipoArticulo) {
+      case 1: // Producto
+        folder = 'img-consolas';
+        break;
+      case 2: // Accesorio
+        folder = 'img-accesorios';
+        break;
+      case 3: // Insumo
+        folder = 'img-insumos';
+        break;
+      default:
+        folder = 'img-consolas'; // Carpeta por defecto
+    }
+
+    return link ? `${baseUrl}/${folder}/${link}` : `${baseUrl}/${folder}/2ds.jpg`;
+  }
+ 
 
 }
 

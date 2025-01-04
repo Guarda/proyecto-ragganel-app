@@ -1,16 +1,25 @@
 <div class="card">
-    <div class="card-header">
-      <h3>{{ articulo.NombreTipoArticulo }}</h3>
-      <button mat-icon-button color="warn" (click)="onEliminar()">
-        <mat-icon>close</mat-icon>
-      </button>
+  <div class="card-header">
+    <h3>{{ articulo.NombreTipoArticulo }}</h3>
+    <button mat-icon-button color="warn" (click)="onEliminar()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="card-body">
+    <div class="contenedor-img-consola">
+      <img [src]="articulo.ImagePath" class="imagen-consola" alt="Imagen del artículo seleccionado" />
     </div>
     <div class="card-content">
+      <div class="categorias">
+        <p><strong></strong> {{ articulo.NombreCategoria }}</p>
+        <p><strong></strong> {{ articulo.NombreSubCategoria }}</p>
+      </div>
       <p><strong>Fabricante:</strong> {{ articulo.NombreFabricante }}</p>
-      <p><strong>Categoría:</strong> {{ articulo.NombreCategoria }}</p>
-      <p><strong>Subcategoría:</strong> {{ articulo.NombreSubCategoria }}</p>
-      <p><strong>Enlace:</strong> <a [href]="articulo.EnlaceCompra" target="_blank">Ver</a></p>
+      <p><strong>Enlace: </strong> <a [href]="articulo.EnlaceCompra" target="_blank">Ver</a></p>
       <p><strong>Cantidad:</strong> {{ articulo.Cantidad }}</p>
-      <p><strong>Precio:</strong> {{ articulo.Precio | currency }}</p>
+    </div>
+    <div class="precio">
+      <p><strong>{{ articulo.Precio | currency }}</strong></p>
     </div>
   </div>
+</div>
