@@ -81,9 +81,12 @@
                             <mat-form-field class="input-form-pedido">
                               <mat-label>Estado</mat-label>
                               <mat-select formControlName="Estado">
-                                <mat-option *ngFor="let est of selectedEstadoPedido" [value]="est.CodigoEstadoPedido">{{est.DescripcionEstadoPedido}} </mat-option>   
+                                <mat-option *ngFor="let est of selectedEstadoPedido" [value]="est.CodigoEstadoPedido">
+                                  {{ est.DescripcionEstadoPedido }}
+                                </mat-option>
                               </mat-select>
                             </mat-form-field>
+
                           
                             <!-- PesoPedido -->
                             <mat-form-field class="input-form-pedido">
@@ -166,7 +169,7 @@
                               <input
                                 matInput
                                 type="number"
-                                formControlName="ShuppingNIC"
+                                formControlName="ShippingNic"
                                 step="0.01"
                                 min="0"
                                 (input)="enforceTwoDecimals($event)" />
@@ -191,7 +194,7 @@
         </div>        
 
         <div class="botones">
-            <button mat-button >Cancelar</button>
+          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
             <button mat-button type="submit"  cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!pedidoForm.valid">Ingresar</button>
         </div>
         

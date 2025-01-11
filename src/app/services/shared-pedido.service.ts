@@ -17,7 +17,7 @@ export class SharedPedidoService {
     SubTotalArticulos: 0,
     Impuestos: 0,
     ShippingUSA: 0,
-    ShuppingNIC: 0,
+    ShippingNic: 0,
   };
 
   private totalSubject = new BehaviorSubject<number>(0);
@@ -29,8 +29,8 @@ export class SharedPedidoService {
   }
 
   private calculateTotal() {
-    const { SubTotalArticulos, Impuestos, ShippingUSA, ShuppingNIC } = this.data;
-    const total = SubTotalArticulos + Impuestos + ShippingUSA + ShuppingNIC;
+    const { SubTotalArticulos, Impuestos, ShippingUSA, ShippingNic } = this.data;
+    const total = SubTotalArticulos + Impuestos + ShippingUSA + ShippingNic;
     this.totalSubject.next(total);
   }
 

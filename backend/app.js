@@ -21,6 +21,7 @@ const accesoriestasksRouter = require('./routes/accesories-tasks');
 const categoriesaccesoriesRouter = require('./routes/categories-accesories');
 const ordersdropdownRouter = require('./routes/orders-dropdowns');
 const articletypeRouter = require('./routes/article-type');
+const ordersbaseRouter = require('./routes/orders-base');
 
 // Middleware
 app.use(bodyParser.json());
@@ -52,6 +53,7 @@ app.use('/upload-imagen-accesorios', uploadimageaccesoriesRouter);
 app.use('/categorias-accesorios', categoriesaccesoriesRouter);
 app.use('/pedidos-dropdown',ordersdropdownRouter);
 app.use('/articulos', articletypeRouter);
+app.use('/pedidos', ordersbaseRouter);
 
 // Start the server
 app.listen(port, () => {

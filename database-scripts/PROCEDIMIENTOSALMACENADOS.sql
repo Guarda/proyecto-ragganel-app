@@ -1202,7 +1202,114 @@ CREATE PROCEDURE ListarInformacionTipoArticuloXId(TipoArticuloid int)
     END //
 DELIMITER ;
 
+DELIMITER $$
 
+CREATE PROCEDURE IngresarPedidoATablaPedidos(
+    IN FechaCreacionPedido DATE,
+    IN FechaArrivoUSA DATE,
+    IN FechaEstimadaRecepcion DATE,
+    IN NumeroTracking1 VARCHAR(100),
+    IN NumeroTracking2 VARCHAR(100),
+    IN SitioWeb INT,
+    IN ViaPedido INT,
+    IN Peso DECIMAL(6,2),
+    IN Comentarios VARCHAR(2000),
+    IN Impuestos DECIMAL(6,2),
+    IN ShippingUSA DECIMAL(6,2),
+    IN ShippingNIC DECIMAL(6,2),
+    IN SubTotalArticulos DECIMAL(6,2),
+    IN PrecioEstimadoDelPedido DECIMAL(6,2),
+    IN articulos JSON
+)
+BEGIN
+    -- Declaración de variables
+    DECLARE articulo JSON;
+    DECLARE i INT DEFAULT 0;
+    DECLARE pedidosHoy INT;
+    DECLARE CodigoPedidoGenerado VARCHAR(50);
+
+    -- Contar cuántos pedidos ya se han hecho en la fecha
+    SELECT COUNT(*) + 1 INTO pedidosHoy
+    FROM PedidoBase
+    WHERE DATE(FechaCreacionPedido) = DATE(FechaCreacionPedido);
+
+    -- Generar el código del pedido
+    SET CodigoPedidoGenerado = CONCAT(
+        'P-',
+        DATE_FORMAT(FechaCreacionPedido, '%d%m%Y'),
+        '-',
+        pedidosHoy
+    );
+
+    -- Insertar en la tabla PedidoBase
+    INSERT INTO PedidoBase (
+        CodigoPedido,
+        FechaCreacionPedido,
+        FechaArriboEstadosUnidos,
+        FechaIngreso,
+        NumeroTracking1,
+        NumeroTracking2,
+        SitioWebFK,
+        ViaPedidoFK,
+        EstadoPedidoFK,
+        TotalPedido,
+        Comentarios,
+        Peso,
+        SubtotalArticulos,
+        Impuestos,
+        EnvioUSA,
+        EnvioNIC
+    )
+    VALUES (
+        CodigoPedidoGenerado,
+        FechaCreacionPedido,
+        FechaArrivoUSA,
+        FechaEstimadaRecepcion,  -- Fecha estimada de recepción
+        NumeroTracking1,
+        NumeroTracking2,
+        SitioWeb,
+        ViaPedido,
+        1,  -- Estado de pedido (ajustado según tus necesidades)
+        PrecioEstimadoDelPedido,
+        Comentarios,
+        Peso,
+        SubTotalArticulos,
+        Impuestos,
+        ShippingUSA,
+        ShippingNIC
+    );
+
+    -- Asignar el valor de 'articulos' a la variable JSON
+    SET articulo = articulos;
+
+    -- Insertar en PedidoDetalles usando el parámetro JSON
+    WHILE i < JSON_LENGTH(articulo) DO
+        INSERT INTO PedidoDetalles (
+            IdCodigoPedidoFK,
+            TipoArticuloFK,
+            FabricanteArticulo,
+            CategoriaArticulo,
+            SubcategoriaArticulo,
+            CantidadArticulo,
+            EnlaceArticulo,
+            PrecioArticulo,
+            IdModeloPK
+        )
+        SELECT
+            CodigoPedidoGenerado,  -- Código del pedido recién generado
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].TipoArticulo'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].Fabricante'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].Cate'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].SubCategoria'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].Cantidad'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].EnlaceCompra'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].Precio'))),
+            JSON_UNQUOTE(JSON_EXTRACT(articulo, CONCAT('$[', i, '].IdModeloPK')));
+        SET i = i + 1;
+    END WHILE;
+END$$
+
+DELIMITER ;
 
 
 

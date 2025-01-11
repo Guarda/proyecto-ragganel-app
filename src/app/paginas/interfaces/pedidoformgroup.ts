@@ -12,7 +12,7 @@ import { FormControl } from "@angular/forms";
     SubTotalArticulos: FormControl<number | null>;
     ShippingUSA: FormControl<number | null>;
     Impuestos: FormControl<number | null>;
-    ShuppingNIC: FormControl<number | null>;
+    ShippingNIC: FormControl<number | null>;
     PrecioEstimadoDelPedido: FormControl<number | null>;
     Estado: FormControl<string | null>;
     Comentarios: FormControl<string | null>;

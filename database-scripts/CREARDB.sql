@@ -289,26 +289,30 @@ CREATE TABLE PedidoBase
     NumeroTracking2 varchar(100),
     SitioWebFK int not null,
     ViaPedidoFK int not null,
-    EstadoPedidoFK int not null,
-    
+    EstadoPedidoFK int not null,    
     PrecioEstimado Decimal(6,2),
     Comentarios varchar(2000),
+    Peso DECIMAL(6,2),
+	SubtotalArticulos DECIMAL(6,2),
+	Impuestos DECIMAL(6,2),
+	EnvioUSA DECIMAL(6,2),
+	EnvioNIC DECIMAL(6,2),
     FOREIGN KEY (SitioWebFK) REFERENCES SitioWeb (CodigoSitioWeb),
     FOREIGN KEY (ViaPedidoFK) REFERENCES TipoPedido (CodigoTipoPedido),
     FOREIGN KEY (EstadoPedidoFK) REFERENCES EstadoPedido (CodigoEstadoPedido)
 );
 
 -- Agregar las nuevas columnas
-ALTER TABLE PedidoBase
+/*ALTER TABLE PedidoBase
 ADD Peso DECIMAL(6,2),
 ADD SubtotalArticulos DECIMAL(6,2),
 ADD Impuestos DECIMAL(6,2),
 ADD EnvioUSA DECIMAL(6,2),
-ADD EnvioNIC DECIMAL(6,2);
+ADD EnvioNIC DECIMAL(6,2);*/
 
 -- Renombrar la columna PrecioEstimado a TotalPedido
-ALTER TABLE PedidoBase
-CHANGE PrecioEstimado TotalPedido DECIMAL(6,2);
+/*ALTER TABLE PedidoBase
+CHANGE PrecioEstimado TotalPedido DECIMAL(6,2);*/
 
 
 CREATE TABLE DetalleProductoPedido 
@@ -347,13 +351,15 @@ CREATE TABLE PedidoDetalles
     SubcategoriaArticulo int not null,
     CantidadArticulo int not null,
     EnlaceArticulo varchar(1000),
+    PrecioArticulo DECIMAL(6,2),
+    IdModeloPK int not null,
     EstadoArticuloPedido boolean not null default 1,
 	FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido),
     FOREIGN KEY (TipoArticuloFK) REFERENCES TipoArticulo (IdTipoArticuloPK)    
 );
 
-ALTER TABLE PedidoDetalles
-ADD PrecioArticulo DECIMAL(6,2);
+
+
 
 
 /*CREAR TABLAS DE INSUMOS */
