@@ -20,6 +20,15 @@ export class PedidoService {
 
   constructor(private httpClient: HttpClient) { }
 
+
+  getAll(): Observable<any> {
+    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+    return this.httpClient.get(this.apiURL + '/pedidos/')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   create(producto: any): Observable<any> {
     return this.httpClient.post(this.apiURL + '/pedidos/crear-pedido/', JSON.stringify(producto), this.httpOptions)
       .pipe(

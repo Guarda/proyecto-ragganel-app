@@ -1216,7 +1216,7 @@ CREATE PROCEDURE IngresarPedidoATablaPedidos(
     IN Comentarios VARCHAR(2000),
     IN Impuestos DECIMAL(6,2),
     IN ShippingUSA DECIMAL(6,2),
-    IN ShippingNIC DECIMAL(6,2),
+    IN ShippingNic DECIMAL(6,2),
     IN SubTotalArticulos DECIMAL(6,2),
     IN PrecioEstimadoDelPedido DECIMAL(6,2),
     IN articulos JSON
@@ -1276,7 +1276,7 @@ BEGIN
         SubTotalArticulos,
         Impuestos,
         ShippingUSA,
-        ShippingNIC
+        ShippingNic
     );
 
     -- Asignar el valor de 'articulos' a la variable JSON
@@ -1309,6 +1309,32 @@ BEGIN
     END WHILE;
 END$$
 
+DELIMITER ;
+
+
+
+/*LISTAR PRODUCTOS EN LA TABLA PRODUCTOSBASES*/
+DELIMITER //
+CREATE PROCEDURE ListarTablaPedidosBase ()
+       BEGIN
+			SELECT 
+				A.CodigoPedido,
+				DATE_FORMAT(A.FechaCreacionPedido, '%d/%m/%Y') as 'Fecha_Ingreso',
+                DATE_FORMAT(A.FechaArriboEstadosUnidos, '%d/%m/%Y') as 'Fecha_USA',
+                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha_NIC',
+                B.DescripcionEstadoPedido as 'Estado',
+                A.NumeroTracking1,
+				A.NumeroTracking2,
+                A.Comentarios,
+                C.DescripcionTipoPedido,
+                A.Peso,
+                A.SubtotalArticulos,
+                A.TotalPedido
+			FROM pedidobase A 
+            join estadopedido B on A.estadopedidofk = B.codigoEstadopedido
+            join tipopedido C on A.viapedidoFK = C.CodigoTipoPedido
+			WHERE A.EstadoPedidoFK != 7;
+       END //
 DELIMITER ;
 
 

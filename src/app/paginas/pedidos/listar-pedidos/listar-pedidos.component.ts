@@ -11,7 +11,11 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+
 import { AgregarPedidoComponent } from '../agregar-pedido/agregar-pedido.component';
+import { PedidoService } from '../../../services/pedido.service';
+
+import { Pedido } from '../../interfaces/pedido';
 
 @Component({
   selector: 'app-listar-pedidos',
@@ -23,15 +27,24 @@ import { AgregarPedidoComponent } from '../agregar-pedido/agregar-pedido.compone
 })
 export class ListarPedidosComponent {
 
+  productos: Pedido[] = [];
+  myArray: any[] = [];
+  displayedColumns: string[] = ['CodigoPedido', 'FechaCreacionPedido', 'FechaArriboEstadosUnidos', 'FechaIngreso', 'DescripcionEstadoPedido', 'NumeroTracking1', 'SubtotalArticulos', 'TotalPedido', 'Action'];
+  dataSource = new MatTableDataSource<Pedido>;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   constructor(
-    private cdr: ChangeDetectorRef, 
-    private router: Router, 
+    private pedidoService: PedidoService,
+    private cdr: ChangeDetectorRef,
+    private router: Router,
     private dialog: MatDialog) {
 
   }
 
   ngOnInit(): void {
-    // this.getProductList();
+    this.getOrdersList();
   }
 
   public openDialogAgregar() {
@@ -54,6 +67,24 @@ export class ListarPedidosComponent {
 
   onAdd(a: any) {
     this.ngOnInit();
+  }
+
+  getOrdersList() {
+    this.pedidoService.getAll().subscribe((data: Pedido[]) => {
+      this.dataSource = new MatTableDataSource<Pedido>(data);
+      console.log(data);
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    })
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
 

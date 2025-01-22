@@ -14,13 +14,15 @@ router.post('/crear-pedido', (req, res) => {
         NumeroTracking2,
         PesoPedido,
         ShippingUSA,
-        ShippingNIC,
+        ShippingNic,
         SitioWeb,
         SubTotalArticulos,
         ViaPedido,
         PrecioEstimadoDelPedido,
         articulos
     } = req.body;
+
+    console.log(req.body)
 
     // Asegúrate de que los valores enviados sean los correctos
     const sql = 'CALL IngresarPedidoATablaPedidos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
@@ -37,7 +39,7 @@ router.post('/crear-pedido', (req, res) => {
         Comentarios,
         Impuestos,
         ShippingUSA,
-        ShippingNIC,
+        ShippingNic,
         SubTotalArticulos,
         PrecioEstimadoDelPedido,
         JSON.stringify(articulos)  // Artículos debe ser un JSON stringificado
@@ -47,6 +49,18 @@ router.post('/crear-pedido', (req, res) => {
             return res.status(500).send(err);
         }
         res.send({ message: 'Pedido agregado correctamente' });
+    });
+});
+
+// List all products
+router.get('/', (req, res) => {
+    db.query('CALL `base_datos_inventario_taller`.`ListarTablaPedidosBase`();', (err, results) => {
+        if (err) {
+            res.status(500).send('Error fetching posts');
+            console.log(err);
+            return;
+        }
+        res.json(results[0]);
     });
 });
 
