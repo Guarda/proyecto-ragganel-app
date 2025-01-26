@@ -30,8 +30,11 @@ export class SharedPedidoService {
 
   private calculateTotal() {
     const { SubTotalArticulos, Impuestos, ShippingUSA, ShippingNic } = this.data;
+    
     const total = SubTotalArticulos + Impuestos + ShippingUSA + ShippingNic;
+    console.log('servicio',total)
     this.totalSubject.next(total);
+    
   }
 
   constructor() { }

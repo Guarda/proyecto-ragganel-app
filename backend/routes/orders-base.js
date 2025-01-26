@@ -64,4 +64,38 @@ router.get('/', (req, res) => {
     });
 });
 
+// Get a specific product
+router.get('/listar/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaPedidosBasesXId` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar pedido');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Pedido no encontrado');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
+// Get Order article list 
+router.get('/listar-articulos/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarArticulosXIdPedido` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar pedido');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Pedido no encontrado');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
 module.exports = router;

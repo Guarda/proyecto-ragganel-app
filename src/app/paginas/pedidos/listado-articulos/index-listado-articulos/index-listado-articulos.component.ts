@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
 import { DataSource } from '@angular/cdk/collections';
 import { Observable, ReplaySubject } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
@@ -65,10 +65,10 @@ export class IndexListadoArticulosComponent {
     'EnlaceCompra', 'Cantidad', 'Precio', 'Acciones'
   ];
 
+  @Input() dataToDisplay: Articulo[] = [];
   public ImagePath: any;
   tipoArticulo: any;
-  dataToDisplay: Articulo[] = [];
-
+  
   selectedFabricante: any;
   selectedCategoria: any;
   selectedSubcategoria: any;

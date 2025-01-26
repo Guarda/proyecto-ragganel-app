@@ -14,6 +14,8 @@ import { IndexEdicioncategoriasAccesoriosComponent } from './paginas/preferencia
 import { ListarPedidosComponent } from './paginas/pedidos/listar-pedidos/listar-pedidos.component';
 import { AgregarPedidoComponent } from './paginas/pedidos/agregar-pedido/agregar-pedido.component';
 import { IndexListadoArticulosComponent } from './paginas/pedidos/listado-articulos/index-listado-articulos/index-listado-articulos.component';
+import { computed } from '@angular/core';
+import { VerPedidoComponent } from './paginas/pedidos/ver-pedido/ver-pedido.component';
 
 export const routes: Routes = [
     
@@ -30,5 +32,6 @@ export const routes: Routes = [
     { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent},
     { path: 'listado-pedidos', component: ListarPedidosComponent},
     { path: 'crear-pedido', component: AgregarPedidoComponent},
-    { path: 'index-listado-articulos', component: IndexListadoArticulosComponent}
+    { path: 'index-listado-articulos', component: IndexListadoArticulosComponent},
+    { path: 'listado-pedidos/ver-pedido/:CodigoPedido/view', component: VerPedidoComponent }
 ];

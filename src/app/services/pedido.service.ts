@@ -29,6 +29,22 @@ export class PedidoService {
       )
   }
 
+  find(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/pedidos/listar/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
+  getArticlesbyOrderId(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/pedidos/listar-articulos/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
   create(producto: any): Observable<any> {
     return this.httpClient.post(this.apiURL + '/pedidos/crear-pedido/', JSON.stringify(producto), this.httpOptions)
       .pipe(

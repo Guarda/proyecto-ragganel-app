@@ -1,0 +1,104 @@
+.container-tabla {
+    display: flex; /* Flexbox para centrar */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente (si es necesario) */
+    width: 100%; /* Asegura que ocupe todo el ancho */
+    margin: 0 auto; /* Centrar dentro del contenedor padre */
+    padding: 0.5rem; /* Reducido para disminuir el margen */
+    box-sizing: border-box;
+}
+
+table {
+    width: 95%; /* Más ancho para ocupar más espacio horizontal */
+    max-width: 1200px; /* Ancho máximo opcional para limitar en pantallas grandes */
+    margin: 0 auto; /* Centra la tabla dentro del contenedor */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Opcional: sombra para destacar */
+    border-spacing: 0; /* Elimina espacios entre celdas */
+    background-color: white;
+}
+
+th.mat-header-cell,
+td.mat-cell {
+    display: flex;
+    justify-content: center; /* Centrar contenido en las celdas */
+    align-items: center;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.contenedor-botones {
+    display: flex;
+    justify-content: space-between; /* Espacio entre los botones */
+    width: 100%; /* Asegura que los botones ocupen todo el ancho disponible */
+    height: 100%;  /* Asegura que la altura sea constante */
+    gap: 10px; /* Espacio entre los botones */
+}
+
+.button-editar-prod,
+.button-eliminar-prod,
+.button-cancelar-prod,
+.button-avanzar-prod {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white !important;
+    border-radius: 4px;
+    width: 3rem;  /* Ancho fijo */
+    height: 3rem; /* Alto fijo */
+    padding: 0.5rem;
+    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño */
+}
+
+/* Colores y estilos para los botones */
+.button-editar-prod {
+    background-color: green !important; /* Botón de editar */
+}
+
+.button-eliminar-prod {
+    background-color: red !important;  /* Botón de eliminar */
+}
+
+.button-cancelar-prod {
+    background-color: yellow !important; /* Botón de cancelar */
+    color: black !important; /* Mejor contraste con el fondo amarillo */
+}
+
+.button-avanzar-prod {
+    background-color: navy !important; /* Botón de avanzar */
+}
+
+/* Asegurarse de que los botones tengan buen contraste */
+.button-editar-prod:hover,
+.button-eliminar-prod:hover,
+.button-cancelar-prod:hover,
+.button-avanzar-prod:hover {
+    opacity: 0.8;  /* Da un efecto de hover más sutil */
+}
+
+
+.foo-paginator {
+    width: 100%; /* Asegura que el paginador ocupe todo el ancho */
+    background-color: #f0f0f0; /* Opcional: fondo claro */
+    bottom: 0px;
+    position: sticky;
+    z-index: 10;
+}
+
+
+
+
+/* Estilos para dispositivos pequeños */
+@media (max-width: 768px) {
+    .cabezera {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .container-tabla {
+        padding: 0.25rem; /* Más compacto en móviles */
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+}

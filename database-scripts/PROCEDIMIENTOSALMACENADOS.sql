@@ -1332,9 +1332,84 @@ CREATE PROCEDURE ListarTablaPedidosBase ()
                 A.TotalPedido
 			FROM pedidobase A 
             join estadopedido B on A.estadopedidofk = B.codigoEstadopedido
-            join tipopedido C on A.viapedidoFK = C.CodigoTipoPedido
-			WHERE A.EstadoPedidoFK != 7;
+            join tipopedido C on A.viapedidoFK = C.CodigoTipoPedido;
        END //
+DELIMITER ;
+
+
+
+
+
+DELIMITER //
+CREATE PROCEDURE `ListarTablaPedidosBasesXId`(IdCodigoPedido varchar(100))
+/* procedimiento almacenado ListarTablaProductosBasesXIdV2 23/01/2025 seguir trabajando*/
+BEGIN
+	SELECT 
+				A.CodigoPedido,
+                DATE_FORMAT(A.FechaCreacionPedido, '%d/%m/%Y') as 'FechaCreacionPedido',
+                DATE_FORMAT(A.FechaArriboEstadosUnidos, '%d/%m/%Y') as 'FechaArriboUSA',
+                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') 'FechaEstimadaRecepcion',
+                A.NumeroTracking1,
+                A.NumeroTracking2,
+                A.SitioWebFK as 'SitioWeb',
+                A.ViaPedidoFK as 'ViaPedido',
+                A.EstadoPedidoFK as 'Estado',
+                A.TotalPedido as 'PrecioEstimadoDelPedido',
+                A.Comentarios,
+                A.Peso as 'PesoPedido',
+                A.SubtotalArticulos as 'SubTotalArticulos',
+                A.Impuestos,
+                A.EnvioUSA as 'ShippingUSA',
+                A.EnvioNIC as 'ShippingNIC'
+			FROM pedidobase A            
+			WHERE A.EstadoPedidoFK != 7
+            AND A.CodigoPedido = IdCodigoPedido;
+END //
+DELIMITER ;
+
+
+DELIMITER //
+CREATE PROCEDURE `ListarArticulosXIdPedido`(IdCodigoPedido varchar(100))
+/* procedimiento almacenado ListarArticulosXIdPedido 25/01/2025 seguir trabajando*/
+BEGIN
+	SELECT 
+    pd.IdPedidoDetallePK,
+    pd.IdCodigoPedidoFK,
+    ta.DescripcionTipoArticulo AS TipoArticulo,
+    CASE 
+        WHEN pd.TipoArticuloFK = 1 THEN fp.NombreFabricante
+        WHEN pd.TipoArticuloFK = 2 THEN fa.NombreFabricanteAccesorio
+        WHEN pd.TipoArticuloFK = 3 THEN fi.NombreFabricanteInsumos
+    END AS NombreFabricante,
+    CASE 
+        WHEN pd.TipoArticuloFK = 1 THEN cp.NombreCategoria
+        WHEN pd.TipoArticuloFK = 2 THEN ca.NombreCategoriaAccesorio
+        WHEN pd.TipoArticuloFK = 3 THEN ci.NombreCategoriaInsumos
+    END AS NombreCategoria,
+    CASE 
+        WHEN pd.TipoArticuloFK = 1 THEN sp.NombreSubcategoria
+        WHEN pd.TipoArticuloFK = 2 THEN sa.NombreSubcategoriaAccesorio
+        WHEN pd.TipoArticuloFK = 3 THEN si.NombreSubcategoriaInsumos
+    END AS NombreSubCategoria,
+    pd.CantidadArticulo as 'Cantidad',
+    pd.EnlaceArticulo as 'EnlaceCompra',
+    pd.PrecioArticulo,
+    pd.IdModeloPK,
+    pd.EstadoArticuloPedido
+	FROM PedidoDetalles pd
+	JOIN TipoArticulo ta ON pd.TipoArticuloFK = ta.IdTipoArticuloPK
+	LEFT JOIN fabricantes fp ON pd.TipoArticuloFK = 1 AND pd.FabricanteArticulo = fp.IdFabricantePK
+	LEFT JOIN fabricanteaccesorios fa ON pd.TipoArticuloFK = 2 AND pd.FabricanteArticulo = fa.IdFabricanteAccesorioPK
+	LEFT JOIN fabricanteinsumos fi ON pd.TipoArticuloFK = 3 AND pd.FabricanteArticulo = fi.IdFabricanteInsumosPK
+	LEFT JOIN categoriasproductos cp ON pd.TipoArticuloFK = 1 AND pd.CategoriaArticulo = cp.IdCategoriaPK
+	LEFT JOIN categoriasaccesorios ca ON pd.TipoArticuloFK = 2 AND pd.CategoriaArticulo = ca.IdCategoriaAccesorioPK
+	LEFT JOIN categoriasinsumos ci ON pd.TipoArticuloFK = 3 AND pd.CategoriaArticulo = ci.IdCategoriaInsumosPK
+	LEFT JOIN subcategoriasproductos sp ON pd.TipoArticuloFK = 1 AND pd.SubcategoriaArticulo = sp.IdSubcategoria
+	LEFT JOIN subcategoriasaccesorios sa ON pd.TipoArticuloFK = 2 AND pd.SubcategoriaArticulo = sa.IdSubcategoriaAccesorio
+	LEFT JOIN subcategoriasinsumos si ON pd.TipoArticuloFK = 3 AND pd.SubcategoriaArticulo = si.IdSubcategoriaInsumos
+	WHERE pd.TipoArticuloFK IN (1, 2, 3) -- Sólo artículos de tipo Producto, Accesorio e Insumo
+    AND IdCodigoPedidoFK = IdCodigoPedido;
+END //
 DELIMITER ;
 
 
