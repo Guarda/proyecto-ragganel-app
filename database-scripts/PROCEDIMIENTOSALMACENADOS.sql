@@ -1391,9 +1391,14 @@ BEGIN
         WHEN pd.TipoArticuloFK = 2 THEN sa.NombreSubcategoriaAccesorio
         WHEN pd.TipoArticuloFK = 3 THEN si.NombreSubcategoriaInsumos
     END AS NombreSubCategoria,
+    CASE
+		WHEN pd.TipoArticuloFK = 1 THEN concat('http://localhost:3000/img-consolas/',pc.LinkImagen)
+        WHEN pd.TipoArticuloFK = 2 THEN concat('http://localhost:3000/img-accesorios/',ac.LinkImagen)
+        WHEN pd.TipoArticuloFK = 3 THEN concat('http://localhost:3000/img-insumos/',ic.LinkImagen)
+    END AS ImagePath,
     pd.CantidadArticulo as 'Cantidad',
     pd.EnlaceArticulo as 'EnlaceCompra',
-    pd.PrecioArticulo,
+    pd.PrecioArticulo as 'Precio',
     pd.IdModeloPK,
     pd.EstadoArticuloPedido
 	FROM PedidoDetalles pd
@@ -1407,7 +1412,10 @@ BEGIN
 	LEFT JOIN subcategoriasproductos sp ON pd.TipoArticuloFK = 1 AND pd.SubcategoriaArticulo = sp.IdSubcategoria
 	LEFT JOIN subcategoriasaccesorios sa ON pd.TipoArticuloFK = 2 AND pd.SubcategoriaArticulo = sa.IdSubcategoriaAccesorio
 	LEFT JOIN subcategoriasinsumos si ON pd.TipoArticuloFK = 3 AND pd.SubcategoriaArticulo = si.IdSubcategoriaInsumos
-	WHERE pd.TipoArticuloFK IN (1, 2, 3) -- Sólo artículos de tipo Producto, Accesorio e Insumo
+	LEFT JOIN catalogoconsolas pc on pd.TipoArticuloFK = 1 AND pc.IdmodeloConsolaPK = IdModeloPK
+	LEFT JOIN catalogoaccesorios ac on pd.TipoArticuloFK = 2 AND ac.IdModeloAccesorioPK = IdModeloPK
+	LEFT JOIN catalogoinsumos ic on pd.TipoArticuloFK = 3 AND ic.IdModeloInsumosPK = IdmodeloPK
+	WHERE pd.TipoArticuloFK IN (1, 2, 3)
     AND IdCodigoPedidoFK = IdCodigoPedido;
 END //
 DELIMITER ;
