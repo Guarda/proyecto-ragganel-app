@@ -67,6 +67,7 @@ export class VerPedidoComponent {
   public Taxes: any;
   public ShippingUSA: any;
   public ShippingNIC: any;
+  public Active: any;
 
   selectedEstadoPedido: EstadoPedido[] = [];
   selectedTipoPedido: TipoPedido[] = [];
@@ -108,6 +109,7 @@ export class VerPedidoComponent {
       this.Taxes = this.pedido.Impuestos;
       this.ShippingUSA = this.pedido.ShippingUSA;
       this.ShippingNIC = this.pedido.ShippingNIC;
+      this.Active = this.pedido.Activo;
 
       this.estadopedidoService.getAll().subscribe((data: EstadoPedido[]) => {
         this.selectedEstadoPedido = data;
@@ -142,6 +144,7 @@ export class VerPedidoComponent {
 
       //Initialize the form with the product data
       this.pedidoForm = this.fb.group({
+        CodigoPedido: [this.OrderId],
         FechaCreacionPedido: [this.OrderCreationDate, Validators.required],
         FechaArrivoUSA: [this.USAArrivalDate, Validators.required],
         FechaEstimadaRecepcion: [this.NICArrivalDate, Validators.required],
@@ -157,7 +160,8 @@ export class VerPedidoComponent {
         ShippingNic: [this.ShippingNIC],
         PrecioEstimadoDelPedido: [this.OrderTotalAmount],
         Estado: [this.OrderState],
-        Comentarios: [this.Comments]
+        Comentarios: [this.Comments],
+        Activo: [this.Active]
       });
 
       // Suscribirse a los cambios del formulario y actualizar el servicio
@@ -176,6 +180,7 @@ export class VerPedidoComponent {
     this.ImagePath = this.getimagePath("");
 
     this.pedidoForm = this.fb.group({
+      CodigoPedido: new FormControl('',Validators.required),
       FechaCreacionPedido: new FormControl('', Validators.required),
       FechaArrivoUSA: new FormControl('', Validators.required),
       FechaEstimadaRecepcion: new FormControl('', Validators.required),
@@ -323,74 +328,99 @@ export class VerPedidoComponent {
     // Navega de regreso al listado de pedidos
     this.router.navigate(['listado-pedidos']);
   }
-  onSubmit() {    // TODO: Use EventEmitter with form value 
 
+  onSubmit() {
     // Get values of the dates
     const fechaCreacionPedido = this.pedidoForm.get('FechaCreacionPedido')?.value;
     const fechaArrivoUSA = this.pedidoForm.get('FechaArrivoUSA')?.value;
     const fechaEstimadaRecepcion = this.pedidoForm.get('FechaEstimadaRecepcion')?.value;
-
-    // Validation check: Ensure FechaArrivoUSA is not before FechaCreacionPedido
+  
+    // Validation checks
     if (fechaArrivoUSA && fechaCreacionPedido && fechaArrivoUSA < fechaCreacionPedido) {
       alert('Fecha Arrivo USA cannot be before Fecha Creacion Pedido');
       return;
     }
-
-    // Validation check: Ensure FechaEstimadaRecepcion is not before FechaArrivoUSA or FechaCreacionPedido
+  
     if (fechaEstimadaRecepcion && fechaCreacionPedido && fechaArrivoUSA &&
       fechaEstimadaRecepcion < fechaArrivoUSA) {
       alert('Fecha Estimada Recepcion cannot be before Fecha Arrivo USA');
       return;
     }
-
-    // Validation check: Ensure FechaEstimadaRecepcion is not before FechaCreacionPedido
+  
     if (fechaEstimadaRecepcion && fechaCreacionPedido && fechaEstimadaRecepcion < fechaCreacionPedido) {
       alert('Fecha Estimada Recepcion cannot be before Fecha Creacion Pedido');
       return;
     }
+  
+    // Get the form values as raw data
+    const pedidoData = this.pedidoForm.getRawValue();
+    console.log('pedidoData:', pedidoData);
 
-
-
-    const pedidoData = {
+    const pedidoData1 = {
       ...this.pedidoForm.getRawValue(),
       articulos: this.listadoArticulos.dataToDisplay, // Aquí agregarías la lista de artículos.
     };
 
-    // Convierte las fechas en formato ISO 8601 (con hora y zona horaria) a solo fecha
+    // const pedidoData = {
+    //   ...this.pedidoForm.getRawValue(),
+    //   articulos: this.listadoArticulos.dataToDisplay, // Aquí agregarías la lista de artículos.
+    // };
+  
+    // Format the date values to ISO 8601 format (without time)
     const fechaCreacionPedidoFormatted = new Date(pedidoData.FechaCreacionPedido).toISOString().split('T')[0];
     const fechaArrivoUSAFormatted = new Date(pedidoData.FechaArrivoUSA).toISOString().split('T')[0];
     const fechaEstimadaRecepcionFormatted = new Date(pedidoData.FechaEstimadaRecepcion).toISOString().split('T')[0];
-
-    // Actualiza los valores de las fechas en el objeto pedidoData
+  
+    // Update the form values with the formatted date values
     pedidoData.FechaCreacionPedido = fechaCreacionPedidoFormatted;
     pedidoData.FechaArrivoUSA = fechaArrivoUSAFormatted;
     pedidoData.FechaEstimadaRecepcion = fechaEstimadaRecepcionFormatted;
-
-    // Ahora envías los datos formateados al servicio
-    console.log(pedidoData)
-      // this.pedidoService.create(pedidoData).subscribe({
-
-
-      //   next: (res: any) => {
-      //     console.log('Respuesta del servicio:', res);
-      //     // Manejar la respuesta, como mostrar un mensaje de éxito
-      //     if (res.message) {
-      //       alert(res.message);
-      //     }
-      //     // Emitir evento o navegar
-      //     // this.Agregado.emit();
-      //     // this.router.navigateByUrl('listado-accesorios');
-      //   },
-      //   error: (err: any) => {
-      //     console.error('Error en la creación del pedido:', err);
-      //     // Manejar el error, como mostrar un mensaje al usuario
-      //     alert('Ocurrió un error al crear el pedido. Por favor, inténtelo de nuevo.');
-      //   },
-      //   complete: () => {
-      //     console.log('Creación del pedido completada.');
-      //   }
-      // });
-
+  
+    // Ensure articulos is handled correctly, not deleted unintentionally
+    const articulos = this.articulos; // Keep the current state of articulos in the component
+    if (articulos && articulos.length > 0) {
+      // Ensure articulos are included in the request data
+      pedidoData.articulos = articulos;
+    } else {
+      // If no articulos are added, make sure to handle this case
+      console.log("No articles to update");
+    }
+  
+    // Now send the pedidoData (with or without articulos) to the service
+    this.pedidoService.update(pedidoData).subscribe({
+      next: (res: any) => {
+        console.log('Respuesta del servicio:', res);
+        // Handle success response
+        if (res.message) {
+          // Handle success message (if any)
+        }
+      },
+      error: (err: any) => {
+        console.error('Error en la creación del pedido:', err);
+        alert('Ocurrió un error al crear el pedido. Por favor, inténtelo de nuevo.');
+      },
+      complete: () => {
+        console.log('Creación del pedido completada.');
+      }
+    });
+    
+    // console.log("Actualizando artículos: ", pedidoData1.articulos);
+    // Send the articulos data separately, if necessary
+    if (pedidoData1 && pedidoData1.articulos.length > 0) {
+      console.log("Actualizando artículos: ", pedidoData1);
+      this.pedidoService.updateArticulos(pedidoData1).subscribe({
+        next: (res: any) => {
+          console.log('Respuesta de la actualización de artículos:', res);
+          // Handle the response for articles update
+        },
+        error: (err: any) => {
+          console.error('Error al actualizar los artículos:', err);
+          alert('Ocurrió un error al actualizar los artículos. Por favor, inténtelo de nuevo.');
+        }
+      });
+    }
   }
+  
+  
 
 }

@@ -354,13 +354,10 @@ CREATE TABLE PedidoDetalles
     PrecioArticulo DECIMAL(6,2),
     IdModeloPK int not null,
     EstadoArticuloPedido boolean not null default 1,
+    Activo boolean not null default 1,
 	FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido),
     FOREIGN KEY (TipoArticuloFK) REFERENCES TipoArticulo (IdTipoArticuloPK)    
 );
-
-
-
-
 
 /*CREAR TABLAS DE INSUMOS */
 

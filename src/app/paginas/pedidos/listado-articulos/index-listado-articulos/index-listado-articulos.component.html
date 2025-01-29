@@ -1,7 +1,6 @@
 <div class="contenedor-componente-index-articulos">
     <h5>LISTADO DE ARTÍCULOS</h5>
 
-
     <div class="demo-button-container">
         <button
             mat-raised-button
@@ -12,21 +11,20 @@
         </button>
     </div>
 
-
     <div class="tarjetas-container">
-        <div *ngFor="let articulo of dataToDisplay">
+        <!-- Usa la propiedad activeArticulos -->
+        <div *ngFor="let articulo of activeArticulos">
             <app-tarjeta-articulo
                 [articulo]="articulo"
                 (borrar)="removeArticulo(articulo)"
             >
             </app-tarjeta-articulo>
         </div>
+        
         <div class="total-container">
-            <!-- <p><mat-icon>shopping_cart</mat-icon> <strong>Total de artículos:</strong> {{ totalArticulos }}</p>
-            <p><mat-icon>attach_money</mat-icon> <strong>Subtotal:</strong> {{ totalPrecio | currency }}</p> -->
-            <p> <strong>Total de artículos:</strong> {{ totalArticulos }}</p>
-            <p> <strong>Subtotal:</strong> {{ totalPrecio | currency }}</p>
+            <p><strong>Total de artículos:</strong> {{ totalArticulos }}</p>
+            <p><strong>Subtotal:</strong> {{ totalPrecio | currency }}</p>
         </div>
-          
     </div>
 </div>
+

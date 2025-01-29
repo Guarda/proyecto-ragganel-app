@@ -94,7 +94,8 @@ export class AgregarArticuloComponent {
       EnlaceCompra: new FormControl(''),
       Cantidad: new FormControl('', Validators.required),
       Precio: new FormControl('', Validators.required),
-      IdModeloPK: new FormControl('', Validators.required)
+      IdModeloPK: new FormControl('', Validators.required),
+      Activo: new FormControl(1) // Valor por defecto asignado como 1
     });
 
     this.tipoarticulo.getAll().subscribe((data: TipoArticulo[]) => {

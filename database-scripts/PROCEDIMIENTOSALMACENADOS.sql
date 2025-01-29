@@ -1375,6 +1375,7 @@ BEGIN
 	SELECT 
     pd.IdPedidoDetallePK,
     pd.IdCodigoPedidoFK,
+    pd.TipoArticuloFK,
     ta.DescripcionTipoArticulo AS TipoArticulo,
     CASE 
         WHEN pd.TipoArticuloFK = 1 THEN fp.NombreFabricante
@@ -1396,11 +1397,15 @@ BEGIN
         WHEN pd.TipoArticuloFK = 2 THEN concat('http://localhost:3000/img-accesorios/',ac.LinkImagen)
         WHEN pd.TipoArticuloFK = 3 THEN concat('http://localhost:3000/img-insumos/',ic.LinkImagen)
     END AS ImagePath,
+    pd.FabricanteArticulo,
+    pd.CategoriaArticulo,
+    pd.SubcategoriaArticulo,
     pd.CantidadArticulo as 'Cantidad',
     pd.EnlaceArticulo as 'EnlaceCompra',
     pd.PrecioArticulo as 'Precio',
     pd.IdModeloPK,
-    pd.EstadoArticuloPedido
+    pd.EstadoArticuloPedido,
+    pd.Activo
 	FROM PedidoDetalles pd
 	JOIN TipoArticulo ta ON pd.TipoArticuloFK = ta.IdTipoArticuloPK
 	LEFT JOIN fabricantes fp ON pd.TipoArticuloFK = 1 AND pd.FabricanteArticulo = fp.IdFabricantePK
@@ -1421,4 +1426,139 @@ END //
 DELIMITER ;
 
 
+DELIMITER $$
 
+CREATE PROCEDURE ActualizarDatosGeneralesPedido(
+/*procedimiento almacenado ListarArticulosXIdPedido 28/01/2025 seguir trabajando*/
+    IN IdPedido Varchar(25),  -- ID del pedido a actualizar
+    IN FechaCreacionPedido DATE,  -- Fecha de creación del pedido
+    IN FechaArrivoUSA DATE,
+    IN FechaEstimadaRecepcion DATE,
+    IN NumeroTracking1 VARCHAR(100),
+    IN NumeroTracking2 VARCHAR(100),
+    IN SitioWeb INT,
+    IN ViaPedido INT,
+    IN Peso DECIMAL(6,2),
+    IN Comentarios VARCHAR(2000),
+    IN Impuestos DECIMAL(6,2),
+    IN ShippingUSA DECIMAL(6,2),
+    IN ShippingNic DECIMAL(6,2),
+    IN SubTotalArticulos DECIMAL(6,2),
+    IN PrecioEstimadoDelPedido DECIMAL(6,2)
+)
+BEGIN
+    -- Actualizar los datos sin comprobación de cambios
+    UPDATE PedidoBase
+    SET 
+        FechaCreacionPedido = FechaCreacionPedido,
+        FechaArriboEstadosUnidos = FechaArrivoUSA,
+        FechaIngreso = FechaEstimadaRecepcion,
+        NumeroTracking1 = NumeroTracking1,
+        NumeroTracking2 = NumeroTracking2,
+        SitioWebFK = SitioWeb,
+        ViaPedidoFK = ViaPedido,
+        Peso = Peso,
+        Comentarios = Comentarios,
+        Impuestos = Impuestos,
+        EnvioUSA = ShippingUSA,
+        EnvioNIC = ShippingNic,
+        SubtotalArticulos = SubTotalArticulos,
+        TotalPedido = PrecioEstimadoDelPedido
+    WHERE CodigoPedido = IdPedido;
+
+    -- Retornar un mensaje
+    SELECT 'Datos del pedido actualizados correctamente' AS mensaje;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+/*AGREGAR ARTICULOS DIRECTAMENTE DEL PEDIDO*/
+CREATE PROCEDURE InsertarArticuloPedido(
+    IN IdCodigoPedidoFK VARCHAR(25),  -- Código del pedido
+    IN TipoArticuloFK INT,  -- Tipo de artículo
+    IN FabricanteArticulo INT,  -- Fabricante del artículo
+    IN CategoriaArticulo INT,  -- Categoría del artículo
+    IN SubcategoriaArticulo INT,  -- Subcategoría del artículo
+    IN CantidadArticulo INT,  -- Cantidad de artículo
+    IN EnlaceArticulo VARCHAR(1000),  -- Enlace del artículo
+    IN PrecioArticulo DECIMAL(6,2),  -- Precio del artículo
+    IN IdModeloPK INT  -- ID del modelo
+)
+BEGIN
+    -- Insertar el nuevo artículo en la tabla PedidoDetalles
+    INSERT INTO PedidoDetalles (
+        IdCodigoPedidoFK,
+        TipoArticuloFK,
+        FabricanteArticulo,
+        CategoriaArticulo,
+        SubcategoriaArticulo,
+        CantidadArticulo,
+        EnlaceArticulo,
+        PrecioArticulo,
+        IdModeloPK,
+        EstadoArticuloPedido,
+        Activo
+    )
+    VALUES (
+        IdCodigoPedidoFK,
+        TipoArticuloFK,
+        FabricanteArticulo,
+        CategoriaArticulo,
+        SubcategoriaArticulo,
+        CantidadArticulo,
+        EnlaceArticulo,
+        PrecioArticulo,
+        IdModeloPK,
+        1,  -- EstadoArticuloPedido por defecto a 1 (activo)
+        1   -- Activo por defecto a 1 (activo)
+    );
+
+    -- Retornar un mensaje de éxito
+    SELECT 'Artículo agregado correctamente' AS mensaje;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE PROCEDURE ActualizarArticuloPedido(
+
+/*ACTUALIZAR ARTICULOS 28/01/2025*/
+    IN IdPedidoDPK INT,  -- ID del detalle del pedido a actualizar
+    IN IdCodigoPFK varchar(25),
+    IN TipoArtFK INT,  -- Tipo de artículo
+    IN FabricanteArt INT,  -- Fabricante del artículo
+    IN CategoriaArt INT,  -- Categoría del artículo
+    IN SubcategoriaArt INT,  -- Subcategoría del artículo
+    IN CantidadArt INT,  -- Cantidad de artículo
+    IN EnlaceArt VARCHAR(1000),  -- Enlace del artículo
+    IN PrecioArt DECIMAL(6,2),  -- Precio del artículo
+    IN IdModeloPK INT,  -- ID del modelo
+    IN EstadoArtPedido BOOLEAN,  -- Estado del artículo en el pedido
+    IN Activo BOOLEAN  -- Si el artículo está activo
+)
+BEGIN
+    -- Actualizar los detalles del artículo en la tabla PedidoDetalles
+    UPDATE PedidoDetalles
+    SET 
+        TipoArticuloFK = TipoArtFK,
+        IdCodigoPedidoFK = IdCodigoPFK,
+        FabricanteArticulo = FabricanteArt,
+        CategoriaArticulo = CategoriaArt,
+        SubcategoriaArticulo = SubcategoriaArt,
+        CantidadArticulo = CantidadArt,
+        EnlaceArticulo = EnlaceArt,
+        PrecioArticulo = PrecioArt,
+        IdModeloPK = IdModeloPK,
+        EstadoArticuloPedido = EstadoArtPedido,
+        Activo = Activo
+    WHERE IdPedidoDetallePK = IdPedidoDPK;
+
+    -- Retornar un mensaje de éxito
+    SELECT 'Artículo actualizado correctamente' AS mensaje;
+END$$
+
+DELIMITER ;

@@ -12,4 +12,5 @@ export interface Articulo {
     Precio: number;
     IdModeloPK: number;
     ImagePath: string;
+    Activo: number;
   }

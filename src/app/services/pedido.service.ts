@@ -12,6 +12,7 @@ export class PedidoService {
 
   private apiURL = "http://localhost:3000";
 
+
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'
@@ -51,6 +52,32 @@ export class PedidoService {
         catchError(this.errorHandler)
       )
   }
+
+  update(pedido: any): Observable<any> {
+    return this.httpClient.put(this.apiURL + '/pedidos/actualizar-pedido/' + pedido.CodigoPedido, JSON.stringify(pedido), {
+      headers: this.httpOptions.headers,
+      responseType: 'json'  // 🔥 Esto evita el error de parseo
+    })
+      .pipe(
+        catchError(this.errorHandler)
+      )      
+  }
+
+  
+
+  updateArticulos(pedido: any): Observable<any> {
+    // Extraer solo los artículos del pedido
+    const articulos = pedido.articulos;
+  
+    console.log("Artículos a enviar:", articulos);  // Esto es solo para debug
+  
+    return this.httpClient.post(this.apiURL + '/pedidos/actualizar-o-agregar-articulos/', pedido, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+  
+  
 
   errorHandler(error: any) {
     let errorMessage = '';

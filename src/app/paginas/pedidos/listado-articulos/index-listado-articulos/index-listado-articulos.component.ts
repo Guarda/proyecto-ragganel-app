@@ -68,7 +68,7 @@ export class IndexListadoArticulosComponent {
   @Input() dataToDisplay: Articulo[] = [];
   public ImagePath: any;
   tipoArticulo: any;
-  
+
   selectedFabricante: any;
   selectedCategoria: any;
   selectedSubcategoria: any;
@@ -91,21 +91,46 @@ export class IndexListadoArticulosComponent {
     this.updateSharedTotal();
   }
 
-  
+
   get totalArticulos(): number {
-    return this.dataToDisplay.reduce((total, articulo) => total + (articulo.Cantidad || 0), 0);
+    return this.dataToDisplay
+      .filter(articulo => articulo.Activo === 1) // Filtra solo los artículos activos
+      .reduce((total, articulo) => total + (articulo.Cantidad || 0), 0);
   }
-  
+
   get totalPrecio(): number {
-    return this.dataToDisplay.reduce((total, articulo) => total + (articulo.Precio || 0), 0);
+    return this.dataToDisplay
+      .filter(articulo => articulo.Activo === 1) // Filtra solo los artículos activos
+      .reduce((total, articulo) => total + (articulo.Precio * articulo.Cantidad || 0), 0);
   }
+
+  // removeArticulo(articulo: Articulo) {
+  //   this.dataToDisplay = this.dataToDisplay.filter(item => item !== articulo);
+  //   this.dataSource.setData(this.dataToDisplay);
+  //   this.updateSharedTotal(); // Actualiza el total compartido
+  // }
+
+  //Si deseas marcar el artículo como inactivo cambiando el valor del campo Activo a 0, en lugar de eliminarlo del arreglo, puedes modificar el método removeArticulo para actualizar el valor del campo correspondiente. Aquí tienes cómo hacerlo:
 
   removeArticulo(articulo: Articulo) {
-    this.dataToDisplay = this.dataToDisplay.filter(item => item !== articulo);
+    // Encuentra el artículo en el arreglo y cambia su valor de Activo a false
+    const index = this.dataToDisplay.findIndex(item => item === articulo);
+    if (index !== -1) {
+      this.dataToDisplay[index].Activo = 0; // Cambia el campo Activo a false
+    }
+  
+    // Actualiza la fuente de datos
     this.dataSource.setData(this.dataToDisplay);
-    this.updateSharedTotal(); // Actualiza el total compartido
+  
+    // Actualiza el total compartido
+    this.updateSharedTotal();
   }
 
+  get activeArticulos(): Articulo[] {
+    // Filtra los artículos donde Activo sea true
+    // console.log(this.dataToDisplay)
+    return this.dataToDisplay.filter(articulo => articulo.Activo === 1);
+  }
   private updateSharedTotal() {
     const total = this.totalPrecio;
     this.sharedPedidoService.subtotalarticulosPedido(total);
@@ -132,7 +157,7 @@ export class IndexListadoArticulosComponent {
             break;
           case 2: // Accesorio
             // console.log("Accesorio selected");
-             this.getNamesForAccesorio(newArticulo);
+            this.getNamesForAccesorio(newArticulo);
             break;
           case 3: // Insumo
             // console.log("Insumo selected");
@@ -147,7 +172,7 @@ export class IndexListadoArticulosComponent {
 
   getNamesForProducto(newArticulo: Articulo) {
     // Fetch the article type name
-    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) =>{
+    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) => {
       const fabricante = data.find(item => item.IdTipoArticuloPK === newArticulo.TipoArticulo);
       if (fabricante) {
         // Assign the Fabricante Name to the newArticulo object
@@ -163,7 +188,7 @@ export class IndexListadoArticulosComponent {
         newArticulo.NombreFabricante = fabricante.NombreFabricante;
       }
     });
-  
+
     // Fetch Categoria Name
     this.categoriaproductoService.findById(newArticulo.Cate.toString()).subscribe((data: categoriasProductos[]) => {
       const categoria = data.find(item => item.IdCategoriaPK === newArticulo.Cate);
@@ -172,10 +197,10 @@ export class IndexListadoArticulosComponent {
         newArticulo.NombreCategoria = categoria.NombreCategoria;
       }
     });
-  
+
     // Fetch SubCategoria Name
     this.subcategoriaproductoService.findById(newArticulo.SubCategoria.toString()).subscribe((data: SubcategoriasProductos[]) => {
-      console.log('subcategoria'+ data[0]  )      
+      console.log('subcategoria' + data[0])
       const subcategoria = data.find(item => item.IdSubcategoria === newArticulo.SubCategoria);
       if (subcategoria) {
         console.log(subcategoria)
@@ -191,7 +216,7 @@ export class IndexListadoArticulosComponent {
       this.cdr.detectChanges();
     });
 
-  
+
     // After the data is fetched and updated, you can add the articulo to the display list
     this.addData(newArticulo);
   }
@@ -199,14 +224,14 @@ export class IndexListadoArticulosComponent {
   getNamesForAccesorio(newArticulo: Articulo) {
 
     // Fetch the article type name
-    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) =>{
+    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) => {
       const fabricante = data.find(item => item.IdTipoArticuloPK === newArticulo.TipoArticulo);
       if (fabricante) {
         // Assign the Fabricante Name to the newArticulo object
         newArticulo.NombreTipoArticulo = fabricante.DescripcionTipoArticulo;
       }
     });
-    
+
     // Fetch Fabricante Name
     this.fabricanteaccesorioService.find(newArticulo.Fabricante.toString()).subscribe((data: FabricanteAccesorio[]) => {
       const fabricante = data.find(item => item.IdFabricanteAccesorioPK === newArticulo.Fabricante);
@@ -215,7 +240,7 @@ export class IndexListadoArticulosComponent {
         newArticulo.NombreFabricante = fabricante.NombreFabricanteAccesorio;
       }
     });
-  
+
     // Fetch Categoria Name
     this.categoriaaccesorioService.findById(newArticulo.Cate.toString()).subscribe((data: categoriasAccesorios[]) => {
       const categoria = data.find(item => item.IdCategoriaAccesorioPK === newArticulo.Cate);
@@ -224,10 +249,10 @@ export class IndexListadoArticulosComponent {
         newArticulo.NombreCategoria = categoria.NombreCategoriaAccesorio;
       }
     });
-  
+
     // Fetch SubCategoria Name
     this.subcategoriaaccesorioService.findById(newArticulo.SubCategoria.toString()).subscribe((data: SubcategoriasAccesorios[]) => {
-      console.log('subcategoria'+ data[0]  )      
+      console.log('subcategoria' + data[0])
       const subcategoria = data.find(item => item.IdSubcategoriaAccesorio === newArticulo.SubCategoria);
       if (subcategoria) {
         console.log(subcategoria)
@@ -242,7 +267,7 @@ export class IndexListadoArticulosComponent {
       newArticulo.ImagePath = this.ImagePath;
       this.cdr.detectChanges();
     });
-  
+
     // After the data is fetched and updated, you can add the articulo to the display list
     this.addData(newArticulo);
   }
@@ -284,7 +309,7 @@ export class IndexListadoArticulosComponent {
 
     return link ? `${baseUrl}/${folder}/${link}` : `${baseUrl}/${folder}/2ds.jpg`;
   }
- 
+
 
 }
 

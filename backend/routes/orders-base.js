@@ -98,4 +98,142 @@ router.get('/listar-articulos/:id', (req, res) => {
     });
 });
 
+router.put('/actualizar-pedido/:id', (req, res) => {
+    const {
+        CodigoPedido, // Se asume que se envía el ID del pedido
+        Comentarios,
+        FechaArrivoUSA,
+        FechaCreacionPedido,
+        FechaEstimadaRecepcion,
+        Impuestos,
+        NumeroTracking1,
+        NumeroTracking2,
+        PesoPedido,
+        PrecioEstimadoDelPedido,
+        ShippingNic,
+        ShippingUSA,
+        SitioWeb,
+        SubTotalArticulos,
+        ViaPedido
+    } = req.body;
+
+    // console.log(req.body)
+    // Llamar al procedimiento almacenado para actualizar los datos generales del pedido
+    const sql = 'CALL ActualizarDatosGeneralesPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+    db.query(sql, [
+        CodigoPedido,
+        FechaCreacionPedido,
+        FechaArrivoUSA,
+        FechaEstimadaRecepcion,
+        NumeroTracking1,
+        NumeroTracking2,
+        SitioWeb,
+        ViaPedido,
+        PesoPedido,
+        Comentarios,
+        Impuestos,
+        ShippingUSA,
+        ShippingNic,
+        SubTotalArticulos,
+        PrecioEstimadoDelPedido
+    ], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error al actualizar el pedido');
+        }
+        res.send({ message: 'Datos del pedido actualizados correctamente' });
+    });
+});
+
+router.post('/actualizar-o-agregar-articulos', (req, res) => {
+    const { CodigoPedido, articulos } = req.body;
+
+    if (!CodigoPedido || !Array.isArray(articulos) || articulos.length === 0) {
+        return res.status(400).send('Se requiere CodigoPedido y una lista de artículos.');
+    }
+
+    const articulosParaActualizar = [];
+    const articulosParaAgregar = [];
+
+    articulos.forEach(articulo => {
+        // Asignar CodigoPedido si no está presente
+        articulo.IdCodigoPedidoFK = articulo.IdCodigoPedidoFK || CodigoPedido;
+
+        // Validar si todos los campos requeridos están presentes antes de procesar
+        // if (!articulo.TipoArticuloFK || !articulo.FabricanteArticulo || !articulo.CategoriaArticulo ||
+        //     !articulo.SubcategoriaArticulo || !articulo.Cantidad || !articulo.EnlaceCompra ||
+        //     !articulo.Precio || !articulo.IdModeloPK) {
+        //     console.error("Artículo con datos incompletos:", articulo);
+        //     return;
+        // }
+
+        if (articulo.IdPedidoDetallePK) {
+            articulosParaActualizar.push(articulo);
+        } else {
+            articulosParaAgregar.push(articulo);
+        }
+    });
+
+    if (articulosParaActualizar.length === 0 && articulosParaAgregar.length === 0) {
+        return res.status(400).send('No hay artículos válidos para procesar.');
+    }
+
+    const updatePromises = articulosParaActualizar.map(articulo => {
+        return new Promise((resolve, reject) => {
+            const updateQuery = `CALL ActualizarArticuloPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            db.query(updateQuery, [
+                articulo.IdPedidoDetallePK,
+                articulo.IdCodigoPedidoFK,
+                articulo.TipoArticuloFK,
+                articulo.FabricanteArticulo,
+                articulo.CategoriaArticulo,
+                articulo.SubcategoriaArticulo,
+                articulo.Cantidad,
+                articulo.EnlaceCompra,
+                articulo.Precio,
+                articulo.IdModeloPK,
+                articulo.EstadoArticuloPedido,
+                articulo.Activo
+            ], (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
+            });
+        });
+    });
+
+    const insertPromises = articulosParaAgregar.map(articulo => {
+        return new Promise((resolve, reject) => {
+            const insertQuery = `CALL InsertarArticuloPedido(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+            db.query(insertQuery, [
+                articulo.IdCodigoPedidoFK,
+                articulo.TipoArticulo,
+                articulo.Fabricante,
+                articulo.Cate,
+                articulo.SubCategoria,
+                articulo.Cantidad,
+                articulo.EnlaceCompra,
+                articulo.Precio,
+                articulo.IdModeloPK
+            ], (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
+            });
+        });
+    });
+
+    Promise.all([...updatePromises, ...insertPromises])
+    .then(() => {
+        res.status(200).json({ mensaje: 'Artículos procesados correctamente' });
+    })
+    .catch(err => {
+        console.error("Error al procesar artículos:", err);
+        res.status(500).json({ error: 'Error al procesar los artículos', detalles: err.message });
+    });
+
+
+});
+
+
 module.exports = router;

@@ -17,5 +17,6 @@
     Comentarios: string;
     DescripcionEstadoPedido: string;
     DescripcionTipoPedido: string;
+    Activo: boolean;
   };
   
