@@ -1323,6 +1323,7 @@ CREATE PROCEDURE ListarTablaPedidosBase ()
                 DATE_FORMAT(A.FechaArriboEstadosUnidos, '%d/%m/%Y') as 'Fecha_USA',
                 DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha_NIC',
                 B.DescripcionEstadoPedido as 'Estado',
+                A.EstadoPedidoFK,
                 A.NumeroTracking1,
 				A.NumeroTracking2,
                 A.Comentarios,
@@ -1421,7 +1422,8 @@ BEGIN
 	LEFT JOIN catalogoaccesorios ac on pd.TipoArticuloFK = 2 AND ac.IdModeloAccesorioPK = IdModeloPK
 	LEFT JOIN catalogoinsumos ic on pd.TipoArticuloFK = 3 AND ic.IdModeloInsumosPK = IdmodeloPK
 	WHERE pd.TipoArticuloFK IN (1, 2, 3)
-    AND IdCodigoPedidoFK = IdCodigoPedido;
+    AND IdCodigoPedidoFK = IdCodigoPedido
+    AND pd.Activo = 1;
 END //
 DELIMITER ;
 
@@ -1444,7 +1446,8 @@ CREATE PROCEDURE ActualizarDatosGeneralesPedido(
     IN ShippingUSA DECIMAL(6,2),
     IN ShippingNic DECIMAL(6,2),
     IN SubTotalArticulos DECIMAL(6,2),
-    IN PrecioEstimadoDelPedido DECIMAL(6,2)
+    IN PrecioEstimadoDelPedido DECIMAL(6,2),
+    IN EstadoPedido INT
 )
 BEGIN
     -- Actualizar los datos sin comprobación de cambios
@@ -1463,7 +1466,8 @@ BEGIN
         EnvioUSA = ShippingUSA,
         EnvioNIC = ShippingNic,
         SubtotalArticulos = SubTotalArticulos,
-        TotalPedido = PrecioEstimadoDelPedido
+        TotalPedido = PrecioEstimadoDelPedido,
+        EstadoPedidoFK = EstadoPedido
     WHERE CodigoPedido = IdPedido;
 
     -- Retornar un mensaje
@@ -1474,7 +1478,8 @@ DELIMITER ;
 
 
 DELIMITER $$
-/*AGREGAR ARTICULOS DIRECTAMENTE DEL PEDIDO*/
+
+/* AGREGAR ARTICULOS DIRECTAMENTE DEL PEDIDO */
 CREATE PROCEDURE InsertarArticuloPedido(
     IN IdCodigoPedidoFK VARCHAR(25),  -- Código del pedido
     IN TipoArticuloFK INT,  -- Tipo de artículo
@@ -1484,45 +1489,50 @@ CREATE PROCEDURE InsertarArticuloPedido(
     IN CantidadArticulo INT,  -- Cantidad de artículo
     IN EnlaceArticulo VARCHAR(1000),  -- Enlace del artículo
     IN PrecioArticulo DECIMAL(6,2),  -- Precio del artículo
-    IN IdModeloPK INT  -- ID del modelo
+    IN IdModeloPK INT,  -- ID del modelo
+    IN ActivoArt BOOLEAN
 )
 BEGIN
-    -- Insertar el nuevo artículo en la tabla PedidoDetalles
-    INSERT INTO PedidoDetalles (
-        IdCodigoPedidoFK,
-        TipoArticuloFK,
-        FabricanteArticulo,
-        CategoriaArticulo,
-        SubcategoriaArticulo,
-        CantidadArticulo,
-        EnlaceArticulo,
-        PrecioArticulo,
-        IdModeloPK,
-        EstadoArticuloPedido,
-        Activo
-    )
-    VALUES (
-        IdCodigoPedidoFK,
-        TipoArticuloFK,
-        FabricanteArticulo,
-        CategoriaArticulo,
-        SubcategoriaArticulo,
-        CantidadArticulo,
-        EnlaceArticulo,
-        PrecioArticulo,
-        IdModeloPK,
-        1,  -- EstadoArticuloPedido por defecto a 1 (activo)
-        1   -- Activo por defecto a 1 (activo)
-    );
+    -- Comprobar si el artículo está activo (ActivoArt = 1)
+    IF ActivoArt = 0 THEN
+        -- Si el artículo no está activo, no se inserta y se retorna un mensaje
+        SELECT 'El artículo no se ha agregado porque está inactivo' AS mensaje;
+    ELSE
+        -- Insertar el nuevo artículo en la tabla PedidoDetalles
+        INSERT INTO PedidoDetalles (
+            IdCodigoPedidoFK,
+            TipoArticuloFK,
+            FabricanteArticulo,
+            CategoriaArticulo,
+            SubcategoriaArticulo,
+            CantidadArticulo,
+            EnlaceArticulo,
+            PrecioArticulo,
+            IdModeloPK,
+            EstadoArticuloPedido,
+            Activo
+        )
+        VALUES (
+            IdCodigoPedidoFK,
+            TipoArticuloFK,
+            FabricanteArticulo,
+            CategoriaArticulo,
+            SubcategoriaArticulo,
+            CantidadArticulo,
+            EnlaceArticulo,
+            PrecioArticulo,
+            IdModeloPK,
+            1,  -- EstadoArticuloPedido por defecto a 1 (activo)
+            1   -- Activo por defecto a 1 (activo)
+        );
 
-    -- Retornar un mensaje de éxito
-    SELECT 'Artículo agregado correctamente' AS mensaje;
+        -- Retornar un mensaje de éxito
+        SELECT 'Artículo agregado correctamente' AS mensaje;
+    END IF;
 END$$
 
-DELIMITER ;
-
-
 DELIMITER $$
+
 
 CREATE PROCEDURE ActualizarArticuloPedido(
 
@@ -1538,7 +1548,7 @@ CREATE PROCEDURE ActualizarArticuloPedido(
     IN PrecioArt DECIMAL(6,2),  -- Precio del artículo
     IN IdModeloPK INT,  -- ID del modelo
     IN EstadoArtPedido BOOLEAN,  -- Estado del artículo en el pedido
-    IN Activo BOOLEAN  -- Si el artículo está activo
+    IN ActivoArt BOOLEAN  -- Si el artículo está activo
 )
 BEGIN
     -- Actualizar los detalles del artículo en la tabla PedidoDetalles
@@ -1554,7 +1564,7 @@ BEGIN
         PrecioArticulo = PrecioArt,
         IdModeloPK = IdModeloPK,
         EstadoArticuloPedido = EstadoArtPedido,
-        Activo = Activo
+        Activo = ActivoArt
     WHERE IdPedidoDetallePK = IdPedidoDPK;
 
     -- Retornar un mensaje de éxito
@@ -1562,3 +1572,61 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE CancelarPedido(
+	IN IdPedido varchar(25)
+)
+BEGIN
+	UPDATE Pedidobase
+    SET 
+		EstadoPedidoFK = 6
+	WHERE CodigoPedido = IdPedido;
+    -- Retornar un mensaje de éxito
+    SELECT 'Pedido cancelado correctamente' AS mensaje;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE EliminarPedido(
+	IN IdPedido varchar(25)
+)
+BEGIN
+	UPDATE Pedidobase
+    SET 
+		EstadoPedidoFK = 7
+	WHERE CodigoPedido = IdPedido;
+    -- Retornar un mensaje de éxito
+    SELECT 'Pedido Eliminado correctamente' AS mensaje;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE AvanzarEstadoPedido(
+    IN IdPedido VARCHAR(25)
+)
+BEGIN
+    DECLARE estado_actual INT;
+
+    -- Obtener el estado actual del pedido
+    SELECT EstadoPedidoFK INTO estado_actual 
+    FROM Pedidobase 
+    WHERE CodigoPedido = IdPedido;
+
+    -- Verificar si el estado está entre 1 y 4 antes de actualizar (NO actualiza si es 5, 6 o 7)
+    IF estado_actual BETWEEN 1 AND 4 THEN
+        UPDATE Pedidobase
+        SET EstadoPedidoFK = estado_actual + 1
+        WHERE CodigoPedido = IdPedido;
+        
+        SELECT 'Estado del pedido actualizado correctamente' AS mensaje;
+    ELSE
+        SELECT 'El estado del pedido no permite actualización' AS mensaje;
+    END IF;
+    
+END$$
+
+DELIMITER ;
+
+

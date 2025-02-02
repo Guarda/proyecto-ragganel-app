@@ -88,7 +88,7 @@ export class IndexListadoArticulosComponent {
     private cateaccesorioService: CategoriasAccesoriosService,
     private cdr: ChangeDetectorRef
   ) {
-    this.updateSharedTotal();
+    // this.updateSharedTotal();
   }
 
 
@@ -117,6 +117,7 @@ export class IndexListadoArticulosComponent {
     const index = this.dataToDisplay.findIndex(item => item === articulo);
     if (index !== -1) {
       this.dataToDisplay[index].Activo = 0; // Cambia el campo Activo a false
+      console.log(this.dataToDisplay[index])
     }
   
     // Actualiza la fuente de datos
@@ -139,6 +140,18 @@ export class IndexListadoArticulosComponent {
     this.sharedPedidoService.SubTotalArticulosPedido$.subscribe((total) => {
       console.log(total);
     });
+  }
+
+  // Método para escuchar el evento de actualización de la cantidad
+  actualizarCantidadArticulo(nuevaCantidad: number, articulo: Articulo) {
+    // Aquí actualizas la cantidad del artículo correspondiente
+    const index = this.dataToDisplay.findIndex(item => item === articulo);
+    if (index !== -1) {
+      console.log("cambio")
+      this.dataToDisplay[index].Cantidad = nuevaCantidad; // Actualiza la cantidad
+      this.dataSource.setData(this.dataToDisplay); // Actualiza los datos en el DataSource
+    }
+    this.updateSharedTotal();
   }
 
   public openDialogAgregar() {

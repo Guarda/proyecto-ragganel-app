@@ -1,0 +1,7 @@
+<h2 mat-dialog-title>Cancelar Pedido</h2>
+<mat-dialog-content>¿Realmente quiere cancelar el pedido {{OrderId}}?</mat-dialog-content>
+<mat-dialog-content>Esto no se puede deshacer</mat-dialog-content>
+<mat-dialog-actions class="contenedor-botones">
+    <button mat-button mat-dialog-close>Cerrar ventana</button>
+    <button mat-button type="submit" [mat-dialog-close]="true"(click)="onCancelar()"mat-button color="primary">Cancelar pedido</button>
+</mat-dialog-actions>

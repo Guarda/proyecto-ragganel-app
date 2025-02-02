@@ -28,43 +28,50 @@
         <app-tabla-pedidos 
           [dataSource]="pedidosEnEspera" 
           [displayedColumns]="displayedColumns"
-          [filterValue]="filterValue"/>
+          [filterValue]="filterValue"
+          (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
       <mat-tab label="En Transito"> 
         <app-tabla-pedidos 
         [dataSource]="pedidosEnTransito" 
         [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"/> 
+        [filterValue]="filterValue"
+        (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="En Estados Unidos"> 
         <app-tabla-pedidos 
         [dataSource]="pedidosRecibidosUSA" 
         [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"/> 
+        [filterValue]="filterValue"
+        (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>      
       <mat-tab label="En aduana / Agencia"> 
         <app-tabla-pedidos 
         [dataSource]="pedidosEnAduana" 
         [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"/> 
+        [filterValue]="filterValue"
+        (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="Recibidos"> 
         <app-tabla-pedidos 
         [dataSource]="pedidosRecibidos" 
         [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"/> 
+        [filterValue]="filterValue"
+        (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="Cancelados"> 
         <app-tabla-pedidos 
         [dataSource]="pedidosCancelados" 
         [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"/> 
+        [filterValue]="filterValue"
+        (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="Eliminados"> 
         <app-tabla-pedidos 
         [dataSource]="pedidosEliminados" 
         [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"/> 
+        [filterValue]="filterValue"
+        (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       
     </mat-tab-group>

@@ -114,12 +114,13 @@ router.put('/actualizar-pedido/:id', (req, res) => {
         ShippingUSA,
         SitioWeb,
         SubTotalArticulos,
-        ViaPedido
+        ViaPedido,
+        Estado
     } = req.body;
 
     // console.log(req.body)
     // Llamar al procedimiento almacenado para actualizar los datos generales del pedido
-    const sql = 'CALL ActualizarDatosGeneralesPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = 'CALL ActualizarDatosGeneralesPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
     db.query(sql, [
         CodigoPedido,
@@ -136,7 +137,8 @@ router.put('/actualizar-pedido/:id', (req, res) => {
         ShippingUSA,
         ShippingNic,
         SubTotalArticulos,
-        PrecioEstimadoDelPedido
+        PrecioEstimadoDelPedido,
+        Estado
     ], (err, result) => {
         if (err) {
             console.error(err);
@@ -204,7 +206,7 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 
     const insertPromises = articulosParaAgregar.map(articulo => {
         return new Promise((resolve, reject) => {
-            const insertQuery = `CALL InsertarArticuloPedido(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const insertQuery = `CALL InsertarArticuloPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
             db.query(insertQuery, [
                 articulo.IdCodigoPedidoFK,
@@ -215,7 +217,8 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
                 articulo.Cantidad,
                 articulo.EnlaceCompra,
                 articulo.Precio,
-                articulo.IdModeloPK
+                articulo.IdModeloPK,
+                articulo.Activo
             ], (err, result) => {
                 if (err) return reject(err);
                 resolve(result);
@@ -234,6 +237,52 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 
 
 });
+
+// Endpoint para cancelar un pedido
+router.put('/cancelar-pedido/:id', (req, res) => {
+    const idpedido = req.params.id;
+
+    const sql = 'CALL CancelarPedido(?)';
+
+    db.query(sql, [idpedido], (err, results) => {
+        if (err) {
+            console.error('Error al cancelar el pedido:', err);
+            return res.status(500).json({ mensaje: 'Error al cancelar el pedido' });
+        }
+        res.status(200).json({ mensaje: 'Pedido cancelado correctamente' });
+    });
+});
+
+// Endpoint para eliminar un pedido
+router.put('/eliminar-pedido/:id', (req, res) => {
+    const idpedido = req.params.id;
+
+    const sql = 'CALL EliminarPedido(?)';
+
+    db.query(sql, [idpedido], (err, results) => {
+        if (err) {
+            console.error('Error al eliminar el pedido:', err);
+            return res.status(500).json({ mensaje: 'Error al eliminar el pedido' });
+        }
+        res.status(200).json({ mensaje: 'Pedido eliminado correctamente' });
+    });
+});
+
+// Endpoint para avanzar un pedido
+router.put('/avanzar-pedido/:id', (req, res) => {
+    const idpedido = req.params.id;
+
+    const sql = 'CALL AvanzarEstadoPedido(?)';
+
+    db.query(sql, [idpedido], (err, results) => {
+        if (err) {
+            console.error('Error al avanzar el pedido:', err);
+            return res.status(500).json({ mensaje: 'Error al avanzar el pedido' });
+        }
+        res.status(200).json({ mensaje: 'Pedido avanzado correctamente' });
+    });
+});
+
 
 
 module.exports = router;

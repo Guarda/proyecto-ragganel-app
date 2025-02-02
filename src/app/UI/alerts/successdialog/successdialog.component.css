@@ -1,0 +1,31 @@
+.dialog-content {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espaciado entre ícono y texto */
+  }
+  
+  .success-icon {
+    color: #4caf50; /* Verde de éxito */
+    font-size: 32px; /* Tamaño del ícono pequeño */
+  }
+  
+  .success-icon-large {
+    color: #4caf50;
+    font-size: 48px; /* Tamaño del ícono grande */
+  }
+  
+  mat-dialog-title {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Espaciado entre ícono y título */
+    font-size: 22px;
+  }
+  
+  mat-dialog-actions button {
+    background-color: #4caf50;
+    color: white;
+    font-weight: bold;
+    width: 100%;
+    padding: 12px;
+  }
+  

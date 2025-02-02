@@ -1,3 +1,4 @@
+/* Estilos generales */
 .card {
   display: flex;
   flex-direction: column;
@@ -44,7 +45,7 @@
 
 .categorias {
   display: flex;
-  gap: 10px; /* Espacio pequeño entre Categoría y Subcategoría */
+  gap: 10px;
 }
 
 .categorias p {
@@ -69,4 +70,49 @@
   margin: 0;
   font-size: 1.2em;
   font-weight: bold;
+}
+
+/* Estilos de los botones de cantidad */
+.card-content p button {
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s ease-in-out;
+}
+
+.card-content p button:hover {
+  background-color: #e0e0e0;
+}
+
+.card-content p button:active {
+  transform: scale(0.95);
+}
+
+.card-content p button:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card-content p {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espacio entre los botones y la cantidad */
+}
+
+/* Para que los botones se alineen bien */
+.card-content p span {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Estilos para el contenedor de cantidad */
+.card-content p .cantidad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }

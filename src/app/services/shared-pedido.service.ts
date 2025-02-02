@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root'
@@ -7,11 +8,15 @@ import { BehaviorSubject } from 'rxjs';
 export class SharedPedidoService {
 
   private dataSubjectSubTotalArticulosPedido = new BehaviorSubject<number>(0);
+  
   SubTotalArticulosPedido$ = this.dataSubjectSubTotalArticulosPedido.asObservable();
 
   subtotalarticulosPedido(newData: number) {
+    this.data.SubTotalArticulos = newData; // Update stored value
     this.dataSubjectSubTotalArticulosPedido.next(newData);
+    this.calculateTotal(); // Recalculate the total
   }
+  
 
   private data = {
     SubTotalArticulos: 0,
@@ -21,7 +26,7 @@ export class SharedPedidoService {
   };
 
   private totalSubject = new BehaviorSubject<number>(0);
-  total$ = this.totalSubject.asObservable();
+  total$ = this.totalSubject.asObservable().pipe(distinctUntilChanged());
 
   updateField(field: keyof typeof this.data, value: number) {
     this.data[field] = value || 0; // Asigna un valor por defecto de 0
@@ -29,13 +34,16 @@ export class SharedPedidoService {
   }
 
   private calculateTotal() {
-    const { SubTotalArticulos, Impuestos, ShippingUSA, ShippingNic } = this.data;
+    setTimeout(() => {
+        const { SubTotalArticulos, Impuestos, ShippingUSA, ShippingNic } = this.data;
     
-    const total = SubTotalArticulos + Impuestos + ShippingUSA + ShippingNic;
-    console.log('servicio',total)
-    this.totalSubject.next(total);
-    
-  }
+        const total = SubTotalArticulos + Impuestos + ShippingUSA + ShippingNic;
+        console.log('servicio', total);
+
+        this.totalSubject.next(total);
+    }, 0); // ⚡️ Retraso mínimo para ejecutar en el siguiente ciclo de cambios
+}
+
 
   constructor() { }
 }

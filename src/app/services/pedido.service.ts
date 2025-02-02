@@ -60,24 +60,48 @@ export class PedidoService {
     })
       .pipe(
         catchError(this.errorHandler)
-      )      
+      )
   }
 
-  
+  cancelar(idpedido: any): Observable<any> {
+    // console.log(producto)
+    return this.httpClient.put(this.apiURL + '/pedidos/cancelar-pedido/' + idpedido, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  eliminar(idpedido: any): Observable<any> {
+    // console.log(producto)
+    return this.httpClient.put(this.apiURL + '/pedidos/eliminar-pedido/' + idpedido, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  avanzar(idpedido: any): Observable<any> {
+    // console.log(producto)
+    return this.httpClient.put(this.apiURL + '/pedidos/avanzar-pedido/' + idpedido, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+
 
   updateArticulos(pedido: any): Observable<any> {
     // Extraer solo los artículos del pedido
     const articulos = pedido.articulos;
-  
+
     console.log("Artículos a enviar:", articulos);  // Esto es solo para debug
-  
+
     return this.httpClient.post(this.apiURL + '/pedidos/actualizar-o-agregar-articulos/', pedido, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       );
   }
-  
-  
+
+
 
   errorHandler(error: any) {
     let errorMessage = '';

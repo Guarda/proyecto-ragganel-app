@@ -1,7 +1,7 @@
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, inject, Output, signal, ViewChild } from '@angular/core';
 import { MatButton, MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -13,6 +13,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatNativeDateModule, MatOption, MatOptionModule } from '@angular/material/core';
+
+import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
+
 
 import { Pedido } from '../../interfaces/pedido';
 import { PedidoService } from '../../../services/pedido.service';
@@ -36,7 +39,8 @@ import { SharedPedidoService } from '../../../services/shared-pedido.service';
   selector: 'app-ver-pedido',
   standalone: true,
   imports: [RouterModule, ReactiveFormsModule, FormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatButton, IndexListadoArticulosComponent],
+    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, MatDatepickerModule, MatNativeDateModule, 
+    MatButton, IndexListadoArticulosComponent, SuccessdialogComponent, MatDialogModule],
   templateUrl: './ver-pedido.component.html',
   styleUrl: './ver-pedido.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]  // Add this line
@@ -81,7 +85,9 @@ export class VerPedidoComponent {
     public sharedpedidoService: SharedPedidoService,
     private route: ActivatedRoute,
     private router: Router,
-    private fb: FormBuilder) {
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    public dialog: MatDialog) {
 
   }
 
@@ -198,12 +204,13 @@ export class VerPedidoComponent {
       Comentarios: new FormControl(''),
     });
 
-
+    this.cdr.detectChanges();
   }
   ngAfterViewInit(): void {
     // Sincroniza el total de artículos en el formulario
     this.pedidoForm.setValidators(this.validarArticulos.bind(this));
     this.calcularTotalPedido();
+    this.cdr.detectChanges();
   }
 
   private parseDate(input: string): Date {
@@ -328,9 +335,7 @@ export class VerPedidoComponent {
     // Navega de regreso al listado de pedidos
     this.router.navigate(['listado-pedidos']);
   }
-
   onSubmit() {
-    // Get values of the dates
     const fechaCreacionPedido = this.pedidoForm.get('FechaCreacionPedido')?.value;
     const fechaArrivoUSA = this.pedidoForm.get('FechaArrivoUSA')?.value;
     const fechaEstimadaRecepcion = this.pedidoForm.get('FechaEstimadaRecepcion')?.value;
@@ -352,47 +357,34 @@ export class VerPedidoComponent {
       return;
     }
   
-    // Get the form values as raw data
     const pedidoData = this.pedidoForm.getRawValue();
     console.log('pedidoData:', pedidoData);
-
+  
     const pedidoData1 = {
       ...this.pedidoForm.getRawValue(),
-      articulos: this.listadoArticulos.dataToDisplay, // Aquí agregarías la lista de artículos.
+      articulos: this.listadoArticulos.dataToDisplay,
     };
-
-    // const pedidoData = {
-    //   ...this.pedidoForm.getRawValue(),
-    //   articulos: this.listadoArticulos.dataToDisplay, // Aquí agregarías la lista de artículos.
-    // };
   
-    // Format the date values to ISO 8601 format (without time)
     const fechaCreacionPedidoFormatted = new Date(pedidoData.FechaCreacionPedido).toISOString().split('T')[0];
     const fechaArrivoUSAFormatted = new Date(pedidoData.FechaArrivoUSA).toISOString().split('T')[0];
     const fechaEstimadaRecepcionFormatted = new Date(pedidoData.FechaEstimadaRecepcion).toISOString().split('T')[0];
   
-    // Update the form values with the formatted date values
     pedidoData.FechaCreacionPedido = fechaCreacionPedidoFormatted;
     pedidoData.FechaArrivoUSA = fechaArrivoUSAFormatted;
     pedidoData.FechaEstimadaRecepcion = fechaEstimadaRecepcionFormatted;
   
-    // Ensure articulos is handled correctly, not deleted unintentionally
-    const articulos = this.articulos; // Keep the current state of articulos in the component
+    const articulos = this.articulos;
     if (articulos && articulos.length > 0) {
-      // Ensure articulos are included in the request data
       pedidoData.articulos = articulos;
     } else {
-      // If no articulos are added, make sure to handle this case
       console.log("No articles to update");
     }
   
-    // Now send the pedidoData (with or without articulos) to the service
     this.pedidoService.update(pedidoData).subscribe({
       next: (res: any) => {
         console.log('Respuesta del servicio:', res);
-        // Handle success response
         if (res.message) {
-          // Handle success message (if any)
+          this.dialog.open(SuccessdialogComponent); // Mostrar el diálogo de éxito
         }
       },
       error: (err: any) => {
@@ -403,15 +395,12 @@ export class VerPedidoComponent {
         console.log('Creación del pedido completada.');
       }
     });
-    
-    // console.log("Actualizando artículos: ", pedidoData1.articulos);
-    // Send the articulos data separately, if necessary
+  
     if (pedidoData1 && pedidoData1.articulos.length > 0) {
       console.log("Actualizando artículos: ", pedidoData1);
       this.pedidoService.updateArticulos(pedidoData1).subscribe({
         next: (res: any) => {
           console.log('Respuesta de la actualización de artículos:', res);
-          // Handle the response for articles update
         },
         error: (err: any) => {
           console.error('Error al actualizar los artículos:', err);
@@ -420,7 +409,6 @@ export class VerPedidoComponent {
       });
     }
   }
-  
   
 
 }

@@ -1,0 +1,6 @@
+<h2 mat-dialog-title>Avanzar Pedido</h2>
+<mat-dialog-content>¿Desea avanzar el pedido {{OrderId}} al siguiente estado?</mat-dialog-content>
+<mat-dialog-actions class="contenedor-botones">
+    <button mat-button mat-dialog-close>Cerrar ventana</button>
+    <button mat-button type="submit" [mat-dialog-close]="true"(click)="onAvanzar()"mat-button color="primary">Avanzar pedido</button>
+</mat-dialog-actions>

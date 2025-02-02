@@ -54,30 +54,42 @@
         <td mat-cell *matCellDef="let element"> {{element.TotalPedido | number:'1.1-2'}} </td>
       </ng-container>
 
-      <!-- Symbol Column -->
-      <ng-container matColumnDef="Action">
-        <th mat-header-cell *matHeaderCellDef> Acciones </th>
-        <td mat-cell *matCellDef="let element" class="contenedor-botones"> 
-          <!-- <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.CodigoConsola)"  title="editar producto" > -->
+              <!-- Action columns -->
+        <ng-container matColumnDef="Action">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let element" class="contenedor-botones"> 
+            <!-- Ver/Editar Pedido -->
             <a mat-flat-button href="#" [routerLink]="['/listado-pedidos/ver-pedido', element.CodigoPedido, 'view']" 
                 class="button-editar-prod" title="ver/editar pedido">
                 <mat-icon class="iconos-custom">preview</mat-icon>
             </a>
-            <a mat-flat-button title="cancelar pedido" class="button-cancelar-prod">
+
+            <!-- Cancelar Pedido (Solo visible si EstadoPedido < 5) -->
+            <a *ngIf="element.EstadoPedidoFK < 5" 
+              mat-flat-button title="cancelar pedido" 
+              (click)="openDialogCancelar(element.CodigoPedido)" 
+              class="button-cancelar-prod">
                 <mat-icon class="button-cancelar-prod">cancel</mat-icon>
             </a>
-            <a mat-flat-button title="avanzar pedido" class="button-avanzar-prod">
+
+            <!-- Avanzar Pedido (Solo visible si EstadoPedido < 5) -->
+            <a *ngIf="element.EstadoPedidoFK < 5" 
+              mat-flat-button title="avanzar pedido" 
+              (click)="openDialogAvanzar(element.CodigoPedido)" 
+              class="button-avanzar-prod">
                 <mat-icon class="button-avanzar-prod">next_plan</mat-icon>
             </a>
-            <a mat-flat-button color="warn" title="borrar pedido" class="button-eliminar-prod">
+
+            <!-- Eliminar Pedido (Solo visible si EstadoPedido < 5) -->
+            <a *ngIf="element.EstadoPedidoFK < 5" 
+              mat-flat-button color="warn" title="eliminar pedido"  
+              (click)="openDialogEliminar(element.CodigoPedido)" 
+              class="button-eliminar-prod">
                 <mat-icon class="button-eliminar-prod">delete</mat-icon>
             </a>
-          <!-- <a mat-flat-button  (click)="openDialogEliminar(element.CodigoConsola)" color="warn" title="borrar producto" >
-            <mat-icon class="button-eliminar-prod">delete</mat-icon>
-          </a> -->
-          <!-- <button type="button" class="button-eliminar-prod">Delete</button>  -->
-        </td>
-      </ng-container>
+          </td>
+        </ng-container>
+
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

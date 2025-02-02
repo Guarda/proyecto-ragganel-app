@@ -16,10 +16,15 @@
       </div>
       <p><strong>Fabricante:</strong> {{ articulo.NombreFabricante }}</p>
       <p><strong>Enlace: </strong> <a [href]="articulo.EnlaceCompra" target="_blank">Ver</a></p>
-      <p><strong>Cantidad:</strong> {{ articulo.Cantidad }}</p>
+      <p><strong>Cantidad:</strong>
+        <button mat-button (click)="decreaseQuantity()">-</button>
+        {{ articulo.Cantidad }}
+        <button mat-button (click)="increaseQuantity()">+</button>
+      </p>
     </div>
     <div class="precio">
       <p><strong>{{ articulo.Precio | currency }}</strong></p>
     </div>
   </div>
 </div>
+

@@ -56,7 +56,7 @@ export class AgregarPedidoComponent {
 
   Agregado = new EventEmitter();
   pedidoForm!: FormGroup;
-  totalPrecio: number = 0;
+  totalPrecio1: number = 0;
 
   public ImagePath: any;
 
@@ -136,11 +136,11 @@ export class AgregarPedidoComponent {
 
     // Suscríbete al servicio para obtener el subtotal
     this.sharedPedidoService.SubTotalArticulosPedido$.subscribe((total) => {
-      this.totalPrecio = total;
-      console.log(this.totalPrecio);
+      this.totalPrecio1 = total;
+      console.log("el subtotal es:",this.totalPrecio1);
 
       // Actualiza el valor del campo en el formulario
-      this.pedidoForm.patchValue({ SubTotalArticulos: this.totalPrecio });
+      this.pedidoForm.patchValue({ SubTotalArticulos: this.totalPrecio1 });
     });
 
     this.tipopedidos.getAll().subscribe((data: TipoPedido[]) => {
@@ -168,11 +168,14 @@ export class AgregarPedidoComponent {
     // Sincroniza el total de artículos en el formulario
     this.pedidoForm.setValidators(this.validarArticulos.bind(this));
   }
-
+  
   validarArticulos(): { [key: string]: any } | null {
     const totalArticulos = this.listadoArticulos?.totalArticulos || 0;
-    return totalArticulos > 0 ? null : { sinArticulos: 'Debe agregar al menos un artículo.' };
+  
+    return totalArticulos > 0 ? null : { sinArticulos: 'Debe agregar al menos un artículo activo.' };
   }
+  
+  
 
   enforceTwoDecimals(event: Event): void {
     const input = event.target as HTMLInputElement;

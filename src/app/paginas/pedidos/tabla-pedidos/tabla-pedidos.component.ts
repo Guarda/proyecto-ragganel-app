@@ -13,6 +13,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 
+import { CancelarPedidosComponent } from '../cancelar-pedidos/cancelar-pedidos.component';
+import { EliminarPedidoComponent } from '../eliminar-pedido/eliminar-pedido.component';
+import { AvanzarPedidoComponent } from '../avanzar-pedido/avanzar-pedido.component';
+
 
 import { PedidoService } from '../../../services/pedido.service';
 
@@ -37,6 +41,8 @@ export class TablaPedidosComponent implements OnInit {
   get filterValue(): string {
     return this._filterValue;
   }
+
+  @Output() actualizarPedidos = new EventEmitter<void>(); // Evento para actualizar el padre
 
   // Cambiar el tipo de dataSource a MatTableDataSource<Pedido> en lugar de any[]
   @Input() set dataSource(data: Pedido[]) {
@@ -67,7 +73,62 @@ export class TablaPedidosComponent implements OnInit {
   tableDataSource!: MatTableDataSource<Pedido>;  // Asegúrate de que sea MatTableDataSource<Pedido>
   private _filterValue: string = '';
 
+  constructor(public dialog: MatDialog) {
+  }
+
   ngOnInit(): void { }
+
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarPedidoComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Eliminar.subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+  }
+
+
+  public openDialogCancelar(cons: string) {
+    const dialogRef = this.dialog.open(CancelarPedidosComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Cancelar.subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogAvanzar(cons: string) {
+    const dialogRef = this.dialog.open(AvanzarPedidoComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Avanzar.subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+  }
 
   private applyFilter(): void {
     if (this.tableDataSource) {

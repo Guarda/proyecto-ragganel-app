@@ -60,6 +60,18 @@ export class ListarPedidosComponent implements OnInit{
     this.getOrdersList();
   }
 
+  cargarPedidos(): void {
+    this.getOrdersList();
+  }
+
+  // eliminarPedidos(): void {
+  //   this.getOrdersList();
+  // }
+
+  // avanzarPedidos(): void {
+  //   this.getOrdersList();
+  // }
+
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarPedidoComponent, {
       disableClose: true,
