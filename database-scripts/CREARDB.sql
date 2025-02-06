@@ -429,6 +429,20 @@ CREATE TABLE TareasdeInsumos (
 );
 
 
+/*TABLAS HISTORIALES*/
+
+CREATE TABLE HistorialEstadoPedido (
+/*HISTORIAL DEL PEDIDO CREADO 05/02/2025*/
+    IdHistorial INT AUTO_INCREMENT PRIMARY KEY,
+    CodigoPedido VARCHAR(25) NOT NULL,
+    EstadoAnterior INT,
+    EstadoNuevo INT NOT NULL,
+    FechaCambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CodigoPedido) REFERENCES PedidoBase(CodigoPedido),
+    FOREIGN KEY (EstadoAnterior) REFERENCES EstadoPedido(CodigoEstadoPedido),
+    FOREIGN KEY (EstadoNuevo) REFERENCES EstadoPedido(CodigoEstadoPedido)
+);
+
 
 
 

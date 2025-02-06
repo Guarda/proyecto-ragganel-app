@@ -12,20 +12,19 @@
     </div>
 
     <div class="tarjetas-container">
-        <!-- Usa la propiedad activeArticulos -->
-        <div *ngFor="let articulo of activeArticulos">
+        <div *ngFor="let articulo of dataToDisplay">
             <app-tarjeta-articulo 
-                *ngFor="let articulo of dataToDisplay" 
                 [articulo]="articulo" 
                 (borrar)="removeArticulo(articulo)"
                 (actualizarCantidad)="actualizarCantidadArticulo($event, articulo)">
             </app-tarjeta-articulo>
         </div>
-        
+    
         <div class="total-container">
             <p><strong>Total de artículos:</strong> {{ totalArticulos }}</p>
             <p><strong>Subtotal:</strong> {{ totalPrecio | currency }}</p>
         </div>
     </div>
+    
 </div>
 

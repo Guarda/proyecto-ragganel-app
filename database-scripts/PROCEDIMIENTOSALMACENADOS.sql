@@ -1630,3 +1630,42 @@ END$$
 DELIMITER ;
 
 
+/*DELIMITER $$
+
+CREATE PROCEDURE ListarHistorialEstadoPedidoXId
+/*PROCEDIMIENTO ALMACENADO CREADO EL 05/02/2025
+(
+	IN IdPedido VARCHAR(25)
+)
+BEGIN
+	SELECT * FROM historialestadopedido
+    ORDER BY FechaCambio ASC;
+END$$
+
+DELIMITER ;*/
+
+DELIMITER $$
+
+CREATE PROCEDURE ListarHistorialEstadoPedidoXId(
+	IN IdPedido VARCHAR(25)
+)
+BEGIN
+    SELECT 
+        h.IdHistorial,
+        h.CodigoPedido,
+        h.EstadoAnterior,
+        ea.DescripcionEstadoPedido AS EstadoAnteriorDescripcion,
+        h.EstadoNuevo,
+        en.DescripcionEstadoPedido AS EstadoNuevoDescripcion,
+        h.FechaCambio
+    FROM HistorialEstadoPedido h
+    LEFT JOIN EstadoPedido ea ON h.EstadoAnterior = ea.CodigoEstadoPedido
+    INNER JOIN EstadoPedido en ON h.EstadoNuevo = en.CodigoEstadoPedido
+    WHERE h.CodigoPedido = IdPedido
+    ORDER BY h.FechaCambio ASC;
+END $$
+
+DELIMITER ;
+
+
+

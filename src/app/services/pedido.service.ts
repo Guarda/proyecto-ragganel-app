@@ -46,6 +46,14 @@ export class PedidoService {
 
   }
 
+  getOrderStateLog(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/pedidos/historial-pedido/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
   create(producto: any): Observable<any> {
     return this.httpClient.post(this.apiURL + '/pedidos/crear-pedido/', JSON.stringify(producto), this.httpOptions)
       .pipe(

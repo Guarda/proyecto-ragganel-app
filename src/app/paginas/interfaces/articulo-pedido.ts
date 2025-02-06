@@ -1,4 +1,5 @@
 export interface Articulo {
+  IdPedidoDetallePK: string;
     TipoArticulo: number;
     NombreTipoArticulo: string;
     Fabricante: number;

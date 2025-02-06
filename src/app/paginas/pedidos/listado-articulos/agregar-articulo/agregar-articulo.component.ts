@@ -381,7 +381,7 @@ export class AgregarArticuloComponent {
   onSubmit() {    // TODO: Use EventEmitter with form value 
     if (this.articulosForm.valid) {
       // console.log(this.articulosForm.value);
-      this.Agregado.emit(this.articulosForm.value); // Emitir datos
+      // this.Agregado.emit(this.articulosForm.value); // Emitir datos
       this.dialogRef.close(this.articulosForm.value); // Cerrar el diálogo con los datos
     } else {
       console.log('Formulario no válido');

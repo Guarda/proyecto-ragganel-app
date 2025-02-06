@@ -87,6 +87,14 @@
               class="button-eliminar-prod">
                 <mat-icon class="button-eliminar-prod">delete</mat-icon>
             </a>
+
+            <!-- Historial Pedido (Solo visible si EstadoPedido < 5) -->
+            <a  
+              mat-flat-button color="warn" title="ver historial pedido"  
+              (click)="openDialogHistorial(element.CodigoPedido)" 
+              class="button-eliminar-prod">
+                <mat-icon class="button-eliminar-prod">history</mat-icon>
+            </a>
           </td>
         </ng-container>
 

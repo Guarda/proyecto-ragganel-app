@@ -16,6 +16,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CancelarPedidosComponent } from '../cancelar-pedidos/cancelar-pedidos.component';
 import { EliminarPedidoComponent } from '../eliminar-pedido/eliminar-pedido.component';
 import { AvanzarPedidoComponent } from '../avanzar-pedido/avanzar-pedido.component';
+import { HistorialPedidoComponent } from '../historial-pedido/historial-pedido.component';
 
 
 import { PedidoService } from '../../../services/pedido.service';
@@ -123,6 +124,18 @@ export class TablaPedidosComponent implements OnInit {
       this.tableDataSource.paginator = this.paginator;
       this.tableDataSource.sort = this.sort;
     });
+    dialogRef.afterClosed().subscribe(() => {
+      this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogHistorial(cons: string) {
+    const dialogRef = this.dialog.open(HistorialPedidoComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });   
     dialogRef.afterClosed().subscribe(() => {
       this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
       this.tableDataSource.paginator = this.paginator;
