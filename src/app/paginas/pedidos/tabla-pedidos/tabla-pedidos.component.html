@@ -75,7 +75,7 @@
             <!-- Avanzar Pedido (Solo visible si EstadoPedido < 5) -->
             <a *ngIf="element.EstadoPedidoFK < 5" 
               mat-flat-button title="avanzar pedido" 
-              (click)="openDialogAvanzar(element.CodigoPedido)" 
+              (click)="openDialogAvanzar(element.CodigoPedido, element.EstadoPedidoFK)" 
               class="button-avanzar-prod">
                 <mat-icon class="button-avanzar-prod">next_plan</mat-icon>
             </a>

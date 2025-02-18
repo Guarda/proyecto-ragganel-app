@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 500%;
+  margin: auto;
+}
+
+mat-stepper {
+  width: 100%;
+}
+
+.stepper-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+ul {
+  padding-left: 20px;
+}

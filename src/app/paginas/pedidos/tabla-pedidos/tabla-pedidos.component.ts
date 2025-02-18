@@ -114,11 +114,12 @@ export class TablaPedidosComponent implements OnInit {
     });
   }
 
-  public openDialogAvanzar(cons: string) {
+  public openDialogAvanzar(cons: string, est: number) {
     const dialogRef = this.dialog.open(AvanzarPedidoComponent, {
       disableClose: true,
-      data: { value: cons }
+      data: { value: cons, codigoEstado: est }
     });
+    console.log(est)
     dialogRef.componentInstance.Avanzar.subscribe(() => {
       this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
       this.tableDataSource.paginator = this.paginator;

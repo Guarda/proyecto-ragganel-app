@@ -1,0 +1,115 @@
+
+<h3 mat-dialog-title>    
+    <span>Agregar Accesorio</span>
+</h3>
+<form [formGroup]="accesorioForm" >
+  <div class="contenedor-principal">
+    <div class="contenedor-secundario">
+      <div class="contenedor-img-consola" *ngIf="articulo && articulo.ImagePath">
+        <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
+      </div>
+      <div class="contendor-form">
+        <mat-dialog-content class="mat-typography">
+          <h3>Ingresa detalles del producto a ingresar</h3>
+            <!--Codigo Consola  -->
+          <!-- FABRICANTE -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Fabricante</mat-label>
+          <mat-select formControlName ="FabricanteAccesorio" name="FabricanteAccesorio">             
+              <mat-option *ngFor="let est of selectedFabricanteAccesorio" [value]="est.IdFabricanteAccesorioPK" [disabled]="est.NombreFabricanteAccesorio">{{est.NombreFabricanteAccesorio}} </mat-option>            
+          </mat-select> 
+        </mat-form-field>
+        <!-- CATEGORIA -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Categoria</mat-label>
+          <mat-select formControlName ="CateAccesorio" name="CateAccesorio">             
+              <mat-option *ngFor="let est of selectedCategoriaAccesorio" [value]="est.IdCategoriaAccesorioPK" [disabled]="est.NombreCategoriaAccesorio" >{{est.NombreCategoriaAccesorio}} </mat-option>            
+          </mat-select> 
+        </mat-form-field> 
+        <!-- SUBCATEGORIA -->
+        <mat-form-field class="input-form-prod">
+          <mat-label>Modelo</mat-label>
+          <mat-select formControlName ="SubCategoriaAccesorio" name="SubCategoriaAccesorio">             
+              <mat-option *ngFor="let est of selectedSubCategoriaAccesorio" [value]="est.IdSubcategoriaAccesorio" [disabled]="est.NombreSubcategoriaAccesorio">{{est.NombreSubcategoriaAccesorio}} </mat-option>            
+          </mat-select> 
+        </mat-form-field>
+         <!--Numero de serie Consola  -->
+         <mat-form-field class="input-form-prod">
+          <mat-label>Numero de serie</mat-label>
+          <textarea formControlName = "NumeroSerie" name="NumeroSerie" matInput cdkFocusInitial></textarea>
+          </mat-form-field>    
+            <!--Color Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Color</mat-label>
+            <textarea formControlName = "ColorAccesorio" name="ColorAccesorio" matInput cdkFocusInitial></textarea>
+          </mat-form-field>
+            <!--Estado Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName = "EstadoAccesorio" name="est">             
+                <mat-option *ngFor="let est of selectedEstado" [value]="est.CodigoEstado">{{est.DescripcionEstado}} </mat-option>            
+            </mat-select> 
+          </mat-form-field>
+          <!--Precio Base Consola  -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Precio Base</mat-label>
+            <textarea formControlName = "PrecioBase" name="PrecioBase" matInput></textarea>
+          </mat-form-field>        
+          
+          <!-- Productos Compatibles -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Productos Compatibles</mat-label>
+            <mat-chip-grid #chipGrid aria-label="Enter keywords" formControlName = "ProductosCompatibles">
+              @for (keyword of keywords(); track keyword) {
+                <mat-chip-row (removed)="removeKeyword(keyword)">
+                  {{keyword}}
+                  <button matChipRemove aria-label="'remove ' + keyword">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              placeholder="Agrega Productos Compatibles..."
+              [matChipInputFor]="chipGrid"
+              (matChipInputTokenEnd)="add($event)"
+            />
+        </mat-form-field>
+          <!--Tareas -->         
+        <mat-form-field class="example-form-field">
+          <mat-label>Tareas a realizar</mat-label>
+          <mat-chip-grid #reactiveChipGrid aria-label="Enter reactive form keywords" formControlName ="TodoList">
+          @for (keyword of todolistKeywords(); track keyword) {
+            <mat-chip-row (removed)="removeReactiveKeyword(keyword)">
+              {{keyword}}
+            <button matChipRemove aria-label="'remove reactive form' + keyword">
+              <mat-icon>cancel</mat-icon>
+            </button>
+            </mat-chip-row>
+          }
+          </mat-chip-grid>
+          <input
+            placeholder="New keyword..."
+            [matChipInputFor]="reactiveChipGrid"
+            (matChipInputTokenEnd)="addReactiveKeyword($event)"
+          />
+        </mat-form-field>
+        
+        </mat-dialog-content>
+        
+      </div>  
+    </div>
+    <!-- Comentarios -->
+    <div class="contenedor-comentario">
+      <h3>Comentarios</h3>
+      <mat-form-field class="example-full-width"  >
+        <mat-label>Describe el estado del producto</mat-label>
+        <textarea matInput formControlName = "ComentarioAccesorio" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+      </mat-form-field>
+    </div>  
+  </div>
+  <!-- <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!accesorioForm.valid">Ingresar</button>
+  </mat-dialog-actions> -->
+</form>
