@@ -213,7 +213,8 @@ export class IngresarProductosPedidoComponent {
       ComentarioConsola: new FormControl(''),
       Accesorios: new FormControl(''),
       NumeroSerie: new FormControl(''),
-      TodoList: new FormControl('')
+      TodoList: new FormControl(''),
+      IdPedido: new FormControl('')
     });
 
     // *USAR this.form PARA ESTABLECER LOS VALORES INICIALES*
@@ -230,7 +231,8 @@ export class IngresarProductosPedidoComponent {
         HackConsola: this.articulo.HackConsola || '', // Usa el valor del articulo o ''
         Accesorios: this.articulo.Accesorios || '', // Usa el valor del articulo o ''
         ComentarioConsola: this.articulo.Comentario || '', // Usa el valor del articulo o ''
-        TodoList: this.articulo.TodoList || ''  // Usa el valor del articulo o ''
+        TodoList: this.articulo.TodoList || '',  // Usa el valor del articulo o ''
+        IdPedido: this.articulo.IdCodigoPedidoFK
       });
     }
 

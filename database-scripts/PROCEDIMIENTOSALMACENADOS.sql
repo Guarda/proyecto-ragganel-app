@@ -1668,4 +1668,106 @@ END $$
 DELIMITER ;
 
 
+/*PROCEDIMIENTO CREADO POR CHAT GPT 18/02/2025*/
+DELIMITER //
 
+CREATE PROCEDURE IngresarArticulosPedido(
+    IN p_IdPedido VARCHAR(25), 
+    IN p_Productos JSON, 
+    IN p_Accesorios JSON
+)
+BEGIN
+    DECLARE v_CodigoConsolaGenerated VARCHAR(50);
+    DECLARE v_CodigoAccesorioGenerated VARCHAR(50);
+    DECLARE v_Indice INT DEFAULT 0;
+    DECLARE v_ProductosCount INT;
+    DECLARE v_AccesoriosCount INT;
+    DECLARE v_CodigosGenerados TEXT DEFAULT ''; -- Almacena los códigos generados
+
+    -- Variables para productos
+    DECLARE v_modeloP INT;
+    DECLARE v_colorP VARCHAR(100);
+    DECLARE v_EstadoP INT;
+    DECLARE v_hackP BOOLEAN;
+    DECLARE v_PrecioBaseP DECIMAL(6,2);  -- Renombrado
+    DECLARE v_ComentarioP VARCHAR(255);
+    DECLARE v_NumeroSerieP VARCHAR(100);  -- Renombrado
+    DECLARE v_AccesoriosP TEXT;
+    DECLARE v_TareasP TEXT;
+
+    -- Variables para accesorios
+    DECLARE v_modeloA INT;
+    DECLARE v_colorA VARCHAR(100);
+    DECLARE v_estadoA INT;
+    DECLARE v_precioBaseA DECIMAL(6,2);  -- Renombrado
+    DECLARE v_comentarioA VARCHAR(2000);  -- Renombrado
+    DECLARE v_numeroSerieA VARCHAR(100);  -- Renombrado
+    DECLARE v_tareasA TEXT;
+
+    -- Obtener la cantidad de productos y accesorios en los JSONs
+    SET v_ProductosCount = JSON_LENGTH(p_Productos);
+    SET v_AccesoriosCount = JSON_LENGTH(p_Accesorios);
+
+    -- Insertar productos
+    WHILE v_Indice < v_ProductosCount DO
+        SET v_modeloP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].articuloId')));
+        SET v_colorP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].ColorConsola')));
+        SET v_EstadoP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].EstadoConsola')));
+        SET v_hackP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].HackConsola')));
+        SET v_PrecioBaseP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].PrecioBase')));
+        SET v_ComentarioP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].ComentarioConsola')));
+        SET v_NumeroSerieP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].NumeroSerie')));
+        SET v_AccesoriosP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].Accesorios')));
+        SET v_TareasP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].TodoList')));
+
+        -- Insertar producto
+        CALL IngresarProductoATablaProductoBaseV4(v_modeloP, v_colorP, v_EstadoP, v_hackP, v_PrecioBaseP, v_ComentarioP, v_NumeroSerieP, v_AccesoriosP, v_TareasP);
+        
+        -- Obtener el último código insertado
+        SELECT CodigoConsola INTO v_CodigoConsolaGenerated FROM ProductosBases ORDER BY CodigoConsola DESC LIMIT 1;
+
+        -- Insertar en DetalleProductoPedido
+        INSERT INTO DetalleProductoPedido (IdProductoBaseFK, IdCodigoPedidoFK, Comentario) 
+        VALUES (v_CodigoConsolaGenerated, p_IdPedido, v_ComentarioP);
+
+        -- Concatenar el código generado
+        SET v_CodigosGenerados = CONCAT(v_CodigosGenerados, 'Producto:', v_CodigoConsolaGenerated, ';');
+
+        SET v_Indice = v_Indice + 1;
+    END WHILE;
+
+    -- Reset index
+    SET v_Indice = 0;
+
+    -- Insertar accesorios
+    WHILE v_Indice < v_AccesoriosCount DO
+        SET v_modeloA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].articuloId')));
+        SET v_colorA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ColorAccesorio')));
+        SET v_estadoA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].EstadoAccesorio')));
+        SET v_precioBaseA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].Precio')));
+        SET v_comentarioA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ComentarioAccesorio')));
+        SET v_numeroSerieA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].NumeroSerie')));
+        SET v_tareasA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].TodoList')));
+
+        -- Insertar accesorio
+        CALL IngresarAccesorioATablaAccesoriosBase(v_modeloA, v_colorA, v_estadoA, v_precioBaseA, v_comentarioA, v_numeroSerieA, v_tareasA);
+        
+        -- Obtener el último código insertado
+        SELECT CodigoAccesorio INTO v_CodigoAccesorioGenerated FROM AccesoriosBase ORDER BY CodigoAccesorio DESC LIMIT 1;
+
+        -- Insertar en DetalleAccesorioPedido
+        INSERT INTO DetalleAccesorioPedido (IdAccesorioBaseFK, IdCodigoPedidoFK, Comentario) 
+        VALUES (v_CodigoAccesorioGenerated, p_IdPedido, v_comentarioA);
+
+        -- Concatenar el código generado
+        SET v_CodigosGenerados = CONCAT(v_CodigosGenerados, 'Accesorio:', v_CodigoAccesorioGenerated, ';');
+
+        SET v_Indice = v_Indice + 1;
+    END WHILE;
+
+    -- Retornar los códigos generados
+    SELECT v_CodigosGenerados AS CodigosIngresados;
+
+END //
+
+DELIMITER ;

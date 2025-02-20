@@ -109,6 +109,23 @@ export class PedidoService {
       );
   }
 
+  ingresarInventario(pedido: any): Observable<any> {
+    const requestBody = {
+      idPedido: pedido.idPedido,
+      productos: pedido.productos, // Cambiado de `productosData` a `productos`
+      accesorios: pedido.accesorios, // Cambiado de `accesoriosData` a `accesorios`
+      insumos: pedido.insumos // Asegurar que también se envíen los insumos si existen
+    };
+  
+    console.log("Inventario a enviar:", requestBody); // Debug
+  
+    return this.httpClient.post(this.apiURL + '/pedidos/ingresar-inventario/', requestBody, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+  
+
 
 
   errorHandler(error: any) {

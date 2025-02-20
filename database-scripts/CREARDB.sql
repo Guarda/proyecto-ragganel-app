@@ -444,6 +444,41 @@ CREATE TABLE HistorialEstadoPedido (
 );
 
 
+/*18/02/2025*/
+CREATE TABLE HistorialEstadoProducto (
+    IdHistorial INT AUTO_INCREMENT PRIMARY KEY,
+    CodigoConsola VARCHAR(25) NOT NULL,
+    EstadoAnterior INT,
+    EstadoNuevo INT NOT NULL,
+    FechaCambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CodigoConsola) REFERENCES ProductosBases(CodigoConsola),
+    FOREIGN KEY (EstadoAnterior) REFERENCES CatalogoEstadosConsolas(CodigoEstado),
+    FOREIGN KEY (EstadoNuevo) REFERENCES CatalogoEstadosConsolas(CodigoEstado)
+);
+
+CREATE TABLE HistorialEstadoAccesorio (
+    IdHistorial INT AUTO_INCREMENT PRIMARY KEY,
+    CodigoAccesorio VARCHAR(25) NOT NULL,
+    EstadoAnterior INT,
+    EstadoNuevo INT NOT NULL,
+    FechaCambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CodigoAccesorio) REFERENCES AccesoriosBase(CodigoAccesorio),
+    FOREIGN KEY (EstadoAnterior) REFERENCES CatalogoEstadosConsolas(CodigoEstado),
+    FOREIGN KEY (EstadoNuevo) REFERENCES CatalogoEstadosConsolas(CodigoEstado)
+);
+
+CREATE TABLE HistorialEstadoInsumo (
+    IdHistorial INT AUTO_INCREMENT PRIMARY KEY,
+    CodigoInsumo VARCHAR(25) NOT NULL,
+    EstadoAnterior INT,
+    EstadoNuevo INT NOT NULL,
+    FechaCambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CodigoInsumo) REFERENCES InsumosBase(CodigoInsumo),
+    FOREIGN KEY (EstadoAnterior) REFERENCES CatalogoEstadosConsolas(CodigoEstado),
+    FOREIGN KEY (EstadoNuevo) REFERENCES CatalogoEstadosConsolas(CodigoEstado)
+);
+
+
 
 
 

@@ -26,6 +26,7 @@ import { SubcategoriaAccesorioService } from '../../../../services/subcategoria-
 
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
+import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
 
 @Component({
   selector: 'app-ingresar-accesorios-pedido',
@@ -67,6 +68,7 @@ export class IngresarAccesoriosPedidoComponent {
   CategoriaAccesorio: any;
   SubcategoriaAccesorio: any;
 
+  public orderID: any;
   public accessorieId: any;
   public accessorieCode: any;
   public accessorieColor: any;
@@ -103,7 +105,7 @@ export class IngresarAccesoriosPedidoComponent {
 
     console.log("Formulario recibido:", this.form);
     console.log("imagen", this.articulo.ImagePath);
-    console.log("articulo recibido",this.articulo);
+    console.log("articulo recibido", this.articulo);
 
 
     // Asegurarse de que `form` no sea undefined antes de asignar el listener
@@ -118,10 +120,21 @@ export class IngresarAccesoriosPedidoComponent {
     }
 
     this.accessorieCode = this.articulo.IdModeloPK;
-    this.accessoriePrice = this.articulo.Precio;
+    this.accessoriePrice = this.articulo.PrecioBase;
     this.accessorieManufacturer = this.articulo.FabricanteArticulo;
     this.accessorieCate = this.articulo.CategoriaArticulo;
     this.accessorieSubCate = this.articulo.SubcategoriaArticulo;
+    this.orderID = this.articulo.IdCodigoPedidoFK;
+
+    this.categorias.find(this.accessorieCode).subscribe((data) => {
+      this.categoria = data[0];
+      console.log(this.categoria.LinkImagen);
+      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+      // console.log(this.ImagePath)
+      this.accessorieManufacturer = this.categoria.FabricanteAccesorio;
+      // console.log(this.consoleManufacturer)
+      this.cdr.detectChanges(); // 🔥 Forzar actualización en Angular
+    });
 
 
     this.categorias.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
@@ -131,43 +144,27 @@ export class IngresarAccesoriosPedidoComponent {
       this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
     })
 
-    this.accesorioForm = new FormGroup({
-      FabricanteAccesorio: new FormControl('', Validators.required),
-      CateAccesorio: new FormControl('', Validators.required),
-      SubCategoriaAccesorio: new FormControl('', Validators.required),
-      IdModeloAccesorioPK: new FormControl('', Validators.required),
-      ColorAccesorio: new FormControl(''),
-      PrecioBase: new FormControl('', Validators.required),
-      EstadoAccesorio: new FormControl('', Validators.required),
-      ComentarioAccesorio: new FormControl(''),
-      NumeroSerie: new FormControl(''),
-      TodoList: new FormControl(''),
-      ProductosCompatibles: new FormControl('')
-    });
+    this.accesorioForm = this.form;
 
-    if (this.articulo) {  
+    if (this.articulo) {
       this.accesorioForm.patchValue({
-        FabricanteAccesorio: this.articulo.FabricanteArticulo || '',
-        IdModeloAccesorioPK: this.articulo.IdModeloPK || '',
-        PrecioBase: this.formatNumber(this.articulo.Precio) || '',
-        CateAccesorio: this.articulo.CategoriaArticulo || '',
-        SubCategoriaAccesorio: this.articulo.SubcategoriaArticulo || '',
+        FabricanteAccesorio: this.articulo.FabricanteArticulo,
+        IdModeloAccesorioPK: this.articulo.IdModeloPK,
+        PrecioBase: this.formatNumber(this.articulo.Precio),
+        CateAccesorio: this.articulo.CategoriaArticulo,
+        SubCategoriaAccesorio: this.articulo.SubcategoriaArticulo,
         NumeroSerie: this.articulo.NumeroSerie || '',
         ColorAccesorio: this.articulo.ColorAccesorio || '',
         EstadoAccesorio: this.articulo.EstadoAccesorio || '',
         ProductosCompatibles: this.articulo.ProductosCompatibles || '',
         ComentarioAccesorio: this.articulo.Comentario || '',
-        TodoList: this.articulo.TodoList || ''
-      });
-    
+        TodoList: this.articulo.TodoList || '',
+        IdPedido: this.articulo.IdCodigoPedidoFK
+      });      
+
+      this.cdr.detectChanges();
       console.log("✅ Valores después de patchValue:", this.accesorioForm.value);
     }
-
-    // this.accesorioForm = this.form;
-
-    this.accesorioForm.valueChanges.subscribe(() => {
-      this.cdr.detectChanges(); // 🔥 Forzar detección de cambios en Angular
-    });
 
     this.cdr.detectChanges(); // Detectar cambios después de patchValue
 
@@ -188,19 +185,17 @@ export class IngresarAccesoriosPedidoComponent {
       this.selectedSubCategoriaAccesorio = data;
     });
 
-    this.categorias.find(this.accessorieCode).subscribe((data) => {
-      this.categoria = data[0];
-      console.log(this.categoria.LinkImagen);
-      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-      // console.log(this.ImagePath)
-      this.accessorieManufacturer = this.categoria.FabricanteAccesorio;
-      // console.log(this.consoleManufacturer)
-      this.cdr.detectChanges(); // 🔥 Forzar actualización en Angular
-    });
+    
 
     this.accesorioForm.get('TodoList')?.setValue(this.nkeywords());
 
+    // this.accesorioForm = this.form;
 
+    this.accesorioForm.valueChanges.subscribe(() => {
+      this.cdr.detectChanges(); // 🔥 Forzar detección de cambios en Angular
+    });
+
+    
 
 
   }

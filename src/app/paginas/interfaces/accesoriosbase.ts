@@ -3,6 +3,7 @@ import { EstadosConsolas } from "./estados";
 
 export interface AccesoriosBase extends EstadosConsolas, CategoriasAccesoriosBase{
     ProductosCompatibles: string;
+    IdModeloPK: number;
     CodigoAccesorio: number;
     ModeloAccesorio: number;
     ColorAccesorio: number;

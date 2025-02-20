@@ -227,16 +227,52 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
     });
 
     Promise.all([...updatePromises, ...insertPromises])
-    .then(() => {
-        res.status(200).json({ mensaje: 'Artículos procesados correctamente' });
-    })
-    .catch(err => {
-        console.error("Error al procesar artículos:", err);
-        res.status(500).json({ error: 'Error al procesar los artículos', detalles: err.message });
-    });
+        .then(() => {
+            res.status(200).json({ mensaje: 'Artículos procesados correctamente' });
+        })
+        .catch(err => {
+            console.error("Error al procesar artículos:", err);
+            res.status(500).json({ error: 'Error al procesar los artículos', detalles: err.message });
+        });
 
 
 });
+
+// Endpoint para ingresar inventario
+router.post('/ingresar-inventario/', (req, res) => {
+    const { idPedido, productos, accesorios, insumos } = req.body;
+    console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
+
+    // Llamada al procedimiento almacenado
+    const query = 'CALL IngresarArticulosPedido(?, ?, ?)';
+
+    // En tu lógica de inserción en el servidor, puedes verificar antes de enviar los datos
+    productos.forEach((producto) => {
+        // Asegúrate de que CodigoConsola tenga un valor válido, si no, asigna un valor predeterminado
+        if (!producto.CodigoConsola) {
+            producto.CodigoConsola = 'Sin código'; // Asignar un valor predeterminado
+        }
+    });
+
+
+    // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
+    db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios)], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar el procedimiento: ', err);
+            return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
+        }
+
+        // Si la consulta es exitosa, podemos devolver los códigos generados
+        const codigosGenerados = results[0][0].CodigosIngresados;  // Acceder a los resultados
+
+        // Enviar la respuesta con los códigos generados
+        res.status(200).send({
+            mensaje: 'Inventario ingresado correctamente',
+            codigosGenerados
+        });
+    });
+});
+
 
 // Endpoint para cancelar un pedido
 router.put('/cancelar-pedido/:id', (req, res) => {

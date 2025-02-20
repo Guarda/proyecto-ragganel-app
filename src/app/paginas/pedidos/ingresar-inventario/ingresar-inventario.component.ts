@@ -63,7 +63,7 @@ export class IngresarInventarioComponent implements OnInit {
       this.generarFormularioProductos(this.productos, this.formulariosProductos);
       this.generarFormularioAccesorios(this.accesorios, this.formulariosAccesorios);
 
-      this.cdr.detectChanges();
+      
 
       this.cdr.detectChanges();
     });
@@ -88,7 +88,8 @@ export class IngresarInventarioComponent implements OnInit {
           Fabricante: ['', Validators.required],
           Cate: ['', Validators.required],
           SubCategoria: ['', Validators.required],
-          ProductosCompatibles: ['']
+          ProductosCompatibles: [''],
+          IdPedido: [this.OrderId]
         }));
       }
     });
@@ -105,14 +106,16 @@ export class IngresarInventarioComponent implements OnInit {
           NumeroSerie: [''],
           ColorAccesorio: [''],
           EstadoAccesorio: ['',Validators.required],
-          Precio: [accesorio.Precio, Validators.required],          
+          PrecioBase: [accesorio.Precio, Validators.required],          
           FabricanteAccesorio: ['', Validators.required],
           CateAccesorio: ['', Validators.required],
           SubCategoriaAccesorio: ['', Validators.required],
           TodoList: [''],
           ComentarioAccesorio: [''],
-          ProductoCompatibles: ['']
+          ProductosCompatibles: [''],
+          IdPedido: [this.OrderId]
         }));
+        
       }
     });
   }
@@ -133,11 +136,52 @@ export class IngresarInventarioComponent implements OnInit {
   
 
   recibirFormulario(form: FormGroup) {
-    if (form.valid && this.stepper) {
+    if (form.valid) {
+      console.log("Formulario válido, avanzando al siguiente paso.");
       this.stepper.next();
     } else {
-      console.log("El formulario no es válido:", form.errors);
+      console.log("El formulario no es válido:", form);
     }
   }
+  
+  finalizar(form: FormGroup) {
+    // Primero, valida el formulario]
+    console.log(form)
+    this.recibirFormulario(form);
+    
+  
+    // Luego, si el formulario es válido, enviar el inventario
+    if (form.valid) {
+      this.enviarInventario();
+    }
+  }
+
+  enviarInventario() {
+    // Recopilar datos de todos los formularios
+    const productosData = this.formulariosProductos.map(f => f.value);
+    const accesoriosData = this.formulariosAccesorios.map(f => f.value);
+    const insumosData = this.formulariosInsumos.map(f => f.value);
+  
+    const inventarioCompleto = {
+      idPedido: this.OrderId,
+      productos: productosData,
+      accesorios: accesoriosData,
+      insumos: insumosData
+    };
+  
+    console.log("Enviando inventario:", inventarioCompleto);
+
+    
+  
+    this.pedidoService.ingresarInventario(inventarioCompleto).subscribe(
+      response => {
+        console.log("Inventario enviado correctamente", response);
+      },
+      error => {
+        console.error("Error al enviar el inventario", error);
+      }
+    );
+  }
+  
   
 }
