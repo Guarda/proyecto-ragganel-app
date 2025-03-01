@@ -128,4 +128,18 @@ router.put('/producto-eliminar/:id', (req, res) => {
     });
 });
 
+// Get Order article list 
+router.get('/historial-producto/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarHistorialEstadoProductoXId` (?)';
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error("Error al obtener historial:", err);
+            return res.status(500).json({ error: "Error en el servidor" });
+        }
+        res.json(results[0]); // Devuelve el primer conjunto de resultados
+    });
+});
+
+
 module.exports = router;

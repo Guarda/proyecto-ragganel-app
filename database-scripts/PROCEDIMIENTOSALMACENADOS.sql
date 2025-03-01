@@ -1702,11 +1702,13 @@ BEGIN
     DECLARE v_precioBaseA DECIMAL(6,2);  -- Renombrado
     DECLARE v_comentarioA VARCHAR(2000);  -- Renombrado
     DECLARE v_numeroSerieA VARCHAR(100);  -- Renombrado
+    DECLARE v_productoscomaptiblesA TEXT;
     DECLARE v_tareasA TEXT;
 
     -- Obtener la cantidad de productos y accesorios en los JSONs
     SET v_ProductosCount = JSON_LENGTH(p_Productos);
     SET v_AccesoriosCount = JSON_LENGTH(p_Accesorios);
+
 
     -- Insertar productos
     WHILE v_Indice < v_ProductosCount DO
@@ -1724,7 +1726,7 @@ BEGIN
         CALL IngresarProductoATablaProductoBaseV4(v_modeloP, v_colorP, v_EstadoP, v_hackP, v_PrecioBaseP, v_ComentarioP, v_NumeroSerieP, v_AccesoriosP, v_TareasP);
         
         -- Obtener el último código insertado
-        SELECT CodigoConsola INTO v_CodigoConsolaGenerated FROM ProductosBases ORDER BY CodigoConsola DESC LIMIT 1;
+        SELECT CodigoConsola INTO v_CodigoConsolaGenerated FROM ProductosBases ORDER BY IdIngreso DESC LIMIT 1;
 
         -- Insertar en DetalleProductoPedido
         INSERT INTO DetalleProductoPedido (IdProductoBaseFK, IdCodigoPedidoFK, Comentario) 
@@ -1744,16 +1746,17 @@ BEGIN
         SET v_modeloA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].articuloId')));
         SET v_colorA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ColorAccesorio')));
         SET v_estadoA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].EstadoAccesorio')));
-        SET v_precioBaseA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].Precio')));
+        SET v_precioBaseA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].PrecioBase')));
         SET v_comentarioA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ComentarioAccesorio')));
         SET v_numeroSerieA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].NumeroSerie')));
+        SET v_productoscomaptiblesA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ProductosCompatibles')));
         SET v_tareasA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].TodoList')));
 
         -- Insertar accesorio
-        CALL IngresarAccesorioATablaAccesoriosBase(v_modeloA, v_colorA, v_estadoA, v_precioBaseA, v_comentarioA, v_numeroSerieA, v_tareasA);
+        CALL IngresarAccesorioATablaAccesoriosBaseV2(v_modeloA, v_colorA, v_estadoA, v_precioBaseA, v_comentarioA, v_numeroSerieA, v_productoscomaptiblesA, v_tareasA);
         
         -- Obtener el último código insertado
-        SELECT CodigoAccesorio INTO v_CodigoAccesorioGenerated FROM AccesoriosBase ORDER BY CodigoAccesorio DESC LIMIT 1;
+        SELECT CodigoAccesorio INTO v_CodigoAccesorioGenerated FROM AccesoriosBase ORDER BY IdIngreso DESC LIMIT 1;
 
         -- Insertar en DetalleAccesorioPedido
         INSERT INTO DetalleAccesorioPedido (IdAccesorioBaseFK, IdCodigoPedidoFK, Comentario) 
@@ -1769,5 +1772,57 @@ BEGIN
     SELECT v_CodigosGenerados AS CodigosIngresados;
 
 END //
+
+DELIMITER ;
+
+
+/*Listar historial producto 01/03/2025*/
+DELIMITER $$
+
+CREATE PROCEDURE ListarHistorialEstadoProductoXId(
+	IN IdProducto VARCHAR(25)
+)
+BEGIN
+    SELECT 
+        h.IdHistorial,
+        h.CodigoConsola,
+        h.EstadoAnterior,
+        ea.DescripcionEstado AS EstadoAnteriorDescripcion,
+        h.EstadoNuevo,
+        en.DescripcionEstado AS EstadoNuevoDescripcion,
+        h.FechaCambio
+    FROM historialestadoproducto h
+    LEFT JOIN  catalogoestadosconsolas ea ON h.EstadoAnterior = ea.CodigoEstado
+    INNER JOIN catalogoestadosconsolas en ON h.EstadoNuevo = en.CodigoEstado
+    WHERE h.CodigoConsola = IdProducto
+    -- WHERE h.CodigoConsola = 'GCI003-19'
+    ORDER BY h.FechaCambio ASC;
+END $$
+
+DELIMITER ;
+
+
+/*Listar historial accesorio 01/03/2025*/
+DELIMITER $$
+
+CREATE PROCEDURE ListarHistorialEstadoAccesorioXId(
+	IN IdAccesorio VARCHAR(25)
+)
+BEGIN
+    SELECT 
+        h.IdHistorial,
+        h.CodigoAccesorio,
+        h.EstadoAnterior,
+        ea.DescripcionEstado AS EstadoAnteriorDescripcion,
+        h.EstadoNuevo,
+        en.DescripcionEstado AS EstadoNuevoDescripcion,
+        h.FechaCambio
+    FROM historialestadoaccesorio h
+    LEFT JOIN  catalogoestadosconsolas ea ON h.EstadoAnterior = ea.CodigoEstado
+    INNER JOIN catalogoestadosconsolas en ON h.EstadoNuevo = en.CodigoEstado
+    WHERE h.CodigoAccesorio = IdAccesorio
+    -- WHERE h.CodigoConsola = 'GCI003-19'
+    ORDER BY h.FechaCambio ASC;
+END $$
 
 DELIMITER ;

@@ -84,8 +84,8 @@ td.mat-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white!important;
-  background-color: green!important;
+  color: green!important;
+  background-color: white!important;
 }
 
 
@@ -97,8 +97,17 @@ td.mat-cell {
 } */
 
 .button-eliminar-prod{
-  color: white;
-  background-color: red;
+  color: red;
+  background-color: white;
+  justify-content: center;
   display: flex;
-  padding: auto;
+  align-items: center;
+}
+
+.button-historial-prod{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: purple!important;
+  background-color: white!important;
 }

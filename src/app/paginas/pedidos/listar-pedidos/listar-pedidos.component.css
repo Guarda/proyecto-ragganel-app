@@ -59,6 +59,8 @@ td.mat-cell {
   height: 2.5rem;
 }
 
+
+
 .foo-paginator {
   width: 100%; /* Asegura que el paginador ocupe todo el ancho */
   background-color: #f0f0f0; /* Opcional: fondo claro */

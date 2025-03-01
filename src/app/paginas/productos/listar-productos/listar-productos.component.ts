@@ -17,23 +17,24 @@ import { ProductosService } from '../productos.service';
 import { AgregarProdutosComponent } from '../agregar-produtos/agregar-produtos.component';
 import { EditarProductosComponent } from '../editar-productos/editar-productos.component';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
+import { HistorialProductoComponent } from '../historial-producto/historial-producto.component';
 
 
 @Component({
   selector: 'app-listar-productos',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterModule, 
-    MatTableModule, 
-    MatLabel, 
-    MatFormField, 
+    CommonModule,
+    RouterModule,
+    MatTableModule,
+    MatLabel,
+    MatFormField,
     MatInputModule,
-    MatInputModule, 
-    MatSortModule, 
-    MatPaginatorModule, 
-    MatIcon, 
-    MatButtonModule    
+    MatInputModule,
+    MatSortModule,
+    MatPaginatorModule,
+    MatIcon,
+    MatButtonModule
   ],
   templateUrl: './listar-productos.component.html',
   styleUrl: './listar-productos.component.css'
@@ -41,7 +42,7 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
 export class ListarProductosComponent implements AfterViewInit {
   productos: Producto[] = [];
   myArray: any[] = [];
-  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase','Comentario', 'Action'];
+  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase', 'Comentario', 'Action'];
   //dataSource = ELEMENT_DATA;
   dataSource = new MatTableDataSource<Producto>;
 
@@ -71,16 +72,28 @@ export class ListarProductosComponent implements AfterViewInit {
       this.dataSource.sort = this.sort;
     });
   }
- 
-  public openDialogEliminar(cons: string){
-    const dialogRef = this.dialog.open(EliminarProductosComponent, {  
-      disableClose: true,   
-      data: { value: cons }      
+
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {
+      disableClose: true,
+      data: { value: cons }
     });
     dialogRef.componentInstance.Borrado.subscribe(() => {
       this.getProductList();
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getProductList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogHistorial(cons: string) {
+    const dialogRef = this.dialog.open(HistorialProductoComponent, {
+      disableClose: true,
+      data: { value: cons }
     });
     dialogRef.afterClosed().subscribe(() => {
       this.getProductList();

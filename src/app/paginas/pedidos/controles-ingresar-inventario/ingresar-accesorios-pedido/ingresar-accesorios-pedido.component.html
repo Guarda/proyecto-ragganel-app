@@ -5,7 +5,7 @@
 <form [formGroup]="accesorioForm" >
   <div class="contenedor-principal">
     <div class="contenedor-secundario">
-      <div class="contenedor-img-consola" *ngIf="articulo && articulo.ImagePath">
+      <div class="contenedor-img-consola" *ngIf="articulo && articulo.ImagePath && ImagePath" >
         <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
       </div>
       <div class="contendor-form">

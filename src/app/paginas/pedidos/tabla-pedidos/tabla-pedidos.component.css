@@ -75,6 +75,12 @@ td.mat-cell {
     opacity: 0.8;  /* Da un efecto de hover más sutil */
 }
 
+.contenedor-botones {
+    display: flex;
+    height: 52px!important;
+    margin-bottom: 0%;
+  } 
+
 
 .foo-paginator {
     width: 100%; /* Asegura que el paginador ocupe todo el ancho */

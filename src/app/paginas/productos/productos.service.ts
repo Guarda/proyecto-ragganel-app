@@ -94,6 +94,14 @@ export class ProductosService {
       )
   }
 
+  getProductStateLog(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/productos/historial-producto/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
 
 
   errorHandler(error: any) {

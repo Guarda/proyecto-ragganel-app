@@ -238,6 +238,41 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 
 });
 
+// // Endpoint para ingresar inventario
+// router.post('/ingresar-inventario/', (req, res) => {
+//     const { idPedido, productos, accesorios, insumos } = req.body;
+//     console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
+
+//     // Llamada al procedimiento almacenado
+//     const query = 'CALL IngresarArticulosPedido(?, ?, ?)';
+
+//     // En tu lógica de inserción en el servidor, puedes verificar antes de enviar los datos
+//     productos.forEach((producto) => {
+//         // Asegúrate de que CodigoConsola tenga un valor válido, si no, asigna un valor predeterminado
+//         if (!producto.CodigoConsola) {
+//             producto.CodigoConsola = 'Sin código'; // Asignar un valor predeterminado
+//         }
+//     });
+
+
+//     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
+//     db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios)], (err, results) => {
+//         if (err) {
+//             console.error('Error al ejecutar el procedimiento: ', err);
+//             return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
+//         }
+
+//         // Si la consulta es exitosa, podemos devolver los códigos generados
+//         const codigosGenerados = results[0][0].CodigosIngresados;  // Acceder a los resultados
+
+//         // Enviar la respuesta con los códigos generados
+//         res.status(200).send({
+//             mensaje: 'Inventario ingresado correctamente',
+//             codigosGenerados
+//         });
+//     });
+// });
+
 // Endpoint para ingresar inventario
 router.post('/ingresar-inventario/', (req, res) => {
     const { idPedido, productos, accesorios, insumos } = req.body;
@@ -246,14 +281,34 @@ router.post('/ingresar-inventario/', (req, res) => {
     // Llamada al procedimiento almacenado
     const query = 'CALL IngresarArticulosPedido(?, ?, ?)';
 
-    // En tu lógica de inserción en el servidor, puedes verificar antes de enviar los datos
-    productos.forEach((producto) => {
-        // Asegúrate de que CodigoConsola tenga un valor válido, si no, asigna un valor predeterminado
-        if (!producto.CodigoConsola) {
-            producto.CodigoConsola = 'Sin código'; // Asignar un valor predeterminado
+    // Asegurar que cada accesorio tenga los valores correctos
+    accesorios.forEach((accesorio) => {
+        if (!accesorio.CodigoConsola) {
+            accesorio.CodigoConsola = 'Sin código'; 
+        }
+
+        // Convertir arrays a cadenas separadas por comas
+        if (Array.isArray(accesorio.TodoList)) {
+            accesorio.TodoList = accesorio.TodoList.join(',');
+        }
+        if (Array.isArray(accesorio.ProductosCompatibles)) {
+            accesorio.ProductosCompatibles = accesorio.ProductosCompatibles.join(',');
         }
     });
 
+    productos.forEach((producto) => {
+        if (!producto.CodigoConsola) {
+            producto.CodigoConsola = 'Sin código'; 
+        }
+
+        // Convertir arrays a cadenas separadas por comas
+        if (Array.isArray(producto.TodoList)) {
+            producto.TodoList = producto.TodoList.join(',');
+        }
+        if (Array.isArray(producto.Accesorios)) {
+            producto.Accesorios = producto.Accesorios.join(',');
+        }
+    })
 
     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
     db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios)], (err, results) => {
@@ -263,15 +318,15 @@ router.post('/ingresar-inventario/', (req, res) => {
         }
 
         // Si la consulta es exitosa, podemos devolver los códigos generados
-        const codigosGenerados = results[0][0].CodigosIngresados;  // Acceder a los resultados
+        const codigosGenerados = results[0][0].CodigosIngresados;  
 
-        // Enviar la respuesta con los códigos generados
         res.status(200).send({
             mensaje: 'Inventario ingresado correctamente',
             codigosGenerados
         });
     });
 });
+
 
 
 // Endpoint para cancelar un pedido

@@ -1,0 +1,71 @@
+.timeline-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .timeline {
+    position: relative;
+    width: 80%;
+    padding-left: 30px;
+    padding-right: 30px;
+    margin: 20px 0;
+  }
+  
+  .timeline-event {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  .timeline-dot {
+    background-color: #3498db;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    left: -30px;
+    top: 5px;
+  }
+  
+  .timeline-content {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 15px;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .timeline-content h5 {
+    margin: 0;
+    font-size: 1.2em;
+  }
+  
+  .timeline-content p {
+    margin: 5px 0;
+  }
+  
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 6px;
+    width: 2px;
+    height: 100%;
+    background-color: #3498db;
+  }
+
+  .dialog-content {
+    max-height: 800px; /* Ajusta según necesites */
+    overflow-y: auto;
+    display: block;
+  }
+  
+  .mat-dialog-container {
+    max-height: 90vh !important; /* Permite más espacio en el diálogo */
+  }
+  
+  

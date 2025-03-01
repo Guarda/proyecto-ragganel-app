@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, Inject, inject, OnInit, ViewChild } from 
 import { FormBuilder, FormControl, FormGroup, NgModel, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatStep, MatStepper } from '@angular/material/stepper';
+import { MatStep, MatStepper, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
 
 import { IngresarAccesoriosPedidoComponent } from '../controles-ingresar-inventario/ingresar-accesorios-pedido/ingresar-accesorios-pedido.component';
 import { IngresarInsumosPedidoComponent } from '../controles-ingresar-inventario/ingresar-insumos-pedido/ingresar-insumos-pedido.component';
@@ -19,7 +19,7 @@ import { MatButton } from '@angular/material/button';
   selector: 'app-ingresar-inventario',
   standalone: true,
   imports: [MatStepper, MatButton, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, 
-    IngresarProductosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose],
+    IngresarProductosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatStepperPrevious],
   templateUrl: './ingresar-inventario.component.html',
   styleUrl: './ingresar-inventario.component.css'
 })
@@ -137,8 +137,8 @@ export class IngresarInventarioComponent implements OnInit {
 
   recibirFormulario(form: FormGroup) {
     if (form.valid) {
-      console.log("Formulario válido, avanzando al siguiente paso.");
-      this.stepper.next();
+      console.log("Formulario válido.");
+      //this.stepper.next();
     } else {
       console.log("El formulario no es válido:", form);
     }
@@ -183,5 +183,8 @@ export class IngresarInventarioComponent implements OnInit {
     );
   }
   
-  
+  goBack() {
+    this.stepper.previous();
+    this.cdr.detectChanges(); // 🔥 Forzar actualización de la vista
+  }
 }

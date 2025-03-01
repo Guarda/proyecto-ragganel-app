@@ -68,6 +68,14 @@ export class AccesorioBaseService {
       )
   }
 
+  getAccesoriosStateLog(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/accesorios-base/historial-accesorio/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+
+  }
+
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

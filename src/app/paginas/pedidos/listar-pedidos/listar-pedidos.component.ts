@@ -11,7 +11,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 
 import { TablaPedidosComponent } from '../tabla-pedidos/tabla-pedidos.component';
 
@@ -19,7 +19,6 @@ import { AgregarPedidoComponent } from '../agregar-pedido/agregar-pedido.compone
 import { PedidoService } from '../../../services/pedido.service';
 
 import { Pedido } from '../../interfaces/pedido';
-
 @Component({
   selector: 'app-listar-pedidos',
   standalone: true,
@@ -28,8 +27,9 @@ import { Pedido } from '../../interfaces/pedido';
   templateUrl: './listar-pedidos.component.html',
   styleUrl: './listar-pedidos.component.css'
 })
-export class ListarPedidosComponent implements OnInit{
-
+export class ListarPedidosComponent implements OnInit {
+   
+  @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
   productos: Pedido[] = [];
   myArray: any[] = [];
   displayedColumns: string[] = ['CodigoPedido', 'FechaCreacionPedido', 'FechaArriboEstadosUnidos', 'FechaIngreso', 'DescripcionEstadoPedido', 'NumeroTracking1', 'SubtotalArticulos', 'TotalPedido', 'Action'];
@@ -64,30 +64,12 @@ export class ListarPedidosComponent implements OnInit{
     this.getOrdersList();
   }
 
-  // eliminarPedidos(): void {
-  //   this.getOrdersList();
-  // }
-
-  // avanzarPedidos(): void {
-  //   this.getOrdersList();
-  // }
-
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarPedidoComponent, {
       disableClose: true,
       height: '100%',
       width: '50%',
     });
-    // dialogRef.componentInstance.Agregado.subscribe(() => {
-    //   this.getProductList();
-    //   this.dataSource.paginator = this.paginator;
-    //   this.dataSource.sort = this.sort;
-    // });
-    // dialogRef.afterClosed().subscribe(() => {
-    //   this.getProductList();
-    //   this.dataSource.paginator = this.paginator;
-    //   this.dataSource.sort = this.sort;
-    // });
   }
 
   onAdd(a: any) {
@@ -96,12 +78,10 @@ export class ListarPedidosComponent implements OnInit{
 
   getOrdersList() {
     this.pedidoService.getAll().subscribe((data: Pedido[]) => {
-      // console.log(data)
-      // Guardamos todos los pedidos en una variable temporal
-      this.dataSource = new MatTableDataSource<Pedido>(data);      
+      this.dataSource = new MatTableDataSource<Pedido>(data);
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
-  
+
       // Filtramos los pedidos por estado
       this.pedidosEnEspera = data.filter(pedido => pedido.Estado === 'En espera');
       this.pedidosEnTransito = data.filter(pedido => pedido.Estado === 'En tránsito');
@@ -109,18 +89,43 @@ export class ListarPedidosComponent implements OnInit{
       this.pedidosEnAduana = data.filter(pedido => pedido.Estado === 'En aduana/agencia');
       this.pedidosRecibidos = data.filter(pedido => pedido.Estado === 'Recibido');
       this.pedidosCancelados = data.filter(pedido => pedido.Estado === 'Cancelado');
-      this.pedidosEliminados = data.filter(pedido => pedido.Estado === 'Eliminado');  
-     
+      this.pedidosEliminados = data.filter(pedido => pedido.Estado === 'Eliminado');
     });
   }
-  
+
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.filterValue = filterValue;
+    this.dataSource.filter = filterValue;
+   // console.log("Filtro aplicado:", this.filterValue);  // Para verificar que el filtro 
 
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+
+    // Filtrar y luego cambiar la pestaña si el filtro encuentra algún dato
+    this.selectTabForFilter(filterValue);
   }
-  
+
+  selectTabForFilter(filterValue: string) {
+    //console.log("aaa")
+    // Verifica en qué estado se encuentra el pedido que coincide con el filtro
+    if (this.pedidosEnEspera.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 0; // En espera
+    } else if (this.pedidosEnTransito.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 1; // En tránsito
+    } else if (this.pedidosRecibidosUSA.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 2; // En Estados Unidos
+    } else if (this.pedidosEnAduana.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 3; // En aduana/agencia
+    } else if (this.pedidosRecibidos.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 4; // Recibidos
+    } else if (this.pedidosCancelados.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 5; // Cancelados
+    } else {
+      // Si no se encuentra ningún pedido en los filtros
+      this.tabGroup.selectedIndex = -1; // Sin selección
+    }
+    console.log(this.tabGroup.selectedIndex);
+  }
 }

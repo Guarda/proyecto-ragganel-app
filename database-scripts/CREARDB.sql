@@ -147,6 +147,11 @@ CREATE TABLE ProductosBases (
     FOREIGN KEY (Estado) REFERENCES CatalogoEstadosConsolas (CodigoEstado)
 );
 
+/*MODIFICACION A LA TABLA PRODUCTOS BASES 24/02/2025*/
+ALTER TABLE ProductosBases 
+ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;
+
+
 /*NO USAR
 CREATE TABLE AccesoriosdeProductos (
 /*TABLA ACCESORIOSDEPRODUCTOS CREADA 23/09/2024 
@@ -225,6 +230,10 @@ CREATE TABLE AccesoriosBase (
     FOREIGN KEY (ModeloAccesorio) REFERENCES CatalogoAccesorios (IdModeloAccesorioPK),
     FOREIGN KEY (EstadoAccesorio) REFERENCES CatalogoEstadosConsolas (CodigoEstado)
 );
+
+/*MODIFICACION A LA TABLA ACCESORIOS BASES 24/02/2025*/
+ALTER TABLE AccesoriosBase 
+ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;
 
 CREATE TABLE TareasdeAccesorios (
 /*TABLA TareasdeAccesorios CREADA 9/11/24 */
@@ -417,6 +426,10 @@ CREATE TABLE InsumosBase (
     FOREIGN KEY (ModeloInsumo) REFERENCES CatalogoInsumos (IdModeloInsumosPK),
     FOREIGN KEY (EstadoInsumo) REFERENCES CatalogoEstadosconsolas (CodigoEstado)
 );
+
+/*MODIFICACION A LA TABLA InsumosBase 24/02/2025*/
+ALTER TABLE InsumosBase 
+ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;
 
 CREATE TABLE TareasdeInsumos (
 /*TABLA TareasdeInsumos CREADA 23/11/24*/

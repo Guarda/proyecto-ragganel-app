@@ -15,6 +15,7 @@ import { AccesoriosBase } from '../../interfaces/accesoriosbase';
 import { AccesorioBaseService } from '../../../services/accesorio-base.service';
 import { AgregarAccesoriosComponent } from '../agregar-accesorios/agregar-accesorios.component';
 import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-accesorios.component';
+import { HistorialAccesorioComponent } from '../historial-accesorio/historial-accesorio.component';
 
 @Component({
   selector: 'app-listar-accesorios',
@@ -28,7 +29,7 @@ export class ListarAccesoriosComponent {
   accesorios: AccesoriosBase[] = [];
 
   dataSource = new MatTableDataSource<AccesoriosBase>;
-  displayedColumns: string[] = ['CodigoAccesorio', 'ColorAccesorio', 'EstadoAccesorio', 'FechaIngreso', 'PrecioBase','Comentario','Action'];
+  displayedColumns: string[] = ['CodigoAccesorio','DescripcionAccesorio', 'ColorAccesorio', 'EstadoAccesorio', 'FechaIngreso', 'PrecioBase','Comentario','Action'];
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -71,6 +72,18 @@ export class ListarAccesoriosComponent {
       this.dataSource.sort = this.sort;
     });
   }
+
+    public openDialogHistorial(cons: string) {
+      const dialogRef = this.dialog.open(HistorialAccesorioComponent, {
+        disableClose: true,
+        data: { value: cons }
+      });
+      dialogRef.afterClosed().subscribe(() => {
+        this.getAccesorioList();
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+      });
+    }
 
   ngOnInit(): void {
     this.getAccesorioList();

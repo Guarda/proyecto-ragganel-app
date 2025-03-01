@@ -74,8 +74,11 @@
             <a mat-flat-button href="#" [routerLink]="['/listado-productos/ver-producto', element.CodigoConsola, 'view']" class="button-editar-prod"  title="ver/editar producto" >
             <mat-icon class="iconos-custom">preview</mat-icon>
             </a>
-            <a mat-flat-button  (click)="openDialogEliminar(element.CodigoConsola)" color="warn" title="borrar producto" >
+            <a mat-flat-button  (click)="openDialogEliminar(element.CodigoConsola)" title="borrar producto" >
               <mat-icon class="button-eliminar-prod">delete</mat-icon>
+            </a>
+            <a mat-flat-button  (click)="openDialogHistorial(element.CodigoConsola)" title="historial producto" >
+              <mat-icon class="button-historial-prod">history</mat-icon>
             </a>
             <!-- <button type="button" class="btn btn-danger">Delete</button>  -->
           </td>

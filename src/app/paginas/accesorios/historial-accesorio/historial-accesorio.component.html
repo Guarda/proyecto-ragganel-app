@@ -1,0 +1,25 @@
+<div class="timeline-container">
+    <mat-dialog-content class="dialog-content">
+      <h5>Seguimiento del accesorio {{ AccesorioId }}</h5>
+      <div class="timeline">
+        <div *ngFor="let historial of historialAccesorios; let i = index" class="timeline-event">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <h5>{{ historial.EstadoNuevoDescripcion }}</h5>
+            <p>Fecha: {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
+            
+            <!-- Si es el primer estado, mostrar "Fecha de Creación" en lugar de "Estado Anterior" -->
+            <p *ngIf="i === 0"><strong>Fecha de Creación:</strong> {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
+            <p *ngIf="i !== 0"><strong>Estado Anterior:</strong> {{ historial.EstadoAnteriorDescripcion }}</p>
+  
+            <p *ngIf="i !== 0"><strong>Estado Nuevo:</strong> {{ historial.EstadoNuevoDescripcion }}</p>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+  </div>
+  
+  <div>
+    <button mat-button mat-dialog-close class="boton-cerrar">Cerrar ventana</button>
+  </div>
+  

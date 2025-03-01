@@ -68,9 +68,12 @@
             <a mat-flat-button href="#" [routerLink]="['/listado-accesorios/ver-accesorio', element.CodigoAccesorio, 'view']" class="button-editar-prod"  title="ver/editar accesorio" >
             <mat-icon class="iconos-custom">preview</mat-icon>
             </a>
-            <a mat-flat-button  (click)="openDialogEliminar(element.CodigoAccesorio)" color="warn" title="borrar producto" >
+            <a mat-flat-button  (click)="openDialogEliminar(element.CodigoAccesorio)" title="borrar producto" >
             <!-- <a mat-flat-button color="warn" title="borrar accesorio" > -->
               <mat-icon class="button-eliminar-prod">delete</mat-icon>
+            </a>
+            <a mat-flat-button  (click)="openDialogHistorial(element.CodigoAccesorio)" title="historial producto" >
+              <mat-icon class="button-historial-prod">history</mat-icon>
             </a>
             <!-- <button type="button" class="btn btn-danger">Delete</button>  -->
           </td>

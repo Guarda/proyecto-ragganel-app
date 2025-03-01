@@ -5,7 +5,7 @@
         <mat-label>Filtro</mat-label>
         <input
           matInput
-          (keyup)="filterValue = input.value"
+          (keyup)="applyFilter($event)" 
           placeholder="P-DDMMAAAA-X"
           #input
         />
@@ -17,13 +17,8 @@
       </a>
     </div>
 
-    <mat-tab-group>
-      <!-- <mat-tab label="Todos los pedidos">
-        <app-tabla-pedidos 
-          [dataSource]="dataSource" 
-          [displayedColumns]="displayedColumns"
-          [filterValue]="filterValue"/>
-      </mat-tab> -->
+
+    <mat-tab-group #tabGroup>
       <mat-tab label="En espera">
         <app-tabla-pedidos 
           [dataSource]="pedidosEnEspera" 
@@ -31,51 +26,42 @@
           [filterValue]="filterValue"
           (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
-      <mat-tab label="En Transito"> 
+      <mat-tab label="En Transito">
         <app-tabla-pedidos 
-        [dataSource]="pedidosEnTransito" 
-        [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"
-        (actualizarPedidos)="cargarPedidos()"/> 
+          [dataSource]="pedidosEnTransito" 
+          [displayedColumns]="displayedColumns"
+          [filterValue]="filterValue"
+          (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="En Estados Unidos"> 
         <app-tabla-pedidos 
-        [dataSource]="pedidosRecibidosUSA" 
-        [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"
-        (actualizarPedidos)="cargarPedidos()"/> 
-      </mat-tab>      
+          [dataSource]="pedidosRecibidosUSA" 
+          [displayedColumns]="displayedColumns"
+          [filterValue]="filterValue"
+          (actualizarPedidos)="cargarPedidos()"/> 
+      </mat-tab>
       <mat-tab label="En aduana / Agencia"> 
         <app-tabla-pedidos 
-        [dataSource]="pedidosEnAduana" 
-        [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"
-        (actualizarPedidos)="cargarPedidos()"/> 
+          [dataSource]="pedidosEnAduana" 
+          [displayedColumns]="displayedColumns"
+          [filterValue]="filterValue"
+          (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="Recibidos"> 
         <app-tabla-pedidos 
-        [dataSource]="pedidosRecibidos" 
-        [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"
-        (actualizarPedidos)="cargarPedidos()"/> 
+          [dataSource]="pedidosRecibidos" 
+          [displayedColumns]="displayedColumns"
+          [filterValue]="filterValue"
+          (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
       <mat-tab label="Cancelados"> 
         <app-tabla-pedidos 
-        [dataSource]="pedidosCancelados" 
-        [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"
-        (actualizarPedidos)="cargarPedidos()"/> 
+          [dataSource]="pedidosCancelados" 
+          [displayedColumns]="displayedColumns"
+          [filterValue]="filterValue"
+          (actualizarPedidos)="cargarPedidos()"/> 
       </mat-tab>
-      <mat-tab label="Eliminados"> 
-        <app-tabla-pedidos 
-        [dataSource]="pedidosEliminados" 
-        [displayedColumns]="displayedColumns"
-        [filterValue]="filterValue"
-        (actualizarPedidos)="cargarPedidos()"/> 
-      </mat-tab>
-      
     </mat-tab-group>
-    
 
     
 </div>

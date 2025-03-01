@@ -80,6 +80,7 @@ export class IngresarAccesoriosPedidoComponent {
   public accessorieSubCate: any;
   public accessorieSerialCode: any;
   public accessorieCompatibleProducts: any;
+  public image: any;
 
   public ImagePath: any;
 
@@ -128,20 +129,27 @@ export class IngresarAccesoriosPedidoComponent {
 
     this.categorias.find(this.accessorieCode).subscribe((data) => {
       this.categoria = data[0];
-      console.log(this.categoria.LinkImagen);
+    
+      console.log("📌 Imagen obtenida de la BD:", this.categoria.LinkImagen); // <-- Verificar valor
+    
       this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-      // console.log(this.ImagePath)
+    
+      console.log("🌟 Imagen generada por getimagePath:", this.ImagePath); // <-- Verificar resultado
+    
       this.accessorieManufacturer = this.categoria.FabricanteAccesorio;
-      // console.log(this.consoleManufacturer)
-      this.cdr.detectChanges(); // 🔥 Forzar actualización en Angular
+    
+      this.cdr.markForCheck();
     });
+    
+    
+    
 
 
     this.categorias.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
       this.keywords.update(() => []);
       this.selectedCategoria = data;
       this.categoria = data[0];
-      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+     // this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
     })
 
     this.accesorioForm = this.form;
@@ -289,7 +297,7 @@ export class IngresarAccesoriosPedidoComponent {
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-
+    console.log("kkkkkk",l);
     if (l == null || l === '') {
       return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
     } else {
