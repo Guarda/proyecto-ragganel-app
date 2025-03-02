@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal, ViewChild } from '@angular/core';
 import { MatButton, MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -34,6 +34,7 @@ import { SitiowebPedidoService } from '../../../services/sitioweb-pedido.service
 import { SharedPedidoService } from '../../../services/shared-pedido.service';
 import { PedidoService } from '../../../services/pedido.service';
 
+import { ResultadoPedidoDialogComponent } from '../resultado-pedido-dialog/resultado-pedido-dialog.component';
 
 
 @Component({
@@ -74,7 +75,8 @@ export class AgregarPedidoComponent {
     private router: Router,
     private fb: FormBuilder,
     private sharedPedidoService: SharedPedidoService,
-    private pedidosService: PedidoService
+    private pedidosService: PedidoService,
+    private dialog: MatDialog
   ) {
 
   }
@@ -137,7 +139,7 @@ export class AgregarPedidoComponent {
     // Suscríbete al servicio para obtener el subtotal
     this.sharedPedidoService.SubTotalArticulosPedido$.subscribe((total) => {
       this.totalPrecio1 = total;
-      console.log("el subtotal es:",this.totalPrecio1);
+      console.log("el subtotal es:", this.totalPrecio1);
 
       // Actualiza el valor del campo en el formulario
       this.pedidoForm.patchValue({ SubTotalArticulos: this.totalPrecio1 });
@@ -168,14 +170,14 @@ export class AgregarPedidoComponent {
     // Sincroniza el total de artículos en el formulario
     this.pedidoForm.setValidators(this.validarArticulos.bind(this));
   }
-  
+
   validarArticulos(): { [key: string]: any } | null {
     const totalArticulos = this.listadoArticulos?.totalArticulos || 0;
-  
+
     return totalArticulos > 0 ? null : { sinArticulos: 'Debe agregar al menos un artículo activo.' };
   }
-  
-  
+
+
 
   enforceTwoDecimals(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -318,25 +320,34 @@ export class AgregarPedidoComponent {
     pedidoData.FechaArrivoUSA = fechaArrivoUSAFormatted;
     pedidoData.FechaEstimadaRecepcion = fechaEstimadaRecepcionFormatted;
 
-// Ahora envías los datos formateados al servicio
-// console.log(pedidoData)
+    // Ahora envías los datos formateados al servicio
+    // console.log(pedidoData)
     this.pedidosService.create(pedidoData).subscribe({
-
-
       next: (res: any) => {
         console.log('Respuesta del servicio:', res);
-        // Manejar la respuesta, como mostrar un mensaje de éxito
-        if (res.message) {
-          alert(res.message);
-        }
-        // Emitir evento o navegar
-        // this.Agregado.emit();
-        // this.router.navigateByUrl('listado-accesorios');
+
+        // Datos para el diálogo
+        const dialogData = {
+          success: res.message ? true : false,
+          message: res.message || 'Ocurrió un error al procesar el pedido.'
+        };
+
+        // Mostrar el diálogo con el resultado
+        const dialogRef = this.dialog.open(ResultadoPedidoDialogComponent, {
+          data: dialogData
+        });
       },
       error: (err: any) => {
         console.error('Error en la creación del pedido:', err);
-        // Manejar el error, como mostrar un mensaje al usuario
-        alert('Ocurrió un error al crear el pedido. Por favor, inténtelo de nuevo.');
+        const dialogData = {
+          success: false,
+          message: 'Ocurrió un error al crear el pedido. Por favor, inténtelo de nuevo.'
+        };
+
+        // Mostrar el diálogo en caso de error
+        const dialogRef = this.dialog.open(ResultadoPedidoDialogComponent, {
+          data: dialogData
+        });
       },
       complete: () => {
         console.log('Creación del pedido completada.');

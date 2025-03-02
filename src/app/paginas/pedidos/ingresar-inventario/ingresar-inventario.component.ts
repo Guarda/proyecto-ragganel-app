@@ -8,17 +8,19 @@ import { MatStep, MatStepper, MatStepperNext, MatStepperPrevious } from '@angula
 import { IngresarAccesoriosPedidoComponent } from '../controles-ingresar-inventario/ingresar-accesorios-pedido/ingresar-accesorios-pedido.component';
 import { IngresarInsumosPedidoComponent } from '../controles-ingresar-inventario/ingresar-insumos-pedido/ingresar-insumos-pedido.component';
 import { IngresarProductosPedidoComponent } from '../controles-ingresar-inventario/ingresar-productos-pedido/ingresar-productos-pedido.component';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { DescargarExcelDialogComponent } from '../../../utiles/reportes/descargar-excel-dialog/descargar-excel-dialog.component';
 
 import { PedidoService } from '../../../services/pedido.service';
 import { Articulo } from '../../interfaces/articulo-pedido';
+import { ExcelService } from '../../../services/excel.service';
 import { MatButton } from '@angular/material/button';
 
 
 @Component({
   selector: 'app-ingresar-inventario',
   standalone: true,
-  imports: [MatStepper, MatButton, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, 
+  imports: [MatStepper, MatButton, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput,
     IngresarProductosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatStepperPrevious],
   templateUrl: './ingresar-inventario.component.html',
   styleUrl: './ingresar-inventario.component.css'
@@ -42,6 +44,9 @@ export class IngresarInventarioComponent implements OnInit {
     private fb: FormBuilder,
     private pedidoService: PedidoService,
     private cdr: ChangeDetectorRef,
+    private excelService: ExcelService,
+    private dialog: MatDialog,
+    private dialogRef: MatDialogRef<IngresarInventarioComponent>, // Agregar esto
     @Inject(MAT_DIALOG_DATA) public data: { idPedido: string }
   ) { }
 
@@ -58,12 +63,12 @@ export class IngresarInventarioComponent implements OnInit {
       this.formulariosProductos = [];
       this.formulariosAccesorios = [];
       // this.formulariosInsumos = [];
-     
+
       // Generar formularios específicos
       this.generarFormularioProductos(this.productos, this.formulariosProductos);
       this.generarFormularioAccesorios(this.accesorios, this.formulariosAccesorios);
 
-      
+
 
       this.cdr.detectChanges();
     });
@@ -105,8 +110,8 @@ export class IngresarInventarioComponent implements OnInit {
           cantidad: [1, [Validators.required, Validators.min(1)]],
           NumeroSerie: [''],
           ColorAccesorio: [''],
-          EstadoAccesorio: ['',Validators.required],
-          PrecioBase: [accesorio.Precio, Validators.required],          
+          EstadoAccesorio: ['', Validators.required],
+          PrecioBase: [accesorio.Precio, Validators.required],
           FabricanteAccesorio: ['', Validators.required],
           CateAccesorio: ['', Validators.required],
           SubCategoriaAccesorio: ['', Validators.required],
@@ -115,7 +120,7 @@ export class IngresarInventarioComponent implements OnInit {
           ProductosCompatibles: [''],
           IdPedido: [this.OrderId]
         }));
-        
+
       }
     });
   }
@@ -124,7 +129,7 @@ export class IngresarInventarioComponent implements OnInit {
   getArticuloIndex(i: number, tipo: 'producto' | 'accesorio'): number {
     let count = 0;
     const lista = tipo === 'producto' ? this.productos : this.accesorios;
-  
+
     for (let j = 0; j < lista.length; j++) {
       count += lista[j].Cantidad;
       if (i < count) {
@@ -133,7 +138,7 @@ export class IngresarInventarioComponent implements OnInit {
     }
     return 0;
   }
-  
+
 
   recibirFormulario(form: FormGroup) {
     if (form.valid) {
@@ -143,16 +148,14 @@ export class IngresarInventarioComponent implements OnInit {
       console.log("El formulario no es válido:", form);
     }
   }
-  
+
   finalizar(form: FormGroup) {
-    // Primero, valida el formulario]
-    console.log(form)
+    console.log(form);
     this.recibirFormulario(form);
-    
-  
-    // Luego, si el formulario es válido, enviar el inventario
+
     if (form.valid) {
       this.enviarInventario();
+      this.dialogRef.close(true); // Cierra la ventana y envía 'true' al padre
     }
   }
 
@@ -161,28 +164,39 @@ export class IngresarInventarioComponent implements OnInit {
     const productosData = this.formulariosProductos.map(f => f.value);
     const accesoriosData = this.formulariosAccesorios.map(f => f.value);
     const insumosData = this.formulariosInsumos.map(f => f.value);
-  
+
     const inventarioCompleto = {
       idPedido: this.OrderId,
       productos: productosData,
       accesorios: accesoriosData,
       insumos: insumosData
     };
-  
+
     console.log("Enviando inventario:", inventarioCompleto);
 
-    
-  
+
+
+
     this.pedidoService.ingresarInventario(inventarioCompleto).subscribe(
       response => {
         console.log("Inventario enviado correctamente", response);
+
+        if (response.codigosGenerados) {
+          // Abre el diálogo para confirmar la descarga del Excel
+          this.dialog.open(DescargarExcelDialogComponent, {
+            width: '400px',
+            data: { codigosGenerados: response.codigosGenerados, orderId: this.OrderId }
+          });
+        }
+
+        this.dialogRef.close(true); // Cierra el diálogo de ingreso de inventario
       },
       error => {
         console.error("Error al enviar el inventario", error);
       }
     );
   }
-  
+
   goBack() {
     this.stepper.previous();
     this.cdr.detectChanges(); // 🔥 Forzar actualización de la vista

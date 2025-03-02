@@ -43,8 +43,12 @@ export class AvanzarPedidoComponent implements OnInit {
       });
 
       // Cuando se cierre el diálogo, avanzar el pedido a estado 5
-      dialogRef.afterClosed().subscribe(() => {
-        this.avanzarPedido();
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) { // Solo avanza si el usuario finalizó correctamente
+          this.avanzarPedido();
+        } else {
+          console.log('Pedido cancelado, no se avanza de estado.');
+        }
       });
     } else {
       // Avanzar normalmente en cualquier otro caso (1->2, 2->3, 3->4)
