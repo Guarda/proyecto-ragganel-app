@@ -1,0 +1,8 @@
+<h2 mat-dialog-title>Descarga de Inventario</h2>
+<mat-dialog-content>
+  <p>El inventario ha sido ingresado correctamente. ¿Deseas descargar el archivo Excel con los códigos generados?</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="descargarExcel()">Descargar</button>
+</mat-dialog-actions>

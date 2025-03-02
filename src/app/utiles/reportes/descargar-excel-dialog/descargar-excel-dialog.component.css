@@ -1,0 +1,65 @@
+/* Estilo general del diálogo */
+mat-dialog-container {
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Título */
+  mat-dialog-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    text-align: center;
+    color: #222;
+    margin-bottom: 10px;
+  }
+  
+  /* Contenido */
+  mat-dialog-content {
+    font-size: 1.1rem;
+    color: #444;
+    padding: 15px 25px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  
+  /* Acciones */
+  mat-dialog-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    gap: 15px;
+  }
+  
+  /* Botones */
+  button {
+    min-width: 140px;
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Botón Cancelar */
+  button[mat-button] {
+    color: #666;
+    background-color: #f1f1f1;
+  }
+  
+  button[mat-button]:hover {
+    background-color: #ddd;
+  }
+  
+  /* Botón Descargar */
+  button[mat-raised-button] {
+    background-color: #1976d2;
+    color: white;
+    font-weight: bold;
+  }
+  
+  button[mat-raised-button]:hover {
+    background-color: #1565c0;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
+  }
+  

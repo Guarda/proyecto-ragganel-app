@@ -10,7 +10,9 @@ Install Angular dependecies using `npm install -g @angular/cli`
 Run the command Powershell execution policy `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
 Install npm packages which will help us to create REST APIs for our Angular CRUD system: in the /backend directory inside the main proyecto-ragganel-app directory using
 `npm install express mysql body-parser` and `npm install cors`
-
+Install angularx-qrcode with npm i angularx-qrcode
+Install XLSX file-saver with npm install xlsx file-saver
+Install File Saver with npm install --save-dev @types/file-saver
 
 ## DATABASE
 
