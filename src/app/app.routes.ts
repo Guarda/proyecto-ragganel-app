@@ -16,22 +16,39 @@ import { AgregarPedidoComponent } from './paginas/pedidos/agregar-pedido/agregar
 import { IndexListadoArticulosComponent } from './paginas/pedidos/listado-articulos/index-listado-articulos/index-listado-articulos.component';
 import { computed } from '@angular/core';
 import { VerPedidoComponent } from './paginas/pedidos/ver-pedido/ver-pedido.component';
+import { ListarUsuariosComponent } from './paginas/usuarios/listar-usuarios/listar-usuarios.component';
+import { VerUsuarioComponent } from './paginas/usuarios/ver-usuario/ver-usuario.component';
+import { AuthGuard } from './UI/session/guards/auth.guard';
+import { RoleGuard } from './UI/session/guards/role.guard';
+import { LoginComponent } from './UI/session/login/login.component';
+import { ModuloEnConstruccionComponent } from './UI/default/modulo-en-construccion/modulo-en-construccion.component';
 
 export const routes: Routes = [
-    
-    //{ path: 'post', redirectTo: 'post/index', pathMatch: 'full' },
-    { path: 'listado-productos', component: ListarProductosComponent },
-    { path: 'agregar-productos', component: PruebaComponent   },
-    { path: 'editar-productos', component: EditarProductosComponent},
-    { path: 'listado-categorias', component: ListarCategoriasComponent},
-    { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent},
-    { path: 'preferencias/index-categorias', component: IndexEdicioncategoriasComponent},
-    { path: 'listado-accesorios', component: ListarAccesoriosComponent},
-    { path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view', component: VerAccesorioComponent},
-    { path: 'listado-categorias-accesorios', component: ListarCategoriasAccesoriosComponent},
-    { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent},
-    { path: 'listado-pedidos', component: ListarPedidosComponent},
-    { path: 'crear-pedido', component: AgregarPedidoComponent},
-    { path: 'index-listado-articulos', component: IndexListadoArticulosComponent},
-    { path: 'listado-pedidos/ver-pedido/:CodigoPedido/view', component: VerPedidoComponent }
+    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: 'login', component: LoginComponent },
+    {
+        path: 'home',
+        component: MenuSidebarComponent,
+        canActivate: [AuthGuard],
+        children: [
+            { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
+            { path: 'listado-productos', component: ListarProductosComponent, canActivate: [AuthGuard] },
+            { path: 'agregar-productos', component: PruebaComponent, canActivate: [AuthGuard] },
+            { path: 'editar-productos', component: EditarProductosComponent, canActivate: [AuthGuard] },
+            { path: 'listado-categorias', component: ListarCategoriasComponent, canActivate: [AuthGuard] },
+            { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent, canActivate: [AuthGuard] },
+            { path: 'preferencias/index-categorias', component: IndexEdicioncategoriasComponent, canActivate: [AuthGuard] },
+            { path: 'listado-accesorios', component: ListarAccesoriosComponent, canActivate: [AuthGuard] },
+            { path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view', component: VerAccesorioComponent, canActivate: [AuthGuard] },
+            { path: 'listado-categorias-accesorios', component: ListarCategoriasAccesoriosComponent, canActivate: [AuthGuard] },
+            { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent, canActivate: [AuthGuard] },
+            { path: 'listado-pedidos', component: ListarPedidosComponent, canActivate: [AuthGuard] },
+            { path: 'crear-pedido', component: AgregarPedidoComponent, canActivate: [AuthGuard] },
+            { path: 'listado-productos/crear-pedido', component: AgregarPedidoComponent, canActivate: [AuthGuard] }, // Added route
+            { path: 'index-listado-articulos', component: IndexListadoArticulosComponent, canActivate: [AuthGuard] },
+            { path: 'listado-pedidos/ver-pedido/:CodigoPedido/view', component: VerPedidoComponent, canActivate: [AuthGuard] },
+            { path: 'administracion/ver-usuario/:IdUsuarioPK/view', component: VerUsuarioComponent, canActivate: [AuthGuard] },
+            { path: 'administracion/listado-usuarios', component: ListarUsuariosComponent, canActivate: [AuthGuard, RoleGuard], data: { expectedRole: '1' } },
+        ]
+    },
 ];

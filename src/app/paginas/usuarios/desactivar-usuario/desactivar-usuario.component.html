@@ -1,0 +1,6 @@
+<h2 mat-dialog-title>Desactivar Usuario</h2>
+<mat-dialog-content>¿Realmente quiere desactivar el usuario {{UserId}}?</mat-dialog-content>
+<mat-dialog-actions class="contenedor-botones">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-button type="submit" [mat-dialog-close]="true"(click)="onDescativar()"mat-button color="primary">Desactivar</button>
+</mat-dialog-actions>

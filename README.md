@@ -13,6 +13,9 @@ Install npm packages which will help us to create REST APIs for our Angular CRUD
 Install angularx-qrcode with npm i angularx-qrcode
 Install XLSX file-saver with npm install xlsx file-saver
 Install File Saver with npm install --save-dev @types/file-saver
+Install JsonWEBTOKEN with npm install express bcryptjs jsonwebtoken mysql2 body-parser cors
+Install Bycript with npm install bcryptjs
+
 
 ## DATABASE
 

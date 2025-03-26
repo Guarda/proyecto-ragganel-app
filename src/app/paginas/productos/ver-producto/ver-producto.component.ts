@@ -7,21 +7,22 @@ import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFo
 import { NgFor, NgIf } from '@angular/common';
 
 import { Producto } from '../../interfaces/producto';
+import { TipoProducto } from '../../interfaces/tipoproducto';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { EstadosConsolas } from '../../interfaces/estados';
-import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
-import { MatOption, MatOptionModule } from '@angular/material/core';
-import { TipoProducto } from '../../interfaces/tipoproducto';
 import { FabricanteProducto } from '../../interfaces/fabricantesproductos';
 import { categoriasProductos } from '../../interfaces/categoriasproductos';
 import { SubcategoriasProductos } from '../../interfaces/subcategoriasproductos';
+import { FabricanteService } from '../../../services/fabricante.service';
+import { CategoriaProductoService } from '../../../services/categoria-producto.service';
+import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
+
+import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatOption, MatOptionModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { FabricanteService } from '../../../services/fabricante.service';
-import { CategoriaProductoService } from '../../../services/categoria-producto.service';
-import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { QRCodeModule } from 'angularx-qrcode';

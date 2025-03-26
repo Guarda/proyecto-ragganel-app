@@ -492,6 +492,41 @@ CREATE TABLE HistorialEstadoInsumo (
 );
 
 
+/*TABLAS DE USUARIOS CREADAS EL 18/03/2025*/
+
+/*TABLA ESTADOS DE USUARIOS*/
+CREATE TABLE EstadoUsuarios (
+	IdEstadoPK INT AUTO_INCREMENT PRIMARY KEY,
+    DescripcionEstado varchar(100)
+);
+
+INSERT INTO EstadoUsuarios (DescripcionEstado) VALUES ('Activo');
+INSERT INTO EstadoUsuarios (DescripcionEstado) VALUES ('Inactivo');
+
+/*TABLA ROLES CREADA EL 18/03/2025*/
+CREATE TABLE Roles (
+    IdRolPK INT AUTO_INCREMENT PRIMARY KEY,
+    NombreRol VARCHAR(50) UNIQUE NOT NULL
+);
+
+INSERT INTO ROLES (NombreRol) VALUES ('Admin');
+INSERT INTO ROLES (NombreRol) VALUES ('Vendedor');
+INSERT INTO ROLES (NombreRol) VALUES ('Logistica');
+
+/*TABLA USUARIO CREADA EL 18/03/2025*/
+CREATE TABLE Usuarios (
+    IdUsuarioPK INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL,
+    Correo VARCHAR(100) UNIQUE NOT NULL,
+    Password VARCHAR(255) NOT NULL,
+    FechaIngresoUsuario date,
+    IdEstadoFK int not null,
+    IdRolFK INT NOT NULL,
+    FOREIGN KEY (IdRolFK) REFERENCES Roles(IdRolPK),
+    FOREIGN KEY (IdEstadoFK) REFERENCES EstadoUsuarios (IdEstadoPK)
+);
+
+INSERT INTO USUARIOS (Nombre, Correo, Password, FechaIngresoUsuario, IdEstadoFK, IdRolFK) VALUES ('Usuario Default Administrador', 'correoejemplo@ragganel.com', '12345PSWRD1', '2025-03-18',1,1)
 
 
 

@@ -1,0 +1,129 @@
+<div class="contenedor-componente-ver-producto">
+    <div class="header1">
+        <h3 class="cabezera">      
+            <span>Usuario</span>
+            <span>{{UserId}}</span>
+            
+        </h3>
+        <h3 class="cabezera1">
+            <a mat-raised-button class="button-crear-prod" [routerLink]="['/home/administracion/listado-usuarios']" color="primary">
+              <mat-icon class="iconos-custom">close</mat-icon>
+            </a>                 
+        </h3>
+          
+    </div>
+    
+
+    <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()">
+        <div class="contenedor-principal">            
+            <div class="contenedor-secundario">                
+                <div class="contenedor1">
+                    <div class="contenedor5">
+                        <div class="contenedor-datos-consola">
+                            <div class="contenedor-img-consola">
+                                <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
+                                <h5>Imagen del usuario {{UserId}}</h5>  
+                            </div>                                      
+                            <div class="contenedor-datos-principales">
+                                <h5>Detalles del usuario</h5>
+                                    <!-- Nombre -->
+                                    <mat-form-field class="input-form-prod">
+                                        <mat-label>Nombre</mat-label>
+                                        <textarea formControlName = "NombreUsuario" name="NombreUsuario" matInput> </textarea>
+                                    </mat-form-field>    
+                                    <!-- Correo -->
+                                    <mat-form-field class="input-form-prod">
+                                        <mat-label>Numero de serie</mat-label>
+                                        <textarea formControlName = "CorreoUsuario" name="CorreoUsuario" matInput> </textarea>
+                                    </mat-form-field>    
+                                    <!-- Password -->
+                                    <!-- Contraseña -->
+                                    <!-- <mat-form-field class="input-form">
+                                        <mat-label>Contraseña</mat-label>
+                                        <input 
+                                          matInput 
+                                          [type]="passwordVisible ? 'text' : 'password'" 
+                                          formControlName="PasswordUsuario" 
+                                          required
+                                        >
+                                        <button 
+                                          mat-icon-button 
+                                          type="button" 
+                                          (click)="togglePasswordVisibility()">
+                                          <mat-icon>{{ passwordVisible ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                        </button>
+                                      </mat-form-field> -->
+                                      <!-- Botón para cambiar la contraseña -->
+                            
+                                      
+                                
+                            </div>                        
+                        </div>
+                        <!-- Color de consola -->
+                        <div class="contenedor-detalles">
+                            <div class="contenedor3">
+                                <h5>Estado y Rol</h5>
+                                 <!-- Rol del usuario -->
+                                <mat-form-field class="input-form">
+                                    <mat-label>Rol</mat-label>
+                                    <mat-select formControlName="IdRolUsuario" required>
+                                    <mat-option *ngFor="let rol of selectedRol" [value]="rol.IdRolPK">
+                                        {{ rol.NombreRol }}
+                                    </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <!-- ESTADO USUARIO -->
+                                <mat-form-field class="input-form">
+                                    <mat-label>Estado</mat-label>
+                                    <mat-select formControlName="IdEstadoUsuario" required>
+                                      <mat-option *ngFor="let estado of selectedEstadoUsuarios" [value]="estado.IdEstadoPK">
+                                        {{ estado.DescripcionEstado }}
+                                      </mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                            </div>
+                            <div>
+                                <div class="botonedicion">
+                                    <button mat-flat-button type="submit" class="button-editar-prod" class="btn-editar" (Click)="onSubmit()" color="accent" [disabled]="!usuarioForm.dirty">Guardar Cambios</button>
+                                    <a mat-flat-button  (click)="openDialogEliminar(UserId)" color="warn" title="borrar producto" >Eliminar usuario</a>                                 
+                                    <button mat-flat-button color="accent" type="button" (click)="onChangePassword()">Cambiar Contraseña</button>
+
+                                   
+                                    <!-- <a mat-flat-button  color="warn" title="borrar producto" >Desactivar Usuario</a> -->
+                                </div>  
+                            </div>                            
+                        </div>
+                    </div>                   
+                </div>             
+                           
+            </div>
+            
+        </div>      
+    </form>
+
+</div>
+
+
+
+<!-- 
+<mat-form-field class="input-form-prod">
+    <mat-label>Fabricante</mat-label>
+    <mat-select formControlName ="Fabricante" name="Fabricante">             
+        <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricantePK" >{{est.NombreFabricante}} </mat-option>            
+    </mat-select> 
+</mat-form-field>
+
+<mat-form-field class="input-form-prod">
+    <mat-label>Categoria</mat-label>
+    <mat-select formControlName ="Cate" name="Cate">             
+        <mat-option *ngFor="let est of selectedCategoriaProducto" [value]="est.IdCategoriaPK" >{{est.NombreCategoria}} </mat-option>            
+    </mat-select> 
+</mat-form-field> 
+
+<mat-form-field class="input-form-prod">
+    <mat-label>Modelo</mat-label>
+    <mat-select formControlName ="SubCategoria" name="SubCategoria">             
+        <mat-option *ngFor="let est of selectedSubCategoriaProducto" [value]="est.IdSubcategoria" >{{est.NombreSubCategoria}} </mat-option>            
+    </mat-select> 
+</mat-form-field> -->
+  

@@ -1826,3 +1826,161 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+
+DELIMITER $$
+	CREATE PROCEDURE ListarUsuarios()
+    /*PROCEDIMIENTOS ALMACENADOS DE USUARIOS 18/03/2025*/
+    BEGIN
+		SELECT a.IdUsuarioPK, a.Nombre, a.Correo, DATE_FORMAT(A.FechaIngresoUsuario, '%d/%m/%Y') as 'FechaIngresoUsuario', b.DescripcionEstado, c.NombreRol FROM Usuarios a
+        JOIN estadousuarios b on a.IdEstadoFK = b.IdEstadoPK
+        JOIN roles c on a.IdRolFK = c.IdRolPK;
+	END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE InsertarUsuario(
+    IN p_Nombre VARCHAR(100),
+    IN p_Correo VARCHAR(100),
+    IN p_Password VARCHAR(255),
+    IN p_FechaIngresoUsuario DATE,
+    IN p_IdEstadoFK INT,
+    IN p_IdRolFK INT
+)
+BEGIN
+    INSERT INTO Usuarios (Nombre, Correo, Password, FechaIngresoUsuario, IdEstadoFK, IdRolFK)
+    VALUES (p_Nombre, p_Correo, p_Password, p_FechaIngresoUsuario, p_IdEstadoFK, p_IdRolFK);
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE ListarUsuarioPorId(
+    IN p_IdUsuarioPK INT
+)
+/*PROCEDIMIENTOS ALMACENADOS DE USUARIOS, ListarPorId 18/03/2025*/
+BEGIN
+    SELECT a.IdUsuarioPK, a.Nombre, a.Correo, DATE_FORMAT(a.FechaIngresoUsuario, '%d/%m/%Y') as 'FechaIngresoUsuario', 
+           a.IdEstadoFK, a.IdRolFK, a.Password
+    FROM Usuarios a    
+    WHERE a.IdUsuarioPK = p_IdUsuarioPK;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE ActualizarUsuario(
+    IN p_id INT,
+    IN p_nombre VARCHAR(255),
+    IN p_correo VARCHAR(255),
+    IN p_password VARCHAR(255), -- Aquí es donde recibimos la nueva contraseña
+    IN p_id_estado INT,
+    IN p_id_rol INT
+)
+BEGIN
+    UPDATE usuarios
+    SET 
+        Nombre = p_nombre,
+        Correo = p_correo,
+        Password = IFNULL(p_password, Password), -- Si no se pasa la nueva contraseña, mantenemos la anterior
+        IdEstadoFK = p_id_estado,
+        IdRolFK = p_id_rol
+    WHERE IdUsuarioPK = p_id;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE DesactivarUsuario(
+    IN p_IdUsuarioPK INT,
+    IN p_IdEstadoFK INT
+)
+BEGIN
+    UPDATE Usuarios
+    SET IdEstadoFK = p_IdEstadoFK
+    WHERE IdUsuarioPK = p_IdUsuarioPK;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+	CREATE PROCEDURE ListarRolesUsuarios()
+    /*PROCEDIMIENTO ALMACENADO LISTAR ROLES DE USUARIOS 19/03/2025*/
+    BEGIN
+		SELECT * FROM Roles;
+    END $$
+DELIMITER ;
+
+DELIMITER $$
+	CREATE PROCEDURE ListarEstadosUsuarios()
+    /*PROCEDIMIENTO ALMACENADO LISTAR ROLES DE USUARIOS 19/03/2025*/
+    BEGIN
+		SELECT * FROM estadousuarios;
+    END $$
+DELIMITER ;
+
+/*INICIO DE SESION*/
+
+DELIMITER //
+
+CREATE PROCEDURE VerificarUsuario(
+/*VALIDAR CORREO*/
+IN correo_usuario VARCHAR(100), 
+IN password_usuario VARCHAR(255)
+)
+BEGIN
+    SELECT *
+    FROM usuarios
+    WHERE Correo = correo_usuario
+    LIMIT 1;
+END //
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE VerificarUsuarioPorCorreo(IN correo_usuario VARCHAR(255))
+BEGIN
+    SELECT 
+        IdUsuarioPK, Nombre, Correo, Password, IdRolFK 
+    FROM usuarios
+    WHERE Correo = correo_usuario;
+END $$
+
+DELIMITER ;
+
+
+/*CAMBIAR PASSWORD*/
+DELIMITER $$
+
+CREATE PROCEDURE CambiarPassword(
+    IN p_IdUsuario INT,
+    IN p_NuevaContraseña VARCHAR(255)
+)
+BEGIN
+    -- Actualizar la contraseña del usuario
+    UPDATE usuarios
+    SET Password = p_NuevaContraseña
+    WHERE IdUsuarioPK = p_IdUsuario;
+    
+    -- Retornar un mensaje de éxito
+    SELECT 'Contraseña actualizada exitosamente' AS Mensaje;
+END $$
+
+DELIMITER ;
+
+
+
+DELIMITER $$
+/*PROCEDIMIENTO GETUSERPASSWORD 23/03/2025*/
+CREATE PROCEDURE `GetUserPassword` (IN userId INT)
+BEGIN
+    SELECT Password
+    FROM usuarios
+    WHERE IdUsuarioPK = userId;
+END $$
+
+DELIMITER ;
+
+

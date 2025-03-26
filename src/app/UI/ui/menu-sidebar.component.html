@@ -3,61 +3,141 @@
     <mat-icon aria-hidden="true">catching_pokemon</mat-icon>
   </button>
   <h3>SIAGTEC - Administración de taller</h3>
+
+  <!-- Botón con imagen y nombre que despliega el menú -->
+  <button mat-button [matMenuTriggerFor]="userMenu" class="user-info">
+    <img *ngIf="user" [src]="ImagePath" class="user-avatar" alt="User Avatar">
+    <span *ngIf="user" class="user-name">{{ UserName }}</span>
+  </button>
+
+  <!-- Menú desplegable con detalles del usuario -->
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item disabled>
+      <mat-icon>account_circle</mat-icon> {{ UserName }}
+    </button>
+    <button mat-menu-item (click)="viewProfile()">
+      <mat-icon>visibility</mat-icon> Ver Perfil
+    </button>
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>logout</mat-icon> Cerrar Sesión
+    </button>
+  </mat-menu>
 </mat-toolbar>
 
 <mat-sidenav-container class="menu-container" style="height: 94vh;">
   <mat-sidenav #sidenav mode="side" opened class="sidenav">
-    <mat-nav-list class="lits-items-css">
-      
-      <!-- productos -->
-      <mat-list-item routerLink="./listado-productos" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">videogame_asset</mat-icon>
-        Inventario Productos
-      </mat-list-item>
-      
-      <!-- Categorias de productos
-      <mat-list-item [matMenuTriggerFor]="categoriaMenu" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">list_alt</mat-icon>
-        Categorias de productos
-      </mat-list-item> -->
-      <mat-list-item routerLink="./listado-categorias" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">list_alt</mat-icon>
-        Categorias de productos
+    <mat-nav-list class="list-items-css">
+
+      <!-- Dashboard -->
+      <mat-list-item routerLink="/home/modulo-en-construccion" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">dashboard</mat-icon>
+        Dashboard
       </mat-list-item>
 
-      <!-- Preferencias -->
-      <mat-list-item routerLink="./preferencias/index-categorias" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">developer_board</mat-icon>
-        Preferencias productos
+      <!-- Ventas -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-icon class="iconos_menu">point_of_sale</mat-icon>
+          Ventas
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/home/ventas/pos">Punto de Venta (POS)</mat-list-item>
+          <mat-list-item routerLink="/home/ventas/listado">Listado de Ventas</mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+      <!-- Inventario -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-icon class="iconos_menu">inventory_2</mat-icon>
+          Inventario
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/home/inventario/general">Listado General de Artículos</mat-list-item>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>Productos</mat-expansion-panel-header>
+            <mat-nav-list>
+              <mat-list-item routerLink="/home/listado-productos">Inventario Productos</mat-list-item>
+              <mat-list-item routerLink="/home/listado-categorias">Categorías de Productos</mat-list-item>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>Accesorios</mat-expansion-panel-header>
+            <mat-nav-list>
+              <mat-list-item routerLink="/home/listado-accesorios">Inventario Accesorios</mat-list-item>
+              <mat-list-item routerLink="/home/listado-categorias-accesorios">Categorías de Accesorios</mat-list-item>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>Insumos</mat-expansion-panel-header>
+            <mat-nav-list>
+              <mat-list-item routerLink="/home/inventario/insumos">Inventario Insumos</mat-list-item>
+              <mat-list-item routerLink="/home/inventario/categorias-insumos">Categorías de Insumos</mat-list-item>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+          <mat-list-item routerLink="/home/inventario/proveedores">Proveedores</mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Servicios -->
+      <mat-list-item routerLink="/home/servicios" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">build</mat-icon>
+        Servicios
       </mat-list-item>
 
-      <!-- Punto de venta -->
-      <!-- <mat-list-item routerLink="./agregar-productos" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">point_of_sale</mat-icon>
-        Punto de venta
-      </mat-list-item> -->
-
-      <!-- accesorios -->
-      <mat-list-item routerLink="./listado-accesorios" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">gamepad</mat-icon>
-        Inventario
-      </mat-list-item>
-
-      <mat-list-item routerLink="./listado-categorias-accesorios" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">list_alt</mat-icon>
-        Categorias de accesorios
-      </mat-list-item>      
-
-      <!-- Preferencias -->
-      <mat-list-item routerLink="./preferencias/index-categorias-accesorios" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">developer_board</mat-icon>
-        Preferencias accesorios
+      <!-- Clientes -->
+      <mat-list-item routerLink="/home/clientes" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">people</mat-icon>
+        Clientes
       </mat-list-item>
 
       <!-- Pedidos -->
-      <mat-list-item routerLink="./listado-pedidos" class="color-texto-sidenav">
+      <mat-list-item routerLink="/home/listado-pedidos" class="color-texto-sidenav">
         <mat-icon class="iconos_menu">local_shipping</mat-icon>
         Pedidos
+      </mat-list-item>
+
+      <!-- Taller -->
+      <mat-list-item routerLink="/home/taller" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">engineering</mat-icon>
+        Taller
+      </mat-list-item>
+
+      <mat-divider></mat-divider>
+
+      <!-- Administración -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>          
+            <mat-icon class="iconos_menu">admin_panel_settings</mat-icon>
+            Administración          
+        </mat-expansion-panel-header>        
+        <mat-nav-list>
+          <mat-list-item routerLink="/home/administracion/listado-usuarios">Usuarios</mat-list-item>          
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Configuraciones -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-icon class="iconos_menu">settings</mat-icon>
+          Configuraciones
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/home/configuracion/tipo-cambio">Tipo de Cambio</mat-list-item>
+          <mat-list-item routerLink="/home/configuracion/backup">Crear Backup de BD</mat-list-item>
+          <mat-list-item routerLink="/home/preferencias/index-categorias">Configuración Productos</mat-list-item>
+          <mat-list-item routerLink="/home/preferencias/index-categorias-accesorios">Configuración Accesorios</mat-list-item>
+          <mat-list-item routerLink="/home/configuracion/insumos">Configuración Insumos</mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Logout -->
+      <mat-list-item (click)="logout()" class="color-texto-sidenav">
+        <mat-icon class="iconos_menu">logout</mat-icon>
+        Log Out
       </mat-list-item>
 
     </mat-nav-list>
@@ -69,20 +149,3 @@
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>
-
-<!-- Submenu Definitions -->
-
-<!-- Wrap submenus in custom divs for CSS targeting -->
-<!-- <div class="custom-menu-wrapper">
-  <mat-menu #categoriaMenu="matMenu">
-    <button mat-menu-item routerLink="./listado-categorias">Categoría 1</button>
-    <button mat-menu-item [matMenuTriggerFor]="subcategoriaMenu">Subcategoría 1</button>
-  </mat-menu>
-</div>
-
-<div class="custom-submenu-wrapper">
-  <mat-menu #subcategoriaMenu="matMenu">
-    <button mat-menu-item routerLink="./listado-subcategorias">Subcategoría 1.1</button>
-    <button mat-menu-item routerLink="./listado-subcategorias">Subcategoría 1.2</button>
-  </mat-menu>
-</div> -->

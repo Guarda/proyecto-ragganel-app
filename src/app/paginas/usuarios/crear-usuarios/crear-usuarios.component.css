@@ -1,0 +1,100 @@
+/* Contenedor general para centrar la imagen */
+.contenedor-img-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px; /* Espaciado opcional debajo de la imagen */
+}
+
+/* Contenedor de la imagen (círculo con sombra) */
+.contenedor-img-usuario {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f3f3f3;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Tamaño de la imagen */
+.imagen-usuario {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+/* Estilo del título */
+span {
+    font-family: Quicksand, sans-serif;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+  }
+  
+  /* Asegurar que el formulario ocupe todo el ancho */
+  .contenedor-principal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  /* Asegurar que el contenedor del formulario tome el ancho */
+  .contenedor-form {
+    width: 100%;
+  }
+  
+  /* Ajustar ancho de los inputs */
+  mat-form-field {
+    width: 100% !important;
+  }
+  
+  /* Asegurar que el contenido del diálogo sea 100% */
+  mat-dialog-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  /* Botones */
+  mat-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  button {
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 5px;
+  }
+  
+  /* Botón cancelar */
+  button[mat-dialog-close] {
+    background-color: #d32f2f;
+    color: white;
+  }
+  
+  button[mat-dialog-close]:hover {
+    background-color: #b71c1c;
+  }
+  
+  /* Botón ingresar */
+  button[color="primary"] {
+    background-color: #1976d2;
+    color: white;
+  }
+  
+  button[color="primary"]:hover {
+    background-color: #125ea3;
+  }
+  

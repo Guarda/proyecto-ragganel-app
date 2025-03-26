@@ -1,0 +1,62 @@
+<h3 mat-dialog-title>    
+    <span>Crear Usuario</span>
+</h3>
+<!-- Contenedor para centrar la imagen -->
+<div class="contenedor-img-wrapper">
+  <div class="contenedor-img-usuario">
+      <img [src]="ImagePath || 'assets/img/default-user.png'" alt="Usuario" class="imagen-usuario">
+  </div>  
+</div>
+
+<form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()">
+  <div class="contenedor-principal">
+    <mat-dialog-content class="mat-typography">
+      <h3>Ingresa los detalles del usuario</h3>
+      
+      <!-- Nombre -->
+      <mat-form-field class="input-form">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="Nombre" required>
+      </mat-form-field>
+
+      <!-- Correo -->
+      <mat-form-field class="input-form">
+        <mat-label>Correo</mat-label>
+        <input matInput type="email" formControlName="Correo" required>
+      </mat-form-field>
+
+      <!-- Contraseña -->
+      <mat-form-field class="input-form">
+        <mat-label>Contraseña</mat-label>
+        <input matInput type="password" formControlName="Password" required>
+      </mat-form-field>
+
+      <!-- Estado del usuario -->
+      <mat-form-field class="input-form">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="IdEstadoFK" required>
+          <mat-option *ngFor="let estado of selectedEstadoUsuarios" [value]="estado.IdEstadoPK">
+            {{ estado.DescripcionEstado }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Rol del usuario -->
+      <mat-form-field class="input-form">
+        <mat-label>Rol</mat-label>
+        <mat-select formControlName="IdRol" required>
+          <mat-option *ngFor="let rol of selectedRol" [value]="rol.IdRolPK">
+            {{ rol.NombreRol }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </mat-dialog-content>
+  </div>
+
+  <!-- Acciones -->
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-button type="submit" color="primary" [disabled]="!usuarioForm.valid">Ingresar</button>
+  </mat-dialog-actions>
+</form>

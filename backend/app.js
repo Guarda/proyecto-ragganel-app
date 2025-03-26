@@ -22,7 +22,11 @@ const categoriesaccesoriesRouter = require('./routes/categories-accesories');
 const ordersdropdownRouter = require('./routes/orders-dropdowns');
 const articletypeRouter = require('./routes/article-type');
 const ordersbaseRouter = require('./routes/orders-base');
-
+const usersRouter = require('./routes/users');
+const userrolesRouter = require('./routes/users-roles');
+const userstates = require('./routes/users-states');
+const authRoutes = require('./routes/auth');
+const verifyToken = require('./routes/protected');
 // Middleware
 app.use(bodyParser.json());
 
@@ -36,6 +40,7 @@ app.use(cors({
 // Serve static files from the public/img-consolas directory
 app.use('/img-consolas', express.static(path.join(__dirname, '..', 'public', 'img-consolas')));
 app.use('/img-accesorios', express.static(path.join(__dirname, '..', 'public', 'img-accesorios')));
+app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
 
 // Define your routes
 app.use('/productos', productsRouter);
@@ -54,6 +59,14 @@ app.use('/categorias-accesorios', categoriesaccesoriesRouter);
 app.use('/pedidos-dropdown',ordersdropdownRouter);
 app.use('/articulos', articletypeRouter);
 app.use('/pedidos', ordersbaseRouter);
+app.use('/usuarios',usersRouter);
+app.use('/roles',userrolesRouter);
+app.use('/estados-usuarios',userstates)
+app.use('/auth', authRoutes); // Ruta para autenticación
+// Rutas protegidas
+app.get('/protected', verifyToken, (req, res) => {
+  res.json({ message: 'Acceso permitido' });
+});
 
 // Start the server
 app.listen(port, () => {

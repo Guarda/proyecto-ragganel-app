@@ -1,0 +1,23 @@
+<div class="login-container">
+    <h2>Iniciar Sesión</h2>
+    <form (submit)="login()">
+        <mat-form-field appearance="outline">
+            <mat-label>Correo</mat-label>
+            <input matInput [(ngModel)]="correo" name="correo" required>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña</mat-label>
+            <input matInput [(ngModel)]="password" name="password" type="password" required>
+          </mat-form-field>
+          
+          <!-- Error message -->
+          <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+          
+          <!-- Login Button -->
+          <button mat-raised-button color="primary" (click)="login()">Iniciar Sesión</button>
+          
+  
+      <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+    </form>
+  </div>

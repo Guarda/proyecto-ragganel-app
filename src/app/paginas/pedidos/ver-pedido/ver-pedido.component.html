@@ -1,7 +1,13 @@
 <div class="contenedor-componente-crear-pedido">
-    <h3 mat-dialog-title>    
-        <span>Detalles del pedido {{OrderId}}</span>
+  <div class="header1">
+    <h3 mat-dialog-title class="cabezera">    
+      <span>Detalles del pedido {{OrderId}}</span>
     </h3>
+    <h3 class="cabezera1">
+        <a mat-raised-button class="button-crear-prod" href="#" [routerLink]="['/home/listado-pedidos']" color="primary" ><mat-icon class="iconos-custom">close</mat-icon></a>                 
+    </h3>
+  </div>
+    
     <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()">
 
 
