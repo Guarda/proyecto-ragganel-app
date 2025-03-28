@@ -135,5 +135,34 @@ mat-list-item.router-link-active {
   color: white; /* Color del texto */
 }
 
+/* Contenedor del menú lateral */
+.sidenav {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Asegura que ocupe toda la altura */
+}
+
+/* Lista de navegación */
+.list-items-css {
+  flex: 1; /* Permite que los elementos de la lista ocupen el espacio disponible */
+  overflow-y: auto; /* Habilita el scroll si hay muchos elementos */
+}
+
+/* Botón de logout sticky */
+.logout-button {
+  position: sticky;
+  bottom: 0;
+  background: #f5f5f5; /* Fondo para que destaque */
+  z-index: 10; /* Asegura que esté por encima de otros elementos */
+  border-top: 1px solid #e0e0e0; /* Línea superior para separarlo visualmente */
+  padding: 1rem;
+  text-align: center;
+}
+
+.logout-button mat-icon {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
 
 

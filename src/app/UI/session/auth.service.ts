@@ -16,6 +16,10 @@ export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
 
   constructor(private router: Router) {
+    this.initializeUser();
+  }
+
+  private initializeUser(): void {
     const user = this.getUserFromLocalStorage();
     this.userSubject.next(user);
   }
@@ -34,24 +38,31 @@ export class AuthService {
     return this.userSubject.asObservable();
   }
 
-  getUserRole(): number | null {
-    const user = this.getUserFromLocalStorage();
-    return user ? user.role : null;
+  getUserValue(): User | null {
+    return this.userSubject.value;
   }
 
-  setUser(user: User | null): void {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-      this.userSubject.next(user);
-    } else {
-      localStorage.removeItem('user');
-      this.userSubject.next(null);
-    }
+  setUser(user: User): void {
+    localStorage.setItem('user', JSON.stringify(user));
+    this.userSubject.next(user);
+  }
+
+  login(user: User): void {
+    this.setUser(user);
+    const returnUrl = localStorage.getItem('returnUrl') || '/home';
+    this.router.navigateByUrl(returnUrl);
   }
 
   logout(): void {
-    this.setUser(null);
-    this.router.navigate(['/login']);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    sessionStorage.clear();
+    
+    this.userSubject.next(null);
+    this.router.navigate(['/login'], { 
+      replaceUrl: true,
+      onSameUrlNavigation: 'reload'
+    });
   }
 
   isAuthenticated(): boolean {

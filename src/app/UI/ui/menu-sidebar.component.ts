@@ -1,95 +1,232 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Router, RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MAT_MENU_PANEL, MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
-import { ListarProductosComponent } from "../../paginas/productos/listar-productos/listar-productos.component";
 import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { AuthService } from '../session/auth.service';
-import { Subscription } from 'rxjs'; // Importa Subscription de rxjs
-import { RouterModule, Router } from '@angular/router';
-import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-menu-sidebar',
   standalone: true,
-  imports: [CommonModule, MatExpansionModule, MatButtonModule, RouterOutlet, RouterLink, MatToolbarModule, MatIconModule, MatSidenavModule, MatListModule, MatMenuModule, MatBadgeModule, ListarProductosComponent],
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    MatButtonModule,
+    RouterOutlet,
+    RouterLink,
+    MatToolbarModule,
+    MatIconModule,
+    MatSidenavModule,
+    MatListModule,
+    MatMenuModule,
+    MatBadgeModule,
+    MatDividerModule
+  ],
   templateUrl: './menu-sidebar.component.html',
-  styleUrl: './menu-sidebar.component.css'
+  styleUrls: ['./menu-sidebar.component.css']
 })
 export class MenuSidebarComponent implements OnInit, OnDestroy {
-  user: any = null; // Variable para almacenar la información del usuario
+  user: User | null = null;
   UserName: string = '';
-  UserId!: number;
+  UserId: number = 0;
   ImagePath: string = '';
-  private userSubscription: Subscription = new Subscription(); // Inicializar correctamente
+  private userSubscription!: Subscription;
 
-  
+  menuItems = [
+    {
+      label: 'Dashboard',
+      icon: 'dashboard',
+      route: '/home/modulo-en-construccion',
+      roles: [1]
+    },
+    {
+      label: 'Ventas',
+      icon: 'point_of_sale',
+      subItems: [
+        // { label: 'Punto de Venta (POS)', route: '/home/ventas/pos', roles: [1, 2] },
+        // { label: 'Listado de Ventas', route: '/home/ventas/listado', roles: [1, 2] }
+        { label: 'Punto de Venta (POS)', route: '/home/modulo-en-construccion', roles: [1, 2] },
+        { label: 'Listado de Ventas', route: '/home/modulo-en-construccion', roles: [1, 2] }
+      ],
+      roles: [1, 2]
+    },
+    {
+      label: 'Inventario',
+      icon: 'inventory_2',
+      subItems: [
+        {
+          label: 'Inventario General',
+          route: '/home/modulo-en-construccion',
+          roles: [1, 2, 3]
+        },
+        {
+          label: 'Productos',
+          subItems: [
+            { label: 'Inventario Productos', route: '/home/listado-productos', roles: [1, 3] },
+            { label: 'Categorías de Productos', route: '/home/listado-categorias', roles: [1, 3] }
+          ],
+          roles: [1, 3]
+        },
+        {
+          label: 'Accesorios',
+          subItems: [
+            { label: 'Inventario Accesorios', route: '/home/listado-accesorios', roles: [1, 3] },
+            { label: 'Categorías de Accesorios', route: '/home/listado-categorias-accesorios', roles: [1, 3] }
+          ],
+          roles: [1, 3]
+        },
+        {
+          label: 'Insumos',
+          subItems: [
+            { label: 'Inventario Insumos', route: '/home/inventario/insumos', roles: [1, 3] },
+            { label: 'Categorías de Insumos', route: '/home/inventario/categorias-insumos', roles: [1, 3] }
+          ],
+          roles: [1, 3]
+        },
+        { label: 'Proveedores', route: '/home/inventario/proveedores', roles: [1, 3] }
+      ],
+      roles: [1, 2, 3]
+    },
+    {
+      label: 'Servicios',
+      icon: 'build',
+      route: '/home/servicios',
+      roles: [1, 3] // Roles for Servicios
+    },
+    {
+      label: 'Clientes',
+      icon: 'people',
+      route: '/home/clientes',
+      roles: [1, 2] // Roles for Clientes
+    },
+    {
+      label: 'Pedidos',
+      icon: 'local_shipping',
+      route: '/home/listado-pedidos',
+      roles: [1, 3] // Roles for Pedidos
+    },
+    {
+      label: 'Taller',
+      icon: 'engineering',
+      route: '/home/taller',
+      roles: [1, 3] // Roles for Taller
+    },
+    {
+      label: 'Administración',
+      icon: 'admin_panel_settings',
+      subItems: [
+        { label: 'Usuarios', route: '/home/administracion/listado-usuarios', roles: [1] },
+        { label: 'Crear Backup de BD', route: '/home/modulo-en-construccion', roles: [1] },
+        { label: 'Configuración Productos', route: '/home/preferencias/index-categorias', roles: [1] },
+        { label: 'Configuración Accesorios', route: '/home/preferencias/index-categorias-accesorios', roles: [1] },
+        { label: 'Configuración Insumos', route: '/home/configuracion/insumos', roles: [1] }
+      ],
+      roles: [1]
+    }
+  ];
+
+  filteredMenu: any[] = [];
+  userRole: number = 0;
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private cdr: ChangeDetectorRef // Añadir ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
-    this.userSubscription = this.authService.getUser().subscribe((user: { name: string; avatarUrl: string | null; id: number; role: number; } | null) => {
-      this.user = user;
-      if (user) {
-        this.UserName = user.name;
-        this.ImagePath = this.getimagePath(user.avatarUrl);
-        this.UserId = user.id;
-      } else {
-        this.UserName = '';
-        this.ImagePath = '';
-        this.UserId = 0;
+    this.loadUserData();
+
+    this.userSubscription = this.authService.getUser().subscribe({
+      next: (user) => {
+        this.loadUserData();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error en suscripción de usuario:', err);
+        this.authService.logout();
       }
-  
-      // 🚀 Forzar la detección de cambios
-      this.cdr.detectChanges();
     });
-  
-    this.router.navigate(['/home']);
   }
+
+  private loadUserData(): void {
+    const user = this.authService.getUserValue();
   
-
-
-  private updateUserData(user: { name: string; avatarUrl: string | null; id: number; }) {
     if (user) {
       this.user = user;
       this.UserName = user.name;
       this.ImagePath = this.getimagePath(user.avatarUrl);
       this.UserId = user.id;
+      this.userRole = user.role;
+  
+      console.log(`User role: ${this.userRole}`);
+  
+      // Filter menu items based on the user's role
+      this.filteredMenu = this.menuItems
+        .filter(item => {
+          const hasAccess = item.roles.includes(this.userRole);
+          console.log(`Checking menu item: ${item.label}, User role: ${this.userRole}, Allowed roles: ${item.roles}, Access: ${hasAccess}`);
+          return hasAccess;
+        })
+        .map(item => ({
+          ...item,
+          subItems: item.subItems
+            ? this.filterSubItems(item.subItems, this.userRole)
+            : null
+        }));
     } else {
-      this.UserName = '';
-      this.ImagePath = '';
-      this.UserId = 0;
+      this.user = null;
+      this.filteredMenu = [];
     }
   }
-  ngOnDestroy(): void {
-    // Asegúrate de limpiar la suscripción al componente
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
+  
+  private filterSubItems(subItems: any[], role: number): any[] {
+    return subItems
+      .filter(subItem => {
+        const hasAccess = subItem.roles && subItem.roles.includes(role);
+        console.log(`Checking subItem: ${subItem.label}, User role: ${role}, Allowed roles: ${subItem.roles}, Access: ${hasAccess}`);
+        return hasAccess;
+      })
+      .map(subItem => ({
+        ...subItem,
+        subItems: subItem.subItems
+          ? this.filterSubItems(subItem.subItems, role)
+          : null
+      }));
+  }
+
+  getimagePath(avatarUrl: string | null): string {
+    const baseUrl = 'http://localhost:3000';
+    return avatarUrl ? `${baseUrl}/assets/${avatarUrl}` : `${baseUrl}/assets/avatardefault.png`;
+  }
+
+  viewProfile(): void {
+    if (this.user) {
+      this.router.navigate(['home/administracion/ver-usuario', this.UserId, 'view']);
     }
-  }
-
-  viewProfile() {
-    this.router.navigate(['home/administracion/ver-usuario', this.UserId, 'view']);
-  }
-
-  getimagePath(l: string | null): string {
-    const baseUrl = 'http://localhost:3000'; // Asegúrate de que este es el puerto correcto de tu servidor
-    return l ? `${baseUrl}/assets/${l}` : `${baseUrl}/assets/avatardefault.png`;
   }
 
   logout(): void {
-    this.authService.logout(); // Lógica para cerrar sesión
+    this.authService.logout();
   }
+
+  ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
+  }
+}
+
+interface User {
+  id: number;
+  name: string;
+  avatarUrl: string | null;
+  role: number;
 }

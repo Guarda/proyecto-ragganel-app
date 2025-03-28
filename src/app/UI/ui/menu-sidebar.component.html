@@ -27,119 +27,47 @@
 <mat-sidenav-container class="menu-container" style="height: 94vh;">
   <mat-sidenav #sidenav mode="side" opened class="sidenav">
     <mat-nav-list class="list-items-css">
+      <ng-container *ngFor="let item of filteredMenu">
+        <!-- If the item has no subItems -->
+        <mat-list-item *ngIf="!item.subItems" [routerLink]="item.route">
+          <mat-icon class="iconos_menu">{{ item.icon }}</mat-icon>
+          {{ item.label }}
+        </mat-list-item>
 
-      <!-- Dashboard -->
-      <mat-list-item routerLink="/home/modulo-en-construccion" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">dashboard</mat-icon>
-        Dashboard
-      </mat-list-item>
+        <!-- If the item has subItems -->
+        <mat-expansion-panel *ngIf="item.subItems">
+          <mat-expansion-panel-header>
+            <mat-icon class="iconos_menu">{{ item.icon }}</mat-icon>
+            {{ item.label }}
+          </mat-expansion-panel-header>
+          <mat-nav-list>
+            <ng-container *ngFor="let subItem of item.subItems">
+              <!-- If the subItem has no further subItems -->
+              <mat-list-item *ngIf="!subItem.subItems" [routerLink]="subItem.route">
+                {{ subItem.label }}
+              </mat-list-item>
 
-      <!-- Ventas -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-icon class="iconos_menu">point_of_sale</mat-icon>
-          Ventas
-        </mat-expansion-panel-header>
-        <mat-nav-list>
-          <mat-list-item routerLink="/home/ventas/pos">Punto de Venta (POS)</mat-list-item>
-          <mat-list-item routerLink="/home/ventas/listado">Listado de Ventas</mat-list-item>
-        </mat-nav-list>
-      </mat-expansion-panel>
-      <!-- Inventario -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-icon class="iconos_menu">inventory_2</mat-icon>
-          Inventario
-        </mat-expansion-panel-header>
-        <mat-nav-list>
-          <mat-list-item routerLink="/home/inventario/general">Listado General de Artículos</mat-list-item>
+              <!-- If the subItem has further subItems -->
+              <mat-expansion-panel *ngIf="subItem.subItems">
+                <mat-expansion-panel-header>
+                  {{ subItem.label }}
+                </mat-expansion-panel-header>
+                <mat-nav-list>
+                  <mat-list-item *ngFor="let nestedItem of subItem.subItems" [routerLink]="nestedItem.route">
+                    {{ nestedItem.label }}
+                  </mat-list-item>
+                </mat-nav-list>
+              </mat-expansion-panel>
+            </ng-container>
+          </mat-nav-list>
+        </mat-expansion-panel>
+      </ng-container>
 
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>Productos</mat-expansion-panel-header>
-            <mat-nav-list>
-              <mat-list-item routerLink="/home/listado-productos">Inventario Productos</mat-list-item>
-              <mat-list-item routerLink="/home/listado-categorias">Categorías de Productos</mat-list-item>
-            </mat-nav-list>
-          </mat-expansion-panel>
-
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>Accesorios</mat-expansion-panel-header>
-            <mat-nav-list>
-              <mat-list-item routerLink="/home/listado-accesorios">Inventario Accesorios</mat-list-item>
-              <mat-list-item routerLink="/home/listado-categorias-accesorios">Categorías de Accesorios</mat-list-item>
-            </mat-nav-list>
-          </mat-expansion-panel>
-
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>Insumos</mat-expansion-panel-header>
-            <mat-nav-list>
-              <mat-list-item routerLink="/home/inventario/insumos">Inventario Insumos</mat-list-item>
-              <mat-list-item routerLink="/home/inventario/categorias-insumos">Categorías de Insumos</mat-list-item>
-            </mat-nav-list>
-          </mat-expansion-panel>
-
-          <mat-list-item routerLink="/home/inventario/proveedores">Proveedores</mat-list-item>
-        </mat-nav-list>
-      </mat-expansion-panel>
-
-      <!-- Servicios -->
-      <mat-list-item routerLink="/home/servicios" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">build</mat-icon>
-        Servicios
-      </mat-list-item>
-
-      <!-- Clientes -->
-      <mat-list-item routerLink="/home/clientes" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">people</mat-icon>
-        Clientes
-      </mat-list-item>
-
-      <!-- Pedidos -->
-      <mat-list-item routerLink="/home/listado-pedidos" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">local_shipping</mat-icon>
-        Pedidos
-      </mat-list-item>
-
-      <!-- Taller -->
-      <mat-list-item routerLink="/home/taller" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">engineering</mat-icon>
-        Taller
-      </mat-list-item>
-
-      <mat-divider></mat-divider>
-
-      <!-- Administración -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>          
-            <mat-icon class="iconos_menu">admin_panel_settings</mat-icon>
-            Administración          
-        </mat-expansion-panel-header>        
-        <mat-nav-list>
-          <mat-list-item routerLink="/home/administracion/listado-usuarios">Usuarios</mat-list-item>          
-        </mat-nav-list>
-      </mat-expansion-panel>
-
-      <!-- Configuraciones -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-icon class="iconos_menu">settings</mat-icon>
-          Configuraciones
-        </mat-expansion-panel-header>
-        <mat-nav-list>
-          <mat-list-item routerLink="/home/configuracion/tipo-cambio">Tipo de Cambio</mat-list-item>
-          <mat-list-item routerLink="/home/configuracion/backup">Crear Backup de BD</mat-list-item>
-          <mat-list-item routerLink="/home/preferencias/index-categorias">Configuración Productos</mat-list-item>
-          <mat-list-item routerLink="/home/preferencias/index-categorias-accesorios">Configuración Accesorios</mat-list-item>
-          <mat-list-item routerLink="/home/configuracion/insumos">Configuración Insumos</mat-list-item>
-        </mat-nav-list>
-      </mat-expansion-panel>
-
-      <!-- Logout -->
-      <mat-list-item (click)="logout()" class="color-texto-sidenav">
-        <mat-icon class="iconos_menu">logout</mat-icon>
-        Log Out
-      </mat-list-item>
-
+     <!-- Logout -->
+    <mat-list-item (click)="logout()" class="logout-button">
+      <mat-icon class="iconos_menu">logout</mat-icon>
+      Log Out
+    </mat-list-item>
     </mat-nav-list>
   </mat-sidenav>
 

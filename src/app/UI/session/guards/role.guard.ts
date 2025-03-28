@@ -9,7 +9,7 @@ export class RoleGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
     const user = localStorage.getItem('user');
-    const expectedRole = route.data['expectedRole']; // Rol esperado en la ruta
+    const expectedRoles: number[] = route.data['expectedRoles']; // Expected roles as an array
 
     if (!user) {
       console.error('User is not set in local storage');
@@ -17,14 +17,24 @@ export class RoleGuard implements CanActivate {
       return false;
     }
 
-    const userRole = JSON.parse(user).role.toString(); // Convert role to string
+    const userRole = JSON.parse(user).role; // Get the user's role as a number
 
-    console.log(`User role: ${userRole}, Expected role: ${expectedRole}`); // Add this line
+    console.log(`User role: ${userRole}, Expected roles: ${expectedRoles}`); // Debug log
 
-    if (userRole !== expectedRole) {
-      this.router.navigate(['/home']); // Redirect if the role does not match
+    // Handle undefined expectedRoles
+    if (!expectedRoles) {
+      console.warn('No expectedRoles defined for this route. Denying access.');
+      this.router.navigate(['/unauthorized']); // Redirect to an unauthorized page
       return false;
     }
-    return true;
+
+    // Check if the user's role is included in the expected roles
+    if (!expectedRoles.includes(userRole)) {
+      console.warn(`Access denied. User role: ${userRole} is not in expected roles: ${expectedRoles}`);
+      this.router.navigate(['/unauthorized']); // Redirect to an unauthorized page
+      return false;
+    }
+
+    return true; // Allow access if the role matches
   }
 }

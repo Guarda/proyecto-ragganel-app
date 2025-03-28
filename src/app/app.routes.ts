@@ -27,28 +27,101 @@ export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
     { path: 'login', component: LoginComponent },
     {
-        path: 'home',
-        component: MenuSidebarComponent,
-        canActivate: [AuthGuard],
-        children: [
-            { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
-            { path: 'listado-productos', component: ListarProductosComponent, canActivate: [AuthGuard] },
-            { path: 'agregar-productos', component: PruebaComponent, canActivate: [AuthGuard] },
-            { path: 'editar-productos', component: EditarProductosComponent, canActivate: [AuthGuard] },
-            { path: 'listado-categorias', component: ListarCategoriasComponent, canActivate: [AuthGuard] },
-            { path: 'listado-productos/ver-producto/:CodigoConsola/view', component: VerProductoComponent, canActivate: [AuthGuard] },
-            { path: 'preferencias/index-categorias', component: IndexEdicioncategoriasComponent, canActivate: [AuthGuard] },
-            { path: 'listado-accesorios', component: ListarAccesoriosComponent, canActivate: [AuthGuard] },
-            { path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view', component: VerAccesorioComponent, canActivate: [AuthGuard] },
-            { path: 'listado-categorias-accesorios', component: ListarCategoriasAccesoriosComponent, canActivate: [AuthGuard] },
-            { path: 'preferencias/index-categorias-accesorios', component: IndexEdicioncategoriasAccesoriosComponent, canActivate: [AuthGuard] },
-            { path: 'listado-pedidos', component: ListarPedidosComponent, canActivate: [AuthGuard] },
-            { path: 'crear-pedido', component: AgregarPedidoComponent, canActivate: [AuthGuard] },
-            { path: 'listado-productos/crear-pedido', component: AgregarPedidoComponent, canActivate: [AuthGuard] }, // Added route
-            { path: 'index-listado-articulos', component: IndexListadoArticulosComponent, canActivate: [AuthGuard] },
-            { path: 'listado-pedidos/ver-pedido/:CodigoPedido/view', component: VerPedidoComponent, canActivate: [AuthGuard] },
-            { path: 'administracion/ver-usuario/:IdUsuarioPK/view', component: VerUsuarioComponent, canActivate: [AuthGuard] },
-            { path: 'administracion/listado-usuarios', component: ListarUsuariosComponent, canActivate: [AuthGuard, RoleGuard], data: { expectedRole: '1' } },
-        ]
-    },
-];
+      path: 'home',
+      component: MenuSidebarComponent,
+      canActivate: [AuthGuard],
+      children: [
+        { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
+        {
+          path: 'listado-productos',
+          component: ListarProductosComponent,
+          canActivate: [AuthGuard, RoleGuard],
+          data: { expectedRoles: [1, 3] } // Corrected
+        },
+        {
+          path: 'agregar-productos',
+          component: PruebaComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'editar-productos',
+          component: EditarProductosComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'listado-categorias',
+          component: ListarCategoriasComponent,
+          canActivate: [AuthGuard, RoleGuard],
+          data: { expectedRoles: [1, 3] } // Corrected
+        },
+        {
+          path: 'listado-productos/ver-producto/:CodigoConsola/view',
+          component: VerProductoComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'preferencias/index-categorias',
+          component: IndexEdicioncategoriasComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'listado-accesorios',
+          component: ListarAccesoriosComponent,
+          canActivate: [AuthGuard, RoleGuard],
+          data: { expectedRoles: [1, 3] } // Corrected
+        },
+        {
+          path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view',
+          component: VerAccesorioComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'listado-categorias-accesorios',
+          component: ListarCategoriasAccesoriosComponent,
+          canActivate: [AuthGuard, RoleGuard],
+          data: { expectedRoles: [1, 3] } // Corrected
+        },
+        {
+          path: 'preferencias/index-categorias-accesorios',
+          component: IndexEdicioncategoriasAccesoriosComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'listado-pedidos',
+          component: ListarPedidosComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'crear-pedido',
+          component: AgregarPedidoComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'listado-productos/crear-pedido',
+          component: AgregarPedidoComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'index-listado-articulos',
+          component: IndexListadoArticulosComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'listado-pedidos/ver-pedido/:CodigoPedido/view',
+          component: VerPedidoComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'administracion/ver-usuario/:IdUsuarioPK/view',
+          component: VerUsuarioComponent,
+          canActivate: [AuthGuard]
+        },
+        {
+          path: 'administracion/listado-usuarios',
+          component: ListarUsuariosComponent,
+          canActivate: [AuthGuard, RoleGuard],
+          data: { expectedRoles: [1] } // Corrected
+        }
+      ]
+    }
+  ];
