@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Inject } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { PedidoService } from '../../../services/pedido.service';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
+import { PedidoService } from '../../../services/pedido.service';
 
 @Component({
   selector: 'app-eliminar-pedido',
@@ -39,7 +39,7 @@ export class EliminarPedidoComponent {
   onEliminar() {
     this.pedidoService.eliminar(this.idPedido.value).subscribe((res: any) => {
       this.Eliminar.emit();
-      this.router.navigateByUrl('listado-pedidos');
+      this.router.navigateByUrl('home/listado-pedidos');
     })
   }
 }

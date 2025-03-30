@@ -1,0 +1,102 @@
+body {
+    margin: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    padding: 0;
+    margin-right: 0;
+    margin-left: 1%;
+}
+
+table {
+    width: 125%;
+}
+
+.mat-mdc-form-field {
+    font-size: 14px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.columna-descripcion {
+    width: 40vw !important;
+}
+
+td,
+th {
+    height: 100% !important;
+    align-items: center;
+}
+
+.cabezera {
+    display: flex;
+    align-items: center;
+    padding: 1%;
+    justify-content: space-evenly;
+    width: 125%;
+}
+
+.foo-paginator {
+    width: 125%;
+    background-color: #f0f0f0;
+    bottom: 0px;
+    position: sticky;
+    z-index: 10;
+}
+
+.white-backgrounded-field .mdc-text-field--outlined .mdc-notched-outline {
+    z-index: 0;
+    width: 50% !important;
+}
+
+.white-backgrounded-field .mdc-notched-outline__notch,
+.white-backgrounded-field .mdc-notched-outline__leading,
+.white-backgrounded-field .mdc-notched-outline__trailing {
+    background-color: white !important;
+    color: white !important;
+}
+
+.btn-create-cliente {
+    margin-left: 10% !important;
+}
+
+.contenedor-botones {
+    display: flex;
+    height: 52px !important;
+    margin-bottom: 0%;
+}
+
+th.mat-header-cell,
+td.mat-cell {
+    text-align: center;
+}
+
+.button-editar-cliente {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: green !important;
+    background-color: white !important;
+}
+
+.button-eliminar-cliente {
+    color: red;
+    background-color: white;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}
+
+.button-historial-cliente {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: purple !important;
+    background-color: white !important;
+}

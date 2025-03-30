@@ -1,0 +1,94 @@
+<div class="contenedor-componente-ver-cliente">
+    <mat-card class="card-cliente">
+        <!-- Header -->
+        <mat-card-header class="header1">
+            <mat-card-title class="cabezera">
+                Cliente #{{ clienteForm.get('IdCliente')?.value }}
+            </mat-card-title>
+            <button mat-icon-button [routerLink]="['/home/listado-clientes']" class="button-cerrar" color="warn">
+                <mat-icon class="iconos-custom">close</mat-icon>
+            </button>
+        </mat-card-header>
+
+        <mat-divider></mat-divider>
+
+        <form [formGroup]="clienteForm" (ngSubmit)="onSubmit()">
+            <mat-card-content class="contenedor-principal">
+                <div class="contenedor-secundario">
+                    <div class="contenedor1">
+                        <!-- Imagen -->
+                        <div class="contenedor-img-consola">
+                            <img [src]="ImagePath" alt="imagen-cliente" class="imagen-cliente">
+                            <div *ngIf="cliente">
+                                <h5>Imagen del cliente {{ cliente.nombreCliente }}</h5>
+                            </div>
+                        </div>
+
+                        <!-- Datos -->
+                        <div class="contenedor-datos-principales">
+                            <h5 class="titulo-seccion">Detalles del Cliente</h5>
+
+                            <div class="grid-form">
+                                <mat-form-field class="input-form">
+                                    <mat-label>Nombre</mat-label>
+                                    <input matInput formControlName="Nombre" name="nombre">
+                                </mat-form-field>
+
+                                <mat-form-field class="input-form">
+                                    <mat-label>Email</mat-label>
+                                    <input matInput formControlName="Correo" name="email">
+                                </mat-form-field>
+
+                                <mat-form-field class="input-form">
+                                    <mat-label>Teléfono</mat-label>
+                                    <input matInput formControlName="Telefono" name="telefono">
+                                </mat-form-field>
+
+                                <mat-form-field class="input-form">
+                                    <mat-label>Dirección</mat-label>
+                                    <input matInput formControlName="Direccion" name="direccion">
+                                </mat-form-field>
+
+                                <mat-form-field class="input-form">
+                                    <mat-label>DNI</mat-label>
+                                    <input matInput formControlName="DNI" name="dni">
+                                </mat-form-field>
+
+                                <mat-form-field class="input-form">
+                                    <mat-label>RUC</mat-label>
+                                    <input matInput formControlName="RUC" name="ruc">
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+
+            <mat-divider></mat-divider>
+
+            <mat-card-actions class="contenedor-detalles">
+                <button mat-flat-button type="submit" class="button-editar" color="primary" [disabled]="!clienteForm.dirty">
+                    <mat-icon>save</mat-icon> Guardar Cambios
+                </button>
+                <!-- <button mat-flat-button color="warn" (click)="openDialogEliminar(id)">
+                    <mat-icon>delete</mat-icon> Eliminar Cliente
+                </button> -->
+                <a mat-flat-button (click)="openDialogEliminar(id)" color="warn" title="borrar cliente" >Eliminar cliente</a>   
+            </mat-card-actions>
+        </form>
+    </mat-card>
+</div>
+
+<div class="contenedor-listado-pendiente">
+    <mat-card class="card-pendiente">
+        <mat-card-header>
+            <mat-card-title>Historial de Compras del Cliente</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="pendiente-message">
+                <mat-icon>hourglass_empty</mat-icon>
+                <p>Esta sección está pendiente de implementación.</p>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

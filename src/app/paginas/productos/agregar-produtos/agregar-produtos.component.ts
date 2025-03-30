@@ -3,7 +3,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
-import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -12,7 +11,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgFor } from '@angular/common';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
+import { CategoriasConsolas } from '../../interfaces/categorias';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { EstadosConsolas } from '../../interfaces/estados';
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
@@ -26,7 +27,6 @@ import { TiposProductosService } from '../../../services/tipos-productos.service
 import { FabricanteService } from '../../../services/fabricante.service';
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { TiposAccesoriosService } from '../../../services/tipos-accesorios.service';
 import { TipoAccesorios } from '../../interfaces/accesorios';
 

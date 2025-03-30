@@ -526,8 +526,27 @@ CREATE TABLE Usuarios (
     FOREIGN KEY (IdEstadoFK) REFERENCES EstadoUsuarios (IdEstadoPK)
 );
 
-INSERT INTO USUARIOS (Nombre, Correo, Password, FechaIngresoUsuario, IdEstadoFK, IdRolFK) VALUES ('Usuario Default Administrador', 'correoejemplo@ragganel.com', '12345PSWRD1', '2025-03-18',1,1)
+INSERT INTO USUARIOS (Nombre, Correo, Password, FechaIngresoUsuario, IdEstadoFK, IdRolFK) VALUES ('Usuario Default Administrador 3', 'correoejemplo2@ragganel.com', '$2b$10$fJqJ2zwn1Bc7kfyTFpG3ZOL9hhiiXz8Q7.NC5GnZhC.XN0hBWGYlK', '2025-03-18',1,1);
+-- password *NDYWng37F}M>6q
+/*TABLA CLIENTES CREADA POR ROMMEL MALTEZ 29/03/2025*/
+CREATE TABLE Clientes (
+	IdClientePK INT AUTO_INCREMENT PRIMARY KEY,
+    NombreCliente VARCHAR(255) NOT NULL,
+    DNI VARCHAR(255) NULL,
+    RUC VARCHAR(255) NULL,
+    Telefono VARCHAR(255) NULL,
+    CorreoElectronico VARCHAR(255) NULL,
+    Direccion VARCHAR(255) NULL,
+    FechaRegistro date,
+    Estado boolean not null default 1
+);
 
+/**INSERT INTO Clientes (NombreCliente, DNI, RUC, Telefono, CorreoElectronico, Direccion, FechaRegistro, Estado) VALUES
+('Juan Pérez', '12345678', '100200300400', '987654321', 'juan.perez@email.com', 'Av. Siempre Viva 123', CURDATE(), 1),
+('María Gómez', '87654321', '400300200100', '912345678', 'maria.gomez@email.com', 'Calle Falsa 456', CURDATE(), 1),
+('Carlos Rodríguez', '11223344', '500600700800', NULL, 'carlos.rodriguez@email.com', 'Jr. Los Olivos 789', CURDATE(), 1),
+('Ana Martínez', '22334455', NULL, '956789123', NULL, 'Psj. Las Flores 321', CURDATE(), 1),
+('Luis Fernández', '33445566', '900800700600', '965432189', 'luis.fernandez@email.com', NULL, CURDATE(), 1);*/
 
 
     

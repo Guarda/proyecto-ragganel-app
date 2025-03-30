@@ -15,8 +15,7 @@ export class SharedPedidoService {
     this.data.SubTotalArticulos = newData; // Update stored value
     this.dataSubjectSubTotalArticulosPedido.next(newData);
     this.calculateTotal(); // Recalculate the total
-  }
-  
+  } 
 
   private data = {
     SubTotalArticulos: 0,

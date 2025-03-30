@@ -27,6 +27,7 @@ const userrolesRouter = require('./routes/users-roles');
 const userstates = require('./routes/users-states');
 const authRoutes = require('./routes/auth');
 const verifyToken = require('./routes/protected');
+const clientesRouter = require('./routes/clients');
 // Middleware
 app.use(bodyParser.json());
 
@@ -62,6 +63,7 @@ app.use('/pedidos', ordersbaseRouter);
 app.use('/usuarios',usersRouter);
 app.use('/roles',userrolesRouter);
 app.use('/estados-usuarios',userstates)
+app.use('/clientes', clientesRouter); // Ruta para clientes
 app.use('/auth', authRoutes); // Ruta para autenticación
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {

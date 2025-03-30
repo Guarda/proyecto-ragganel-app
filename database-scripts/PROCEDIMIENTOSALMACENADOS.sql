@@ -1983,4 +1983,126 @@ END $$
 
 DELIMITER ;
 
+/**CLIENTES*/
+
+
+DELIMITER $$
+
+CREATE PROCEDURE ListarTodosLosClientes()
+/*PROCEDIMIENTO ALMANCEANADO PARA TRAER LOS CLIENTES 29/03/2025*/
+BEGIN
+    SELECT 
+        IdClientePK AS id,
+        NombreCliente AS nombre,
+        DNI AS dni,
+        RUC AS ruc,
+        Telefono AS telefono,
+        CorreoElectronico AS correo,
+        Direccion AS direccion,
+        DATE_FORMAT(FechaRegistro, '%d/%m/%Y') as 'fechaRegistro',
+        Estado AS estado
+    FROM 
+        Clientes;
+    -- WHERE 
+    --    Estado = 1; -- Solo traer clientes activos
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE IngresarCliente(
+/*PROCEDIMIENTO ALMANCEANADO PARA INGRESAR UN CLIENTE 29/03/2025*/
+    IN p_NombreCliente VARCHAR(255),
+    IN p_DNI VARCHAR(255),
+    IN p_RUC VARCHAR(255),
+    IN p_Telefono VARCHAR(255),
+    IN p_CorreoElectronico VARCHAR(255),
+    IN p_Direccion VARCHAR(255)
+)
+BEGIN
+    INSERT INTO Clientes (
+        NombreCliente, DNI, RUC, Telefono, CorreoElectronico, Direccion, FechaRegistro, Estado
+    ) VALUES (
+        p_NombreCliente, p_DNI, p_RUC, p_Telefono, p_CorreoElectronico, p_Direccion, CURDATE(), DEFAULT
+    );
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE ListarClienteXId(IN clientId INT)
+BEGIN
+    IF clientId IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El ID del cliente no puede ser NULL';
+    END IF;
+
+    SELECT 
+        IdClientePK AS idClientePK,
+        NombreCliente AS nombreCliente,
+        DNI AS dni,
+        RUC AS ruc,
+        Telefono AS telefono,
+        CorreoElectronico AS correoElectronico,
+        Direccion AS direccion,
+         DATE_FORMAT(FechaRegistro, '%d/%m/%Y') as 'fechaRegistro',
+        Estado AS estado
+    FROM 
+        Clientes
+    WHERE 
+        IdClientePK = clientId;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE ActualizarCliente(
+    IN p_IdClientePK INT,
+    IN p_NombreCliente VARCHAR(255),
+    IN p_DNI VARCHAR(255),
+    IN p_RUC VARCHAR(255),
+    IN p_Telefono VARCHAR(255),
+    IN p_CorreoElectronico VARCHAR(255),
+    IN p_Direccion VARCHAR(255),
+    IN p_Estado BOOLEAN
+)
+BEGIN
+    UPDATE Clientes
+    SET 
+        NombreCliente = p_NombreCliente,
+        DNI = p_DNI,
+        RUC = p_RUC,
+        Telefono = p_Telefono,
+        CorreoElectronico = p_CorreoElectronico,
+        Direccion = p_Direccion,
+        Estado = p_Estado
+    WHERE 
+        IdClientePK = p_IdClientePK;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE PROCEDURE EliminarCliente(
+    IN p_IdClientePK INT
+)
+/*PROCEDIMIENTO ELIMINAR CLIENTE 29/03/2025*/
+BEGIN
+    -- Cambiar el estado del cliente a 0 (inactivo)
+    UPDATE Clientes
+    SET Estado = 0
+    WHERE IdClientePK = p_IdClientePK;
+END $$
+
+DELIMITER ;
+
+
+
+
+
 

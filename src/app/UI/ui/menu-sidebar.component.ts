@@ -105,7 +105,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
     {
       label: 'Clientes',
       icon: 'people',
-      route: '/home/clientes',
+      route: '/home/listado-clientes',
       roles: [1, 2] // Roles for Clientes
     },
     {
