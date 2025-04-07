@@ -15,9 +15,14 @@
           <button mat-button mat-dialog-close>Cerrar ventana</button>
           <button mat-button matStepperPrevious *ngIf="i > 0 || formulariosProductos.length > 0">Atrás</button>
           <button mat-button matStepperNext 
-            *ngIf="formulariosAccesorios.length === 0 ? i < formulariosProductos.length - 1 : i < formulariosProductos.length" 
+            *ngIf="(formulariosAccesorios.length === 0 && i < formulariosProductos.length - 1) || (formulariosAccesorios.length > 0 && i < formulariosProductos.length)" 
             (click)="recibirFormulario(form)">
             Siguiente
+          </button>
+          <button mat-button 
+            *ngIf="formulariosAccesorios.length === 0 && i === formulariosProductos.length - 1" 
+            (click)="finalizar(form)">
+            Finalizar
           </button>
         </div>
       </mat-step>
@@ -36,7 +41,7 @@
             (click)="recibirFormulario(form)">
             Siguiente
           </button>
-          <!-- Cambiado: ahora Finalizar valida el formulario y luego envía el inventario -->
+          <!-- Finalizar, ahora pasando el formulario como argumento -->
           <button mat-button (click)="finalizar(form)">Finalizar</button>
         </div>
       </mat-step>
