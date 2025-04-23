@@ -28,6 +28,11 @@ const userstates = require('./routes/users-states');
 const authRoutes = require('./routes/auth');
 const verifyToken = require('./routes/protected');
 const clientesRouter = require('./routes/clients');
+const suppliesRouter = require('./routes/supplies-base');
+const suppliesmanufacturerRouter = require('./routes/supplies-manufacturer');
+const suppliescatesubcateRouter = require('./routes/supplies-cate-subcategories');
+const categoriessuppliesRouter = require('./routes/categories-supplies');
+const uploadimageinsumosRouter = require('./routes/upload-image-supplies');
 // Middleware
 app.use(bodyParser.json());
 
@@ -41,6 +46,7 @@ app.use(cors({
 // Serve static files from the public/img-consolas directory
 app.use('/img-consolas', express.static(path.join(__dirname, '..', 'public', 'img-consolas')));
 app.use('/img-accesorios', express.static(path.join(__dirname, '..', 'public', 'img-accesorios')));
+app.use('/img-insumos', express.static(path.join(__dirname, '..', 'public', 'img-insumos')));
 app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
 
 // Define your routes
@@ -56,6 +62,7 @@ app.use('/fabricantes-accesorios', accessoriesmanufacturerRouter);
 app.use('/catesubcate-accesorios', accesoriescatesubcateRouter);
 app.use('/tareas-accesorios',accesoriestasksRouter);
 app.use('/upload-imagen-accesorios', uploadimageaccesoriesRouter);
+app.use('/upload-imagen-insumos', uploadimageinsumosRouter);
 app.use('/categorias-accesorios', categoriesaccesoriesRouter);
 app.use('/pedidos-dropdown',ordersdropdownRouter);
 app.use('/articulos', articletypeRouter);
@@ -63,6 +70,10 @@ app.use('/pedidos', ordersbaseRouter);
 app.use('/usuarios',usersRouter);
 app.use('/roles',userrolesRouter);
 app.use('/estados-usuarios',userstates)
+app.use('/insumos-base', suppliesRouter); // Ruta para insumos base
+app.use('/fabricantes-insumos', suppliesmanufacturerRouter); // Ruta para fabricantes de insumos
+app.use('/catesubcate-insumos', suppliescatesubcateRouter); // Ruta para categorías y subcategorías de insumos
+app.use('/categorias-insumos', categoriessuppliesRouter);
 app.use('/clientes', clientesRouter); // Ruta para clientes
 app.use('/auth', authRoutes); // Ruta para autenticación
 // Rutas protegidas

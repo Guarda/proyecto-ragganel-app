@@ -2101,8 +2101,419 @@ END $$
 
 DELIMITER ;
 
+/*LISTAR INSUMOS EN LA TABLA INSUMOSBASE 17/04/2025*/
+DELIMITER //
+CREATE PROCEDURE ListarTablaInsumosBase ()
+       BEGIN
+			SELECT A.CodigoInsumo, concat(NombreCategoriaInsumos,' ',NombreSubcategoriaInsumos) as DescripcionInsumo, C.DescripcionEstado As 'Estado',
+                DATE_FORMAT(A.FechaIngreso, '%d/%m/%Y') as 'Fecha_Ingreso',
+                A.Comentario, 
+                A.PrecioBase,
+                A.NumeroSerie,
+                A.Cantidad,
+                A.StockMinimo
+			FROM InsumosBase A 
+            join CatalogoInsumos B on A.ModeloInsumo = B.IdModeloInsumosPK
+            join CatalogoEstadosConsolas C on A.EstadoInsumo = C.CodigoEstado
+            join categoriasinsumos D on B.CategoriaInsumos = D.IdCategoriaInsumosPK
+            join subcategoriasinsumos E on B.SubcategoriaInsumos = E.IdSubcategoriaInsumos
+			WHERE A.EstadoInsumo != 7;
+       END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES INSUMOS CREADO 17/04/2025*/
+CREATE PROCEDURE ListarFabricantesInsumos()
+		BEGIN
+			SELECT * FROM fabricanteinsumos 
+            WHERE Activo = 1;
+        END //
+DELIMITER ;
 
 
 
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES DE INSUMOS CON UN MODELO ASOCIADO CREADO 17/04/2025*/
+CREATE PROCEDURE ListarFabricantesInsumosModelo()
+		BEGIN
+			SELECT DISTINCT a.IdFabricanteInsumosPK, a.NombreFabricanteInsumos FROM fabricanteinsumos a
+            JOIN catalogoinsumos b ON a.IdFabricanteInsumosPK = b.FabricanteInsumos
+            WHERE a.Activo = 1
+            AND b.Activo = 1;
+        END //
+DELIMITER ;
+
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES INSUMOS EN CUALQUIER ESTADO CREADO 17/04/2025*/
+CREATE PROCEDURE ListarFabricantesInsumosBase()
+		BEGIN
+			SELECT * FROM FabricanteInsumos;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE FABRICANTE INSUMO POR ID CREADO 17/04/2025*/
+CREATE PROCEDURE ListarInformacionFabricanteInsumoxId(IdFabricante int)
+	BEGIN
+		SELECT * FROM fabricanteinsumos
+        WHERE IdFabricanteInsumosPK = IdFabricante;
+    END //
+DELIMITER ;
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR FABRICANTE INSUMO 17/04/2025*/
+CREATE PROCEDURE IngresarFabricanteInsumo(PNombreFabricante varchar(100))
+BEGIN
+   INSERT INTO fabricanteinsumos (NombreFabricanteInsumos, Activo) values (PNombreFabricante, 1);   
+END$$
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR FABRICANTE DE INSUMOS y ASOCIADOS CREADO 16/11/2024*/
+CREATE PROCEDURE SoftDeleteFabricanteInsumo(IN IdFabricantePKA INT)
+BEGIN
+    -- Step 1: Soft delete the fabricante by setting Activo to 0
+    UPDATE fabricanteinsumos
+    SET Activo = 0
+    WHERE IdFabricanteInsumosPK = IdFabricantePKA;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    UPDATE categoriasinsumos
+    SET Activo = 0
+    WHERE IdFabricanteInsumosFK = IdFabricantePKA;
+
+    -- Step 3: Soft delete all subcategories related to the affected categories
+    UPDATE subcategoriasinsumos
+    SET Activo = 0
+    WHERE IdCategoriaInsumosFK IN (
+        SELECT IdCategoriaInsumosPK 
+        FROM categoriasinsumos 
+        WHERE IdFabricanteInsumosFK = IdFabricantePKA
+    );
+    
+    -- Step 4: Soft delete all categories of products with the fabricante
+    UPDATE catalogoinsumos
+    SET Activo = 0
+    WHERE fabricanteinsumos = IdFabricantePKA;    
+END$$
+
+DELIMITER //
+/*categorias subcategorias insumos*/
+CREATE PROCEDURE ListarCategoriasInsumos()
+/*LISTAR CATEGORIAS INSUMOS ACTIVOS 17/04/2025*/
+		BEGIN
+			SELECT * FROM categoriasinsumos 
+            WHERE Activo = 1;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO ListarCategoriasAccesoriosBase creado 17/04/2025*/
+CREATE PROCEDURE ListarCategoriasInsumosBase ()
+BEGIN	
+    SELECT * FROM catalogoinsumos a
+    join Fabricanteinsumos b on a.FabricanteInsumos = b.IdFabricanteInsumosPK
+    join categoriasinsumos c on a.CategoriaInsumos = c.IdCategoriaInsumosPK
+    join Subcategoriasinsumos d on a.Subcategoriainsumos = d.IdSubcategoriainsumos
+    WHERE a.ACTIVO = 1;
+END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODOS LAS SUBCATEGORIAS INSUMOS CREADO 17/04/2025*/
+CREATE PROCEDURE ListarSubCategoriasInsumos()
+		BEGIN
+			SELECT * FROM subcategoriasinsumos
+            WHERE Activo = 1;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR CATEGORIAS POR FABRICANTE INSUMOS CREADO 17/04/2025*/
+CREATE PROCEDURE ListarCategoriasInsumosxFabricante(IdFabricanteI int)
+	BEGIN
+		SELECT a.IdCategoriaInsumosPK, a.NombreCategoriaInsumos from categoriasinsumos a
+        join fabricanteinsumos b on a.IdFabricanteInsumosFK = b.IdFabricanteInsumosPK
+        WHERE b.IdFabricanteInsumosPK = IdFabricanteI
+        AND a.Activo = 1;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODAS LAS CATEGORIAS DE INSUMOS CON UN MODELO ASOCIADO CREADO 17/04/2025*/
+CREATE PROCEDURE ListarCategoriasInsumosxModeloActivo(FabricanteP INT)
+		BEGIN
+			SELECT DISTINCT a.IdCategoriaInsumosPK, a.NombreCategoriaInsumos FROM categoriasinsumos a
+            JOIN catalogoinsumos b ON a.IdCategoriaInsumosPK = b.CategoriaInsumos
+            WHERE a.Activo = 1
+            AND b.Activo = 1
+            AND b.FabricanteInsumos = FabricanteP;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE CATEGORIA DE INSUMOS POR ID CREADO 17/04/2025*/
+CREATE PROCEDURE ListarInformacionCategoriaInsumosxId(IdCategoria int)
+	BEGIN
+		SELECT * FROM categoriasinsumos
+        WHERE IdCategoriaInsumosPK = IdCategoria;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR SUBCATEGORIAS POR CATEGORIA DE INSUMOS CREADO 17/04/2025*/
+CREATE PROCEDURE ListarSubCategoriasInsumosxCategoria(IdCategoriaI int)
+	BEGIN
+		SELECT a.IdSubcategoriaInsumos, a.NombreSubcategoriaInsumos from subcategoriasinsumos a
+        join categoriasinsumos b on a.IdCategoriaInsumosFK = b.IdCategoriaInsumosPK
+        WHERE b.IdCategoriaInsumosPK = IdCategoriaI
+        AND a.Activo = 1;
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO LISTAR TODAS LAS SUBCATEGORIAS DE INSUMOS CON UN MODELO ASOCIADO CREADO 17/04/2025*/
+CREATE PROCEDURE ListarSubCategoriasInsumosxModeloActivo(CategoriaP INT)
+		BEGIN
+			SELECT DISTINCT a.IdSubcategoriaInsumos, a.NombreSubcategoriaInsumos FROM subcategoriasinsumos a
+            JOIN catalogoinsumos b ON a.IdSubcategoriaInsumos = b.SubcategoriaInsumos
+            WHERE a.Activo = 1
+            AND b.Activo = 1
+            AND b.CategoriaInsumos = CategoriaP;
+        END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO IngresarCategoriaProductoV2 Creado 16/09/24 */
+	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoInsumo varchar(25), NombreArchivoImagen varchar(100), TipoProductoI int)
+    BEGIN
+		DECLARE cantidad varchar(24);
+        select count(IdModeloInsumosPK)+1 from catalogoinsumos into cantidad;        
+		INSERT INTO catalogoinsumos(FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen) 
+        values (FabricanteP, CategoriaP, SubcategoriaP,concat(PrefijoProducto,cantidad), NombreArchivoImagen);
+    END //
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO CONSEGUIR INFORMACION ESPECIFICA DE SUBCATEGORIA DE INSUMO POR ID CREADO 17/04/2025*/
+CREATE PROCEDURE ListarInformacionSubCategoriaInsumoxId(IdSubcategoriaInsumo int)
+	BEGIN
+		SELECT IdSubcategoriaInsumos, NombreSubcategoriaInsumos as NombreSubCategoria, IdCategoriaInsumosFK, Activo FROM subcategoriasinsumos
+        WHERE IdSubcategoriainsumos = IdSubcategoriaInsumo;
+    END //
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SofDeleteCategoriaInsumo(IN IdCategoriaI INT)
+BEGIN
+    -- Step 1: Soft delete the fabricante by setting Activo to 0
+    UPDATE categoriasinsumos
+    SET Activo = 0
+    WHERE IdCategoriaInsumosPK = IdCategoriaI;
+
+    -- Step 2: Soft delete all categories related to this fabricante
+    UPDATE subcategoriasinsumos
+    SET Activo = 0
+    WHERE IdCategoriaInsumosFK = IdCategoriaI;
+    
+     -- Step 3: Soft delete all categories of products with the categorie
+    UPDATE catalogoinsumos
+    SET Activo = 0
+    WHERE Categoriainsumos = IdCategoriaI;   
+END$$
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR SUBCATEGORIA INSUMOS 17/04/2025*/
+CREATE PROCEDURE IngresarSubcategoriaInsumos(NombreSubcategoriaInsumo varchar(100), IdCategoriaInsumo int)
+BEGIN
+   INSERT INTO subcategoriasinsumos (NombreSubcategoriainsumos, IdCategoriainsumosFK, Activo) values (NombreSubcategoriaInsumos, IdCategoriaInsumo, 1);   
+END$$
+
+DELIMITER $$
+/*PROCEDIMIENTO BORRAR CATEGORIA y ASOCIADOS CREADO 17/04/2025*/
+CREATE PROCEDURE SofDeleteSubCategoriaInsumo(IN p_IdSubCategoria INT)
+BEGIN
+    -- Step 1: Soft delete the subcategoria by setting Activo to 0
+    UPDATE Subcategoriasinsumos
+    SET Activo = 0
+    WHERE IdSubcategoriainsumos = p_IdSubCategoria;
+
+    -- Step 3: Soft delete all categories of products with the categorie
+    UPDATE catalogoinsumos
+    SET Activo = 0
+    WHERE subcategoriainsumos = p_IdSubCategoria;
+   
+END$$
+
+DELIMITER ;
+
+DELIMITER //
+/*PROCEDIMIENTO ListarCategoriasAccesoriosBase creado 12/11/2024*/
+CREATE PROCEDURE ListarCategoriasInsumosBase ()
+BEGIN	
+    SELECT * FROM catalogoinsumos a
+    join Fabricanteinsumos b on a.FabricanteInsumos = b.IdFabricanteInsumosPK
+    join categoriasinsumos c on a.CategoriaInsumos = c.IdCategoriaInsumosPK
+    join Subcategoriasinsumos d on a.SubcategoriaInsumos = d.IdSubcategoriainsumos
+    WHERE a.ACTIVO = 1;
+END //
+DELIMITER ;
+
+/*PROCEDIMIENTO ListarTablacatalogoainsumosXId creado 19/04/25*/
+DELIMITER //
+	CREATE PROCEDURE ListarTablaCatalogoInsumosXId(IdCategoria int)
+    BEGIN
+		SELECT 
+			*
+        FROM catalogoinsumos 
+        where IdModeloInsumosPK = IdCategoria;    
+    END //
+DELIMITER ;
+
+delimiter //
+/*PROCEDIMIENTO ALMACENADO BuscarIdCategoriaInsumoCatalogo creado 19/04/25*/
+	CREATE PROCEDURE BuscarIdCategoriaInsumoCatalogo(IdFabricanteI int, IdCategoriaI int, IdSubcategoriaI int)
+    BEGIN
+		SELECT IdModeloInsumosPK FROM catalogoinsumos
+        WHERE FabricanteInsumos = IdFabricanteI
+        AND CategoriaInsumos = IdCategoriaI
+        AND SubcategoriaInsumos = IdSubcategoriaI;
+    END //
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE IngresarInsumoATablaInsumosBase (
+/*CREADO EL 19/04/2025*/
+    IN IdModeloInsumosPK INT,
+    IN EstadoInsumo INT,
+    IN ComentarioInsumo VARCHAR(2000),
+    IN PrecioBase DECIMAL(6,2),
+    IN Cantidad INT UNSIGNED,
+    IN NumeroSerie VARCHAR(100),
+    IN StockMinimo INT UNSIGNED
+)
+BEGIN
+    DECLARE CodigoGenerado VARCHAR(50);
+    DECLARE CodigoModelo VARCHAR(25);
+    DECLARE CantidadExistente INT;
+    DECLARE StockMinimoExistente INT;
+    DECLARE PrecioBaseExistente DECIMAL(6,2);
+    DECLARE Existe INT;
+
+    -- Verifica si ya existe un insumo para ese modelo
+    SELECT COUNT(*) INTO Existe
+    FROM InsumosBase
+    WHERE ModeloInsumo = IdModeloInsumosPK;
+
+    IF Existe > 0 THEN
+        -- Ya existe: obtener datos actuales
+        SELECT Cantidad, StockMinimo, PrecioBase INTO CantidadExistente, StockMinimoExistente, PrecioBaseExistente
+        FROM InsumosBase
+        WHERE ModeloInsumo = IdModeloInsumosPK
+        LIMIT 1;
+
+        -- Actualizar campos necesarios
+        UPDATE InsumosBase
+        SET 
+            Cantidad = CantidadExistente + Cantidad,
+            StockMinimo = IF(StockMinimoExistente != StockMinimo, StockMinimo, StockMinimoExistente),
+            PrecioBase = IF(PrecioBase > PrecioBaseExistente, PrecioBase, PrecioBaseExistente)
+        WHERE ModeloInsumo = IdModeloInsumosPK;
+
+    ELSE
+        -- No existe: obtener código del modelo desde el catálogo
+        SELECT CodigoModeloInsumo INTO CodigoModelo
+        FROM CatalogoInsumos
+        WHERE IdModeloInsumosPK = IdModeloInsumosPK;
+
+        -- Generar código único
+        SET CodigoGenerado = CONCAT(CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
+
+        -- Insertar nuevo registro
+        INSERT INTO InsumosBase (
+            CodigoInsumo, ModeloInsumo, EstadoInsumo, FechaIngreso, Comentario,
+            PrecioBase, NumeroSerie, Cantidad, StockMinimo
+        )
+        VALUES (
+            CodigoGenerado, IdModeloInsumosPK, EstadoInsumo, CURDATE(), ComentarioInsumo,
+            PrecioBase, NumeroSerie, Cantidad, StockMinimo
+        );
+    END IF;
+
+END //
+
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE `ListarTablaInsumosBasesXId`(IdCodigoInsumo varchar(100))
+/* procedimiento almacenado ListarTablaInsumosBasesXId 19/04/2025*/
+BEGIN
+	SELECT 
+		A.CodigoInsumo, A.ModeloInsumo, A.EstadoInsumo, A.FechaIngreso, A.Comentario, A.PrecioBase, A.NumeroSerie, A.StockMinimo, A.Cantidad,
+        B.FabricanteInsumos, B.CategoriaInsumos, B.SubcategoriaInsumos
+    FROM insumosbase A
+    JOIN catalogoinsumos B
+    ON A.ModeloInsumo = B.IdModeloInsumosPK 
+    WHERE A.CodigoInsumo = IdCodigoInsumo;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ActualizarInsumoBase (
+    CodigoInsumoA VARCHAR(25),       -- Código del insumo a actualizar
+    ModeloInsumoA INT,               -- Nuevo modelo
+    EstadoInsumoA INT,               -- Nuevo estado
+    PrecioInsumoA DECIMAL(6,2),      -- Nuevo precio base
+    ComentarioInsumoA VARCHAR(2000), -- Comentario actualizado
+    NumeroSerieInsumoA VARCHAR(100), -- Número de serie
+    CantidadInsumoA INT UNSIGNED,    -- Cantidad actualizada
+    StockMinimoInsumoA INT UNSIGNED  -- Stock mínimo actualizado
+)
+BEGIN
+    /* PROCEDURE ActualizarInsumoBase 19/04/2025 */
+
+    -- Actualizar el insumo en la tabla InsumosBase
+    UPDATE InsumosBase
+    SET 
+        ModeloInsumo = ModeloInsumoA,
+        EstadoInsumo = EstadoInsumoA,
+        Comentario = ComentarioInsumoA,
+        PrecioBase = PrecioInsumoA,
+        NumeroSerie = NumeroSerieInsumoA,
+        Cantidad = CantidadInsumoA,
+        StockMinimo = StockMinimoInsumoA
+    WHERE CodigoInsumo = CodigoInsumoA;
+
+    -- Mensaje de confirmación
+    SELECT 'Insumo actualizado correctamente' AS mensaje;
+END //
+DELIMITER ;
+
+/*PROCEDIMIENTO BORRAR INSUMO 21/04/2025*/
+DELIMITER //
+	CREATE PROCEDURE BorrarInsumo(IdCodigoInsumo varchar(100))
+    BEGIN
+    /*PROCEDIMIENTO BORRAR INSUMO CREADO 21/04/2025*/
+		UPDATE InsumosBase
+        SET
+			EstadoInsumo = 7
+        WHERE CodigoInsumo = IdCodigoInsumo;
+    END //
+DELIMITER ;
+
+/**
+DELIMITER //
+/*PROCEDIMIENTO IngresarCategoriaInsumo Creado 22/04/25 
+	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoAccesorio varchar(25), NombreArchivoImagen varchar(100))
+    BEGIN
+		DECLARE cantidad varchar(24);
+        select count(IdModeloInsumosPK)+1 from catalogoinsumos into cantidad;        
+		INSERT INTO catalogoinsumos(FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen) 
+        values (FabricanteI, CategoriaI, SubcategoriaI,concat(PrefijoAccesorio,cantidad), NombreArchivoImagen);
+    END //
+DELIMITER ;*/
 
 

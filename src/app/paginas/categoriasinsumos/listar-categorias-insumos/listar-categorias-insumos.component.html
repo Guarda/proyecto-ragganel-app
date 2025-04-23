@@ -1,0 +1,86 @@
+<div class="container">
+
+    <div class="cabezera">
+      <h1>Categorias</h1>      
+      <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
+        <mat-label>Filter</mat-label>
+        <!-- <input matInput placeholder="Gameboy" #input> -->
+        <input matInput (keyup)="applyFilter($event)" placeholder="Memoria" #input>
+    </mat-form-field>
+      <!-- <a mat-raised-button class="button-crear-prod"  color="primary"> -->
+          <a mat-raised-button class="button-crear-prod" (click)="openDialogAgregar()" (Agregado)="onAdd($event)" color="primary">
+          <!-- <a mat-raised-button class="button-crear-prod"  (Agregado)="onAdd($event)" color="primary"> -->
+          <mat-icon>add</mat-icon>
+        Añade una nueva categoria
+      </a>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+
+        <!--- Note that these columns can be defined in any order.
+              The actual rendered columns are set as a property on the row definition" -->
+
+        <!-- imagen Column -->
+        <ng-container matColumnDef="ImagenCategoria">
+            <th mat-header-cell *matHeaderCellDef > Imagen </th>
+            <td mat-cell *matCellDef="let element"> <img class="category-image-card" [src]="element.ImagePath" alt="imagen-accesorio"> </td>
+            <!-- <td mat-cell *matCellDef="let element"> <img class="category-image-card" src="http://localhost:4200/img-consolas/450_1000-1730429328488.jpeg" alt="imagen-consola"> </td> -->
+          </ng-container>      
+              
+        <!-- codigo Column -->
+        <ng-container matColumnDef="CodigoModeloInsumo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+          <td mat-cell *matCellDef="let element"> {{element.CodigoModeloInsumos}} </td>
+        </ng-container>
+
+        <!-- Fabricante -->
+        <ng-container matColumnDef="FabricanteInsumo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Fabricante </th>
+          <td mat-cell *matCellDef="let element"> {{element.NombreFabricanteInsumos}} </td>
+        </ng-container>
+      
+        <!-- categoria Column -->
+        <ng-container matColumnDef="CategoriaInsumo" class="columna-descripcion">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Categoria </th>
+          <td mat-cell *matCellDef="let element"> {{element.NombreCategoriaInsumos}} </td>
+        </ng-container>
+
+         <!-- subcategoria Column -->
+         <ng-container matColumnDef="SubcategoriaInsumo" class="columna-descripcion">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Subcategoria </th>
+          <td mat-cell *matCellDef="let element"> {{element.NombreSubcategoriaInsumos}} </td>
+        </ng-container>
+
+         <!-- Symbol Column -->
+         <ng-container matColumnDef="Action">
+          <th mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td mat-cell *matCellDef="let element" class="contenedor-botones">             
+            <a mat-flat-button class="button-editar-prod"   title="editar producto" >
+            <!-- <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.IdModeloInsumoPK)"  title="editar producto" > -->
+            <!-- <a mat-flat-button class="button-editar-prod"   title="editar producto" > -->
+              <mat-icon class="iconos-custom">mode_edit</mat-icon>
+            </a>
+            
+            <a mat-flat-button   color="warn" title="borrar producto" >
+            <!-- <a mat-flat-button  (click)="openDialogEliminar(element.IdModeloInsumoPK)" color="warn" title="borrar producto" > -->
+            <!-- <a mat-flat-button   color="warn" title="borrar producto" > -->
+              <mat-icon class="button-eliminar-prod">delete</mat-icon>
+            </a>
+            <!-- <button type="button" class="btn btn-danger">Delete</button>  -->
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns; "></tr>
+
+        <!-- Row shown when there is no matching data. -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="4">No se encuentran datos con  "{{input.value}}"</td>
+      </tr>
+
+      </table>
+      <mat-paginator class="foo-paginator" [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users" ></mat-paginator>
+      <div>
+        <!-- <span>Total items: {{ totalItems }}</span> -->
+      </div>
+</div>

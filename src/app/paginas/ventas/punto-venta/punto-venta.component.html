@@ -1,0 +1,73 @@
+<div class="punto-venta-container">
+    <header class="header">
+      <h1>Punto de Venta</h1>
+      <div class="search-bar">
+        <input type="text" placeholder="Buscar producto..." />
+        <button>Buscar</button>
+      </div>
+    </header>
+  
+    <main class="main-content">
+      <section class="productos">
+        <h2>Productos</h2>
+        <div class="productos-lista">
+          <div class="producto-item">
+            <img src="https://via.placeholder.com/100" alt="Producto 1" />
+            <p>Producto 1</p>
+            <p>$10.00</p>
+            <input type="number" value="1" min="1" class="cantidad-input" />
+            <button>Agregar</button>
+          </div>
+          <!-- Más productos aquí -->
+        </div>
+      </section>
+  
+      <section class="carrito">
+        <h2>Carrito</h2>
+        <div class="carrito-lista">
+          <div class="carrito-item">
+            <p>Producto 1</p>
+            <p>Cantidad: 1</p>
+            <p>Total: $10.00</p>
+            <button>Eliminar</button>
+          </div>
+          <!-- Más productos en carrito -->
+        </div>
+  
+        <div class="venta-datos-extra">
+          <label>Cliente:</label>
+          <select>
+            <option value="">Seleccionar Cliente</option>
+            <option value="1">Juan Pérez</option>
+          </select>
+  
+          <label>Método de Pago:</label>
+          <select>
+            <option value="">Seleccionar Método</option>
+            <option value="1">Efectivo</option>
+            <option value="2">Transferencia</option>
+          </select>
+  
+          <label>Observaciones:</label>
+          <textarea rows="2" placeholder="Notas de la venta..."></textarea>
+        </div>
+  
+        <div class="carrito-total">
+            <p>Subtotal: $8.93</p>
+            <p>IVA (12%): $1.07</p>
+            <h3>Total: $10.00</h3>
+          
+            <div class="botones-finalizar">
+              <button class="btn-factura">Generar Factura</button>
+              <button class="btn-proforma">Generar Proforma</button>
+            </div>
+          </div>
+          
+      </section>
+    </main>
+  
+    <footer class="footer">
+      <p>&copy; 2024 Punto de Venta</p>
+    </footer>
+  </div>
+  

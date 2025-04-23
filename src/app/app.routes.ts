@@ -24,6 +24,10 @@ import { LoginComponent } from './UI/session/login/login.component';
 import { ModuloEnConstruccionComponent } from './UI/default/modulo-en-construccion/modulo-en-construccion.component';
 import { ListadoClientesComponent } from './paginas/clientes/listado-clientes/listado-clientes.component';
 import { VerClienteComponent } from './paginas/clientes/ver-cliente/ver-cliente.component';
+import { PuntoVentaComponent } from './paginas/ventas/punto-venta/punto-venta.component';
+import { ListarInsumosComponent } from './paginas/insumos/listar-insumos/listar-insumos.component';
+import { VerInsumoComponent } from './paginas/insumos/ver-insumo/ver-insumo.component';
+import { ListarCategoriasInsumosComponent } from './paginas/categoriasinsumos/listar-categorias-insumos/listar-categorias-insumos.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -34,6 +38,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
     { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
+    { path: 'punto-venta', component: PuntoVentaComponent, canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 2] }},
     {
       path: 'listado-productos',
       component: ListarProductosComponent,
@@ -87,6 +93,23 @@ export const routes: Routes = [
       path: 'preferencias/index-categorias-accesorios',
       component: IndexEdicioncategoriasAccesoriosComponent,
       canActivate: [AuthGuard]
+    },
+    {
+      path: 'listado-insumos',
+      component: ListarInsumosComponent,  
+      canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 3] } // Corrected
+    },
+    { path: 'listado-insumos/ver-insumo/:CodigoInsumo/view',
+      component: VerInsumoComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 3] } // Corrected
+    },
+    {
+      path: 'listado-categorias-insumos',
+      component: ListarCategoriasInsumosComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 3] } // Corrected
     },
     {
       path: 'listado-pedidos',

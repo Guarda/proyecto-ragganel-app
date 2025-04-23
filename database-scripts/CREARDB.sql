@@ -423,13 +423,15 @@ CREATE TABLE InsumosBase (
     NumeroSerie varchar(100),
     ServiciosCompatibles varchar(500),
     Cantidad int unsigned not null,
+    StockMinimo int unsigned not null,
+    IdIngreso INT AUTO_INCREMENT UNIQUE,
     FOREIGN KEY (ModeloInsumo) REFERENCES CatalogoInsumos (IdModeloInsumosPK),
     FOREIGN KEY (EstadoInsumo) REFERENCES CatalogoEstadosconsolas (CodigoEstado)
 );
 
 /*MODIFICACION A LA TABLA InsumosBase 24/02/2025*/
-ALTER TABLE InsumosBase 
-ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;
+/**ALTER TABLE InsumosBase 
+ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;*/
 
 CREATE TABLE TareasdeInsumos (
 /*TABLA TareasdeInsumos CREADA 23/11/24*/
@@ -483,13 +485,23 @@ CREATE TABLE HistorialEstadoAccesorio (
 CREATE TABLE HistorialEstadoInsumo (
     IdHistorial INT AUTO_INCREMENT PRIMARY KEY,
     CodigoInsumo VARCHAR(25) NOT NULL,
+
     EstadoAnterior INT,
     EstadoNuevo INT NOT NULL,
+
+    StockAnterior INT UNSIGNED,
+    StockNuevo INT UNSIGNED,
+
+    StockMinimoAnterior INT UNSIGNED,
+    StockMinimoNuevo INT UNSIGNED,
+
     FechaCambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (CodigoInsumo) REFERENCES InsumosBase(CodigoInsumo),
     FOREIGN KEY (EstadoAnterior) REFERENCES CatalogoEstadosConsolas(CodigoEstado),
     FOREIGN KEY (EstadoNuevo) REFERENCES CatalogoEstadosConsolas(CodigoEstado)
 );
+
 
 
 /*TABLAS DE USUARIOS CREADAS EL 18/03/2025*/
@@ -547,6 +559,70 @@ CREATE TABLE Clientes (
 ('Carlos Rodríguez', '11223344', '500600700800', NULL, 'carlos.rodriguez@email.com', 'Jr. Los Olivos 789', CURDATE(), 1),
 ('Ana Martínez', '22334455', NULL, '956789123', NULL, 'Psj. Las Flores 321', CURDATE(), 1),
 ('Luis Fernández', '33445566', '900800700600', '965432189', 'luis.fernandez@email.com', NULL, CURDATE(), 1);*/
+
+
+/*TABLAS DE VENTAS*/
+
+/*TABLA TIPO DOCUMENTO*/
+CREATE TABLE TipoDocumento (
+	IdTipoDocumentoPK INT AUTO_INCREMENT PRIMARY KEY,
+    DescripcionDocumento varchar(100)
+);
+
+INSERT INTO TipoDocumento (DescripcionDocumento) values ('En Espera');
+INSERT INTO TipoDocumento (DescripcionDocumento) values ('Proforma');
+INSERT INTO TipoDocumento (DescripcionDocumento) values ('Factura');
+
+/*Estado de venta*/
+CREATE TABLE ESTADOVENTA(
+	IdEstadoVentaPK INT AUTO_INCREMENT PRIMARY KEY,
+	DescripcionEstadoVenta varchar(100)
+);
+
+INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Pendiente');
+INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Pagado');
+INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Anulado');
+
+/*METODO DE PAGO*/
+CREATE TABLE METODOPAGO(
+	IdMetodoPagoPK INT AUTO_INCREMENT PRIMARY KEY,
+    DescripcionMetodoPago varchar (100)
+);
+
+INSERT INTO METODOPAGO (DescripcionMetodoPago) values ('Efectivo');
+INSERT INTO METODOPAGO (DescripcionMetodoPago) values ('Transferencia');
+
+/*TABLA VENTASBASE CREADA el 10/04/2025 POR ROMMEL MALTEZ*/
+CREATE TABLE VentasBase(
+	/*VALORES DE LA VENTA*/
+	IdVentaPK INT AUTO_INCREMENT PRIMARY KEY, 
+    FechaCreacion date NOT NULL,
+    IdTipoDocumentoFK int not null,
+    NumeroDocumento varchar(255),
+    SubtotalVenta Decimal(6,2),
+    IVA Decimal(6,2),
+    TotalVenta Decimal(6,2),
+    IdEstadoVentaFK  int not null,
+    IdMetodoDePagoFK int not null,
+    /*VALORES EXTRAS VENTA*/
+    IdUsuarioFK int not null,
+    IdClienteFK int not null,
+    Observaciones varchar(255),
+    FOREIGN KEY (IdTipoDocumentoFK) REFERENCES TipoDocumento(IdTipoDocumentoPK),
+    FOREIGN KEY (IdEstadoVentaFK) REFERENCES ESTADOVENTA(IdEstadoVentaPK),
+    FOREIGN KEY (IdMetodoDePagoFK) REFERENCES METODOPAGO (IdMetodoPagoPK),
+    FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios (IdUsuarioPK),
+    FOREIGN KEY (IdClienteFK) REFERENCES Clientes (IdCLientePK)
+);
+
+
+/*tabla adicional para almacenar informacion extra y opcional de la venta*/
+CREATE TABLE VentasEXT(
+	IdVentaFK int not null,
+    NumeroReferenciaTransferencia varchar(255),
+    FOREIGN KEY (IdVentaFK) REFERENCES VENTASBASE (IdVentaPK)
+);
+
 
 
     

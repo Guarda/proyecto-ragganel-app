@@ -88,6 +88,7 @@ DELIMITER ;
 
 
 /*DISPARADORES HISTORIAL DE INSUMOS 18/02/2025*/
+/* DESACTUALIZADO
 DELIMITER $$
 
 CREATE TRIGGER trg_Historial_Estado_Insumo
@@ -100,8 +101,39 @@ BEGIN
     END IF;
 END $$
 
+DELIMITER ;*/
+
+/*DISPARADORES HISTORIAL DE INSUMOS 21/04/2025*/
+DELIMITER $$
+
+CREATE TRIGGER trg_Historial_Estado_Insumo
+BEFORE UPDATE ON InsumosBase
+FOR EACH ROW
+BEGIN
+    IF OLD.EstadoInsumo <> NEW.EstadoInsumo OR
+       OLD.Cantidad <> NEW.Cantidad OR
+       OLD.StockMinimo <> NEW.StockMinimo THEN
+       
+        INSERT INTO HistorialEstadoInsumo (
+            CodigoInsumo, 
+            EstadoAnterior, EstadoNuevo, 
+            StockAnterior, StockNuevo, 
+            StockMinimoAnterior, StockMinimoNuevo, 
+            FechaCambio
+        )
+        VALUES (
+            OLD.CodigoInsumo, 
+            OLD.EstadoInsumo, NEW.EstadoInsumo, 
+            OLD.Cantidad, NEW.Cantidad, 
+            OLD.StockMinimo, NEW.StockMinimo, 
+            NOW()
+        );
+    END IF;
+END $$
 DELIMITER ;
 
+
+/**desactualizado
 DELIMITER $$
 
 CREATE TRIGGER trg_Insert_Historial_Insumo
@@ -112,7 +144,32 @@ BEGIN
     VALUES (NEW.CodigoInsumo, NULL, NEW.EstadoInsumo, NOW());
 END $$
 
+DELIMITER ;*/
+
+DELIMITER $$
+/*21/04/2025*/
+CREATE TRIGGER trg_Insert_Historial_Insumo
+AFTER INSERT ON InsumosBase
+FOR EACH ROW
+BEGIN
+    INSERT INTO HistorialEstadoInsumo (
+        CodigoInsumo, 
+        EstadoAnterior, EstadoNuevo, 
+        StockAnterior, StockNuevo, 
+        StockMinimoAnterior, StockMinimoNuevo, 
+        FechaCambio
+    )
+    VALUES (
+        NEW.CodigoInsumo, 
+        NULL, NEW.EstadoInsumo, 
+        NULL, NEW.Cantidad, 
+        NULL, NEW.StockMinimo, 
+        NOW()
+    );
+END $$
+
 DELIMITER ;
+
 
 
 

@@ -1,0 +1,10 @@
+<h2 mat-dialog-title>Ingresar inventario de insumos</h2>
+<mat-dialog-content>
+  ¿Desea ingresar inventario de un nuevo insumo o uno ya existente?
+</mat-dialog-content>
+
+<mat-dialog-actions class="contenedor-botones" align="end">
+  <button mat-button mat-dialog-close>Cerrar ventana</button>
+  <button mat-raised-button color="primary" (click)="onIngresarExistente()">Insumo existente</button>
+  <button mat-raised-button color="accent" (click)="onIngresarNuevo()">Nuevo insumo</button>
+</mat-dialog-actions>

@@ -1,0 +1,93 @@
+<div class="contenedor-componente-ver-producto">
+    <div class="header1">
+        <h3 class="cabezera">      
+            <span>Accesorio</span>
+            <span>{{supplyId}}</span>
+            
+        </h3>
+        <h3 class="cabezera1">
+            <a mat-raised-button class="button-crear-prod" href="#" [routerLink]="['/home/listado-insumos']" color="primary" ><mat-icon class="iconos-custom">close</mat-icon></a>                 
+        </h3>
+    </div>
+
+    <div class="container-ver">
+        <div class="image-container">
+          <img [src]="ImagePath" alt="Imagen del insumo" class="product-image" />
+        </div>
+      
+        <form [formGroup]="insumoForm" (ngSubmit)="onSubmit()">
+          <div class="form-fields">
+      
+            <!-- Fabricante -->
+            <mat-form-field class="input-form-prod">
+              <mat-label>Fabricante</mat-label>
+              <mat-select formControlName ="FabricanteInsumos" name="FabricanteInsumos">             
+                  <mat-option *ngFor="let est of selectedFabricanteInsumos" [value]="est.IdFabricanteInsumosPK" [disabled]="est.NombreFabricanteInsumos">{{est.NombreFabricanteInsumos}} </mat-option>
+              </mat-select> 
+          </mat-form-field>
+      
+            <!-- CATEGORIA -->
+            <mat-form-field class="input-form-prod">
+              <mat-label>Categoria</mat-label>
+              <mat-select formControlName ="CategoriaInsumos" name="CategoriaInsumos">             
+                  <mat-option *ngFor="let est of selectedCategoriaInsumos" [value]="est.IdCategoriaInsumosPK" [disabled]="est.NombreCategoriaInsumos">{{est.NombreCategoriaInsumos}} </mat-option>            
+              </mat-select> 
+          </mat-form-field> 
+
+          <!-- SUBCATEGORIA -->
+          <mat-form-field class="input-form-prod">
+              <mat-label>Modelo</mat-label>
+              <mat-select formControlName ="SubcategoriaInsumos" name="SubcategoriaInsumos">             
+                  <mat-option *ngFor="let est of selectedSubcategoriaInsumos" [value]="est.IdSubcategoriaInsumos" [disabled]="est.NombreSubcategoriaInsumos">{{est.NombreSubcategoriaInsumos}} </mat-option>            
+              </mat-select> 
+            </mat-form-field>   
+      
+            <!-- Número de Serie -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Número de Serie</mat-label>
+              <input matInput formControlName="NumeroSerie" />
+            </mat-form-field>
+      
+            <!-- Estado -->
+            <mat-form-field class="input-form-prod" *ngIf="insumo">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName = "EstadoInsumo" name="est">             
+                  <mat-option *ngFor="let est of selectedEstado" placeholder="insumo.CodigoEstado"  [value]="est.CodigoEstado" [disabled]="est.DescripcionEstado">{{est.DescripcionEstado}} </mat-option>
+              </mat-select> 
+            </mat-form-field>
+      
+            <!-- Precio -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Precio Base</mat-label>
+              <input matInput formControlName="PrecioBase" type="number" />
+            </mat-form-field>
+      
+            <!-- Cantidad -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Cantidad</mat-label>
+              <input matInput formControlName="Cantidad" type="number" />
+            </mat-form-field>
+      
+            <!-- Stock Mínimo -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Stock Mínimo</mat-label>
+              <input matInput formControlName="StockMinimo" type="number" />
+            </mat-form-field>
+      
+            <!-- Comentario -->
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>Comentario</mat-label>
+              <textarea matInput formControlName="Comentario" rows="3"></textarea>
+            </mat-form-field>
+      
+          </div>
+      
+          <div class="buttons-container">
+            <button mat-flat-button color="primary" type="submit" [disabled]="!insumoForm.dirty">Actualizar</button>
+            <!-- <button mat-flat-button color="warn" type="button" >Eliminar</button> -->
+            <button mat-flat-button color="warn" type="button" (click)="openDialogEliminar(supplyId)">Eliminar</button>
+          </div>
+        </form>
+      </div>
+      
+</div>

@@ -104,6 +104,7 @@ export class VerAccesorioComponent {
 
     this.id = this.route.snapshot.params['CodigoAccesorio'];
     this.accessorieId = this.id;
+    console.log('codigo accesirio es: ',this.id);
 
     this.accesorioService.find(this.id).subscribe((data) => {
       this.accesorio = data[0];

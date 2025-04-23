@@ -86,6 +86,49 @@ CALL IngresarProductoATablaProductoBaseV4(
     'Limpiar, Poner Fibra de vidrio'                            -- TareasP (comma-separated TodoList)
 );
 
+/**/
+
+INSERT INTO FabricanteInsumos (NombreFabricanteInsumos) VALUES ('Kingston');
+INSERT INTO FabricanteInsumos (NombreFabricanteInsumos) VALUES ('Sandisk');
+INSERT INTO FabricanteInsumos (NombreFabricanteInsumos) VALUES ('ADATA');
+
+/*categorias de insumos*/
+-- Supongamos que Kingston = 1, Sandisk = 2, ADATA = 3
+INSERT INTO CategoriasInsumos (NombreCategoriaInsumos, IdFabricanteInsumosFK) VALUES ('Memoria Micro SD', 1);
+INSERT INTO CategoriasInsumos (NombreCategoriaInsumos, IdFabricanteInsumosFK) VALUES ('Pendrive', 2);
+INSERT INTO CategoriasInsumos (NombreCategoriaInsumos, IdFabricanteInsumosFK) VALUES ('Memoria RAM', 3);
+
+-- Supongamos: Memoria Micro SD = 1, Pendrive = 2, Memoria RAM = 3
+INSERT INTO SubcategoriasInsumos (NombreSubcategoriaInsumos, IdCategoriaInsumosFK) VALUES ('32GB Clase 10', 1);
+INSERT INTO SubcategoriasInsumos (NombreSubcategoriaInsumos, IdCategoriaInsumosFK) VALUES ('64GB USB 3.0', 2);
+INSERT INTO SubcategoriasInsumos (NombreSubcategoriaInsumos, IdCategoriaInsumosFK) VALUES ('DDR4 8GB 2666MHz', 3);
+
+/*catalogo*/
+-- Supongamos:
+-- FabricanteInsumos: Kingston = 1, Sandisk = 2, ADATA = 3
+-- CategoriasInsumos: Micro SD = 1, Pendrive = 2, RAM = 3
+-- SubcategoriasInsumos: 32GB Clase 10 = 1, 64GB USB 3.0 = 2, DDR4 8GB = 3
+
+INSERT INTO CatalogoInsumos (FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen)
+VALUES (1, 1, 1, 'KSD32C10', 'kingston-32gb-clase10.png');
+
+INSERT INTO CatalogoInsumos (FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen)
+VALUES (2, 2, 2, 'SND64U3', 'sandisk-64gb-usb3.png');
+
+INSERT INTO CatalogoInsumos (FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen)
+VALUES (3, 3, 3, 'ADT8G2666', 'adata-8gb-ddr4.png');
+
+
+/*inventario*/
+INSERT INTO InsumosBase 
+(CodigoInsumo, ModeloInsumo, EstadoInsumo, FechaIngreso, Comentario, PrecioBase, NumeroSerie, ServiciosCompatibles, Cantidad, StockMinimo)
+VALUES
+('INS-KING-32GB', 1, 1, '2025-04-17', 'Stock inicial de MicroSD Kingston 32GB Clase 10', 12.50, 'SN-KING-BASE', 'Cámaras, Drones, Reproductores', 120, 20),
+
+('INS-SAND-64GB', 2, 1, '2025-04-17', 'Pendrives Sandisk 64GB USB 3.0 para venta general', 10.99, 'SN-SAND-BASE', 'PC, TV, Consolas', 60, 10),
+
+('INS-ADATA-DDR4', 3, 1, '2025-04-17', 'Memoria RAM ADATA DDR4 8GB 2666MHz', 25.00, 'SN-ADATA-BASE', 'Laptops, PC Escritorio', 40, 15);
+
 
 
 

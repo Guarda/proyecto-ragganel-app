@@ -1,15 +1,14 @@
-import { Component } from '@angular/core';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
-
+import { Component, Inject } from '@angular/core';
+import { MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-successdialog',
   standalone: true,
-  imports: [MatDialogModule, MatIcon],
+  imports: [MatDialogModule, MatIconModule],
   templateUrl: './successdialog.component.html',
   styleUrl: './successdialog.component.css'
 })
 export class SuccessdialogComponent {
-  constructor() {}
-} 
+  constructor(@Inject(MAT_DIALOG_DATA) public data: { message: string }) {}
+}

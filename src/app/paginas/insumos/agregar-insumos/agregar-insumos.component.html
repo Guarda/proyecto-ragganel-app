@@ -1,0 +1,105 @@
+<h3 mat-dialog-title>    
+  <span>Agregar Nuevo Insumo</span>
+</h3>
+
+<form [formGroup]="insumoForm" (ngSubmit)="onSubmit()">
+  <div class="contenedor-principal">
+    <div class="contenedor-secundario">
+      <div class="contenedor-img-consola">
+        <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
+      </div>
+
+      <div class="contendor-form">
+        <mat-dialog-content class="mat-typography">
+          <h3>Ingresa detalles del insumo nuevo a ingresar</h3>
+
+          <!-- FABRICANTE -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Fabricante</mat-label>
+            <mat-select formControlName="FabricanteInsumo">
+              <mat-option *ngFor="let est of selectedFabricanteInsumos" [value]="est.IdFabricanteInsumosPK">
+                {{ est.NombreFabricanteInsumos }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- CATEGORIA -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="CateInsumo">
+              <mat-option *ngFor="let est of selectedCategoriaInsumos" [value]="est.IdCategoriaInsumosPK">
+                {{ est.NombreCategoriaInsumos }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- SUBCATEGORIA -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Modelo</mat-label>
+            <mat-select formControlName="SubCategoriaInsumo">
+              <mat-option *ngFor="let est of selectedSubcategoriaInsumos" [value]="est.IdSubcategoriaInsumos">
+                {{ est.NombreSubcategoriaInsumos }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- ID MODELO
+          <mat-form-field class="input-form-prod">
+            <mat-label>ID Modelo</mat-label>
+            <input matInput formControlName="IdModeloInsumosPK">
+          </mat-form-field> -->
+
+          <!-- NUMERO DE SERIE -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Número de Serie</mat-label>
+            <textarea matInput formControlName="NumeroSerie" cdkFocusInitial></textarea>
+          </mat-form-field>
+
+          <!-- ESTADO -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="EstadoInsumo">
+              <mat-option *ngFor="let est of selectedEstado" [value]="est.CodigoEstado" [disabled]="est.DescripcionEstado">
+                {{ est.DescripcionEstado }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- PRECIO BASE -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Precio Base</mat-label>
+            <input matInput type="number" formControlName="PrecioBase">
+          </mat-form-field>
+
+          <!-- CANTIDAD -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Cantidad</mat-label>
+            <input matInput type="number" formControlName="Cantidad">
+          </mat-form-field>
+
+          <!-- STOCK MÍNIMO -->
+          <mat-form-field class="input-form-prod">
+            <mat-label>Stock Mínimo</mat-label>
+            <input matInput type="number" formControlName="StockMinimo">
+          </mat-form-field>
+        </mat-dialog-content>
+      </div>
+    </div>
+
+    <!-- COMENTARIOS -->
+    <div class="contenedor-comentario">
+      <h3>Comentarios</h3>
+      <mat-form-field class="example-full-width">
+        <mat-label>Describe el estado del producto</mat-label>
+        <textarea matInput formControlName="ComentarioInsumo" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancelar</button>
+    <button mat-button type="submit" [mat-dialog-close]="true" class="btn btn-secundary" color="primary" [disabled]="!insumoForm.valid">
+      Ingresar
+    </button>
+  </mat-dialog-actions>
+</form>

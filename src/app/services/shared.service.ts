@@ -79,6 +79,15 @@ export class SharedService {
     this.dataSubjectNombreImagenAccesorio.next(newData);
   }
 
+  //APARTADO PARA LA IMAGEN QUE SE SUBE AL SISTEMA DE LAS CATEGORIAS INSUMOS
+
+  private dataSubjectNombreImagenInsumo = new BehaviorSubject<string>("");
+  dataNombreArchivoInsumo$ = this.dataSubjectNombreImagenInsumo.asObservable();
+
+  nombreImagenInsumo(newData: string){
+    this.dataSubjectNombreImagenInsumo.next(newData);
+  }
+
 
 
 }
