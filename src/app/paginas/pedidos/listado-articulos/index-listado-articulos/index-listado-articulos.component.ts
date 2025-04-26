@@ -20,7 +20,8 @@ import { CategoriasConsolasService } from '../../../../services/categorias-conso
 import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
 import { CategoriasAccesoriosService } from '../../../../services/categorias-accesorios.service';
 
-
+import { CategoriasInsumosBase } from '../../../interfaces/categoriasinsumosbase';
+import { CategoriasInsumosService } from '../../../../services/categorias-insumos.service';
 
 //FABRICANTES
 import { FabricanteService } from '../../../../services/fabricante.service';
@@ -29,7 +30,8 @@ import { FabricanteProducto } from '../../../interfaces/fabricantesproductos';
 import { FabricanteAccesorioService } from '../../../../services/fabricante-accesorio.service';
 import { FabricanteAccesorio } from '../../../interfaces/fabricantesaccesorios';
 
-
+import { FabricanteInsumoService } from '../../../../services/fabricante-insumo.service';
+import { FabricanteInsumos } from '../../../interfaces/fabricantesinsumos';
 //CATEGORIAS
 import { CategoriaProductoService } from '../../../../services/categoria-producto.service';
 import { categoriasProductos } from '../../../interfaces/categoriasproductos';
@@ -37,6 +39,8 @@ import { categoriasProductos } from '../../../interfaces/categoriasproductos';
 import { CategoriaAccesorioService } from '../../../../services/categoria-accesorio.service';
 import { categoriasAccesorios } from '../../../interfaces/categoriasaccesorios';
 
+import { CategoriaInsumoService } from '../../../../services/categoria-insumo.service';
+import { categoriasInsumos } from '../../../interfaces/categoriasinsumos';
 //SUBCATEGORIAS
 
 import { SubcategoriaProductoService } from '../../../../services/subcategoria-producto.service';
@@ -45,6 +49,8 @@ import { SubcategoriasProductos } from '../../../interfaces/subcategoriasproduct
 import { SubcategoriaAccesorioService } from '../../../../services/subcategoria-accesorio.service';
 import { SubcategoriasAccesorios } from '../../../interfaces/subcategoriasaccesorios';
 
+import { SubcategoriaInsumoService } from '../../../../services/subcategoria-insumo.service';
+import { SubcategoriasInsumos } from '../../../interfaces/subcategoriasinsumos';
 
 //Tipo Articulo
 import { TipoArticuloService } from '../../../../services/tipo-articulo.service';
@@ -77,15 +83,24 @@ export class IndexListadoArticulosComponent {
 
   constructor(private dialog: MatDialog,
     public sharedPedidoService: SharedPedidoService,
+    //
     private fabricanteproductoService: FabricanteService,
     private fabricanteaccesorioService: FabricanteAccesorioService,
+    private fabricanteinsumoService: FabricanteInsumoService,
+    //
     private categoriaproductoService: CategoriaProductoService,
     private categoriaaccesorioService: CategoriaAccesorioService,
+    private categoriainsumoService: CategoriaInsumoService,
+    //
     private subcategoriaproductoService: SubcategoriaProductoService,
     private subcategoriaaccesorioService: SubcategoriaAccesorioService,
+    private subcategoriainsumoService: SubcategoriaInsumoService,
+    //
     private tipoarticuloService: TipoArticuloService,
+    //
     private cateproductoService: CategoriasConsolasService,
     private cateaccesorioService: CategoriasAccesoriosService,
+    private cateinsumoService: CategoriasInsumosService,
     private cdr: ChangeDetectorRef
   ) {
     // this.updateSharedTotal();
@@ -173,6 +188,7 @@ export class IndexListadoArticulosComponent {
             this.getNamesForAccesorio(newArticulo);
             break;
           case 3: // Insumo
+            this.getNamesForInsumo(newArticulo);
             // console.log("Insumo selected");
             // this.updateCategoriesForInsumo();
             break;
@@ -275,6 +291,57 @@ export class IndexListadoArticulosComponent {
     });
 
     this.cateaccesorioService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
+      // console.log(data)
+      this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
+      newArticulo.ImagePath = this.ImagePath;
+      this.cdr.detectChanges();
+    });
+
+    // After the data is fetched and updated, you can add the articulo to the display list
+    this.addData(newArticulo);
+  }
+
+  getNamesForInsumo(newArticulo: Articulo) {
+
+    // Fetch the article type name
+    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) => {
+      const fabricante = data.find(item => item.IdTipoArticuloPK === newArticulo.TipoArticulo);
+      if (fabricante) {
+        // Assign the Fabricante Name to the newArticulo object
+        newArticulo.NombreTipoArticulo = fabricante.DescripcionTipoArticulo;
+      }
+    });
+
+    // Fetch Fabricante Name
+    this.fabricanteinsumoService.find(newArticulo.Fabricante.toString()).subscribe((data: FabricanteInsumos[]) => {
+      const fabricante = data.find(item => item.IdFabricanteInsumosPK === newArticulo.Fabricante);
+      if (fabricante) {
+        // Assign the Fabricante Name to the newArticulo object
+        newArticulo.NombreFabricante = fabricante.NombreFabricanteInsumos;
+      }
+    });
+
+    // Fetch Categoria Name
+    this.categoriainsumoService.findById(newArticulo.Cate.toString()).subscribe((data: categoriasInsumos[]) => {
+      const categoria = data.find(item => item.IdCategoriaInsumosPK === newArticulo.Cate);
+      if (categoria) {
+        // Assign the Categoria Name to the newArticulo object
+        newArticulo.NombreCategoria = categoria.NombreCategoriaInsumos;
+      }
+    });
+
+    // Fetch SubCategoria Name
+    this.subcategoriainsumoService.findById(newArticulo.SubCategoria.toString()).subscribe((data: SubcategoriasInsumos[]) => {
+      console.log('subcategoria' + data[0])
+      const subcategoria = data.find(item => item.IdCategoriaInsumosFK === newArticulo.SubCategoria);
+      if (subcategoria) {
+        console.log(subcategoria)
+        // Assign the SubCategoria Name to the newArticulo object
+        newArticulo.NombreSubCategoria = subcategoria.NombreSubcategoriaInsumos;
+      }
+    });
+
+    this.cateinsumoService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
       // console.log(data)
       this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
       newArticulo.ImagePath = this.ImagePath;
