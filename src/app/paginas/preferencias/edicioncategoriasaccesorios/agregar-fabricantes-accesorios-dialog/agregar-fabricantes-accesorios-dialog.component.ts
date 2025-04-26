@@ -41,7 +41,7 @@ export class AgregarFabricantesAccesoriosDialogComponent {
     console.log(this.AccesorioForm.get('NombreFabricanteAccesorio')?.value);
     this.fabricanteService.create((this.AccesorioForm.get('NombreFabricanteAccesorio')?.value)).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('/preferencias/index-categorias-accesorios');
+      this.router.navigateByUrl('home/preferencias/index-categorias-accesorios');
     })
   }
 

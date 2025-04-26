@@ -1,0 +1,44 @@
+<div class="Titulotabla">Categorias</div>
+
+<div class="filtrado_agregar">
+    <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
+        <mat-label>Filtro Categoria</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="3DS, Gamecube ..." #input>
+    </mat-form-field>
+    <a mat-raised-button class="button-crear-prod" (click)="openDialogAgregar(receivedCodigoFabricanteInsumo, receivedNombreFabricanteInsumo)" color="primary" [disabled]="receivedCodigoFabricanteInsumo === 0">
+        <mat-icon>add</mat-icon>
+        Añade Categoria
+    </a>
+</div>
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8 demo-table">
+    <!-- Position Column -->
+    <ng-container matColumnDef="IdCategoria">
+        <th mat-header-cell *matHeaderCellDef>No.</th>
+        <td mat-cell *matCellDef="let element">{{element.IdCategoriaInsumosPK}}</td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="NombreCategoria">
+        <th mat-header-cell *matHeaderCellDef>Nombre Categoria</th>
+        <td mat-cell *matCellDef="let element">{{element.NombreCategoriaInsumos}}</td>
+    </ng-container>
+
+    <!-- Delete Column -->
+    <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>Acción</th>
+        <td mat-cell *matCellDef="let element">
+            <button mat-icon-button color="warn" (click)="deleteCategoria(element.IdCategoriaInsumosPK, element.NombreCategoriaInsumos)">
+                <mat-icon>close</mat-icon>
+            </button>
+        </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr
+        mat-row
+        (click)="clickedRows.add(row); sendData(row.IdCategoriaInsumosPK, row.NombreCategoriaInsumos)"
+        [class.demo-row-is-clicked]="clickedRows.has(row)"
+        *matRowDef="let row; columns: displayedColumns;"
+    ></tr>
+</table>

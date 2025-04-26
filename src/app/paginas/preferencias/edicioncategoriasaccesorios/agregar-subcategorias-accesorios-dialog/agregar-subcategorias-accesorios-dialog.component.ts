@@ -53,7 +53,7 @@ export class AgregarSubcategoriasAccesoriosDialogComponent {
     console.log(this.SubCategoriaForm.get('NombreSubCategoriaAccesorio')?.value);
     this.subCategoriaAccesorioService.create(this.data.value,(this.SubCategoriaForm.get('NombreSubCategoriaAccesorio')?.value)).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('/preferencias/index-categorias-accesorios');
+      this.router.navigateByUrl('home/preferencias/index-categorias-accesorios');
     })
   }
 

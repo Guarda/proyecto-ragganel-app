@@ -50,7 +50,7 @@ export class EliminarCategoriasAccesoriosDialogComponent {
      this.categoriaService.getAll().subscribe((data: categoriasAccesorios[]) => {        
        this.Borrado.emit();
        this.sharedService.codigoCategoriaAccesorio(0);
-       this.router.navigateByUrl('/preferencias/index-categorias-accesorios');
+       this.router.navigateByUrl('home/preferencias/index-categorias-accesorios');
      });
    });
  }

@@ -52,7 +52,7 @@ export class AgregarSubcategoriasDialogComponent {
     console.log(this.SubCategoriaForm.get('NombreSubCategoria')?.value);
     this.subCategoriaProductoService.create(this.data.value,(this.SubCategoriaForm.get('NombreSubCategoria')?.value)).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('/preferencias/index-categorias');
+      this.router.navigateByUrl('home/preferencias/index-categorias');
     })
   }
 }

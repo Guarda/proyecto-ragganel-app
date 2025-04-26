@@ -19,10 +19,10 @@ router.post('/crear-categoria-insumos', (req, res) => {
 router.put('/categoria/:id', (req, res) => {
     const id = req.params.id;
     // console.log(req.body);
-    const { IdModeloInsumosPK, FabricanteInsumo, CategoriaInsumo, SubCategoriaInsumo, CodigoModeloInsumo, LinkImagen } = req.body;
+    const { IdModeloInsumoPK, FabricanteInsumo, CategoriaInsumo, SubCategoriaInsumo, CodigoModeloInsumo, LinkImagen } = req.body;
     const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCategoriaInsumo` (?, ?, ?, ?, ?, ?)';
     const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoinsumosXId` (?)';
-    db.query(sql, [IdModeloInsumosPK, FabricanteInsumo, CategoriaInsumo, SubCategoriaInsumo, CodigoModeloInsumo, LinkImagen ], err => {
+    db.query(sql, [IdModeloInsumoPK, FabricanteInsumo, CategoriaInsumo, SubCategoriaInsumo, CodigoModeloInsumo, LinkImagen ], err => {
         if (err) {
             res.status(500).send('Error actualizando categoria');
             return;
@@ -40,9 +40,9 @@ router.put('/categoria/:id', (req, res) => {
 // Delete a category
 router.put('/categoria-eliminar/:id', (req, res) => {
     const id = req.params.id;
-    const { IdModeloAccesorioPK } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`BorrarCategoriaAccesorio` (?)';
-    db.query(sql, [IdModeloAccesorioPK], err => {
+    const { IdModeloInsumoPK } = req.body;
+    const sql = 'CALL `base_datos_inventario_taller`.`BorrarCategoriaInsumo` (?)';
+    db.query(sql, [IdModeloInsumoPK], err => {
         if (err) {
             res.status(500).send('Error al eliminar categoria');
             return;

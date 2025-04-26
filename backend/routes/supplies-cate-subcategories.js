@@ -128,9 +128,9 @@ router.get('/listar-subcate-insumos-c/:id', (req, res) => {
 router.post('/ingresar-categoria-insumos', (req, res) => {
     const IdFabricante = req.query.IdFabricanteInsumo;
     const NombreCategoria = req.query.NombreCategoriaInsumo; 
-    console.log(req.body);
+    console.log('prueba cate');
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaInsumo` (?, ?)';
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaInsumoB` (?, ?)';
     db.query(sql, [NombreCategoria, IdFabricante], (err, result) => {
         if (err) {
             return res.status(500).send(err);
@@ -174,7 +174,7 @@ router.post('/ingresar-subcategoria-insumos', (req, res) => {
     const IdCategoria = req.query.IdCategoriaInsumo;
     const NombreSubCategoria = req.query.NombreSubCategoriaInsumo; 
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarSubcategoriaInsumo` (?, ?)';
+    const sql = 'CALL `base_datos_inventario_taller`.`IngresarSubcategoriaInsumos` (?, ?)';
     db.query(sql, [NombreSubCategoria, IdCategoria], (err, result) => {
         if (err) {
             return res.status(500).send(err);

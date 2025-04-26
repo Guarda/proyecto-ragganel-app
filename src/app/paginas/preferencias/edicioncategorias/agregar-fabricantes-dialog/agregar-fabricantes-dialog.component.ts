@@ -41,7 +41,7 @@ export class AgregarFabricantesDialogComponent {
     console.log(this.FabricanteForm.get('NombreFabricante')?.value);
     this.fabricanteService.create((this.FabricanteForm.get('NombreFabricante')?.value)).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('/preferencias/index-categorias');
+      this.router.navigateByUrl('home/preferencias/index-categorias');
     })
   }
 }

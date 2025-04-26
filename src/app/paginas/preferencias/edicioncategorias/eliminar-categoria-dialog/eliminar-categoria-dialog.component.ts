@@ -49,7 +49,7 @@ export class EliminarCategoriaDialogComponent {
      this.categoriaService.getAll().subscribe((data: categoriasProductos[]) => {        
        this.Borrado.emit();
        this.sharedService.codigoCategoria(0);
-       this.router.navigateByUrl('/preferencias/index-categorias');
+       this.router.navigateByUrl('home/preferencias/index-categorias');
      });
    });
  }

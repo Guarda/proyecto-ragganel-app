@@ -2327,7 +2327,7 @@ DELIMITER $$
 /*PROCEDIMIENTO ALMACENADO INSERTAR SUBCATEGORIA INSUMOS 17/04/2025*/
 CREATE PROCEDURE IngresarSubcategoriaInsumos(NombreSubcategoriaInsumo varchar(100), IdCategoriaInsumo int)
 BEGIN
-   INSERT INTO subcategoriasinsumos (NombreSubcategoriainsumos, IdCategoriainsumosFK, Activo) values (NombreSubcategoriaInsumos, IdCategoriaInsumo, 1);   
+   INSERT INTO subcategoriasinsumos (NombreSubcategoriainsumos, IdCategoriainsumosFK, Activo) values (NombreSubcategoriaInsumo, IdCategoriaInsumo, 1);   
 END$$
 
 DELIMITER $$
@@ -2503,6 +2503,42 @@ DELIMITER //
         WHERE CodigoInsumo = IdCodigoInsumo;
     END //
 DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ActualizarCategoriaInsumo(IdModeloI int, FabricanteI int, CategoriaI int, SubcategoriaI int, CodigoI varchar(25), LinkI varchar(100))
+BEGIN
+/*PROCEDIMIENTO ActualizarCategoriaAccesorio creado el dia 23 / 04 / 25*/
+	UPDATE catalogoinsumos 
+    SET  
+        fabricanteinsumos = FabricanteI, 
+        categoriainsumos = CategoriaI, 
+        subcategoriainsumos = SubcategoriaI,
+        codigomodeloinsumos = CodigoI,
+        LinkImagen = LinkI
+	WHERE IdmodeloInsumosPK = IdModeloI;
+END //
+DELIMITER ;
+
+DELIMITER //
+	CREATE PROCEDURE BorrarCategoriaInsumo(IdCategoria int)
+    BEGIN
+    /*PROCEDIMIENTO BORRAR CATEGORIA ACCESORIO 23/04/2025*/
+		UPDATE catalogoinsumos
+        SET
+			Activo = 0
+        WHERE IdModeloInsumosPK = IdCategoria;
+    END //
+DELIMITER ;
+
+DELIMITER $$
+/*PROCEDIMIENTO ALMACENADO INSERTAR CATEGORIA 25/04/2025*/
+CREATE PROCEDURE IngresarCategoriaInsumoB(NombreCategoriaI varchar(100), IdFabricanteI int)
+BEGIN
+   INSERT INTO categoriasinsumos (NombreCategoriaInsumos, IdFabricanteInsumosFK, Activo) values (NombreCategoriaI, IdFabricanteI, 1);   
+END$$
+
+/*CALL ActualizarCategoriaInsumo(1, 1, 1, 1, 'KSD32C11', 'kingston-32gb-clase10.jpg');*/
+
 
 /**
 DELIMITER //

@@ -1,0 +1,4 @@
+.contenedor-botones{
+    display: flex;
+    justify-content: space-around;
+}

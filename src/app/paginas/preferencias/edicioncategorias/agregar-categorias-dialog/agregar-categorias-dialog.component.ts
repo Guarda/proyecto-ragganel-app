@@ -52,7 +52,7 @@ export class AgregarCategoriasDialogComponent {
     console.log(this.CategoriaForm.get('NombreCategoria')?.value);
     this.categoriaproductoService.create(this.data.value,(this.CategoriaForm.get('NombreCategoria')?.value)).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('/preferencias/index-categorias');
+      this.router.navigateByUrl('home/preferencias/index-categorias');
     })
   }
 

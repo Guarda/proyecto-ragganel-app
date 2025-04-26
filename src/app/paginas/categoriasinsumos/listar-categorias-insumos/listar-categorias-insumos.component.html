@@ -55,14 +55,14 @@
          <ng-container matColumnDef="Action">
           <th mat-header-cell *matHeaderCellDef> Acciones </th>
           <td mat-cell *matCellDef="let element" class="contenedor-botones">             
-            <a mat-flat-button class="button-editar-prod"   title="editar producto" >
-            <!-- <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.IdModeloInsumoPK)"  title="editar producto" > -->
+            <!-- <a mat-flat-button class="button-editar-prod"   title="editar producto" > -->
+            <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.IdModeloInsumosPK)"  title="editar producto" >
             <!-- <a mat-flat-button class="button-editar-prod"   title="editar producto" > -->
               <mat-icon class="iconos-custom">mode_edit</mat-icon>
             </a>
             
-            <a mat-flat-button   color="warn" title="borrar producto" >
-            <!-- <a mat-flat-button  (click)="openDialogEliminar(element.IdModeloInsumoPK)" color="warn" title="borrar producto" > -->
+            <!-- <a mat-flat-button   color="warn" title="borrar producto" > -->
+            <a mat-flat-button  (click)="openDialogEliminar(element.IdModeloInsumosPK)" color="warn" title="borrar producto" >
             <!-- <a mat-flat-button   color="warn" title="borrar producto" > -->
               <mat-icon class="button-eliminar-prod">delete</mat-icon>
             </a>

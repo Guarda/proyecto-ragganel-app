@@ -31,7 +31,7 @@ export class EliminarSubcategoriasAccesoriosDialogComponent {
         console.log(this.data.value);
         this.Borrado.emit(); 
       })     
-      this.router.navigateByUrl('/preferencias/index-categorias-accesorios');    
+      this.router.navigateByUrl('home/preferencias/index-categorias-accesorios');    
   }
 
 }

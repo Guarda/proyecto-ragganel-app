@@ -51,7 +51,7 @@ export class EliminarFabricanteDialogComponent {
         this.Borrado.emit();
         this.sharedService.codigoFabricante(0);
         this.sharedService.codigoCategoria(0);
-        this.router.navigateByUrl('/preferencias/index-categorias');
+        this.router.navigateByUrl('home/preferencias/index-categorias');
       });
     });
   }

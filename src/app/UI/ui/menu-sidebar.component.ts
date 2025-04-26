@@ -128,7 +128,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
         { label: 'Crear Backup de BD', route: '/home/modulo-en-construccion', roles: [1] },
         { label: 'Configuración Productos', route: '/home/preferencias/index-categorias', roles: [1] },
         { label: 'Configuración Accesorios', route: '/home/preferencias/index-categorias-accesorios', roles: [1] },
-        { label: 'Configuración Insumos', route: '/home/configuracion/insumos', roles: [1] }
+        { label: 'Configuración Insumos', route: '/home/preferencias/index-categorias-insumos', roles: [1] }
       ],
       roles: [1]
     }

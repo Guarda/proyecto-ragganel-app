@@ -28,6 +28,7 @@ import { PuntoVentaComponent } from './paginas/ventas/punto-venta/punto-venta.co
 import { ListarInsumosComponent } from './paginas/insumos/listar-insumos/listar-insumos.component';
 import { VerInsumoComponent } from './paginas/insumos/ver-insumo/ver-insumo.component';
 import { ListarCategoriasInsumosComponent } from './paginas/categoriasinsumos/listar-categorias-insumos/listar-categorias-insumos.component';
+import { IndexEdicioncategoriasInsumosComponent } from './paginas/preferencias/edicioncategoriasinsumos/index-edicioncategorias-insumos/index-edicioncategorias-insumos.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -108,6 +109,12 @@ export const routes: Routes = [
     {
       path: 'listado-categorias-insumos',
       component: ListarCategoriasInsumosComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 3] } // Corrected
+    },
+    {
+      path: 'preferencias/index-categorias-insumos',
+      component: IndexEdicioncategoriasInsumosComponent,
       canActivate: [AuthGuard, RoleGuard],
       data: { expectedRoles: [1, 3] } // Corrected
     },

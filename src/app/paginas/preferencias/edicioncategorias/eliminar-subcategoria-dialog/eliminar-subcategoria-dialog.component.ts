@@ -32,7 +32,7 @@ export class EliminarSubcategoriaDialogComponent {
         console.log(res);
         this.Borrado.emit(); 
       })     
-      this.router.navigateByUrl('/preferencias/index-categorias');    
+      this.router.navigateByUrl('home/preferencias/index-categorias');    
   }
 
 }

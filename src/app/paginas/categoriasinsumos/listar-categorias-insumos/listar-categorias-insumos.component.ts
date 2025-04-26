@@ -17,6 +17,8 @@ import { CategoriasInsumosService } from '../../../services/categorias-insumos.s
 import { categoriasInsumos } from '../../interfaces/categoriasinsumos';
 import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { AgregarCategoriasInsumosComponent } from '../agregar-categorias-insumos/agregar-categorias-insumos.component';
+import { EditarCategoriasInumosComponent } from '../editar-categorias-inumos/editar-categorias-inumos.component';
+import { EliminarCategoriasInsumosComponent } from '../eliminar-categorias-insumos/eliminar-categorias-insumos.component';
 
 @Component({
   selector: 'app-listar-categorias-insumos',
@@ -62,6 +64,43 @@ export class ListarCategoriasInsumosComponent {
     });
   }
 
+  public openDialogEditar(cons: string) {
+
+    const dialogRef = this.dialog.open(EditarCategoriasInumosComponent, {
+      disableClose: true,
+      height: '80%',
+      width: '47%',
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Editado.subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarCategoriasInsumosComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getCategoryList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
   ngOnInit(): void {
     this.getCategoryList();
 
@@ -72,7 +111,7 @@ export class ListarCategoriasInsumosComponent {
     this.categorias.getAll().subscribe((data: CategoriasInsumosBase[]) => {
       //this.dataSource = new MatTableDataSource<CategoriasConsolas>(data);
 
-      console.log('listado de cat insumos:',data); // Log to inspect the fetched data
+      console.log('listado de cat insumos:', data); // Log to inspect the fetched data
 
       // Eliminate duplicates using 'IdModeloConsolaPK' as the key
       const uniqueData = Array.from(new Map(data.map(item => [item.IdModeloInsumosPK, item])).values());

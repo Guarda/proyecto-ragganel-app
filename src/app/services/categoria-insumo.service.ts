@@ -18,7 +18,7 @@ export class CategoriaInsumoService {
   constructor(private httpClient: HttpClient) { }
 
   getAll(): Observable<any> {
-    return this.httpClient.get(this.apiURL + '/catesubcate-insumos/listar-cate-insumo/')
+    return this.httpClient.get(this.apiURL + '/catesubcate-insumos/listar-cate-insumos/')
       .pipe(
         catchError(this.errorHandler)
       )
@@ -57,14 +57,14 @@ export class CategoriaInsumoService {
         .set('IdFabricanteInsumo', IdFabricanteInsumo.toString())  
         .set('NombreCategoriaInsumo', NombreCategoriaInsumo); 
 
-    return this.httpClient.post(this.apiURL + '/catesubcate-insumos/ingresar-categoria-insumo/', null, { params, ...this.httpOptions })
+    return this.httpClient.post(this.apiURL + '/catesubcate-insumos/ingresar-categoria-insumos/', null, { params, ...this.httpOptions })
       .pipe(
         catchError(this.errorHandler)
       )      
   }
 
   eliminar(Id: string): Observable<any> { 
-    return this.httpClient.put(this.apiURL + '/catesubcate-insumos/categoria-eliminar-insumo/' + Id, this.httpOptions)
+    return this.httpClient.put(this.apiURL + '/catesubcate-insumos/categoria-eliminar-insumos/' + Id, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )

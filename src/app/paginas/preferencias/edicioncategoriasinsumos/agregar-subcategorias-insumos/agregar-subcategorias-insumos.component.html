@@ -1,0 +1,18 @@
+<div class="contenedor-principal">
+    <h5>Agregar una nueva categoria para la categoria {{data.name}}</h5>
+
+    <form [formGroup]="SubCategoriaForm" (ngSubmit)="onSubmit()">
+        <div class="contenedor-campo">
+            <!--Nombre del fabricante  -->
+            <mat-form-field class="input-form-prod">
+                <mat-label>Nombre de la Categoria</mat-label>
+                <textarea formControlName = "NombreSubCategoriaInsumo" name="NombreSubCategoriaInsumo" matInput cdkFocusInitial></textarea>
+            </mat-form-field>
+        </div> 
+        <mat-dialog-actions align="end">
+            <button mat-button mat-dialog-close>Cancelar</button>
+            <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!SubCategoriaForm.valid">Ingresar</button>
+        </mat-dialog-actions>
+
+    </form>
+</div>

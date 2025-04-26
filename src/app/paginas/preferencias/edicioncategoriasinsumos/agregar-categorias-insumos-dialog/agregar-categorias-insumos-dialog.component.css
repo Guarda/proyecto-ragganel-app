@@ -1,0 +1,15 @@
+.contenedor-principal{
+    padding: 5%;
+  }
+  
+  .contenedor-campo {
+      display: flex;
+      justify-content: center; /* Centers horizontally */
+      width: 100%;
+      padding: 2%;
+    }
+  
+    .input-form-prod {
+      width: 100%;
+  }
+  

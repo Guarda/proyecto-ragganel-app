@@ -56,7 +56,7 @@ export class SubcategoriaInsumoService {
       .set('IdCategoriaInsumo', IdCategoriaInsumo.toString())
       .set('NombreSubCategoriaInsumo', NombreSubCategoriaInsumo);
 
-    return this.httpClient.post(this.apiURL + '/catesubcate-insumos/ingresar-subcategoria-insumo/', null, { params, ...this.httpOptions })
+    return this.httpClient.post(this.apiURL + '/catesubcate-insumos/ingresar-subcategoria-insumos/', null, { params, ...this.httpOptions })
       .pipe(
         catchError(this.errorHandler)
       )
@@ -64,7 +64,7 @@ export class SubcategoriaInsumoService {
 
   eliminar(Id: string): Observable<any> {
     console.log('sent:' + Id);
-    return this.httpClient.put(this.apiURL + '/catesubcate-insumos/subcategoria-eliminar-insumo/' + Id, this.httpOptions)
+    return this.httpClient.put(this.apiURL + '/catesubcate-insumos/subcategoria-eliminar-insumos/' + Id, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )

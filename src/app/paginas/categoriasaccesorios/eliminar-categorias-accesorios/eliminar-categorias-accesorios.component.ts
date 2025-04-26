@@ -37,7 +37,7 @@ export class EliminarCategoriasAccesoriosComponent {
   onEliminar(){
     this.categoriaService.eliminar(this.categoriaForm.value).subscribe((res: any) => {
       this.Borrado.emit();
-      this.router.navigateByUrl('listado-categorias-accesorios');
+      this.router.navigateByUrl('home/listado-categorias-accesorios');
     })
   }
 }

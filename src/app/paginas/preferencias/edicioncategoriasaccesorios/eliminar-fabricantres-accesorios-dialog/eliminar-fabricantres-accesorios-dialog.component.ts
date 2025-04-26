@@ -52,7 +52,7 @@ export class EliminarFabricantresAccesoriosDialogComponent {
        this.Borrado.emit();
        this.sharedService.codigoFabricanteAccesorio(0);
        this.sharedService.codigoCategoriaAccesorio(0);
-       this.router.navigateByUrl('/preferencias/index-categorias-accesorios');
+       this.router.navigateByUrl('home/preferencias/index-categorias-accesorios');
      });
    });
  }
