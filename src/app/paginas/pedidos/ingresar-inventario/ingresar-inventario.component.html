@@ -13,14 +13,18 @@
 
         <div class="stepper-controls">
           <button mat-button mat-dialog-close>Cerrar ventana</button>
-          <button mat-button matStepperPrevious *ngIf="i > 0 || formulariosProductos.length > 0">Atrás</button>
+          <button mat-button matStepperPrevious *ngIf="i > 0">Atrás</button>
+
           <button mat-button matStepperNext 
-            *ngIf="(formulariosAccesorios.length === 0 && i < formulariosProductos.length - 1) || (formulariosAccesorios.length > 0 && i < formulariosProductos.length)" 
+          *ngIf="(formulariosAccesorios.length === 0 && formulariosInsumos.length === 0 && i < formulariosProductos.length - 1) || 
+          (formulariosAccesorios.length > 0 && i < formulariosProductos.length) ||
+          (formulariosAccesorios.length === 0 && formulariosInsumos.length > 0 && i === formulariosProductos.length - 1)"
+   
             (click)="recibirFormulario(form)">
             Siguiente
           </button>
           <button mat-button 
-            *ngIf="formulariosAccesorios.length === 0 && i === formulariosProductos.length - 1" 
+            *ngIf="formulariosAccesorios.length === 0 && formulariosInsumos.length === 0 && i === formulariosProductos.length - 1" 
             (click)="finalizar(form)">
             Finalizar
           </button>
@@ -35,17 +39,39 @@
 
         <div class="stepper-controls">
           <button mat-button mat-dialog-close>Cerrar ventana</button>
-          <button mat-button matStepperPrevious *ngIf="i > 0">Atrás</button>
+          <button mat-button matStepperPrevious *ngIf="i > 0 || (i === 0 && formulariosProductos.length > 0)">Atrás</button>
+
           <button mat-button matStepperNext 
-            *ngIf="i < formulariosAccesorios.length - 1" 
+            *ngIf="i < formulariosAccesorios.length - 1 || (i === formulariosAccesorios.length - 1 && formulariosInsumos.length > 0)" 
             (click)="recibirFormulario(form)">
             Siguiente
           </button>
           <!-- Finalizar, ahora pasando el formulario como argumento -->
-          <button mat-button (click)="finalizar(form)">Finalizar</button>
+          <button mat-button *ngIf="formulariosInsumos.length === 0 && i === formulariosAccesorios.length - 1"  (click)="finalizar(form)">Finalizar</button>
         </div>
       </mat-step>
     </ng-container>
+
+    <!-- Insumos -->
+<ng-container *ngFor="let form of formulariosInsumos; let i = index">
+  <mat-step [stepControl]="form">
+    <app-ingresar-insumos-pedido [form]="form" [articulo]="insumos[i]"></app-ingresar-insumos-pedido>
+
+    <div class="stepper-controls">
+      <button mat-button mat-dialog-close>Cerrar ventana</button>
+      <button mat-button matStepperPrevious *ngIf="i > 0 || (i === 0 && (formulariosProductos.length > 0 || formulariosAccesorios.length > 0))">Atrás</button>
+
+      <button mat-button matStepperNext 
+        *ngIf="i < formulariosInsumos.length - 1" 
+        (click)="recibirFormulario(form)">
+        Siguiente
+      </button>
+      <!-- Finalizar, cuando estés en el último insumo -->
+      <button mat-button (click)="finalizar(form)" *ngIf="i === formulariosInsumos.length - 1">Finalizar</button>
+    </div>
+  </mat-step>
+</ng-container>
+
 
   </mat-stepper>
 </ng-container>

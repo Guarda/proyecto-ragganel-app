@@ -21,7 +21,7 @@ import { MatButton } from '@angular/material/button';
   selector: 'app-ingresar-inventario',
   standalone: true,
   imports: [MatStepper, MatButton, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput,
-    IngresarProductosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatStepperPrevious],
+    IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatStepperPrevious],
   templateUrl: './ingresar-inventario.component.html',
   styleUrl: './ingresar-inventario.component.css'
 })
@@ -62,12 +62,12 @@ export class IngresarInventarioComponent implements OnInit {
       // Inicializar formularios
       this.formulariosProductos = [];
       this.formulariosAccesorios = [];
-      // this.formulariosInsumos = [];
+       this.formulariosInsumos = [];
 
       // Generar formularios específicos
       this.generarFormularioProductos(this.productos, this.formulariosProductos);
       this.generarFormularioAccesorios(this.accesorios, this.formulariosAccesorios);
-
+      this.generarFormularioInsumos(this.insumos, this.formulariosInsumos);
 
 
       this.cdr.detectChanges();
@@ -124,6 +124,27 @@ export class IngresarInventarioComponent implements OnInit {
       }
     });
   }
+
+  private generarFormularioInsumos(insumos: Articulo[], formularioArray: FormGroup[]) {
+    insumos.forEach(insumo => {
+      formularioArray.push(this.fb.group({
+        articuloId: [insumo.IdModeloPK],
+        nombre: [insumo.NombreCategoria],
+        NumeroSerie: [''],
+        tipo: [insumo.TipoArticulo],
+        Cantidad: [insumo.Cantidad, [Validators.required, Validators.min(1)]],
+        EstadoInsumo: ['', Validators.required],
+        StockMinimo: ['', Validators.required],
+        PrecioBase: [insumo.Precio, Validators.required],
+        FabricanteInsumo: ['', Validators.required],
+        CateInsumo: ['', Validators.required],
+        SubCategoriaInsumo: ['', Validators.required],
+        ComentarioInsumo: [''],
+        IdPedido: [this.OrderId]
+      }));
+    });
+  }
+  
 
 
   getArticuloIndex(i: number, tipo: 'producto' | 'accesorio'): number {
