@@ -2517,6 +2517,17 @@ delimiter //
 /*PROCEDIMIENTO ALMACENADO BuscarIdCategoriaInsumoCatalogo creado 19/04/25*/
 	CREATE PROCEDURE BuscarIdCategoriaInsumoCatalogo(IdFabricanteI int, IdCategoriaI int, IdSubcategoriaI int)
     BEGIN
+		SELECT IdModeloInsumosPK FROM catalogoinsumos     
+        WHERE FabricanteInsumos = IdFabricanteI
+        AND CategoriaInsumos = IdCategoriaI
+        AND SubcategoriaInsumos = IdSubcategoriaI;
+    END //
+DELIMITER ;
+
+delimiter //
+/*PROCEDIMIENTO ALMACENADO BuscarIdCategoriaInsumoCatalogob creado 19/04/25*/
+	CREATE PROCEDURE BuscarIdCategoriaInsumoCatalogob(IdFabricanteI int, IdCategoriaI int, IdSubcategoriaI int)
+    BEGIN
 		SELECT a.IdModeloInsumosPK, b.CodigoInsumo  FROM catalogoinsumos a
         join insumosbase b
         on a.IdModeloInsumosPK = b.ModeloInsumo
