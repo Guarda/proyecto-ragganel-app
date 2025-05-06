@@ -43,6 +43,18 @@ export class CategoriasInsumosService {
       )
   }
 
+  getbymanufacturerb(fabricante: number, categoria: number, subcategoria: number): Observable<any> {
+    let params = new HttpParams()
+      .set('Fabricante', fabricante)
+      .set('Categoria', categoria)
+      .set('Subcategoria', subcategoria);
+
+    return this.httpClient.get(this.apiURL + '/insumos-base/categoria-b/', { params })
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   find(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/insumos-base/categoria/' + id)
       .pipe(

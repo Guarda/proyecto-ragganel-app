@@ -1669,7 +1669,7 @@ DELIMITER ;
 
 
 /*PROCEDIMIENTO CREADO POR CHAT GPT 18/02/2025*/
-DELIMITER //
+/**DELIMITER //
 
 CREATE PROCEDURE IngresarArticulosPedido(
     IN p_IdPedido VARCHAR(25), 
@@ -1773,7 +1773,149 @@ BEGIN
 
 END //
 
+DELIMITER ;*/
+
+DELIMITER //
+
+CREATE PROCEDURE IngresarArticulosPedidov2(
+    IN p_IdPedido VARCHAR(25), 
+    IN p_Productos JSON, 
+    IN p_Accesorios JSON,
+    IN p_Insumos JSON
+)
+BEGIN
+    -- Variables comunes
+    DECLARE v_CodigoConsolaGenerated VARCHAR(50);
+    DECLARE v_CodigoAccesorioGenerated VARCHAR(50);
+    DECLARE v_CodigoInsumoGenerated VARCHAR(50);
+    DECLARE v_CodigoInsumo VARCHAR(50); -- Declaración añadida
+    DECLARE v_Indice INT DEFAULT 0;
+    DECLARE v_ProductosCount INT;
+    DECLARE v_AccesoriosCount INT;
+    DECLARE v_InsumosCount INT;
+    DECLARE v_CodigosGenerados TEXT DEFAULT ''; -- Almacena los códigos generados
+
+    -- Variables para productos
+    DECLARE v_modeloP INT;
+    DECLARE v_colorP VARCHAR(100);
+    DECLARE v_EstadoP INT;
+    DECLARE v_hackP BOOLEAN;
+    DECLARE v_PrecioBaseP DECIMAL(6,2);
+    DECLARE v_ComentarioP VARCHAR(255);
+    DECLARE v_NumeroSerieP VARCHAR(100);
+    DECLARE v_AccesoriosP TEXT;
+    DECLARE v_TareasP TEXT;
+
+    -- Variables para accesorios
+    DECLARE v_modeloA INT;
+    DECLARE v_colorA VARCHAR(100);
+    DECLARE v_estadoA INT;
+    DECLARE v_precioBaseA DECIMAL(6,2);
+    DECLARE v_comentarioA VARCHAR(2000);
+    DECLARE v_numeroSerieA VARCHAR(100);
+    DECLARE v_productoscomaptiblesA TEXT;
+    DECLARE v_tareasA TEXT;
+
+    -- Variables para insumos
+    DECLARE v_modeloI INT;
+    DECLARE v_estadoI INT;
+    DECLARE v_comentarioI VARCHAR(2000);
+    DECLARE v_precioBaseI DECIMAL(6,2);
+    DECLARE v_numeroSerieI VARCHAR(100);
+    DECLARE v_serviciosCompatiblesI VARCHAR(500);
+    DECLARE v_cantidadI INT UNSIGNED;
+    DECLARE v_stockMinimoI INT UNSIGNED;
+
+    -- Cantidades
+    SET v_ProductosCount = JSON_LENGTH(p_Productos);
+    SET v_AccesoriosCount = JSON_LENGTH(p_Accesorios);
+    SET v_InsumosCount = JSON_LENGTH(p_Insumos);
+
+    -- Insertar productos
+    WHILE v_Indice < v_ProductosCount DO
+        SET v_modeloP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].articuloId')));
+        SET v_colorP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].ColorConsola')));
+        SET v_EstadoP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].EstadoConsola')));
+        SET v_hackP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].HackConsola')));
+        SET v_PrecioBaseP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].PrecioBase')));
+        SET v_ComentarioP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].ComentarioConsola')));
+        SET v_NumeroSerieP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].NumeroSerie')));
+        SET v_AccesoriosP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].Accesorios')));
+        SET v_TareasP = JSON_UNQUOTE(JSON_EXTRACT(p_Productos, CONCAT('$[', v_Indice, '].TodoList')));
+
+        CALL IngresarProductoATablaProductoBaseV4(v_modeloP, v_colorP, v_EstadoP, v_hackP, v_PrecioBaseP, v_ComentarioP, v_NumeroSerieP, v_AccesoriosP, v_TareasP);
+        SELECT CodigoConsola INTO v_CodigoConsolaGenerated FROM ProductosBases ORDER BY IdIngreso DESC LIMIT 1;
+
+        INSERT INTO DetalleProductoPedido (IdProductoBaseFK, IdCodigoPedidoFK, Comentario) 
+        VALUES (v_CodigoConsolaGenerated, p_IdPedido, v_ComentarioP);
+
+        SET v_CodigosGenerados = CONCAT(v_CodigosGenerados, 'Producto:', v_CodigoConsolaGenerated, ';');
+        SET v_Indice = v_Indice + 1;
+    END WHILE;
+
+    -- Reset índice
+    SET v_Indice = 0;
+
+    -- Insertar accesorios
+    WHILE v_Indice < v_AccesoriosCount DO
+        SET v_modeloA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].articuloId')));
+        SET v_colorA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ColorAccesorio')));
+        SET v_estadoA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].EstadoAccesorio')));
+        SET v_precioBaseA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].PrecioBase')));
+        SET v_comentarioA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ComentarioAccesorio')));
+        SET v_numeroSerieA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].NumeroSerie')));
+        SET v_productoscomaptiblesA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].ProductosCompatibles')));
+        SET v_tareasA = JSON_UNQUOTE(JSON_EXTRACT(p_Accesorios, CONCAT('$[', v_Indice, '].TodoList')));
+
+        CALL IngresarAccesorioATablaAccesoriosBaseV2(v_modeloA, v_colorA, v_estadoA, v_precioBaseA, v_comentarioA, v_numeroSerieA, v_productoscomaptiblesA, v_tareasA);
+        SELECT CodigoAccesorio INTO v_CodigoAccesorioGenerated FROM AccesoriosBase ORDER BY IdIngreso DESC LIMIT 1;
+
+        INSERT INTO DetalleAccesorioPedido (IdAccesorioBaseFK, IdCodigoPedidoFK, Comentario) 
+        VALUES (v_CodigoAccesorioGenerated, p_IdPedido, v_comentarioA);
+
+        SET v_CodigosGenerados = CONCAT(v_CodigosGenerados, 'Accesorio:', v_CodigoAccesorioGenerated, ';');
+        SET v_Indice = v_Indice + 1;
+    END WHILE;
+
+    -- Insertar insumos
+    SET v_Indice = 0;
+    WHILE v_Indice < v_InsumosCount DO
+        SET v_modeloI       = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].articuloId')));
+        SET v_estadoI       = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].EstadoInsumo')));
+        SET v_comentarioI   = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].ComentarioInsumo')));
+        SET v_precioBaseI   = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].PrecioBase')));
+        SET v_cantidadI     = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].Cantidad')));
+        SET v_numeroSerieI  = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].NumeroSerie')));
+        SET v_stockMinimoI  = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].StockMinimo')));
+
+        -- Insertar o actualizar insumo
+        CALL IngresarInsumoATablaInsumosBase(
+            v_modeloI, v_estadoI, v_comentarioI, v_precioBaseI,
+            v_cantidadI, v_numeroSerieI, v_stockMinimoI
+        );
+
+        -- Obtener el código actual del insumo
+        SELECT CodigoInsumo
+        -- INTO v_CodigoInsumo
+        FROM InsumosBase
+       -- WHERE ModeloInsumo = v_modeloI
+        ORDER BY IdIngreso DESC
+        LIMIT 1;
+
+        -- Insertar en DetalleInsumoPedido
+        INSERT INTO DetalleInsumoPedido (IdInsumoBaseFK, IdCodigoPedidoFK, Comentario)
+        VALUES (v_CodigoInsumo, p_IdPedido, v_comentarioI);
+
+        SET v_CodigosGenerados = CONCAT(v_CodigosGenerados, 'Insumo:', v_CodigoInsumo, ';');
+        SET v_Indice = v_Indice + 1;
+    END WHILE;
+
+    -- Retornar los códigos generados
+    SELECT v_CodigosGenerados AS CodigosIngresados;
+END //
+
 DELIMITER ;
+
 
 
 /*Listar historial producto 01/03/2025*/
@@ -2375,7 +2517,9 @@ delimiter //
 /*PROCEDIMIENTO ALMACENADO BuscarIdCategoriaInsumoCatalogo creado 19/04/25*/
 	CREATE PROCEDURE BuscarIdCategoriaInsumoCatalogo(IdFabricanteI int, IdCategoriaI int, IdSubcategoriaI int)
     BEGIN
-		SELECT IdModeloInsumosPK FROM catalogoinsumos
+		SELECT a.IdModeloInsumosPK, b.CodigoInsumo  FROM catalogoinsumos a
+        join insumosbase b
+        on a.IdModeloInsumosPK = b.ModeloInsumo
         WHERE FabricanteInsumos = IdFabricanteI
         AND CategoriaInsumos = IdCategoriaI
         AND SubcategoriaInsumos = IdSubcategoriaI;
@@ -2383,10 +2527,11 @@ delimiter //
 DELIMITER ;
 
 
-DELIMITER //
+/*
+DELIMITER 
 
 CREATE PROCEDURE IngresarInsumoATablaInsumosBase (
-/*CREADO EL 19/04/2025*/
+/*CREADO EL 19/04/2025
     IN IdModeloInsumosPK INT,
     IN EstadoInsumo INT,
     IN ComentarioInsumo VARCHAR(2000),
@@ -2443,6 +2588,69 @@ BEGIN
         );
     END IF;
 
+END //
+
+DELIMITER ;*/
+DELIMITER //
+
+CREATE PROCEDURE IngresarInsumoATablaInsumosBase (
+    IN IdModeloInsumosPK INT,
+    IN EstadoInsumo INT,
+    IN ComentarioInsumo VARCHAR(2000),
+    IN PrecioBase DECIMAL(6,2),
+    IN Cantidad INT UNSIGNED,
+    IN NumeroSerie VARCHAR(100),
+    IN StockMinimo INT UNSIGNED
+)
+BEGIN
+    DECLARE CodigoGenerado VARCHAR(50);
+    DECLARE CodigoModelo VARCHAR(25);
+    DECLARE CantidadExistente INT;
+    DECLARE StockMinimoExistente INT;
+    DECLARE PrecioBaseExistente DECIMAL(6,2);
+    DECLARE Existe INT;
+
+    -- Verifica si ya existe un insumo para ese modelo
+    SELECT COUNT(*) INTO Existe
+    FROM InsumosBase
+    WHERE ModeloInsumo = IdModeloInsumosPK;
+
+    IF Existe > 0 THEN
+        -- Ya existe: obtener datos actuales
+        SELECT Cantidad, StockMinimo, PrecioBase INTO CantidadExistente, StockMinimoExistente, PrecioBaseExistente
+        FROM InsumosBase
+        WHERE ModeloInsumo = IdModeloInsumosPK
+        LIMIT 1;
+
+        -- Actualizar campos necesarios
+        UPDATE InsumosBase
+        SET 
+            Cantidad = CantidadExistente + Cantidad,
+            StockMinimo = IF(StockMinimoExistente != StockMinimo, StockMinimo, StockMinimoExistente),
+            PrecioBase = IF(PrecioBase > PrecioBaseExistente, PrecioBase, PrecioBaseExistente)
+        WHERE ModeloInsumo = IdModeloInsumosPK;
+
+    ELSE
+        -- No existe: obtener código del modelo desde el catálogo
+        -- CAMBIO: Agregado LIMIT 1 para asegurar un solo resultado
+        SELECT CodigoModeloInsumos INTO CodigoModelo
+        FROM CatalogoInsumos
+        WHERE IdModeloInsumosPK = IdModeloInsumosPK
+        LIMIT 1;
+
+        -- Generar código único
+        SET CodigoGenerado = CONCAT(CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
+
+        -- Insertar nuevo registro
+        INSERT INTO InsumosBase (
+            CodigoInsumo, ModeloInsumo, EstadoInsumo, FechaIngreso, Comentario,
+            PrecioBase, NumeroSerie, Cantidad, StockMinimo
+        )
+        VALUES (
+            CodigoGenerado, IdModeloInsumosPK, EstadoInsumo, CURDATE(), ComentarioInsumo,
+            PrecioBase, NumeroSerie, Cantidad, StockMinimo
+        );
+    END IF;
 END //
 
 DELIMITER ;
@@ -2551,5 +2759,33 @@ DELIMITER //
         values (FabricanteI, CategoriaI, SubcategoriaI,concat(PrefijoAccesorio,cantidad), NombreArchivoImagen);
     END //
 DELIMITER ;*/
+
+DELIMITER $$
+
+CREATE PROCEDURE ListarHistorialEstadoInsumoXId(
+	IN IdInsumo VARCHAR(25)
+)
+BEGIN
+    SELECT 
+        h.IdHistorial,
+        h.CodigoInsumo,
+        h.EstadoAnterior,
+        ea.DescripcionEstado AS EstadoAnteriorDescripcion,
+        h.EstadoNuevo,
+        en.DescripcionEstado AS EstadoNuevoDescripcion,
+        h.StockAnterior,
+        h.StockNuevo,
+        h.StockMinimoAnterior,
+        h.StockMinimoNuevo,
+        h.FechaCambio
+    FROM HistorialEstadoInsumo h
+    LEFT JOIN CatalogoEstadosConsolas ea ON h.EstadoAnterior = ea.CodigoEstado
+    INNER JOIN CatalogoEstadosConsolas en ON h.EstadoNuevo = en.CodigoEstado
+    WHERE h.CodigoInsumo = IdInsumo
+    ORDER BY h.FechaCambio ASC;
+END $$
+
+DELIMITER ;
+
 
 

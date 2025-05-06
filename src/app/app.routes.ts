@@ -29,6 +29,8 @@ import { ListarInsumosComponent } from './paginas/insumos/listar-insumos/listar-
 import { VerInsumoComponent } from './paginas/insumos/ver-insumo/ver-insumo.component';
 import { ListarCategoriasInsumosComponent } from './paginas/categoriasinsumos/listar-categorias-insumos/listar-categorias-insumos.component';
 import { IndexEdicioncategoriasInsumosComponent } from './paginas/preferencias/edicioncategoriasinsumos/index-edicioncategorias-insumos/index-edicioncategorias-insumos.component';
+import { ListadoServiciosComponent } from './paginas/servicios/listado-servicios/listado-servicios.component';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -115,6 +117,12 @@ export const routes: Routes = [
     {
       path: 'preferencias/index-categorias-insumos',
       component: IndexEdicioncategoriasInsumosComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 3] } // Corrected
+    },
+    {
+      path: 'listado-servicios',
+      component: ListadoServiciosComponent,
       canActivate: [AuthGuard, RoleGuard],
       data: { expectedRoles: [1, 3] } // Corrected
     },

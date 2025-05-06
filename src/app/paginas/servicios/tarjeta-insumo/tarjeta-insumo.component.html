@@ -1,0 +1,30 @@
+<div class="card">
+    <div class="card-header">
+      <h3>Insumo</h3>
+      <button mat-icon-button color="warn" (click)="onEliminar()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="contenedor-img-consola">
+        <img [src]="image" class="imagen-consola" alt="Imagen del artículo seleccionado" />
+      </div>
+      <div class="card-content">
+        <div class="categorias">
+          <p><strong></strong> {{ insumo.NombreCategoriaInsumos }}</p>
+          <p><strong></strong> {{ insumo.NombreSubcategoriaInsumos }}</p>
+        </div>
+        <p><strong>Fabricante:</strong> {{ insumo.NombreFabricanteInsumos }}</p>
+        <p><strong>Cantidad:</strong>
+          <button mat-button (click)="decreaseQuantity()">-</button>
+          {{ insumo.Cantidad }}
+          <button mat-button (click)="increaseQuantity()">+</button>
+        </p>
+      </div>
+      <div class="precio">
+        <p><strong>{{ insumo.PrecioBase | currency }}</strong></p>
+      </div>
+    </div>
+  </div>
+  
+  

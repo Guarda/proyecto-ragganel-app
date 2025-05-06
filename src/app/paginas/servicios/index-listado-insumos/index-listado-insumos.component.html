@@ -1,0 +1,58 @@
+<form [formGroup]="insumoForm" (ngSubmit)="onSubmit()" class="form-insumo">
+
+    <div class="form-insumo-row">
+      <!-- FABRICANTE -->
+      <mat-form-field class="input-form-prod">
+        <mat-label>Fabricante</mat-label>
+        <mat-select formControlName="Fabricante">
+          <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricanteInsumosPK">
+            {{ est.NombreFabricanteInsumos }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+  
+      <!-- CATEGORIA -->
+      <mat-form-field class="input-form-prod">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="Categoria">
+          <mat-option *ngFor="let est of selectedCategoria" [value]="est.IdCategoriaInsumosPK">
+            {{ est.NombreCategoriaInsumos }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+  
+      <!-- SUBCATEGORIA -->
+      <mat-form-field class="input-form-prod">
+        <mat-label>Modelo</mat-label>
+        <mat-select formControlName="Subcategoria">
+          <mat-option *ngFor="let est of selectedSubcategoria" [value]="est.IdSubcategoriaInsumos">
+            {{ est.NombreSubcategoriaInsumos }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- BOTÓN AGREGAR (+) -->
+      <button mat-icon-button color="primary" type="submit" [disabled]="isAddDisabled" class="add-button">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+  
+</form>
+
+<!-- <div>
+    <p>Vista previa imagen:</p>
+    <img [src]="ImagePath" width="200" height="auto" />
+  </div> -->
+  
+  <!-- TARJETAS -->
+  <div class="tarjetas-container">
+    <div *ngFor="let insumo of dataToDisplay">
+      <app-tarjeta-insumo 
+        [image]="getimagePath(insumo.LinkImagen)"
+        [insumo]="insumo" 
+        (borrar)="removeInsumo(insumo)"
+        (actualizarCantidad)="actualizarCantidadInsumo($event, insumo)">
+      </app-tarjeta-insumo>
+    </div>
+  </div>
+  

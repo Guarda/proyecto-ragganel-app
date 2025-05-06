@@ -1,28 +1,29 @@
 <div class="container">
 
     <div class="cabezera">
-      <h1>Insumos</h1>      
+      <h1>Servicios</h1>      
       <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
         <mat-label>Filter</mat-label>
         <input matInput (keyup)="applyFilter($event)" placeholder="Buscar insumo" #input>
       </mat-form-field>
       <a mat-raised-button class="button-crear-prod" (click)="openDialogAgregar()" color="primary">
       <!-- <a mat-raised-button class="button-crear-prod"  color="primary"> -->
+      <!-- <a mat-raised-button class="button-crear-prod"  color="primary"> -->
         <mat-icon>add</mat-icon>
-        Añade un nuevo insumo
+        Añade un nuevo servicio
       </a>
     </div>
 
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
 
         <!-- Código Column -->
-        <ng-container matColumnDef="CodigoInsumo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+        <ng-container matColumnDef="IdServicio">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Id Insumo </th>
           <td mat-cell *matCellDef="let element"> {{element.CodigoInsumo}} </td>
         </ng-container>
       
         <!-- Descripción Column -->
-        <ng-container matColumnDef="DescripcionInsumo" class="columna-descripcion">
+        <ng-container matColumnDef="DescripcionServicio" class="columna-descripcion">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </th>
           <td mat-cell *matCellDef="let element"> {{element.DescripcionInsumo}} </td>
         </ng-container>
@@ -51,24 +52,6 @@
           <td mat-cell *matCellDef="let element"> {{element.Comentario}} </td>
         </ng-container>
 
-        <!-- Número de Serie Column -->
-        <ng-container matColumnDef="NumeroSerie">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Número de Serie </th>
-          <td mat-cell *matCellDef="let element"> {{element.NumeroSerie}} </td>
-        </ng-container>
-
-        <!-- Cantidad Column -->
-        <ng-container matColumnDef="Cantidad">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Cantidad </th>
-          <td mat-cell *matCellDef="let element"> {{element.Cantidad}} </td>
-        </ng-container>
-
-        <!-- Stock Mínimo Column -->
-        <ng-container matColumnDef="StockMinimo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Stock Mínimo </th>
-          <td mat-cell *matCellDef="let element"> {{element.StockMinimo}} </td>
-        </ng-container>
-
         <!-- Acciones Column -->
         <ng-container matColumnDef="Action">
           <th mat-header-cell *matHeaderCellDef> Acciones </th>
@@ -76,11 +59,13 @@
             <a mat-flat-button href="#" [routerLink]="['/home/listado-insumos/ver-insumo', element.CodigoInsumo, 'view']" class="button-editar-prod" title="ver/editar insumo">
               <mat-icon class="iconos-custom">preview</mat-icon>
             </a>
-            <a mat-flat-button (click)="openDialogEliminar(element.CodigoInsumo)" title="borrar insumo">
+            <!-- <a mat-flat-button (click)="openDialogEliminar(element.CodigoInsumo)" title="borrar insumo"> -->
+            <a mat-flat-button  title="borrar insumo">
             <!-- <a mat-flat-button  title="borrar insumo"> -->
               <mat-icon class="button-eliminar-prod">delete</mat-icon>
             </a>
-            <a mat-flat-button (click)="openDialogHistorial(element.CodigoInsumo)" title="historial insumo">
+            <!-- <a mat-flat-button (click)="openDialogHistorial(element.CodigoInsumo)" title="historial insumo"> -->
+            <a mat-flat-button  title="historial insumo">
             <!-- <a mat-flat-button  title="historial insumo"> -->
               <mat-icon class="button-historial-prod">history</mat-icon>
             </a>

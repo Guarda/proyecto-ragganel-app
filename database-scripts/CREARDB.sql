@@ -348,6 +348,19 @@ CREATE TABLE DetalleAccesorioPedido
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );  
 
+CREATE TABLE DetalleInsumoPedido 
+(
+	/*Tabla Detalle Producto Pedido, esta tabla se agrega para poder asociar los accesorios ya ingresados en el inventario a un pedido*/
+    IdDetalleInsumoPedidoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    IdInsumoBaseFK varchar(25) not null,
+    IdCodigoPedidoFK varchar(25) not null,
+    EnlaceArticulo varchar(1000), /*Se agrega para que cada insumo pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
+    Comentario varchar(2000),
+    FOREIGN KEY (IdInsumoBaseFK) REFERENCES insumosbase (CodigoInsumo),
+    FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
+);  
+
+
 
 CREATE TABLE PedidoDetalles
 (
@@ -622,6 +635,29 @@ CREATE TABLE VentasEXT(
     NumeroReferenciaTransferencia varchar(255),
     FOREIGN KEY (IdVentaFK) REFERENCES VENTASBASE (IdVentaPK)
 );
+
+/*TABLA DE SERVICIOS BASE creado 1/05/2025*/
+CREATE TABLE ServiciosBase(
+	IdServicioPK INT AUTO_INCREMENT PRIMARY KEY,
+    DescripcionServicio varchar(255),
+	Estado boolean not null default 1,
+    PrecioBase Decimal(6,2),
+    Comentario varchar(2000),
+    FechaIngreso date
+);
+
+/*Tabla Insumos x Servicios 01/05/2025*/
+CREATE TABLE InsumosXServicio(
+	IdInsumosXServicio INT auto_increment PRIMARY KEY,
+    IdServicioFK int not null,
+	CodigoInsumoFK VARCHAR(25) NOT NULL,
+    CantidadDescargue int unsigned,
+    Estado boolean not null default 1,
+    FOREIGN KEY (CodigoInsumoFK) REFERENCES InsumosBase(CodigoInsumo),
+    FOREIGN KEY (IdServicioFK) REFERENCES ServiciosBase(IdServicioPK)
+);
+
+
 
 
 

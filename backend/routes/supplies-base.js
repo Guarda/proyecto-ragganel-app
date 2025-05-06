@@ -70,6 +70,33 @@ router.get('/categoria', (req, res) => {
     });
 });
 
+// Get a specific supply with additional parameters
+router.get('/categoria-b', (req, res) => {
+    // Extract parameters from the query string
+    const fabricante = req.query.Fabricante;
+    const categoria = req.query.Categoria;
+    const subcategoria = req.query.Subcategoria;
+    //console.log(fabricante)
+
+    // Ensure all required parameters are provided
+    if (!fabricante || !categoria || !subcategoria) {
+        return res.status(400).send('Missing one or more required parameters.');
+    }
+
+    // Call the stored procedure with three parameters
+    const sql = 'CALL `base_datos_inventario_taller`.`BuscarIdCategoriaInsumoCatalogob` (?, ?, ?)';
+    db.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
+        if (err) {
+            console.error('Error executing stored procedure:', err);
+            return res.status(500).send('Error al buscar categoria');
+        }
+        if (result[0].length === 0) {
+            return res.status(404).send('Producto no categoria');
+        }
+        res.json(result[0]);
+    });
+});
+
 // Create a new product
 router.post('/crear-insumo', (req, res) => {
     const { IdModeloInsumosPK, Cantidad, PrecioBase, EstadoInsumo, ComentarioInsumo, NumeroSerie, StockMinimo } = req.body;
@@ -144,6 +171,19 @@ router.put('/insumo-eliminar/:id', (req, res) => {
             return;
         }
         res.send({ message: 'Accesorio eliminado' });
+    });
+});
+
+// Get Order article list 
+router.get('/historial-insumo/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarHistorialEstadoInsumoXId` (?)';
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error("Error al obtener historial:", err);
+            return res.status(500).json({ error: "Error en el servidor" });
+        }
+        res.json(results[0]); // Devuelve el primer conjunto de resultados
     });
 });
 

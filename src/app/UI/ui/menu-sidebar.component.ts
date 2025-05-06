@@ -99,7 +99,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
     {
       label: 'Servicios',
       icon: 'build',
-      route: '/home/servicios',
+      route: '/home/listado-servicios',
       roles: [1, 3] // Roles for Servicios
     },
     {

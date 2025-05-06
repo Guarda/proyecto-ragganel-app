@@ -1,0 +1,29 @@
+<div class="timeline-container">
+    <mat-dialog-content class="dialog-content">
+      <h5>Seguimiento del insumo {{ SupplyId }}</h5>
+      <div class="timeline">
+        <div *ngFor="let historial of historialInsumos; let i = index" class="timeline-event">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <h5>{{ historial.EstadoNuevoDescripcion }}</h5>
+            <p>Fecha: {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
+  
+            <p *ngIf="i === 0"><strong>Fecha de Creación:</strong> {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
+            <ng-container *ngIf="i !== 0">
+              <p><strong>Estado Anterior:</strong> {{ historial.EstadoAnteriorDescripcion }}</p>
+              <p><strong>Estado Nuevo:</strong> {{ historial.EstadoNuevoDescripcion }}</p>
+              <p><strong>Stock Anterior:</strong> {{ historial.StockAnterior }}</p>
+              <p><strong>Stock Nuevo:</strong> {{ historial.StockNuevo }}</p>
+              <p><strong>Stock Mínimo Anterior:</strong> {{ historial.StockMinimoAnterior }}</p>
+              <p><strong>Stock Mínimo Nuevo:</strong> {{ historial.StockMinimoNuevo }}</p>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+  </div>
+  
+  <div>
+    <button mat-button mat-dialog-close class="boton-cerrar">Cerrar ventana</button>
+  </div>
+  

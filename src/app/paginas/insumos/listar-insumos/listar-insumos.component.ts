@@ -17,6 +17,7 @@ import { InsumosBase } from '../../interfaces/insumosbase';
 
 import { IngresarAgregarInsumoDialogComponent } from '../ingresar-agregar-insumo-dialog/ingresar-agregar-insumo-dialog.component';
 import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.component';
+import { HistorialInsumoComponent } from '../historial-insumo/historial-insumo.component';
 
 @Component({
   selector: 'app-listar-insumos',
@@ -55,7 +56,7 @@ export class ListarInsumosComponent implements AfterViewInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private dialog: MatDialog,
-   ) {
+  ) {
   }
 
   ngAfterViewInit() {
@@ -84,22 +85,35 @@ export class ListarInsumosComponent implements AfterViewInit {
     });
   }
 
-  public openDialogEliminar(cons: string){
-      const dialogRef = this.dialog.open(EliminarInsumosComponent, {  
-        disableClose: true,   
-        data: { value: cons }      
-      });
-      dialogRef.componentInstance.Borrado.subscribe(() => {
-        this.getSupplyList();
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-      });
-      dialogRef.afterClosed().subscribe(() => {
-        this.getSupplyList();
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-      });
-    }
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarInsumosComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+
+  public openDialogHistorial(cons: string) {
+    const dialogRef = this.dialog.open(HistorialInsumoComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
 
 
   applyFilter(event: Event) {

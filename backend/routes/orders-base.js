@@ -279,7 +279,7 @@ router.post('/ingresar-inventario/', (req, res) => {
     console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
 
     // Llamada al procedimiento almacenado
-    const query = 'CALL IngresarArticulosPedido(?, ?, ?)';
+    const query = 'CALL IngresarArticulosPedidov2(?, ?, ?, ?)';
 
     // Asegurar que cada accesorio tenga los valores correctos
     accesorios.forEach((accesorio) => {
@@ -310,8 +310,14 @@ router.post('/ingresar-inventario/', (req, res) => {
         }
     })
 
+    insumos.forEach((insumo) => {
+        if (!insumo.CodigoConsola) {
+            insumo.CodigoConsola = 'Sin código'; 
+        }        
+    });
+
     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
-    db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios)], (err, results) => {
+    db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios), JSON.stringify(insumos)], (err, results) => {
         if (err) {
             console.error('Error al ejecutar el procedimiento: ', err);
             return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
