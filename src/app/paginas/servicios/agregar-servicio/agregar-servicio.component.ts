@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -12,6 +12,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgFor, NgIf } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { IndexListadoInsumosComponent } from '../index-listado-insumos/index-listado-insumos.component';
+import { ServiciosService } from '../../../services/servicios.service';
+import { ServiciosBase } from '../../interfaces/servicios';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-agregar-servicio',
@@ -27,7 +30,7 @@ export class AgregarServicioComponent {
 
   mostrarInsumos = false;
 
-
+  Agregado = new EventEmitter();
   // Insumos seleccionados y añadidos con cantidad
   insumosAgregados: { Codigo: string; Nombre: string; Cantidad: number }[] = [];
 
@@ -37,7 +40,9 @@ export class AgregarServicioComponent {
   constructor(
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private servicioService: ServiciosService,
+     private dialogRef: MatDialogRef<AgregarServicioComponent>
   ) {
     this.servicioForm = this.fb.group({
       DescripcionServicio: ['', Validators.required],
@@ -46,39 +51,46 @@ export class AgregarServicioComponent {
     });
   }
 
-  agregarInsumo() {
-    if (this.insumoSeleccionado && this.cantidadInsumo && this.cantidadInsumo > 0) {
-      // Evitar duplicados
-      const existe = this.insumosAgregados.find(i => i.Codigo === this.insumoSeleccionado.Codigo);
-      if (existe) {
-        existe.Cantidad += this.cantidadInsumo;
-      } else {
-        this.insumosAgregados.push({
-          Codigo: this.insumoSeleccionado.Codigo,
-          Nombre: this.insumoSeleccionado.Nombre,
-          Cantidad: this.cantidadInsumo
-        });
-      }
 
-      // Reset campos
-      this.insumoSeleccionado = null;
-      this.cantidadInsumo = null;
-      this.cdr.markForCheck(); // Forzar detección de cambios si es necesario
+  agregarInsumo(insumo: { Codigo: string; Nombre: string; Cantidad: number }) {
+    const existe = this.insumosAgregados.find(i => i.Codigo === insumo.Codigo);
+    if (existe) {
+      existe.Cantidad += insumo.Cantidad;
+    } else {
+      this.insumosAgregados.push(insumo);
     }
   }
+
 
   eliminarInsumo(insumo: any) {
     this.insumosAgregados = this.insumosAgregados.filter(i => i.Codigo !== insumo.Codigo);
   }
 
   toggleInsumos() {
+    // Si estaba visible y ahora se oculta, borramos los insumos
+    if (this.mostrarInsumos) {
+      this.insumosAgregados = [];
+    }
     this.mostrarInsumos = !this.mostrarInsumos;
   }
 
+  actualizarCantidad(insumoActualizado: { Codigo: string; Cantidad: number }, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const item = this.insumosAgregados.find(i => i.Codigo === insumoActualizado.Codigo);
+    if (item) {
+      item.Cantidad = insumoActualizado.Cantidad;
+    }
+  }
+
   onSubmit() {
-    console.log('Formulario enviado:', this.servicioForm.value);
-    if (this.servicioForm.valid && this.insumosAgregados.length > 0) {
+    if (this.servicioForm.valid) {
       const servicio = this.servicioForm.value;
+      const insumosValidos = this.mostrarInsumos
+        ? this.insumosAgregados.filter(i => i.Cantidad > 0)
+        : [];
 
       const payload = {
         servicio: {
@@ -86,16 +98,50 @@ export class AgregarServicioComponent {
           PrecioBase: servicio.PrecioBase,
           Comentario: servicio.Comentario
         },
-        insumos: this.insumosAgregados.map(i => ({
+        insumos: insumosValidos.map(i => ({
           CodigoInsumoFK: i.Codigo,
           CantidadDescargue: i.Cantidad
         }))
       };
 
-      console.log('Enviando servicio:', payload);
+      if (this.servicioForm.valid) {
+        const servicio = this.servicioForm.value;
 
-      // Aquí llamarías al backend para guardar:
-      // this.servicioService.createServicio(payload).subscribe(...)
+        // Validar insumos
+        const insumosValidos = this.insumosAgregados.filter(i => i.Cantidad > 0);
+        if (this.mostrarInsumos && insumosValidos.length === 0) {
+          console.warn('No se pueden enviar insumos con cantidad 0 o negativa.');
+          return;
+        }
+
+        // Esta es la estructura correcta que el backend espera
+        const payload = {
+          servicio: {
+            DescripcionServicio: servicio.DescripcionServicio,
+            PrecioBase: servicio.PrecioBase,
+            Comentario: servicio.Comentario
+          },
+          insumos: insumosValidos.map(i => ({
+            CodigoInsumoFK: i.Codigo,
+            CantidadDescargue: i.Cantidad
+          }))
+        };
+
+        console.log('Enviando servicio:', payload);
+
+        this.servicioService.create(payload).subscribe({
+          next: (response) => {
+            console.log('Servicio creado exitosamente:', response);
+            this.Agregado.emit();
+            this.dialogRef.close(); // ← esto cierra el diálogo
+            //this.router.navigate(['/home/listado-servicios']);
+          },
+          error: (error) => {
+            console.error('Error al crear el servicio:', error);
+          }
+        });
+      }
     }
   }
+
 }

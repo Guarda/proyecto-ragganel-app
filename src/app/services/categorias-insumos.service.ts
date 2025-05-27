@@ -62,6 +62,13 @@ export class CategoriasInsumosService {
       )
   }
 
+   findb(id: string): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/insumos-base/categoria-b/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   create(categoria: CategoriasInsumosBase): Observable<any> {
     return this.httpClient.post(this.apiURL + '/categorias-insumos/crear-categoria-insumos/', JSON.stringify(categoria), this.httpOptions)
       .pipe(

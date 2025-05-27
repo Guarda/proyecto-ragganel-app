@@ -42,6 +42,23 @@ router.get('/categoria/:id', (req, res) => {
     });
 });
 
+// Get a specific active category
+router.get('/categoria-b/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoainsumosXIdB` (?)';
+    db.query(sql, id, (err, result) => {
+        if (err) {
+            res.status(500).send('Error al buscar la categoria');
+            return;
+        }
+        if (result.length === 0) {
+            res.status(404).send('Categoria no encontrada');
+            return;
+        }
+        res.json(result[0]);
+    });
+});
+
 
 // Get a specific supply with additional parameters
 router.get('/categoria', (req, res) => {
@@ -132,32 +149,41 @@ router.get('/insumo/:id', (req, res) => {
     });
 });
 
-// Update an accessorie
 router.put('/insumo/:id', (req, res) => {
-    const id = req.params.id; // Assuming this is the CodigoConsola
-    const { CodigoInsumo, IdModeloInsumoPK, Cantidad, EstadoInsumo, Comentario, PrecioBase, NumeroSerie, StockMinimo } = req.body;
-    // console.log(req.body);
+    const id = req.params.id;
+    const {
+        CodigoInsumo,
+        IdModeloInsumoPK,
+        Cantidad,
+        EstadoInsumo,
+        Comentario,
+        PrecioBase,
+        NumeroSerie,
+        StockMinimo
+    } = req.body;
+
     const sql = 'CALL base_datos_inventario_taller.ActualizarInsumoBase(?, ?, ?, ?, ?, ?, ?, ?)';
 
     db.query(
         sql,
         [
-            CodigoInsumo,        // CodigoInsumoA
-            IdModeloInsumoPK,    // ModeloInsumoA
-            EstadoInsumo,        // EstadoInsumoA
-            PrecioBase,          // PrecioInsumoA
-            Comentario,          // ComentarioInsumoA
-            NumeroSerie,         // NumeroSerieInsumoA
-            Cantidad,            // CantidadInsumoA
-            StockMinimo          // StockMinimoInsumoA
-        ]
-        , err => {
+            CodigoInsumo,
+            IdModeloInsumoPK,
+            EstadoInsumo,
+            PrecioBase,
+            Comentario,
+            NumeroSerie,
+            Cantidad,
+            StockMinimo
+        ],
+        (err) => {
             if (err) {
                 res.status(500).send('Error actualizando insumo');
                 return;
             }
-            // Fetch the updated product to return the updated details        
-        });
+            res.status(200).json({ success: true, message: 'Insumo actualizado correctamente' });
+        }
+    );
 });
 
 // Delete a supply

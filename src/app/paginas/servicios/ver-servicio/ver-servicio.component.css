@@ -1,0 +1,61 @@
+.contenedor-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  max-width: 100%;
+}
+
+.contenedor-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.header1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; /* Añadido para distribuir el espacio */
+  align-items: center; /* Centrado verticalmente */
+  margin-bottom: 1rem; /* Separación entre la cabecera y el formulario */
+}
+
+.input-form {
+  width: 100%;
+}
+
+.contenedor-insumos {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #fafafa;
+}
+
+.contenedor-insumos h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.subtexto {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.mensaje-sin-insumos {
+  margin-top: 1rem;
+  font-style: italic;
+  color: #999;
+}
+
+.botones-acciones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.botones-acciones button {
+  margin-top: 1rem; /* Espaciado adicional entre los botones */
+}

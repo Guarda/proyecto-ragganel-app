@@ -16,9 +16,9 @@
         </div>
         <p><strong>Fabricante:</strong> {{ insumo.NombreFabricanteInsumos }}</p>
         <p><strong>Cantidad:</strong>
-          <button mat-button (click)="decreaseQuantity()">-</button>
+          <button type="button"  mat-button (click)="decreaseQuantity()">-</button>
           {{ insumo.Cantidad }}
-          <button mat-button (click)="increaseQuantity()">+</button>
+          <button type="button"  mat-button (click)="increaseQuantity()">+</button>
         </p>
       </div>
       <div class="precio">

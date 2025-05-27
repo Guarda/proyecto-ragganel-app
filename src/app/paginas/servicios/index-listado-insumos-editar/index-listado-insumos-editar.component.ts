@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, Output, signal, SimpleChanges } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -25,14 +25,14 @@ import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { TarjetaInsumoComponent } from '../tarjeta-insumo/tarjeta-insumo.component';
 
 @Component({
-  selector: 'app-index-listado-insumos',
+  selector: 'app-index-listado-insumos-editar',
   standalone: true,
   imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
     MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, TarjetaInsumoComponent],
-  templateUrl: './index-listado-insumos.component.html',
-  styleUrl: './index-listado-insumos.component.css'
+  templateUrl: './index-listado-insumos-editar.component.html',
+  styleUrl: './index-listado-insumos-editar.component.css'
 })
-export class IndexListadoInsumosComponent {
+export class IndexListadoInsumosEditarComponent {
 
   insumoForm!: FormGroup;
 
@@ -48,7 +48,6 @@ export class IndexListadoInsumosComponent {
   @Output() insumoAgregado = new EventEmitter<{ Codigo: string, Nombre: string, Cantidad: number }>();
   @Output() insumoEliminado = new EventEmitter<InsumosBase>();
   @Output() cantidadActualizada = new EventEmitter<{ Codigo: string; Cantidad: number }>();
-
 
   selectedFabricante: any;
   selectedCategoria: any;
@@ -74,6 +73,7 @@ export class IndexListadoInsumosComponent {
 
   ngOnInit(): void {
 
+
     this.supplyQuantity = 1; // Valor inicial de cantidad
 
     this.insumoForm = new FormGroup({
@@ -84,6 +84,8 @@ export class IndexListadoInsumosComponent {
       PrecioBase: new FormControl('', Validators.required),
       Cantidad: new FormControl('', Validators.required)
     });
+
+
 
     this.fabricanteinsumoService.getManufacturerWithModel().subscribe((data: FabricanteInsumos[]) => {
       this.selectedFabricante = data;
@@ -139,18 +141,8 @@ export class IndexListadoInsumosComponent {
 
   }
 
-  getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-
-    if (l == null || l === '') {
-      return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;
-    } else {
-      return `${baseUrl}/img-insumos/${l}`;
-    }
-  }
-
   // Método para manejar el evento (borrar) de la tarjeta
-  manejarBorradoDesdeTarjeta(insumoABorrar: InsumosBase) {
+  manejarBorradoDesdeTarjeta(insumoABorrar: any) {
     console.log('IndexListado: Intentando borrar insumo ->', insumoABorrar);
 
     if (!insumoABorrar || insumoABorrar.CodigoInsumo === undefined) {
@@ -187,6 +179,50 @@ export class IndexListadoInsumosComponent {
     }
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['insumo'] && this.insumo) {
+      this.cargarInsumoExistente(this.insumo);
+    }
+  }
+
+  cargarInsumoExistente(insumo: InsumosBase) {
+    console.log("insumo existente", insumo);
+    this.insumo = insumo;
+    this.insumoForm.patchValue({
+      Fabricante: insumo.IdFabricanteInsumosPK,
+      Categoria: insumo.IdCategoriaInsumosPK,
+      Subcategoria: insumo.IdSubcategoriaInsumos,
+      PrecioBase: insumo.PrecioBase,
+      Cantidad: insumo.Cantidad,
+      IdModeloInsumosPK: insumo.IdModeloInsumosPK
+    });
+
+    // Simula los valueChanges manualmente para que cargue las opciones dependientes
+    this.categoriainsumoService.findWithModel(insumo.IdFabricanteInsumosPK.toString()).subscribe((data: categoriasInsumos[]) => {
+      this.selectedCategoria = data;
+
+      this.subcategoriainsumoService.findWithModel(insumo.IdCategoriaInsumosPK.toString()).subscribe((subdata: SubcategoriasInsumos[]) => {
+        this.selectedSubcategoria = subdata;
+
+        // Ahora puedes cargar los datos completos del modelo y la imagen
+        this.cateinsumoService.find(insumo.IdModeloInsumosPK.toString()).subscribe((catData) => {
+          this.categoria = catData[0];
+          this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+          this.cdr.detectChanges();
+        });
+      });
+    });
+  }
+
+  getimagePath(l: string | null) {
+    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+
+    if (l == null || l === '') {
+      return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;
+    } else {
+      return `${baseUrl}/img-insumos/${l}`;
+    }
+  }
 
   agregarInsumoAlPadre() {
     if (this.insumoForm.valid && this.insumo) {
@@ -217,10 +253,11 @@ export class IndexListadoInsumosComponent {
   }
 
   get activeInsumos(): InsumosBase[] {
-    return this.dataToDisplay.filter(insumo => insumo.Activo === true);
+    return this.dataToDisplay; // ignora el filtro de Activo para probar
+
   }
 
-  actualizarCantidadInsumo(nuevaCantidad: number, insumo: InsumosBase) {
+   actualizarCantidadInsumo(nuevaCantidad: number, insumo: InsumosBase) {
     const index = this.dataToDisplay.findIndex(item => item === insumo);
     if (index !== -1) {
       this.dataToDisplay[index].Cantidad = nuevaCantidad;
@@ -245,9 +282,8 @@ export class IndexListadoInsumosComponent {
 
   onSubmit() {
 
-
-
     console.log(this.insumoForm.value);
+    console.log("este insumo", this.insumo);
     if (this.insumoForm.valid && this.categoria) {
       const formValues = this.insumoForm.value;
 
@@ -316,8 +352,5 @@ export class IndexListadoInsumosComponent {
       console.log('Insumo emitido al padre:', insumoParaPadre);
     }
   }
-
-
-
 
 }

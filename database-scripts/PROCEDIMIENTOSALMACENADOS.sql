@@ -2275,7 +2275,8 @@ DELIMITER ;
 
 
 
-DELIMITER //
+DELIMITER //CALL `base_datos_inventario_taller`.`ListarTablaInsumosBasesXId`('INS-ADATA-DDR4');
+
 /*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES DE INSUMOS CON UN MODELO ASOCIADO CREADO 17/04/2025*/
 CREATE PROCEDURE ListarFabricantesInsumosModelo()
 		BEGIN
@@ -2797,6 +2798,260 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+DELIMITER $$
+/*procedimiento almacenado IngresarServicioConInsumos creado el 07/05/2025*/
+CREATE PROCEDURE IngresarServicioConInsumos(
+    IN DescripcionServicio VARCHAR(255),
+    IN PrecioBase DECIMAL(6,2),
+    IN Comentario VARCHAR(2000),
+    IN insumos JSON
+)
+BEGIN
+    DECLARE nuevoIdServicio INT;
+    DECLARE i INT DEFAULT 0;
+
+    -- Insertar en tabla ServiciosBase
+    INSERT INTO ServiciosBase (
+        DescripcionServicio,
+        PrecioBase,
+        Comentario,
+        FechaIngreso
+    ) VALUES (
+        DescripcionServicio,
+        PrecioBase,
+        Comentario,
+        CURDATE()
+    );
+
+    -- Obtener el ID generado
+    SET nuevoIdServicio = LAST_INSERT_ID();
+
+    -- Insertar insumos si existen
+    WHILE i < JSON_LENGTH(insumos) DO
+        INSERT INTO InsumosXServicio (
+            IdServicioFK,
+            CodigoInsumoFK,
+            CantidadDescargue,
+            Estado
+        )
+        SELECT
+            nuevoIdServicio,
+            JSON_UNQUOTE(JSON_EXTRACT(insumos, CONCAT('$[', i, '].CodigoInsumoFK'))),
+            JSON_UNQUOTE(JSON_EXTRACT(insumos, CONCAT('$[', i, '].CantidadDescargue'))),
+            1;
+
+        SET i = i + 1;
+    END WHILE;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE ListarTablaServiciosBase()
+/**/
+BEGIN
+	SELECT 
+		IdServicioPK as CodigoServicio,
+        DescripcionServicio,
+        Estado,
+        DATE_FORMAT(FechaIngreso, '%d/%m/%Y') as 'Fecha_Ingreso',
+        Comentario,
+        PrecioBase
+    FROM serviciosbase
+    where Estado = 1 ;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE ListarTablaServiciosBaseXId(
+IN IdServicio int
+)
+/**/
+BEGIN
+	SELECT 
+		IdServicioPK as CodigoServicio,
+        DescripcionServicio,
+        Estado,
+        DATE_FORMAT(FechaIngreso, '%d/%m/%Y') as 'Fecha_Ingreso',
+        Comentario,
+        PrecioBase
+    FROM serviciosbase
+    where IdServicioPK = IdServicio ;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER $$
+	CREATE PROCEDURE ListarInsumosxServicio
+    (
+    IN IdServicio int
+    )
+    BEGIN 
+		SELECT 
+			b.IdInsumosXServicio,
+			b.CodigoInsumoFK,
+			b.CantidadDescargue,
+			c.ModeloInsumo,
+			c.PrecioBase
+		FROM 
+			serviciosbase a
+		JOIN
+			insumosxservicio b
+			ON a.IdServicioPK = b.IdServicioFK
+		JOIN 
+			insumosbase c
+			ON b.CodigoInsumoFK = c.CodigoInsumo -- <--- corrección clave
+		WHERE 
+			a.IdServicioPK = IdServicio
+			AND b.Estado = 1;
+    END $$
+DELIMITER ;
+
+/*PROCEDIMIENTO ListarTablacatalogoainsumosXIdB creado 10/05/25*/
+DELIMITER //
+	CREATE PROCEDURE ListarTablacatalogoainsumosXIdB(IdCategoria int)
+    BEGIN
+		SELECT 
+			a.*,
+            b.IdFabricanteInsumosPK, b.NombreFabricanteInsumos,
+            c.IdCategoriaInsumosPK, c.NombreCategoriaInsumos,
+            d.IdSubcategoriaInsumos, d.NombreSubcategoriaInsumos
+        FROM catalogoinsumos a
+        join fabricanteinsumos b
+        on a.FabricanteInsumos = b.IdFabricanteInsumosPK
+        join categoriasinsumos c 
+        on a.CategoriaInsumos = c.IdCategoriaInsumosPK
+        join subcategoriasinsumos d
+        on a.SubcategoriaInsumos = d.IdSubcategoriaInsumos
+        where IdModeloInsumosPK = IdCategoria;    
+    END //
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE ActualizarServicioConInsumos (
+/*PROCEDIMIENTO CREADO EL 14/05/2025*/
+    IN p_CodigoServicio INT,
+    IN p_DescripcionServicio VARCHAR(255),
+    IN p_PrecioBase DECIMAL(6,2),
+    IN p_Comentario VARCHAR(2000),
+    IN p_EstadoServicioFK TINYINT(1)
+)
+BEGIN
+    -- Actualiza la tabla de servicios
+    UPDATE ServiciosBase
+    SET DescripcionServicio = p_DescripcionServicio,
+        PrecioBase = p_PrecioBase,
+        Comentario = p_Comentario,       
+        Estado = p_EstadoServicioFK
+    WHERE IdServicioPK = p_CodigoServicio;
+
+    -- Paso 1: Marcar todos los insumos existentes como inactivos (soft delete)
+    UPDATE InsumosXServicio
+    SET Estado = 0
+    WHERE IdServicioFK = p_CodigoServicio;
+
+    -- Nota: Aquí asumimos que se llamará múltiples veces a este SP con los datos de insumos
+    -- usando un procedimiento por cada insumo.
+
+    -- Luego, para cada insumo en el payload, se debe llamar a este SP auxiliar:
+    -- CALL InsertarOActualizarInsumoXServicio(p_CodigoServicio, 'INS-KING-32GB', '32GB Clase 10', 1);
+
+END$$
+
+DELIMITER ;
+
+/*DELIMITER $$
+
+CREATE PROCEDURE InsertarOActualizarInsumoXServicio (
+/*PROCEDIMIENTO CREADO EL 14/05/2025
+    IN p_IdServicioFK INT,
+    IN p_CodigoInsumoFK VARCHAR(25),
+    IN p_Cantidad INT
+)
+BEGIN
+    DECLARE existe INT;
+    DECLARE estadoActual TINYINT;
+
+    -- Verifica si el insumo ya existe para el servicio
+    SELECT COUNT(*), Estado INTO existe, estadoActual
+    FROM InsumosXServicio
+    WHERE IdServicioFK = p_IdServicioFK AND CodigoInsumoFK = p_CodigoInsumoFK
+    LIMIT 1;
+
+    IF existe = 0 THEN
+        -- No existe, lo insertamos
+        INSERT INTO InsumosXServicio (IdServicioFK, CodigoInsumoFK, CantidadDescargue, Estado)
+        VALUES (p_IdServicioFK, p_CodigoInsumoFK, p_Cantidad, 1);
+
+    ELSE
+        -- Existe: actualiza cantidad y re-activa si estaba inactivo
+        UPDATE InsumosXServicio
+        SET CantidadDescargue = p_Cantidad,
+            Estado = 1
+        WHERE IdServicioFK = p_IdServicioFK AND CodigoInsumoFK = p_CodigoInsumoFK;
+    END IF;
+END$$
+
+DELIMITER ;*/
+
+DELIMITER $$
+
+CREATE PROCEDURE InsertarOActualizarInsumoXServicio (
+    IN p_IdServicioFK INT,
+    IN p_CodigoInsumoFK VARCHAR(25),
+    IN p_Cantidad INT
+)
+BEGIN
+    DECLARE existe INT DEFAULT 0;
+    DECLARE estadoActual TINYINT;
+
+    -- Verificar si el insumo ya existe
+    SELECT COUNT(*) INTO existe
+    FROM InsumosXServicio
+    WHERE IdServicioFK = p_IdServicioFK AND CodigoInsumoFK = p_CodigoInsumoFK;
+
+    IF existe = 0 THEN
+        -- Insertar si no existe
+        INSERT INTO InsumosXServicio (IdServicioFK, CodigoInsumoFK, CantidadDescargue, Estado)
+        VALUES (p_IdServicioFK, p_CodigoInsumoFK, p_Cantidad, 1);
+    ELSE
+        -- Actualizar si ya existe
+        UPDATE InsumosXServicio
+        SET CantidadDescargue = p_Cantidad,
+            Estado = 1
+        WHERE IdServicioFK = p_IdServicioFK AND CodigoInsumoFK = p_CodigoInsumoFK;
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE EliminarServicioEInsumos (
+    IN p_IdServicio INT
+)
+BEGIN
+    -- Cambiar el estado del servicio a 0 (soft delete)
+    UPDATE ServiciosBase
+    SET Estado = 0
+    WHERE IdServicioPK = p_IdServicio;
+
+    -- Cambiar el estado de los insumos asociados a 0 (soft delete)
+    UPDATE InsumosXServicio
+    SET Estado = 0
+    WHERE IdServicioFK = p_IdServicio;
+END $$
+
+DELIMITER ;
+
+
+
+
+
 
 
 

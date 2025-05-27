@@ -1,0 +1,31 @@
+.form-insumo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  
+  .form-insumo-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .input-form-prod {
+    width: 200px;
+  }
+  
+  .add-button {
+    margin-top: 10px;
+    height: 56px;
+    width: 56px;
+  }
+  
+  .tarjetas-container {
+    width: 100%;
+    max-width: 964.65px; /* o el valor que tienes */
+    margin: 0 auto;       /* centra el contenedor */
+    padding: 0 16px;      /* opcional para espacio a los lados */
+  }
+  
+  

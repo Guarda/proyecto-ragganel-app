@@ -2,6 +2,7 @@ import { CategoriasInsumosBase } from "./categoriasinsumosbase";
 import { EstadosConsolas } from "./estados";
 
 export interface InsumosBase extends CategoriasInsumosBase, EstadosConsolas {
+    CodigoInsumoFK: string;
     CodigoInsumo: number;
     ModeloInsumo: number;
     EstadoInsumo: number

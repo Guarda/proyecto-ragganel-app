@@ -25,13 +25,20 @@
       </section>
 
       <!-- Insumos -->
-      <button mat-stroked-button color="accent" (click)="toggleInsumos()">
+      <button type="button" mat-stroked-button color="accent" (click)="toggleInsumos()">
         {{ mostrarInsumos ? 'Ocultar Insumos' : 'Ingresar Insumos' }}
       </button>
       
       <section *ngIf="mostrarInsumos" class="contenedor-insumos">
         <h3>Insumos Requeridos, solo se pueden agregar insumos que tienen stock</h3>
-        <app-index-listado-insumos></app-index-listado-insumos>
+        <app-index-listado-insumos 
+        (insumoAgregado)="agregarInsumo($event)"
+        (cantidadActualizada)="actualizarCantidad($event)"
+        ></app-index-listado-insumos>
+      
+        <div *ngIf="insumosAgregados.length === 0" class="mensaje-sin-insumos">
+          <p>No se han agregado insumos.</p>
+        </div>
       </section>
       
     </div>
@@ -39,8 +46,9 @@
 
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancelar</button>
-    <button mat-flat-button color="primary" type="submit" 
-        [disabled]="!servicioForm.valid || (mostrarInsumos && insumosAgregados.length === 0)">
+    <!-- En tu formulario, cambia el botón de submit para evitar envíos dobles -->
+<button mat-flat-button color="primary" type="button" (click)="onSubmit()" 
+    [disabled]="!servicioForm.valid || (mostrarInsumos && insumosAgregados.length === 0)">
   Crear Servicio
 </button>
 

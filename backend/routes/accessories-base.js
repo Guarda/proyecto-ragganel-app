@@ -116,10 +116,12 @@ router.put('/accesorio/:id', (req, res) => {
 
     // Call the new stored procedure with the updated parameters
     db.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString], err => {
-        if (err) {
+         if (err) {
             res.status(500).send('Error actualizando producto');
             return;
         }
+        // Aquí respondemos que todo salió bien
+        res.status(200).json({ message: 'Producto actualizado correctamente' });
         // Fetch the updated product to return the updated details        
     });
 });

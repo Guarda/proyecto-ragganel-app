@@ -10,8 +10,11 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog} from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { AgregarServicioComponent } from '../agregar-servicio/agregar-servicio.component';
+import { ServiciosService } from '../../../services/servicios.service';
+import { ServiciosBase } from '../../interfaces/servicios';
+import { EliminarServicioComponent } from '../eliminar-servicio/eliminar-servicio.component';
 
 @Component({
   selector: 'app-listado-servicios',
@@ -33,7 +36,7 @@ import { AgregarServicioComponent } from '../agregar-servicio/agregar-servicio.c
   styleUrl: './listado-servicios.component.css'
 })
 export class ListadoServiciosComponent implements AfterViewInit {
-  displayedColumns: string[] = ['IdServicio', 'DescripcionServicio', 'Estado', 'Fecha_Ingreso', 'PrecioBase', 'Comentario', 'Action'];
+  displayedColumns: string[] = ['IdServicio', 'DescripcionServicio', 'Fecha_Ingreso', 'PrecioBase', 'Comentario', 'Action'];
   dataSource = new MatTableDataSource<any>(); // Cambia el tipo a 'any' o define una interfaz adecuada
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -41,23 +44,64 @@ export class ListadoServiciosComponent implements AfterViewInit {
   @Output() select = new EventEmitter<string>();
 
   constructor(
+    public dialogRef: MatDialog,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private dialog: MatDialog,
+    private serviciosService: ServiciosService // Cambia 'InsumosBaseService' por el servicio adecuado para 'ServiciosBase'
   ) { }
 
   ngAfterViewInit() {
 
   }
 
-  public openDialogAgregar() {
-      const dialogRef = this.dialog.open(AgregarServicioComponent, {
-        disableClose: true,
-        height: '80%',
-        width: '55%',
-      });
-    }
+  ngOnInit() {
+    this.getSupplyList();
+  }
 
+  getSupplyList() {
+    this.serviciosService.getAll().subscribe((data: ServiciosBase[]) => {
+      this.dataSource = new MatTableDataSource<ServiciosBase>(data);
+      console.log(data);
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    })
+  }
+
+  public openDialogAgregar() {
+    const dialogRef = this.dialog.open(AgregarServicioComponent, {
+      disableClose: true,
+      height: '80%',
+      width: '55%',
+    });
+    dialogRef.componentInstance.Agregado.subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
+
+  openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarServicioComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+  }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;

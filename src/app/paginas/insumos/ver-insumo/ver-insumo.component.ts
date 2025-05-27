@@ -87,7 +87,7 @@ export class VerInsumoComponent {
     private fb: FormBuilder,
     private dialog: MatDialog
   ) {
-   
+
   }
 
   ngOnInit(): void {
@@ -111,9 +111,9 @@ export class VerInsumoComponent {
     });
 
 
-    this.insumosService.find(this.id).subscribe((data) => {  
+    this.insumosService.find(this.id).subscribe((data) => {
       this.insumo = data[0];
-       console.log(data[0]);
+      console.log(data[0]);
 
       this.supplyId = this.id;
       this.supplyCode = this.insumo.ModeloInsumo;
@@ -139,7 +139,7 @@ export class VerInsumoComponent {
 
       this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
         this.selectedEstado = data;
-       
+
       });
 
       this.fabricanteService.getAllBase().subscribe((data: FabricanteInsumos[]) => {
@@ -172,19 +172,19 @@ export class VerInsumoComponent {
 
       this.cdr.detectChanges();
 
-      
-    
+
+
     })
 
   }
 
   formatNumber(value: number | null) {
-    if(value == null){
+    if (value == null) {
       return 0;
     }
-    else{
+    else {
       return value.toFixed(2); // Formats the number to 2 decimal places
-    }    
+    }
   }
 
   getimagePath(l: string | null) {
@@ -197,46 +197,41 @@ export class VerInsumoComponent {
     }
   }
 
-  public openDialogEliminar(cons: string){
-      const dialogRef = this.dialog.open(EliminarInsumosComponent, {  
-        disableClose: true,   
-        data: { value: cons }      
-      });
-      dialogRef.componentInstance.Borrado.subscribe(() => {
-        this.router.navigateByUrl('home/listado-insumos');
-      });
-      dialogRef.afterClosed().subscribe(() => {
-        this.ngOnInit();
-      });
-    }
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarInsumosComponent, {
+      disableClose: true,
+      data: { value: cons }
+    });
+    dialogRef.componentInstance.Borrado.subscribe(() => {
+      this.router.navigateByUrl('home/listado-insumos');
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.ngOnInit();
+    });
+  }
 
   onSubmit() {
     if (!this.insumoForm.dirty) {
       return; // Salir si no hay cambios
     }
-  
+
     this.insumoForm.value.CodigoAccesorio = this.id;
     console.log(this.insumoForm.value);
-  
-    this.insumosService.update(this.insumoForm.value).subscribe({
-      next: (res: any) => {
-        console.log('Respuesta del servicio:', res);
-        if (res.mensaje || res.message) {
-          this.dialog.open(SuccessdialogComponent, {
-            data: { message: res.mensaje || res.message || 'Insumo actualizado correctamente' }
-          });
-        }
-        this.ngOnInit(); // Refrescar el componente después de la actualización
+    //this.dialog.open(SuccessdialogComponent); // Mostrar el diálogo de éxito
+
+    this.insumosService.update(this.insumoForm.value).subscribe(
+      (response) => {
+        console.log('Insumo actualizado:', response);
+        this.dialog.open(SuccessdialogComponent); // Mostrar el diálogo de éxito
+        //this.ngOnInit(); // Refrescar datos si es necesario
       },
-      error: (err: any) => {
-        console.error('Error al actualizar el insumo:', err);
-        alert('Ocurrió un error al actualizar el insumo. Inténtalo nuevamente.');
-      },
-      complete: () => {
-        console.log('Actualización de insumo completada.');
+      (error) => {
+        console.error('Error al actualizar el insumo:', error);
+        alert('Error al actualizar el insumo');
       }
-    });
+    );
+
   }
-  
+
 
 }

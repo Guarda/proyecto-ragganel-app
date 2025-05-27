@@ -38,7 +38,6 @@ import { MatChipsModule } from '@angular/material/chips';
 export class AgregarInsumosComponent {
 
   Agregado = new EventEmitter();
-
   insumoForm!: FormGroup;
 
   selectedCategoria: any[] = [];

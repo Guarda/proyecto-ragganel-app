@@ -14,13 +14,17 @@ import { InsumosBase } from '../../interfaces/insumosbase';
 })
 export class TarjetaInsumoComponent {
   @Input() image!: string;
-
   @Input() insumo!: InsumosBase; // Recibir un artículo como entrada
-  @Output() borrar = new EventEmitter<void>(); // Emitir un evento para borrar el artículo
+  @Output() borrar = new EventEmitter<InsumosBase>(); // Emitir un evento para borrar el artículo
   @Output() actualizarCantidad = new EventEmitter<number>(); // Emitir la nueva cantidad
 
   onEliminar() {
-    this.borrar.emit();
+    console.log('Tarjeta: Emitiendo eliminar insumo:', this.insumo);
+    if (this.insumo && this.insumo.CodigoInsumo) {
+      this.borrar.emit(this.insumo);
+    } else {
+      console.warn('Tarjeta: Insumo inválido al intentar eliminar');
+    }
   }
 
   increaseQuantity() {

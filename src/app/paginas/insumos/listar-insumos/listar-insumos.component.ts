@@ -83,6 +83,16 @@ export class ListarInsumosComponent implements AfterViewInit {
       height: '30%',
       width: '27%',
     });
+    dialogRef.componentInstance.Agregado.subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSupplyList();
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+    });
   }
 
   public openDialogEliminar(cons: string) {

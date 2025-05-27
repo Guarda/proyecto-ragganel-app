@@ -1,0 +1,75 @@
+<div class="header1">
+  <h2 mat-dialog-title>Editar Servicio – Datos del Servicio #{{ serviceId }}</h2>
+  <h3 class="cabezera1">
+    <a mat-raised-button class="button-crear-prod" href="#" [routerLink]="['/home/listado-servicios']" color="primary" ><mat-icon class="iconos-custom">close</mat-icon></a>                 
+  </h3>
+</div>
+
+<form *ngIf="servicioForm" [formGroup]="servicioForm">
+  <div class="contenedor-principal">
+
+    <!-- Sección del formulario -->
+    <section class="contenedor-form">
+      <mat-form-field appearance="outline" class="input-form">
+        <mat-label>Descripción del Servicio</mat-label>
+        <input matInput formControlName="DescripcionServicio" required>
+        <mat-error *ngIf="servicioForm.get('DescripcionServicio')?.touched && servicioForm.get('DescripcionServicio')?.hasError('required')">
+          La descripción es requerida.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="input-form">
+        <mat-label>Precio Base</mat-label>
+        <input matInput type="number" formControlName="PrecioBase" required>
+        <mat-error *ngIf="servicioForm.get('PrecioBase')?.touched && servicioForm.get('PrecioBase')?.hasError('required')">
+          El precio base es requerido.
+        </mat-error>
+        <mat-error *ngIf="servicioForm.get('PrecioBase')?.touched && servicioForm.get('PrecioBase')?.hasError('min')">
+          El precio debe ser positivo.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="input-form">
+        <mat-label>Comentario</mat-label>
+        <textarea matInput formControlName="Comentario" rows="3" placeholder="Detalle adicional..."></textarea>
+      </mat-form-field>
+    </section>
+
+    <!-- Botón para mostrar/ocultar insumos -->
+    <button mat-stroked-button color="accent" (click)="toggleInsumos()">
+      {{ textoBotonInsumos }}
+    </button>
+    
+    <!-- Sección de insumos -->
+    <section class="contenedor-insumos" *ngIf="mostrarInsumos">
+      <h3>Insumos Requeridos</h3>
+      <p class="subtexto">Solo se pueden agregar insumos que tienen stock disponible.</p>
+
+      <app-index-listado-insumos-editar 
+        [dataToDisplay]="insumosAsignados"
+        (insumoEliminado)="onInsumoEliminado($event)"
+        (insumoAgregado)="onInsumoAgregado($event)"
+        (cantidadActualizada)="actualizarCantidad($event)"
+        >
+      </app-index-listado-insumos-editar>
+
+     <div *ngIf="dataToDisplay.length === 0">
+        No se han agregado insumos.
+    </div>
+    </section>
+
+    <!-- Botones de acción -->
+    <div class="botones-acciones">
+      <button mat-flat-button color="warn" (click)="eliminarServicio()" *ngIf="servicioActual">
+        Eliminar Servicio
+      </button>
+      <!--  -->
+      <button mat-flat-button color="primary" type="button"
+          [disabled]="!servicioForm.valid || (!servicioForm.dirty && insumosAgregados.length === 0)"
+          (click)="confirmarCambios()">
+          Confirmar Cambios
+      </button>
+
+    </div>
+  </div>
+</form>

@@ -32,6 +32,7 @@ import { TareasProductosService } from '../../../services/tareas-productos.servi
 import { TareasProducto } from '../../interfaces/tareasproductos';
 import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
+import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 
 
 @Component({
@@ -328,6 +329,7 @@ export class VerProductoComponent {
     console.log(this.productoForm.value);
     this.productoService.update(this.productoForm.value).subscribe((res: any) => {      
       this.ngOnInit();
+      this.dialog.open(SuccessdialogComponent); // Show success dialog
     })
 
   }

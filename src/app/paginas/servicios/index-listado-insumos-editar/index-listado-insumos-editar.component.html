@@ -1,4 +1,4 @@
-<form [formGroup]="insumoForm" class="form-insumo">
+<form [formGroup]="insumoForm" (ngSubmit)="onSubmit()" class="form-insumo">
 
     <div class="form-insumo-row">
       <!-- FABRICANTE -->
@@ -32,22 +32,26 @@
       </mat-form-field>
 
       <!-- BOTÓN AGREGAR (+) -->
-      <button mat-icon-button color="primary" type="button" [disabled]="isAddDisabled" class="add-button" (click)="onSubmit()">
+      <button mat-icon-button color="primary" type="submit" [disabled]="isAddDisabled" class="add-button">
         <mat-icon>add</mat-icon>
-      </button>
+    </button>
     </div>
   
 </form>
 
-
+<!-- <div>
+    <p>Vista previa imagen:</p>
+    <img [src]="ImagePath" width="200" height="auto" />
+  </div> -->
+  
   <!-- TARJETAS -->
   <div class="tarjetas-container">
-    <div *ngFor="let insumo of dataToDisplay">
+    <div *ngFor="let insumoItem of activeInsumos; let i = index">
       <app-tarjeta-insumo 
-        [image]="getimagePath(insumo.LinkImagen)"
-        [insumo]="insumo" 
-        (borrar)="manejarBorradoDesdeTarjeta(insumo)"
-        (actualizarCantidad)="actualizarCantidadInsumo($event, insumo)">
+        [image]="getimagePath(insumoItem.LinkImagen)" 
+        [insumo]="insumoItem" 
+        (borrar)="manejarBorradoDesdeTarjeta(insumoItem)"
+        (actualizarCantidad)="actualizarCantidadInsumo($event, insumoItem)">
       </app-tarjeta-insumo>
     </div>
   </div>

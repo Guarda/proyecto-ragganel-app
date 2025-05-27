@@ -84,33 +84,20 @@ router.get('/producto/:id', (req, res) => {
     });
 });
 
-// Update a product
 router.put('/producto/:id', (req, res) => {
-    const id = req.params.id; // Assuming this is the CodigoConsola
+    const id = req.params.id;
     const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola, PrecioBase, NumeroSerie, Accesorios } = req.body;
 
-    // console.log('Updating product with params:', {
-    //     IdModeloConsolaPK, 
-    //     ColorConsola, 
-    //     EstadoConsola, 
-    //     HackConsola, 
-    //     PrecioBase, 
-    //     ComentarioConsola, 
-    //     NumeroSerie, 
-    //     Accesorios
-    // });
-    // Convert arrays to comma-separated strings
     const AccesoriosString = Accesorios.join(',');
-    // Adjust the SQL query to call the new stored procedure
     const sql = 'CALL `base_datos_inventario_taller`.`Actualizarproductobasev2` (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
-    // Call the new stored procedure with the updated parameters
     db.query(sql, [id, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString], err => {
         if (err) {
             res.status(500).send('Error actualizando producto');
             return;
         }
-        // Fetch the updated product to return the updated details        
+        // Aquí respondemos que todo salió bien
+        res.status(200).json({ message: 'Producto actualizado correctamente' });
     });
 });
 
