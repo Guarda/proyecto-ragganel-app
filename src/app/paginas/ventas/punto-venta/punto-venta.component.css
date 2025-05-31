@@ -1,228 +1,220 @@
-* {
-    box-sizing: border-box;
-  }
-  
-  .punto-venta-container {
-    font-family: Arial, sans-serif;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-  
-  .header {
-    background-color: #007bff;
-    color: white;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .search-bar {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  .search-bar input {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .search-bar button {
-    padding: 0.5rem 1rem;
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .search-bar button:hover {
-    background-color: #003d80;
-  }
-  
-  .main-content {
-    display: flex;
-    flex: 1;
-    padding: 1rem;
-    gap: 2rem;
-    background-color: #f0f2f5;
-  }
-  
-  .productos, .carrito {
-    flex: 1;
-    background-color: #ffffff;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .productos h2, .carrito h2 {
-    margin-top: 0;
-  }
-  
-  .productos-lista {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  
-  .producto-item {
-    background-color: #f9f9f9;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    text-align: center;
-    flex: 1 1 calc(33.333% - 1rem);
-    transition: transform 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .producto-item:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  }
-  
-  .producto-item img {
-    max-width: 100%;
-    border-radius: 4px;
-  }
-  
-  .producto-item p {
-    margin: 0.5rem 0;
-  }
-  
-  .cantidad-input {
-    width: 60px;
-    margin-bottom: 0.5rem;
-    padding: 0.25rem;
-    text-align: center;
-  }
-  
-  .producto-item button {
-    padding: 0.5rem 1rem;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .producto-item button:hover {
-    background-color: #218838;
-  }
-  
-  .carrito-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .carrito-item {
-    background-color: #fdfdfd;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-  }
-  
-  .carrito-item button {
-    padding: 0.25rem 0.75rem;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 0.5rem;
-  }
-  
-  .carrito-item button:hover {
-    background-color: #bd2130;
-  }
-  
-  .venta-datos-extra {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .venta-datos-extra label {
-    font-weight: bold;
-  }
-  
-  .venta-datos-extra select, .venta-datos-extra textarea {
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  
-  .carrito-total {
-    text-align: center;
-    background-color: #fefefe;
-    padding: 1rem;
-    border-top: 1px solid #ccc;
-  }
-  
-  .carrito-total h3 {
-    margin: 0.5rem 0;
-  }
-  
-  .carrito-total button {
-    padding: 0.5rem 1rem;
-    background-color: #ffc107;
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .carrito-total button:hover {
-    background-color: #e0a800;
-  }
-  
-  .footer {
-    background-color: #f1f1f1;
-    text-align: center;
-    padding: 1rem;
-    margin-top: auto;
-    border-top: 1px solid #ddd;
-  }
-  .botones-finalizar {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .btn-factura, .btn-proforma {
-    padding: 0.5rem 1.2rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  .btn-factura {
-    background-color: #17a2b8;
-    color: white;
-  }
-  
-  .btn-factura:hover {
-    background-color: #117a8b;
-  }
-  
-  .btn-proforma {
-    background-color: #6c757d;
-    color: white;
-  }
-  
-  .btn-proforma:hover {
-    background-color: #5a6268;
-  }
-  
-  
+.punto-venta-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+  padding: 1rem;
+  background-color: #003366;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-bar input {
+  padding: 0.4rem;
+  margin-right: 0.5rem;
+}
+
+.search-bar button {
+  padding: 0.4rem 0.8rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.search-bar button:hover {
+  background-color: #1565c0;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  padding: 1rem;
+  gap: 2rem;
+}
+
+.productos {
+  flex: 2;
+}
+
+.carrito-panel {
+  flex: 1;
+  border-left: 1px solid #ccc;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-section {
+  margin-bottom: 1rem;
+}
+
+.form-section label {
+  display: block;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.form-section input,
+.form-section select {
+  width: 100%;
+  padding: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.tabla-carrito {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.tabla-carrito th {
+  background-color: #003366;
+  color: white;
+  padding: 0.75rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tabla-carrito td {
+  padding: 0.75rem;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.tabla-carrito tr:last-child td {
+  border-bottom: none;
+}
+
+.btn-cantidad {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cantidad:hover {
+  background-color: #1976d2;
+  color: white;
+  transform: scale(1.1);
+}
+
+.cantidad-valor {
+  font-weight: bold;
+  padding: 0 0.5rem;
+  min-width: 1.5rem;
+  display: inline-block;
+  text-align: center;
+}
+
+.totales {
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.acciones {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.acciones button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.acciones button:hover {
+  background-color: #43a047;
+}
+
+.acciones button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.carrito-vacio {
+  margin-top: 1rem;
+  font-style: italic;
+  color: #777;
+}
+
+.footer {
+  text-align: center;
+  padding: 0.5rem;
+  background-color: #f1f1f1;
+}
+
+.cliente-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.cliente-autocomplete {
+  flex: 1;
+}
+
+.cliente-info {
+  background-color: #e0f7fa;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-agregar-cliente {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  background-color: #1976d2;
+  color: white;
+  position: relative; /* por si lo necesitas ubicar con precisión */
+  z-index: 2;
+}
+
+.btn-agregar-cliente:hover {
+  background-color: #1565c0;
+  transform: scale(1.1);
+}
+
+.btn-agregar-cliente:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.3);
+}
+
+.boton-flotante {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+/* En punto-venta.component.css */
+.input-descuento {
+  width: 60px;
+  text-align: right;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.tabla-carrito td, .tabla-carrito th {
+  padding: 8px; /* Ajusta según sea necesario */
+  text-align: left; /* O 'center', 'right' */
+}
+

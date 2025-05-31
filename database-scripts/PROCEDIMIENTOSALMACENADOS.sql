@@ -3048,6 +3048,24 @@ END $$
 
 DELIMITER ;
 
+DELIMITER $$
+
+CREATE PROCEDURE ListarVistaArticulosInventarioV3 (
+)
+BEGIN
+	SELECT * FROM vistaarticulosinventarioV3;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE ListarPreciosVenta ()
+BEGIN
+	select * from margenesventa;
+END $$
+
+DELIMITER ;
+
 
 
 

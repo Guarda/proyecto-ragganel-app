@@ -1,1 +1,29 @@
-<p>tarjeta-de-articulos works!</p>
+<div *ngIf="articulos.length > 0; else sinArticulos"
+     class="tarjeta"
+     [ngClass]="getTipoClase(articulos[0].Tipo)"
+     (click)="abrirDialogo()"
+     style="cursor: pointer;">
+
+  <div class="tipo-etiqueta">{{ articulos[0].Tipo }}</div>
+  <img [src]="imagenUrl" alt="imagen del artículo" class="tarjeta-img" />
+
+  <h3>{{ articulos[0].NombreArticulo }}</h3>
+
+  <p *ngIf="articulos.length === 1">
+    <strong>Código:</strong> {{ articulos[0].Codigo }}<br />
+    <strong>Precio:</strong> {{ articulos[0].PrecioBase | currency:'USD' }}<br />
+    <strong>Cantidad:</strong> {{ articulos[0].Cantidad ?? '-' }}<br />
+    <strong>Estado:</strong> {{ getNombreEstado(articulos[0].Estado) }}
+  </p>
+
+  <p *ngIf="articulos.length > 1">
+    <strong>{{ articulos.length }}</strong> artículos disponibles<br />
+    <span style="text-decoration: underline;">Haz clic para ver más</span>
+  </p>
+</div>
+
+<ng-template #sinArticulos>
+  <div class="tarjeta vacia">
+    <p>Sin artículos disponibles.</p>
+  </div>
+</ng-template>

@@ -1,6 +1,7 @@
 export interface Cliente {
     idClientePK: number;
     nombreCliente: string;
+    nombre: string;
     dni: string;
     ruc: string;
     telefono?: string | null;

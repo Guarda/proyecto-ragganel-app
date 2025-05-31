@@ -1,73 +1,164 @@
+<!-- HTML MODIFICADO -->
 <div class="punto-venta-container">
-    <header class="header">
-      <h1>Punto de Venta</h1>
-      <div class="search-bar">
-        <input type="text" placeholder="Buscar producto..." />
-        <button>Buscar</button>
-      </div>
-    </header>
-  
-    <main class="main-content">
-      <section class="productos">
-        <h2>Productos</h2>
+  <header class="header">
+    <h1>Punto de Venta</h1>
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Escanear o ingresar código..."
+        #codigoInput
+        (keyup.enter)="agregarArticuloPorCodigoDesdeInput(codigoInput.value); codigoInput.value = ''"
+        aria-label="Código de artículo"
+      />
+      <button (click)="agregarArticuloPorCodigoDesdeInput(codigoInput.value); codigoInput.value = ''">
+        Agregar por Código
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Secciones omitidas por brevedad -->
+     <section class="productos">
+        <h2>Seleccione Artículo</h2>
         <div class="productos-lista">
-          <div class="producto-item">
-            <img src="https://via.placeholder.com/100" alt="Producto 1" />
-            <p>Producto 1</p>
-            <p>$10.00</p>
-            <input type="number" value="1" min="1" class="cantidad-input" />
-            <button>Agregar</button>
-          </div>
-          <!-- Más productos aquí -->
+          <app-tabla-articulos-ventas></app-tabla-articulos-ventas>
         </div>
-      </section>
-  
-      <section class="carrito">
-        <h2>Carrito</h2>
-        <div class="carrito-lista">
-          <div class="carrito-item">
-            <p>Producto 1</p>
-            <p>Cantidad: 1</p>
-            <p>Total: $10.00</p>
-            <button>Eliminar</button>
-          </div>
-          <!-- Más productos en carrito -->
+      </section> 
+
+    <section class="carrito-panel">
+      <h2>Resumen de Venta</h2>
+      <!-- Cliente y método de pago omitidos por brevedad -->
+       <div class="form-section">
+
+      <div class="cliente-section">
+
+        <mat-form-field appearance="outline" class="cliente-autocomplete">
+
+        <input type="text" placeholder="Buscar cliente..."
+          matInput [formControl]="clienteControl" [matAutocomplete]="auto">
+
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="seleccionarCliente($event.option.value)">
+
+        <mat-option *ngFor="let cliente of clientesFiltrados" [value]="cliente">
+          {{ cliente.nombre }}
+        </mat-option>
+
+        <mat-option *ngIf="clientesFiltrados.length === 0" disabled>
+          No se encontró cliente
+        </mat-option>
+
+      </mat-autocomplete>
+    </mat-form-field>
+
+
+      <button mat-mini-fab color="primary"
+      class="btn-agregar-cliente boton-flotante"
+      matTooltip="Agregar nuevo cliente"
+      (click)="openDialogAgregar()">
+      <mat-icon>person_add</mat-icon>
+      </button>
+    </div>
+
+
+    <div *ngIf="ClienteSeleccionado" class="cliente-info">
+    <strong>Cliente Seleccionado:</strong> {{ ClienteSeleccionado.nombre }}
+    </div>
+    <label>Método de Pago:</label>
+    <select disabled>
+    <option value="">Seleccionar...</option>
+    </select>
+    <label>Margen de venta:</label>
+    <mat-select [(ngModel)]="margenSeleccionado" required>
+    <mat-option *ngFor="let margen of margenesVenta" [value]="margen.Porcentaje" >
+    {{ margen.NombreMargen }} - {{ margen.Porcentaje }}%
+    </mat-option>
+    </mat-select>
+
+</div> 
+      <div *ngIf="carrito.length > 0; else mensajeVacio">
+        <table class="tabla-carrito">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Artículo</th>
+              <th>Cantidad</th>
+              <th>Precio Unit.</th>
+              <th>Desc. (%)</th> <th>Precio Desc.</th> <th>IVA</th>
+              <th>Total</th>
+              <th>Eliminar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let art of carrito">
+              <td>{{ art.Tipo }}</td>
+              <td>{{ art.NombreArticulo }}</td>
+              <td>
+                <ng-container *ngIf="art.Tipo === 'Insumo'">
+                  <button (click)="decrementarCantidad(art.Codigo!)" class="btn-cantidad" mat-icon-button>
+                    <mat-icon>remove</mat-icon>
+                  </button>
+                  <span class="cantidad-valor">{{ art.Cantidad }}</span>
+                  <button (click)="incrementarCantidad(art.Codigo!)" class="btn-cantidad" mat-icon-button>
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </ng-container>
+                <ng-container *ngIf="art.Tipo !== 'Insumo'">
+                  {{ art.Cantidad }}
+                </ng-container>
+              </td>
+              <td>{{ (art.PrecioBase ?? 0) | currency:'USD' }}</td>
+              <td>
+                <input type="number"
+                       min="0"
+                       max="100"
+                       class="input-descuento"
+                       [ngModel]="art.DescuentoPorcentaje ?? 0"
+                       (ngModelChange)="actualizarDescuento(art, $event)"
+                       (blur)="formatearDescuento(art)"
+                       style="width: 60px; text-align: right;">
+              </td>
+              <td>
+                {{ calcularPrecioConDescuento(art) | currency:'USD' }}
+              </td>
+              <td>
+                {{ calcularIVASobreArticulo(art) | currency:'USD' }}
+              </td>
+              <td>
+                {{ calcularTotalArticulo(art) | currency:'USD' }}
+              </td>
+              <td>
+                <button (click)="eliminarLineaArticulo(art.Codigo!, art.Tipo)" mat-icon-button color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+         <div class="totales">
+          <p><strong>Subtotal (sin IVA):</strong> {{ subtotal | currency:'USD' }}</p>
+          <p><strong>Total Descuentos:</strong> {{ totalDescuentos | currency:'USD' }}</p>
+          <p><strong>Subtotal Neto (con descuentos, sin IVA):</strong> {{ subtotalNeto | currency:'USD' }}</p>
+          <p><strong>IVA (15%):</strong> {{ iva | currency:'USD' }}</p>
+          <p><strong>Total:</strong> {{ total | currency:'USD' }}</p>
         </div>
-  
-        <div class="venta-datos-extra">
-          <label>Cliente:</label>
-          <select>
-            <option value="">Seleccionar Cliente</option>
-            <option value="1">Juan Pérez</option>
-          </select>
-  
-          <label>Método de Pago:</label>
-          <select>
-            <option value="">Seleccionar Método</option>
-            <option value="1">Efectivo</option>
-            <option value="2">Transferencia</option>
-          </select>
-  
-          <label>Observaciones:</label>
-          <textarea rows="2" placeholder="Notas de la venta..."></textarea>
+
+        <div class="acciones">
+          <button (click)="limpiarCarrito()">Vaciar Carrito</button>
+          <button disabled>Procesar Venta</button>
+           <button (click)="generarProformaPDF()" [disabled]="!ClienteSeleccionado || carrito.length === 0">Generar Proforma PDF</button> <button disabled>Procesar Venta</button>
         </div>
-  
-        <div class="carrito-total">
-            <p>Subtotal: $8.93</p>
-            <p>IVA (12%): $1.07</p>
-            <h3>Total: $10.00</h3>
-          
-            <div class="botones-finalizar">
-              <button class="btn-factura">Generar Factura</button>
-              <button class="btn-proforma">Generar Proforma</button>
-            </div>
-          </div>
-          
-      </section>
-    </main>
-  
-    <footer class="footer">
-      <p>&copy; 2024 Punto de Venta</p>
-    </footer>
-  </div>
-  
+      </div>
+
+      <ng-template #mensajeVacio>
+        <div class="carrito-vacio">
+          <p>El carrito está vacío. Agregue artículos para iniciar la venta.</p>
+        </div>
+      </ng-template>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2024 Punto de Venta</p>
+  </footer>
+</div>

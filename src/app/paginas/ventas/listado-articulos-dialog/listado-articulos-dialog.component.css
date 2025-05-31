@@ -1,0 +1,46 @@
+.titulo-dialogo {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.contenido-dialogo {
+  padding: 0 8px 8px 8px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.contenedor-tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tarjeta {
+  position: relative;
+  width: 100%;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: #f5f5f5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.tarjeta:hover {
+  background-color: #e8f0ff;
+  transform: translateY(-2px);
+}
+
+.contenido-tarjeta {
+  pointer-events: none;
+}
+
+.boton-agregar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: white;
+  border-radius: 50%;
+  z-index: 2;
+}
+

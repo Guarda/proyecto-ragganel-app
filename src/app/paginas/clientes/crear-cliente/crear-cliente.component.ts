@@ -80,7 +80,7 @@ export class CrearClienteComponent {
           console.log('Cliente creado con éxito:', res); // Debug
           this.Agregado.emit(); // Emitir evento de cliente agregado
           this.dialogRef.close(); // Cerrar el diálogo
-          this.router.navigateByUrl('home/listado-clientes'); // Redirigir al listado de clientes
+         // this.router.navigateByUrl('home/listado-clientes'); // Redirigir al listado de clientes
         },
         (error: any) => {
           console.error('Error al crear el cliente:', error); // Manejo de errores

@@ -1,1 +1,29 @@
-<p>tabla-articulos-ventas works!</p>
+<div class="filtros">
+  <h4>Filtrar por tipo:</h4>
+  <button *ngFor="let tipo of tipos"
+          [class.selected]="tipoSeleccionado === tipo"
+          (click)="filtrarPorTipo(tipo)">
+    {{ tipo }}
+  </button>
+
+  <h4>Filtrar por precio:</h4>
+  <label>
+    Mín:
+    <input type="number" [(ngModel)]="precioMin" (input)="aplicarFiltros()" />
+  </label>
+  <label>
+    Máx:
+    <input type="number" [(ngModel)]="precioMax" (input)="aplicarFiltros()" />
+  </label>
+</div>
+
+<div class="contenedor-grid">
+  <app-tarjeta-de-articulos
+  *ngFor="let grupo of gruposDeArticulosFiltrados"
+  [articulos]="grupo.articulos"
+  [imagenUrl]="grupo.imagenUrl"
+  (articuloParaAgregarAlCarrito)="agregarAlCarrito($event)"
+></app-tarjeta-de-articulos>
+
+
+</div>

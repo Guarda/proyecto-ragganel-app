@@ -1,0 +1,39 @@
+<h2 mat-dialog-title class="titulo-dialogo">
+  Productos del tipo: <strong>{{ data.nombre }}</strong>
+</h2>
+
+<mat-dialog-content class="contenido-dialogo">
+  <div *ngIf="data.articulos.length === 0">
+    <p>No hay artículos disponibles.</p>
+  </div>
+
+  <div class="contenedor-tarjetas">
+    <div *ngFor="let art of data.articulos; let i = index"
+         class="tarjeta"
+         (mouseenter)="hoveredIndex = i"
+         (mouseleave)="hoveredIndex = -1">
+      
+      <div class="contenido-tarjeta">
+        <p><strong>Código:</strong> {{ art.Codigo }}</p>
+        <p><strong>Precio:</strong> {{ art.PrecioBase | currency:'USD' }}</p>
+        <p><strong>Cantidad:</strong> {{ art.Cantidad ?? '-' }}</p>
+        <p><strong>Estado:</strong> {{ getNombreEstado(art.Estado) }}</p>
+      </div>
+
+      <button
+        mat-icon-button
+        color="primary"
+        class="boton-agregar"
+        *ngIf="hoveredIndex === i"
+        (click)="seleccionarArticuloParaCarrito(i)"
+        matTooltip="Agregar al carrito"
+      >
+        <mat-icon>add_shopping_cart</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">    
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

@@ -1,0 +1,48 @@
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  /* flex-direction: column; */
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.filtros h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.filtros button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filtros button.selected {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+.filtros input {
+  padding: 0.4rem;
+  width: 100px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+
+.contenedor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Se adapta al ancho */
+  gap: 16px;
+  padding: 1rem;
+}

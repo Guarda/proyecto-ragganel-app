@@ -34,6 +34,8 @@ const suppliescatesubcateRouter = require('./routes/supplies-cate-subcategories'
 const categoriessuppliesRouter = require('./routes/categories-supplies');
 const uploadimageinsumosRouter = require('./routes/upload-image-supplies');
 const servicesbaseRouter = require('./routes/services-base');
+const articlelistRouter = require('./routes/article-list');
+const salesbaseRouter = require('./routes/sales-base');
 // Middleware
 app.use(bodyParser.json());
 
@@ -77,6 +79,8 @@ app.use('/catesubcate-insumos', suppliescatesubcateRouter); // Ruta para categor
 app.use('/categorias-insumos', categoriessuppliesRouter);
 app.use('/clientes', clientesRouter); // Ruta para clientes
 app.use('/servicios-base', servicesbaseRouter); // Ruta para servicios base
+app.use('/articulo-lista', articlelistRouter); // Ruta para lista de artículos
+app.use('/ventas-base', salesbaseRouter); // Ruta para ventas base
 app.use('/auth', authRoutes); // Ruta para autenticación
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {

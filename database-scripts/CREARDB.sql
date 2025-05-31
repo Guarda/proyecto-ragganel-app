@@ -657,6 +657,21 @@ CREATE TABLE InsumosXServicio(
     FOREIGN KEY (IdServicioFK) REFERENCES ServiciosBase(IdServicioPK)
 );
 
+/*TABLA MargenesVenta*/
+CREATE TABLE MargenesVenta (
+    IdMargenPK INT PRIMARY KEY AUTO_INCREMENT,
+    NombreMargen VARCHAR(50) NOT NULL COMMENT 'Ej: Estandar, Promocional, Mayorista',
+    Porcentaje DECIMAL(5, 2) NOT NULL COMMENT '30.00 para 30%, 15.50 para 15.5%',
+    Descripcion VARCHAR(255),
+    Activo BOOLEAN DEFAULT TRUE
+);
+
+INSERT INTO MargenesVenta (NombreMargen, Porcentaje, Descripcion) VALUES 
+('Estandar', 30.00, 'Margen normal para venta al público'),
+('Promocional', 15.00, 'Para ofertas temporales'),
+('Mayorista', 10.00, 'Clientes con compras al por mayor'),
+('VIP', 25.00, 'Clientes frecuentes');
+
 
 
 
