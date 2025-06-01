@@ -7,4 +7,5 @@ export interface ArticuloVenta {
   Cantidad: number | null;
   Estado: number;
   DescuentoPorcentaje?: number | null; 
+  PrecioOriginalSinMargen?: number | null; // Precio original sin aplicar margen, si es necesario
 }

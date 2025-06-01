@@ -198,12 +198,12 @@
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.3);
 }
 
-.boton-flotante {
+/* .boton-flotante {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 10;
-}
+} */
 
 /* En punto-venta.component.css */
 .input-descuento {

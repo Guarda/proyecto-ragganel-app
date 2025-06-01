@@ -22,7 +22,7 @@
   *ngFor="let grupo of gruposDeArticulosFiltrados"
   [articulos]="grupo.articulos"
   [imagenUrl]="grupo.imagenUrl"
-  (articuloParaAgregarAlCarrito)="agregarAlCarrito($event)"
+  (articuloParaAgregarAlCarrito)="agregarAlCarrito($event, margenActual)"
 ></app-tarjeta-de-articulos>
 
 

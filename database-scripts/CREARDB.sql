@@ -667,10 +667,26 @@ CREATE TABLE MargenesVenta (
 );
 
 INSERT INTO MargenesVenta (NombreMargen, Porcentaje, Descripcion) VALUES 
-('Estandar', 30.00, 'Margen normal para venta al público'),
-('Promocional', 15.00, 'Para ofertas temporales'),
-('Mayorista', 10.00, 'Clientes con compras al por mayor'),
+('Estandar', 35.00, 'Margen normal para venta al público'),
+('Promocional', 20.00, 'Para ofertas temporales'),
+('Mayorista', 15.00, 'Clientes con compras al por mayor'),
 ('VIP', 25.00, 'Clientes frecuentes');
+
+/*TABLA MetodosDePago CREADA EL 31/05/2025*/
+CREATE TABLE MetodosDePago (
+	IdMetodoPagoPK INT PRIMARY KEY auto_increment,
+    NombreMetodoPago Varchar(50) NOT NULL,
+    Descripcion varchar(255),
+    Activo BOOLEAN DEFAULT TRUE
+);
+
+INSERT INTO MetodosDePago (NombreMetodoPago, Descripcion) VALUES 
+('Efectivo', 'Pago de contado en efectivo'),
+('Transferencia',  'Pago por transferencia bancaria, anotar numero de referencia'),
+('Tarjeta POS Electronico', 'Clientes con compras al por mayor'),
+('Otros',  'Pagos por medios sin contacto como NFC, Billetera digital, Canje');
+
+
 
 
 

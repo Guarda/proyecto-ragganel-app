@@ -20,6 +20,7 @@ import { VentasBaseService } from '../../../services/ventas-base.service';
 import { MatSelect } from '@angular/material/select';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; // <-- CAMBIO IMPORTANTE AQUÍ
+import { MetodosPago } from '../../interfaces/metodos-pago';
 
 
 @Component({
@@ -42,7 +43,13 @@ export class PuntoVentaComponent {
   margenesVenta: MargenesVentas[] = [];
   margenSeleccionado!: number; // O un FormControl si estás usando formulario reactivo
 
-  
+  metodosPago: MetodosPago[] = []; // Lista de métodos de pago
+  metodoPagoSeleccionado!: number;
+
+  numeroReferenciaTransferencia: string = '';
+  observacionesOtros: string = '';
+
+
   // Referencia al componente hijo TablaArticulosVentasComponent
   @ViewChild(TablaArticulosVentasComponent) tablaArticulos!: TablaArticulosVentasComponent;
 
@@ -59,19 +66,32 @@ export class PuntoVentaComponent {
     }));
   }
 
-  
+
 
   ngOnInit(): void {
     this.getClientList();
 
     this.ventasBaseService.ListarTodosLosMargenesVenta().subscribe((margenes: MargenesVentas[]) => {
       this.margenesVenta = margenes;
-      console.log('Margenes de venta obtenidos:', margenes);
-      // Asignar el valor por defecto de 35%
       const margenPorDefecto = this.margenesVenta.find(m => m.Porcentaje === 35);
       if (margenPorDefecto) {
         this.margenSeleccionado = margenPorDefecto.Porcentaje;
+      } else if (this.margenesVenta.length > 0) {
+        this.margenSeleccionado = this.margenesVenta[0].Porcentaje; // Fallback
       }
+      // Disparar la actualización de precios del carrito si ya hay artículos (si se implementa esa lógica)
+      // this.recalcularPreciosCarritoConMargenActual();
+    });
+
+    this.ventasBaseService.ListarTodosLosMetodosDePago().subscribe((metodos: MetodosPago[]) => {
+      this.metodosPago = metodos;
+      const metodoPorDefecto = this.metodosPago.find(m => m.IdMetodoPagoPK === 1);
+      if (metodoPorDefecto) {
+        this.metodoPagoSeleccionado = metodoPorDefecto.IdMetodoPagoPK;
+      } else if (this.metodosPago.length > 0) {
+        this.metodoPagoSeleccionado = this.metodosPago[0].IdMetodoPagoPK;
+      }
+      this.onMetodoPagoChange(); // Para limpiar campos si el default no los requiere
     });
 
 
@@ -113,6 +133,13 @@ export class PuntoVentaComponent {
     console.log('Cliente seleccionado:', cliente);
   }
 
+  // --- MARGEN DE VENTA ---
+  onMargenVentaChange(): void {
+    console.log('Nuevo margen seleccionado:', this.margenSeleccionado);
+    // Si deseas que los artículos YA EN EL CARRITO actualicen su precio con el nuevo margen:
+    this.carritoService.actualizarPreciosDelCarritoConNuevoMargen(this.margenSeleccionado);
+  }
+
   openDialogAgregar(): void {
     const dialogRef = this.dialog.open(CrearClienteComponent, {
       width: '500px'
@@ -132,82 +159,6 @@ export class PuntoVentaComponent {
         }
       }, 300);
     }));
-  }
-
-   // --- Métodos para descuento ---
-  actualizarDescuento(articulo: ArticuloVenta, nuevoDescuentoEvent: any): void {
-    let nuevoDescuento = parseFloat(nuevoDescuentoEvent); // ngModel pasa el valor directamente
-    if (isNaN(nuevoDescuento) || nuevoDescuento < 0) {
-      nuevoDescuento = 0;
-    } else if (nuevoDescuento > 100) {
-      nuevoDescuento = 100;
-    }
-    // Actualizamos directamente en el objeto del carrito, lo que dispara la detección de cambios de Angular
-    // y los getters se recalcularán.
-    // Para forzar la actualización si es necesario, o si tienes ChangeDetectionStrategy.OnPush,
-    // puedes llamar al servicio para actualizarlo y que emita un nuevo array.
-    this.carritoService.actualizarDescuentoArticulo(articulo.Codigo!, articulo.Tipo, nuevoDescuento);
-  }
-
-  formatearDescuento(articulo: ArticuloVenta): void {
-    // Opcional: si el input queda vacío, ponerlo a 0 o al valor anterior.
-    if (articulo.DescuentoPorcentaje == null || isNaN(articulo.DescuentoPorcentaje)) {
-      // Llama al servicio para asegurar que el valor se normalice si es inválido
-       this.carritoService.actualizarDescuentoArticulo(articulo.Codigo!, articulo.Tipo, 0);
-    }
-  }
-
-
-  // --- Cálculos de artículos individuales con descuento ---
-  calcularPrecioConDescuento(art: ArticuloVenta): number {
-    const precioBase = art.PrecioBase ?? 0;
-    const descuento = art.DescuentoPorcentaje ?? 0;
-    return precioBase * (1 - descuento / 100);
-  }
-
-  calcularIVASobreArticulo(art: ArticuloVenta): number {
-    const precioConDescuento = this.calcularPrecioConDescuento(art);
-    return precioConDescuento * 0.15; // Asumiendo IVA del 15%
-  }
-
-  calcularTotalArticulo(art: ArticuloVenta): number {
-    const precioConDescuento = this.calcularPrecioConDescuento(art);
-    const ivaArticulo = this.calcularIVASobreArticulo(art);
-    const cantidad = art.Cantidad ?? 1;
-    return (precioConDescuento + ivaArticulo) * cantidad;
-  }
-
-
-  // --- Cálculos generales (Getters actualizados) ---
-  get subtotal(): number { // Subtotal original (suma de PrecioBase * Cantidad)
-    return this.carrito.reduce((acc, art) => {
-      return acc + (art.PrecioBase ?? 0) * (art.Cantidad ?? 1);
-    }, 0);
-  }
-
-  get totalDescuentos(): number { // Suma total de los descuentos aplicados
-    return this.carrito.reduce((acc, art) => {
-      const precioBase = art.PrecioBase ?? 0;
-      const descuentoPorcentaje = art.DescuentoPorcentaje ?? 0;
-      const cantidad = art.Cantidad ?? 1;
-      const descuentoValor = (precioBase * (descuentoPorcentaje / 100)) * cantidad;
-      return acc + descuentoValor;
-    }, 0);
-  }
-
-  get subtotalNeto(): number { // Subtotal después de descuentos, antes de IVA
-    return this.carrito.reduce((acc, art) => {
-      const precioConDescuento = this.calcularPrecioConDescuento(art);
-      return acc + (precioConDescuento * (art.Cantidad ?? 1));
-    }, 0);
-  }
-
-  get iva(): number {
-    return this.subtotal * 0.15;
-  }
-
-  get total(): number {
-    return this.subtotal + this.iva;
   }
 
   eliminarLineaArticulo(codigo: string, tipo?: string | null) {
@@ -230,32 +181,32 @@ export class PuntoVentaComponent {
     this.carritoService.limpiarCarrito();
   }
 
+  // --- LÓGICA PARA AGREGAR ARTÍCULO ---
+  // Este método ahora pasa el margen seleccionado al componente de tabla de artículos
   agregarArticuloPorCodigoDesdeInput(codigo: string): void {
     const codigoLimpio = codigo.trim();
     if (!codigoLimpio) {
       console.warn('El código del artículo no puede estar vacío.');
-      // Podrías usar MatSnackBar aquí para feedback al usuario
+      // Considera usar MatSnackBar para feedback
       return;
     }
 
     if (this.tablaArticulos) {
-      const resultado = this.tablaArticulos.agregarArticuloPorCodigo(codigoLimpio);
+      // Pasar el margenSeleccionado al método que busca y añade el artículo.
+      // Este método en `tablaArticulos` deberá usarlo para calcular el PrecioBase.
+      const resultado = this.tablaArticulos.agregarArticuloPorCodigo(codigoLimpio, this.margenSeleccionado);
       switch (resultado) {
         case 'AGREGADO':
-          console.log(`Artículo ${codigoLimpio} agregado al carrito.`);
-          // MatSnackBar para éxito
+          console.log(`Artículo ${codigoLimpio} agregado al carrito con margen aplicado.`);
           break;
         case 'NO_ENCONTRADO':
           alert(`Artículo con código "${codigoLimpio}" no encontrado.`);
-          console.warn(`Artículo con código "${codigoLimpio}" no encontrado.`);
           break;
         case 'SIN_STOCK':
           alert(`Artículo con código "${codigoLimpio}" sin stock.`);
-          console.warn(`Artículo con código "${codigoLimpio}" sin stock.`);
           break;
         case 'ERROR_CARGA':
           alert('Error: La lista de artículos no está disponible. Intente más tarde.');
-          console.error('Error: Lista de artículos originales no cargada en TablaArticulosVentasComponent.');
           break;
       }
     } else {
@@ -264,7 +215,85 @@ export class PuntoVentaComponent {
     }
   }
 
- 
+  // --- MÉTODOS DE PAGO ---
+  onMetodoPagoChange(): void {
+    if (this.metodoPagoSeleccionado !== 2) {
+      this.numeroReferenciaTransferencia = '';
+    }
+    if (this.metodoPagoSeleccionado !== 4) {
+      this.observacionesOtros = '';
+    }
+  }
+
+  // --- Métodos para descuento ---
+  actualizarDescuento(articulo: ArticuloVenta, nuevoDescuentoEvent: any): void {
+    let nuevoDescuento = parseFloat(nuevoDescuentoEvent);
+    if (isNaN(nuevoDescuento) || nuevoDescuento < 0) nuevoDescuento = 0;
+    else if (nuevoDescuento > 100) nuevoDescuento = 100;
+    this.carritoService.actualizarDescuentoArticulo(articulo.Codigo!, articulo.Tipo, nuevoDescuento);
+  }
+
+  formatearDescuento(articulo: ArticuloVenta): void {
+    if (articulo.DescuentoPorcentaje == null || isNaN(articulo.DescuentoPorcentaje)) {
+      this.carritoService.actualizarDescuentoArticulo(articulo.Codigo!, articulo.Tipo, 0);
+    }
+  }
+
+  // --- Cálculos de artículos ---
+  // Estos cálculos ahora asumen que art.PrecioBase YA incluye el margen.
+  calcularPrecioConDescuento(art: ArticuloVenta): number {
+    const precioBaseConMargen = art.PrecioBase ?? 0; // Este ya debería tener el margen
+    const descuento = art.DescuentoPorcentaje ?? 0;
+    return precioBaseConMargen * (1 - descuento / 100);
+  }
+
+  calcularIVASobreArticulo(art: ArticuloVenta): number {
+    const precioConDescuento = this.calcularPrecioConDescuento(art);
+    return precioConDescuento * 0.15; // Asumiendo IVA del 15%
+  }
+
+  calcularTotalArticulo(art: ArticuloVenta): number {
+    const precioConDescuento = this.calcularPrecioConDescuento(art);
+    const ivaArticulo = this.calcularIVASobreArticulo(art);
+    const cantidad = art.Cantidad ?? 1;
+    return (precioConDescuento + ivaArticulo) * cantidad;
+  }
+
+  // --- Cálculos generales ---
+  // Estos getters también asumen que PrecioBase en el carrito ya tiene el margen.
+  get subtotal(): number { // Subtotal ANTES de descuentos, pero CON margen aplicado a cada artículo.
+    return this.carrito.reduce((acc, art) => {
+      return acc + (art.PrecioBase ?? 0) * (art.Cantidad ?? 1); // PrecioBase ya tiene margen
+    }, 0);
+  }
+
+  get totalDescuentos(): number {
+    return this.carrito.reduce((acc, art) => {
+      const precioBaseConMargen = art.PrecioBase ?? 0; // PrecioBase ya tiene margen
+      const descuentoPorcentaje = art.DescuentoPorcentaje ?? 0;
+      const cantidad = art.Cantidad ?? 1;
+      const descuentoValor = (precioBaseConMargen * (descuentoPorcentaje / 100)) * cantidad;
+      return acc + descuentoValor;
+    }, 0);
+  }
+
+  get subtotalNeto(): number { // Subtotal después de descuentos, antes de IVA. Con margen aplicado.
+    return this.carrito.reduce((acc, art) => {
+      const precioConDescuento = this.calcularPrecioConDescuento(art); // Este precio ya parte de un base con margen
+      return acc + (precioConDescuento * (art.Cantidad ?? 1));
+    }, 0);
+  }
+
+  // El IVA se calcula sobre el subtotalNeto (que ya tiene descuentos y margen)
+  get iva(): number {
+    // Corrección: El IVA generalmente se calcula sobre el subtotal después de descuentos.
+    return this.subtotalNeto * 0.15;
+  }
+
+  get total(): number {
+    // Total es subtotalNeto (con margen y descuentos) + IVA calculado sobre subtotalNeto
+    return this.subtotalNeto + this.iva;
+  }
 
 
   generarProformaPDF(): void {
@@ -277,78 +306,72 @@ export class PuntoVentaComponent {
       return;
     }
 
-    const doc = new jsPDF(); // Ya no necesitas el cast "(as jsPDFWithAutoTable)"
+    const doc = new jsPDF();
     const fecha = new Date().toLocaleDateString('es-NI');
 
-    // --- Título y Datos de la Empresa (Ejemplo) ---
     doc.setFontSize(18);
     doc.text('PROFORMA DE VENTA', 105, 20, { align: 'center' });
     doc.setFontSize(10);
-    doc.text('Tu Nombre de Empresa S.A.', 20, 30);
-    doc.text('Tu Dirección, Ciudad', 20, 35);
+    doc.text('Ragganel Tech S.A.', 20, 30);
+    doc.text('Colonia 14 de septiembre, Managua', 20, 35);
     doc.text('Tu RUC: J0000000000000', 20, 40);
-    doc.text('Teléfono: +505 8888 8888', 20, 45);
+    doc.text('Teléfono: +505 8643 9865', 20, 45);
     doc.text(`Fecha: ${fecha}`, 150, 30);
-    doc.text(`Proforma #: P-${Date.now().toString().slice(-6)}`, 150, 35); // Un ID simple
+    doc.text(`Proforma #: P-${Date.now().toString().slice(-6)}`, 150, 35);
 
-    // --- Datos del Cliente ---
     doc.setFontSize(12);
     doc.text('Cliente:', 20, 60);
     doc.setFontSize(10);
     doc.text(`Nombre: ${this.ClienteSeleccionado.nombre || 'N/A'}`, 20, 67);
     doc.text(`Identificación: ${this.ClienteSeleccionado.ruc || 'N/A'}`, 20, 72);
-    // Añade más datos del cliente si los tienes y son relevantes (teléfono, dirección, etc.)
-    // doc.text(`Teléfono: ${this.ClienteSeleccionado.telefono || 'N/A'}`, 20, 77);
-    // doc.text(`Dirección: ${this.ClienteSeleccionado.direccion || 'N/A'}`, 20, 82);
 
-    // --- Tabla de Artículos ---
+    // Actualizamos el encabezado para reflejar que el Precio Unitario ya tiene el margen.
+    // Si deseas mostrar el precio original y el margen por separado, necesitarías más columnas y datos.
     const head = [['Cant.', 'Artículo', 'P. Unit.', 'Desc. %', 'P. Desc.', 'Subtotal (sin IVA)']];
     const body = this.carrito.map(art => {
-      const precioBase = art.PrecioBase ?? 0;
+      // art.PrecioBase ya debería incluir el margen.
+      const precioUnitarioConMargen = art.PrecioBase ?? 0;
       const cantidad = art.Cantidad ?? 1;
       const descuentoPorcentaje = art.DescuentoPorcentaje ?? 0;
-      const precioConDescuento = this.calcularPrecioConDescuento(art); // Ya calcula precioBase * (1 - desc/100)
+      // calcularPrecioConDescuento toma el precioUnitarioConMargen y aplica el descuento.
+      const precioConDescuento = this.calcularPrecioConDescuento(art);
+      // El subtotal del artículo es el precio con descuento por la cantidad (esto es ANTES de IVA general).
       const subtotalArticuloSinIVA = precioConDescuento * cantidad;
 
       return [
         cantidad.toString(),
         art.NombreArticulo || 'N/A',
-        precioBase.toFixed(2),
+        precioUnitarioConMargen.toFixed(2), // P. Unit. (con margen aplicado)
         descuentoPorcentaje.toFixed(2),
-        precioConDescuento.toFixed(2),
-        subtotalArticuloSinIVA.toFixed(2)
+        precioConDescuento.toFixed(2),    // Precio ya con descuento (calculado sobre base con margen)
+        subtotalArticuloSinIVA.toFixed(2) // Subtotal del artículo (Precio con desc * Cantidad)
       ];
     });
 
-    // Así llamas a autoTable ahora
     (doc as any).autoTable({
       startY: 85,
       head: head,
       body: body,
       theme: 'striped',
-      headStyles: { fillColor: [22, 160, 133] },
-      didDrawPage: (data: any) => { // data es el objeto que pasa autoTable
+      headStyles: { fillColor: [22, 160, 133] }, // Verde azulado
+      didDrawPage: (data: any) => {
         data.doc.setFontSize(8);
         const pageText = 'Página ' + data.pageNumber;
-        // Para obtener el alto de la página de forma segura:
         const pageHeight = data.doc.internal.pageSize.getHeight();
         data.doc.text(pageText, data.settings.margin.left, pageHeight - 10);
       }
     });
 
-    // --- Totales ---
-    let finalY = (doc as any).lastAutoTable.finalY || 150; // Obtener la posición Y después de la tabla
-    if (finalY > 260) { // Si la tabla es muy larga y empuja los totales fuera, nueva página
-        doc.addPage();
-        finalY = 20; // Resetear Y para la nueva página
-    } else {
-        finalY += 10; // Espacio después de la tabla
-    }
+    let finalY = (doc as any).lastAutoTable.finalY || 150;
+    if (finalY > 260) { doc.addPage(); finalY = 20; }
+    else { finalY += 10; }
 
     doc.setFontSize(10);
-    const xAlignRight = 190; // Para alinear texto a la derecha
+    const xAlignRight = 190;
 
-    doc.text('Subtotal (sin IVA):', 140, finalY, { align: 'right' });
+    // Subtotal (Suma de todos los (PrecioBase con margen * Cantidad) ANTES de descuentos de línea)
+    // Esto es lo que tu getter `subtotal` calcula.
+    doc.text('Subtotal Bruto (s/desc):', 140, finalY, { align: 'right' });
     doc.text(`${this.subtotal.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
@@ -356,37 +379,32 @@ export class PuntoVentaComponent {
     doc.text(`-${this.totalDescuentos.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
-    doc.text('Subtotal Neto (con desc, sin IVA):', 140, finalY, { align: 'right' });
+    // Subtotal Neto (con margen y descuentos, sin IVA)
+    // Esto es lo que tu getter `subtotalNeto` calcula.
+    doc.text('Subtotal Neto (s/IVA):', 140, finalY, { align: 'right' });
     doc.text(`${this.subtotalNeto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
+    // IVA (calculado sobre el subtotalNeto)
     doc.text('IVA (15%):', 140, finalY, { align: 'right' });
     doc.text(`${this.iva.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
+    // Total (Subtotal Neto + IVA)
     doc.text('TOTAL A PAGAR:', 140, finalY, { align: 'right' });
     doc.text(`${this.total.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     doc.setFont('helvetica', 'normal');
 
-
-    // --- Pie de página o Condiciones (Ejemplo) ---
     finalY += 15;
-    if (finalY > 270) {
-        doc.addPage();
-        finalY = 20;
-    }
+    if (finalY > 270) { doc.addPage(); finalY = 20; }
     doc.setFontSize(8);
     doc.text('Esta proforma es válida por 15 días a partir de la fecha de emisión.', 20, finalY);
     doc.text('Precios sujetos a cambio sin previo aviso después de la fecha de validez.', 20, finalY + 4);
     doc.text('No incluye costos de envío si aplicasen.', 20, finalY + 8);
 
-
-    // --- Guardar o Abrir PDF ---
     doc.save(`Proforma-${this.ClienteSeleccionado.nombre?.replace(/\s/g, '_') || 'Cliente'}-${Date.now()}.pdf`);
-    // Para abrir en una nueva pestaña en lugar de descargar (puede ser bloqueado por pop-up blockers):
-    // window.open(doc.output('bloburl'), '_blank');
   }
 }
 

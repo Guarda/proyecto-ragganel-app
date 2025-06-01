@@ -21,7 +21,7 @@
      <section class="productos">
         <h2>Seleccione Artículo</h2>
         <div class="productos-lista">
-          <app-tabla-articulos-ventas></app-tabla-articulos-ventas>
+          <app-tabla-articulos-ventas [margenActual]="margenSeleccionado"></app-tabla-articulos-ventas>
         </div>
       </section> 
 
@@ -60,21 +60,33 @@
     </div>
 
 
-    <div *ngIf="ClienteSeleccionado" class="cliente-info">
-    <strong>Cliente Seleccionado:</strong> {{ ClienteSeleccionado.nombre }}
-    </div>
-    <label>Método de Pago:</label>
-    <select disabled>
-    <option value="">Seleccionar...</option>
-    </select>
-    <label>Margen de venta:</label>
-    <mat-select [(ngModel)]="margenSeleccionado" required>
-    <mat-option *ngFor="let margen of margenesVenta" [value]="margen.Porcentaje" >
-    {{ margen.NombreMargen }} - {{ margen.Porcentaje }}%
-    </mat-option>
-    </mat-select>
+      <div *ngIf="ClienteSeleccionado" class="cliente-info">
+        <strong>Cliente Seleccionado:</strong> {{ ClienteSeleccionado.nombre }}
+      </div>
+        <label>Método de Pago:</label>
+        <mat-select [(ngModel)]="metodoPagoSeleccionado" (ngModelChange)="onMetodoPagoChange()" required>
+          <mat-option *ngFor="let metodo of metodosPago" [value]="metodo.IdMetodoPagoPK">
+            {{ metodo.NombreMetodoPago }}
+          </mat-option>
+        </mat-select>
 
-</div> 
+        <mat-form-field appearance="outline" *ngIf="metodoPagoSeleccionado === 2" class="input-adicional-pago">
+          <mat-label>Número de Referencia</mat-label>
+          <input matInput [(ngModel)]="numeroReferenciaTransferencia" name="numeroReferenciaTransferencia" placeholder="Ej: TRN123456789">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="metodoPagoSeleccionado === 4" class="input-adicional-pago">
+          <mat-label>Observaciones</mat-label>
+          <textarea matInput [(ngModel)]="observacionesOtros" name="observacionesOtros" placeholder="Ej: Canje por bono X"></textarea>
+        </mat-form-field>
+
+        <label>Margen de venta:</label>
+        <mat-select [(ngModel)]="margenSeleccionado" (ngModelChange)="onMargenVentaChange()" name="margenSeleccionadoVenta" required>
+          <mat-option *ngFor="let margen of margenesVenta" [value]="margen.Porcentaje">
+            {{ margen.NombreMargen }} - {{ margen.Porcentaje }}%
+          </mat-option>
+        </mat-select>
+      </div> 
       <div *ngIf="carrito.length > 0; else mensajeVacio">
         <table class="tabla-carrito">
           <thead>

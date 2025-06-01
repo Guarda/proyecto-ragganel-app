@@ -10,7 +10,7 @@ import { Usuarios } from '../paginas/interfaces/usuarios';
 })
 export class VentasBaseService {
   private accessoriesSubject = new BehaviorSubject<any[]>([]);
-  
+
 
   private apiURL = "http://localhost:3000";
 
@@ -22,9 +22,16 @@ export class VentasBaseService {
 
   constructor(private httpClient: HttpClient) { }
 
-   ListarTodosLosMargenesVenta(): Observable<any> {
+  ListarTodosLosMargenesVenta(): Observable<any> {
     //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
     return this.httpClient.get(this.apiURL + '/ventas-base/margenes-venta')
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
+  ListarTodosLosMetodosDePago(): Observable<any> {
+    return this.httpClient.get(this.apiURL + '/ventas-base/metodos-de-pago')
       .pipe(
         catchError(this.errorHandler)
       )
