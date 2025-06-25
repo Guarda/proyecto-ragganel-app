@@ -3078,8 +3078,289 @@ DELIMITER ;
 
 
 
+DELIMITER $$
+
+CREATE PROCEDURE InsertarVentaProforma (
+/*PROCEDIMIENTO INGRESAR PROFORMA CREADO 09/06/2025*/
+    IN p_Fecha DATE,
+    IN p_TipoDocumento INT,
+    OUT p_NumeroDocumento VARCHAR(255),
+    IN p_Subtotal DECIMAL(10,2),
+    IN p_IVA DECIMAL(10,2),
+    IN p_Total DECIMAL(10,2),
+    IN p_Estado INT,
+    IN p_MetodoPago INT,
+    IN p_Margen INT,
+    IN p_Usuario INT,
+    IN p_Cliente INT,
+    IN p_Observaciones VARCHAR(255),
+    IN p_ReferenciaTransferencia VARCHAR(255),
+    IN p_Detalles JSON
+)
+BEGIN
+  DECLARE lastVentaId INT;
+  DECLARE i INT DEFAULT 0;
+  DECLARE totalItems INT;
+  DECLARE nuevoCodigo VARCHAR(255);
+
+  -- Generar el código: P-<timestamp cortado> o autoincremental
+  SET nuevoCodigo = CONCAT('P-', LPAD((SELECT COUNT(*) + 1 FROM VentasBase), 6, '0'));
+  SET p_NumeroDocumento = nuevoCodigo;
+
+  -- Insertar en tabla principal
+  INSERT INTO VentasBase (
+    FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
+    SubtotalVenta, IVA, TotalVenta,
+    IdEstadoVentaFK, IdMetodoDePagoFK, IdMargenVentaFK,
+    IdUsuarioFK, IdClienteFK, Observaciones
+  )
+  VALUES (
+    p_Fecha, p_TipoDocumento, nuevoCodigo,
+    p_Subtotal, p_IVA, p_Total,
+    p_Estado, p_MetodoPago, p_Margen,
+    p_Usuario, p_Cliente, p_Observaciones
+  );
+
+  SET lastVentaId = LAST_INSERT_ID();
+
+  -- Insertar en tabla EXT si hay referencia
+  IF p_ReferenciaTransferencia IS NOT NULL AND p_ReferenciaTransferencia != '' THEN
+    INSERT INTO VentasEXT (IdVentaFK, NumeroReferenciaTransferencia)
+    VALUES (lastVentaId, p_ReferenciaTransferencia);
+  END IF;
+
+  -- Insertar detalle
+  SET totalItems = JSON_LENGTH(p_Detalles);
+
+  WHILE i < totalItems DO
+    INSERT INTO DetalleVenta (
+      IdVentaFK, TipoArticulo, CodigoArticulo,
+      PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
+    )
+    VALUES (
+      lastVentaId,
+      JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Tipo'))),
+      JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Codigo'))),
+      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Precio')),
+      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Descuento')),
+      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Subtotal')),
+      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Cantidad'))
+    );
+    SET i = i + 1;
+  END WHILE;
+
+END$$
+
+DELIMITER ;
 
 
+select * from ventasbase;
 
+DELIMITER $$
 
+CREATE PROCEDURE ListarVentasPorUsuario (
+    IN p_IdUsuario INT
+)
+ListarVentasPorUsuario: BEGIN
+    DECLARE v_IdRol INT;
 
+    -- Obtener el rol del usuario
+    SELECT IdRolFK INTO v_IdRol
+    FROM Usuarios
+    WHERE IdUsuarioPK = p_IdUsuario;
+
+    -- Si es logística o no tiene rol válido, salir del bloque
+    IF v_IdRol IS NULL OR v_IdRol NOT IN (1, 2) THEN
+        SELECT 'Sin permiso para ver ventas' AS Mensaje;
+        LEAVE ListarVentasPorUsuario;
+    END IF;
+
+    -- Consulta principal
+    SELECT 
+        vb.IdVentaPK,
+        DATE_FORMAT(vb.FechaCreacion, '%d/%m/%Y') as 'FechaCreacion',
+        vb.IdTipoDocumentoFK,
+        td.DescripcionDocumento AS TipoDocumento,
+        vb.NumeroDocumento,
+        vb.SubtotalVenta,
+        vb.IVA,
+        vb.TotalVenta,
+        vb.IdEstadoVentaFK,
+        ev.DescripcionEstadoVenta AS EstadoVenta,
+        vb.IdMargenVentaFK,
+        mv.NombreMargen AS MargenVenta,
+        vb.IdClienteFK,
+        c.NombreCliente AS Cliente,
+        vb.IdUsuarioFK,
+        u.Nombre AS Usuario,
+        vb.Observaciones
+    FROM VentasBase vb
+    INNER JOIN TipoDocumento td ON vb.IdTipoDocumentoFK = td.IdTipoDocumentoPK
+    INNER JOIN EstadoVenta ev ON vb.IdEstadoVentaFK = ev.IdEstadoVentaPK
+    INNER JOIN MargenesVenta mv ON vb.IdMargenVentaFK = mv.IdMargenPK
+    INNER JOIN Clientes c ON vb.IdClienteFK = c.IdClientePK
+    INNER JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
+    WHERE 
+        (v_IdRol = 1 OR (v_IdRol = 2 AND vb.IdUsuarioFK = p_IdUsuario));
+END$$
+
+DELIMITER ;
+
+call ListarVentasPorUsuario(4);
+
+/**/
+DELIMITER $$
+
+CREATE PROCEDURE RealizarVentaYDescargarInventario (
+    IN p_Fecha DATE,
+    IN p_IdTipoDocumento INT,
+    IN p_NumeroDocumento VARCHAR(255),
+    IN p_Subtotal DECIMAL(10,2),
+    IN p_IVA DECIMAL(10,2),
+    IN p_Total DECIMAL(10,2),
+    IN p_IdEstadoVenta INT,
+    IN p_IdMetodoPago INT,
+    IN p_IdMargen INT,
+    IN p_IdUsuario INT,
+    IN p_IdCliente INT,
+    IN p_Observaciones VARCHAR(255)
+)
+BEGIN
+    -- VARIABLES PRINCIPALES
+    DECLARE v_IdVenta INT;
+    DECLARE v_IdCarrito INT;
+
+    -- VARIABLES PARA EL CURSOR PRINCIPAL (CARRITO)
+    DECLARE v_TipoArticulo VARCHAR(20);
+    DECLARE v_CodigoArticulo VARCHAR(25);
+    DECLARE v_Precio DECIMAL(10,2);
+    DECLARE v_Descuento DECIMAL(10,2);
+    DECLARE v_SubtotalSinIVA DECIMAL(10,2);
+    DECLARE v_Cantidad INT;
+    DECLARE done INT DEFAULT FALSE;
+
+    -- CURSOR PRINCIPAL PARA RECORRER EL CARRITO
+    DECLARE cur CURSOR FOR
+        SELECT TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
+        FROM DetalleCarritoVentas
+        WHERE IdCarritoFK = v_IdCarrito;
+
+    -- MANEJADOR PARA EL CURSOR PRINCIPAL
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- 1. Buscar el carrito activo del usuario
+    SELECT IdCarritoPK INTO v_IdCarrito
+    FROM CarritoVentas
+    WHERE IdUsuarioFK = p_IdUsuario AND EstadoCarrito = 'En curso'
+    ORDER BY FechaCreacion DESC LIMIT 1;
+
+    -- 2. Insertar la cabecera de la venta
+    INSERT INTO VentasBase (
+        FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
+        SubtotalVenta, IVA, TotalVenta,
+        IdEstadoVentaFK, IdMetodoDePagoFK, IdMargenVentaFK,
+        IdUsuarioFK, IdClienteFK, Observaciones
+    ) VALUES (
+        p_Fecha, p_IdTipoDocumento, p_NumeroDocumento,
+        p_Subtotal, p_IVA, p_Total,
+        p_IdEstadoVenta, p_IdMetodoPago, p_IdMargen,
+        p_IdUsuario, p_IdCliente, p_Observaciones
+    );
+
+    SET v_IdVenta = LAST_INSERT_ID();
+
+    -- 3. Procesar los detalles del carrito con el cursor principal
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO v_TipoArticulo, v_CodigoArticulo, v_Precio, v_Descuento, v_SubtotalSinIVA, v_Cantidad;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- 4. Insertar cada artículo en DetalleVenta
+        INSERT INTO DetalleVenta (IdVentaFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad)
+        VALUES (v_IdVenta, v_TipoArticulo, v_CodigoArticulo, v_Precio, v_Descuento, v_SubtotalSinIVA, v_Cantidad);
+
+        -- 5. Descargar el artículo del inventario según su tipo
+        IF v_TipoArticulo = 'Producto' THEN
+            UPDATE ProductosBases SET Estado = 10 WHERE CodigoConsola = v_CodigoArticulo;
+            INSERT INTO HistorialEstadoProducto (CodigoConsola, EstadoAnterior, EstadoNuevo)
+            SELECT CodigoConsola, Estado, 10 FROM ProductosBases WHERE CodigoConsola = v_CodigoArticulo;
+
+        ELSEIF v_TipoArticulo = 'Accesorio' THEN
+            UPDATE AccesoriosBase SET EstadoAccesorio = 10 WHERE CodigoAccesorio = v_CodigoArticulo;
+            INSERT INTO HistorialEstadoAccesorio (CodigoAccesorio, EstadoAnterior, EstadoNuevo)
+            SELECT CodigoAccesorio, EstadoAccesorio, 10 FROM AccesoriosBase WHERE CodigoAccesorio = v_CodigoArticulo;
+
+        ELSEIF v_TipoArticulo = 'Insumo' THEN
+            UPDATE InsumosBase SET Cantidad = Cantidad - v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+            INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, StockMinimoAnterior, StockMinimoNuevo)
+            SELECT CodigoInsumo, EstadoInsumo, EstadoInsumo, Cantidad + v_Cantidad, Cantidad, StockMinimo, StockMinimo
+            FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
+
+        ELSEIF v_TipoArticulo = 'Servicio' THEN
+            -- Inicia un bloque anidado para el cursor de insumos por servicio
+            BEGIN
+                -- VARIABLES PARA EL CURSOR ANIDADO (INSUMOS)
+                DECLARE v_Insumo VARCHAR(25);
+                DECLARE v_CantDescargar INT;
+                DECLARE done2 INT DEFAULT FALSE;
+
+                -- CURSOR ANIDADO PARA LOS INSUMOS DEL SERVICIO
+                DECLARE cur2 CURSOR FOR
+                    SELECT CodigoInsumoFK, CantidadDescargue
+                    FROM InsumosXServicio
+                    WHERE IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+
+                -- MANEJADOR EXCLUSIVO PARA EL CURSOR ANIDADO
+                DECLARE CONTINUE HANDLER FOR NOT FOUND SET done2 = TRUE;
+
+                OPEN cur2;
+                loop_serv: LOOP
+                    FETCH cur2 INTO v_Insumo, v_CantDescargar;
+                    IF done2 THEN
+                        LEAVE loop_serv;
+                    END IF;
+
+                    -- Descargar cada insumo asociado al servicio
+                    UPDATE InsumosBase SET Cantidad = Cantidad - (v_CantDescargar * v_Cantidad) WHERE CodigoInsumo = v_Insumo;
+
+                    -- Registrar el historial de cambio de stock del insumo
+                    INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, StockMinimoAnterior, StockMinimoNuevo)
+                    SELECT CodigoInsumo, EstadoInsumo, EstadoInsumo, Cantidad + (v_CantDescargar * v_Cantidad), Cantidad, StockMinimo, StockMinimo
+                    FROM InsumosBase WHERE CodigoInsumo = v_Insumo;
+
+                END LOOP loop_serv;
+                CLOSE cur2;
+            END; -- Fin del bloque anidado
+        END IF;
+
+    END LOOP read_loop;
+    CLOSE cur;
+
+    -- 6. Marcar el carrito como completado
+    UPDATE CarritoVentas
+    SET EstadoCarrito = 'Completado'
+    WHERE IdCarritoPK = v_IdCarrito;
+
+    -- 7. Devolver el ID de la venta generada
+    SELECT v_IdVenta AS CodigoVentaFinal;
+END$$
+
+DELIMITER ;
+
+-- Llamada al procedimiento para procesar el carrito que creamos
+CALL RealizarVentaYDescargarInventario(
+    CURDATE(),           -- p_Fecha: La fecha de hoy
+    3,                   -- p_IdTipoDocumento: 3 = Factura
+    'F-2025-001',        -- p_NumeroDocumento: Un número de factura de ejemplo
+    215.00,              -- p_Subtotal: La suma de los SubtotalSinIVA del carrito
+    32.25,               -- p_IVA: El impuesto calculado
+    247.25,              -- p_Total: La suma final
+    2,                   -- p_IdEstadoVenta: 2 = Pagado
+    1,                   -- p_IdMetodoPago: 1 = Efectivo
+    1,                   -- p_IdMargen: 1 = Estandar
+    1,                   -- p_IdUsuario: El ID del usuario que realiza la venta
+    1,                   -- p_IdCliente: El ID del cliente
+    'Venta de prueba realizada con éxito.' -- p_Observaciones
+);

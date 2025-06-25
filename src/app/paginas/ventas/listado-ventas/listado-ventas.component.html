@@ -1,1 +1,110 @@
-<p>listado-ventas works!</p>
+<div class="container">
+
+  <div class="cabezera">
+    <div class="filtros">
+      <h1>Ventas</h1>
+
+        <mat-form-field floatLabel="always" appearance="outline">
+            <mat-label>Buscar</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Buscar venta" #input>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Desde</mat-label>
+            <input matInput [matDatepicker]="pickerInicio" [(ngModel)]="fechaInicio" (dateChange)="aplicarFiltros()">
+            <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+            <mat-datepicker #pickerInicio></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Hasta</mat-label>
+            <input matInput [matDatepicker]="pickerFin" [(ngModel)]="fechaFin" (dateChange)="aplicarFiltros()">
+            <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFin></mat-datepicker>
+        </mat-form-field>
+    </div>
+
+    <a mat-raised-button class="button-crear-prod" color="primary">
+      <mat-icon>add</mat-icon>
+      Crear Venta
+    </a>
+  </div>
+
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+
+    <!-- Columnas -->
+    <ng-container matColumnDef="Numero_Venta">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Venta</th>
+      <td mat-cell *matCellDef="let element">{{element.IdVentaPK}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="Fecha_Creacion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Creación</th>
+      <td mat-cell *matCellDef="let element">{{element.FechaCreacion}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="TipoDocumento">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo de documento</th>
+      <td mat-cell *matCellDef="let element">{{element.TipoDocumento}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="NumeroDocumento">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Documento</th>
+      <td mat-cell *matCellDef="let element">{{element.NumeroDocumento}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="Subtotal">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Subtotal</th>
+      <td mat-cell *matCellDef="let element">{{element.SubtotalVenta | number:'1.1-2'}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="Iva">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>IVA</th>
+      <td mat-cell *matCellDef="let element">{{element.IVA | number:'1.1-2'}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="TotalVenta">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Venta</th>
+      <td mat-cell *matCellDef="let element">{{element.TotalVenta | number:'1.1-2'}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="Cliente">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+      <td mat-cell *matCellDef="let element">{{element.Cliente}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="Usuario">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
+      <td mat-cell *matCellDef="let element">{{element.Usuario}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="Action">
+      <th mat-header-cell *matHeaderCellDef>Acciones</th>
+      <td mat-cell *matCellDef="let element" class="contenedor-botones">
+        <a mat-icon-button title="Ver venta">
+          <mat-icon>preview</mat-icon>
+        </a>
+        <a mat-icon-button title="Eliminar">
+          <mat-icon class="button-eliminar-prod">delete</mat-icon>
+        </a>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="10">No se encuentran datos con "{{input.value}}"</td>
+    </tr>
+  </table>
+
+  <mat-paginator class="foo-paginator"
+                 [pageSize]="10"
+                 [pageSizeOptions]="[5, 10, 25, 100]"
+                 aria-label="Selecciona página">
+  </mat-paginator>
+
+  <footer>
+    <p>© 2025 Sistema de Ventas. Todos los derechos reservados.</p>
+  </footer>
+</div>

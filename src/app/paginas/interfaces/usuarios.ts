@@ -13,4 +13,7 @@ export interface Usuarios  extends RolesUsuarios, EstadosUsuarios {
 
     currentPassword: string;
     newPassword: string;
+
+    id: number; // Para el manejo de formularios reactivos
+    name: string; // Para el manejo de formularios reactivos
 }

@@ -55,7 +55,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
         // { label: 'Punto de Venta (POS)', route: '/home/ventas/pos', roles: [1, 2] },
         // { label: 'Listado de Ventas', route: '/home/ventas/listado', roles: [1, 2] }
         { label: 'Punto de Venta (POS)', route: '/home/punto-venta', roles: [1, 2] },
-        { label: 'Listado de Ventas', route: '/home/modulo-en-construccion', roles: [1, 2] }
+        { label: 'Listado de Ventas', route: '/home/listado-ventas', roles: [1, 2] }
       ],
       roles: [1, 2]
     },

@@ -31,7 +31,7 @@ import { ListarCategoriasInsumosComponent } from './paginas/categoriasinsumos/li
 import { IndexEdicioncategoriasInsumosComponent } from './paginas/preferencias/edicioncategoriasinsumos/index-edicioncategorias-insumos/index-edicioncategorias-insumos.component';
 import { ListadoServiciosComponent } from './paginas/servicios/listado-servicios/listado-servicios.component';
 import { VerServicioComponent } from './paginas/servicios/ver-servicio/ver-servicio.component';
-
+import { ListadoVentasComponent } from './paginas/ventas/listado-ventas/listado-ventas.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -44,6 +44,8 @@ export const routes: Routes = [
     { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
     { path: 'punto-venta', component: PuntoVentaComponent, canActivate: [AuthGuard, RoleGuard],
       data: { expectedRoles: [1, 2] }},
+    { path: 'listado-ventas',      component: ListadoVentasComponent, canActivate: [AuthGuard, RoleGuard],
+      data: { expectedRoles: [1, 2] } }, // Corrected
     {
       path: 'listado-productos',
       component: ListarProductosComponent,

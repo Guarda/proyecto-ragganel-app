@@ -1,4 +1,6 @@
 export interface Cliente {
+    id: number;
+    IdClientePK: number;
     idClientePK: number;
     nombreCliente: string;
     nombre: string;

@@ -1,0 +1,89 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Roboto, sans-serif;
+  background-color: #f3f4f6;
+}
+
+.container {
+  margin: 20px auto;
+  max-width: 1280px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cabezera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.mat-form-field {
+  width: 200px;
+}
+
+.button-crear-prod {
+  background-color: #1976d2;
+  color: white;
+  font-weight: 500;
+  border-radius: 4px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th.mat-header-cell,
+td.mat-cell {
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.contenedor-botones {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.button-editar-prod {
+  color: green !important;
+}
+
+.button-eliminar-prod {
+  color: red !important;
+}
+
+.button-historial-prod {
+  color: purple !important;
+}
+
+.foo-paginator {
+  margin-top: 20px;
+  background-color: #fafafa;
+  border-top: 1px solid #ddd;
+  padding: 10px;
+}
+
+footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+}

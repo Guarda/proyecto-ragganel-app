@@ -1,4 +1,3 @@
-<!-- HTML MODIFICADO -->
 <div class="punto-venta-container">
   <header class="header">
     <h1>Punto de Venta</h1>
@@ -17,85 +16,63 @@
   </header>
 
   <main class="main-content">
-    <!-- Secciones omitidas por brevedad -->
-     <section class="productos">
-        <h2>Seleccione Artículo</h2>
-        <div class="productos-lista">
-          <app-tabla-articulos-ventas [margenActual]="margenSeleccionado"></app-tabla-articulos-ventas>
-        </div>
-      </section> 
+    <section class="productos">
+      <h2>Seleccione Artículo</h2>
+      <div class="productos-lista">
+        <app-tabla-articulos-ventas
+          #tablaArticulos
+          [margenActual]="margenSeleccionado ?? 0"
+          [clienteSeleccionado]="ClienteSeleccionado"
+          [usuario]="usuario">
+        </app-tabla-articulos-ventas>
+      </div>
+    </section>
 
     <section class="carrito-panel">
       <h2>Resumen de Venta</h2>
-      <!-- Cliente y método de pago omitidos por brevedad -->
-       <div class="form-section">
+      <div class="form-section">
+        <div class="cliente-section">
+          <mat-form-field appearance="outline" class="cliente-autocomplete">
+            <input type="text" placeholder="Buscar cliente..." matInput [formControl]="clienteControl" [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event)">
+              <mat-option *ngFor="let cliente of (clientesFiltrados | async)" [value]="cliente">
+                {{ cliente.nombre }}
+              </mat-option>
+              <mat-option *ngIf="(clientesFiltrados | async)?.length === 0 && clienteControl.value !== ''" disabled>
+                No se encontró cliente
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+          <button mat-mini-fab color="primary" class="btn-agregar-cliente boton-flotante" matTooltip="Agregar nuevo cliente" (click)="openDialogAgregar()">
+            <mat-icon>person_add</mat-icon>
+          </button>
+        </div>
 
-      <div class="cliente-section">
+        <div *ngIf="ClienteSeleccionado" class="cliente-info">
+          <strong>Cliente Seleccionado:</strong> {{ ClienteSeleccionado.nombre }}
+        </div>
 
-        <mat-form-field appearance="outline" class="cliente-autocomplete">
-
-        <input type="text" placeholder="Buscar cliente..."
-          matInput [formControl]="clienteControl" [matAutocomplete]="auto">
-
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="seleccionarCliente($event.option.value)">
-
-        <mat-option *ngFor="let cliente of clientesFiltrados" [value]="cliente">
-          {{ cliente.nombre }}
-        </mat-option>
-
-        <mat-option *ngIf="clientesFiltrados.length === 0" disabled>
-          No se encontró cliente
-        </mat-option>
-
-      </mat-autocomplete>
-    </mat-form-field>
-
-
-      <button mat-mini-fab color="primary"
-      class="btn-agregar-cliente boton-flotante"
-      matTooltip="Agregar nuevo cliente"
-      (click)="openDialogAgregar()">
-      <mat-icon>person_add</mat-icon>
-      </button>
-    </div>
-
-
-      <div *ngIf="ClienteSeleccionado" class="cliente-info">
-        <strong>Cliente Seleccionado:</strong> {{ ClienteSeleccionado.nombre }}
-      </div>
         <label>Método de Pago:</label>
         <mat-select [(ngModel)]="metodoPagoSeleccionado" (ngModelChange)="onMetodoPagoChange()" required>
           <mat-option *ngFor="let metodo of metodosPago" [value]="metodo.IdMetodoPagoPK">
             {{ metodo.NombreMetodoPago }}
           </mat-option>
         </mat-select>
+        
+        </div>
 
-        <mat-form-field appearance="outline" *ngIf="metodoPagoSeleccionado === 2" class="input-adicional-pago">
-          <mat-label>Número de Referencia</mat-label>
-          <input matInput [(ngModel)]="numeroReferenciaTransferencia" name="numeroReferenciaTransferencia" placeholder="Ej: TRN123456789">
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" *ngIf="metodoPagoSeleccionado === 4" class="input-adicional-pago">
-          <mat-label>Observaciones</mat-label>
-          <textarea matInput [(ngModel)]="observacionesOtros" name="observacionesOtros" placeholder="Ej: Canje por bono X"></textarea>
-        </mat-form-field>
-
-        <label>Margen de venta:</label>
-        <mat-select [(ngModel)]="margenSeleccionado" (ngModelChange)="onMargenVentaChange()" name="margenSeleccionadoVenta" required>
-          <mat-option *ngFor="let margen of margenesVenta" [value]="margen.Porcentaje">
-            {{ margen.NombreMargen }} - {{ margen.Porcentaje }}%
-          </mat-option>
-        </mat-select>
-      </div> 
       <div *ngIf="carrito.length > 0; else mensajeVacio">
         <table class="tabla-carrito">
           <thead>
             <tr>
               <th>Tipo</th>
               <th>Artículo</th>
+              <th>Código</th>
               <th>Cantidad</th>
               <th>Precio Unit.</th>
-              <th>Desc. (%)</th> <th>Precio Desc.</th> <th>IVA</th>
+              <th>Desc. (%)</th>
+              <th>Precio Desc.</th>
+              <th>IVA</th>
               <th>Total</th>
               <th>Eliminar</th>
             </tr>
@@ -104,21 +81,18 @@
             <tr *ngFor="let art of carrito">
               <td>{{ art.Tipo }}</td>
               <td>{{ art.NombreArticulo }}</td>
+              <td>{{ art.Codigo }}</td>
               <td>
-                <ng-container *ngIf="art.Tipo === 'Insumo'">
-                  <button (click)="decrementarCantidad(art.Codigo!)" class="btn-cantidad" mat-icon-button>
-                    <mat-icon>remove</mat-icon>
-                  </button>
+                <ng-container *ngIf="art.Tipo === 'Insumo' || art.Tipo === 'Servicio'">
+                  <button (click)="decrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>remove</mat-icon></button>
                   <span class="cantidad-valor">{{ art.Cantidad }}</span>
-                  <button (click)="incrementarCantidad(art.Codigo!)" class="btn-cantidad" mat-icon-button>
-                    <mat-icon>add</mat-icon>
-                  </button>
+                  <button (click)="incrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>add</mat-icon></button>
                 </ng-container>
-                <ng-container *ngIf="art.Tipo !== 'Insumo'">
+                <ng-container *ngIf="art.Tipo !== 'Insumo' && art.Tipo !== 'Servicio'">
                   {{ art.Cantidad }}
                 </ng-container>
               </td>
-              <td>{{ (art.PrecioBase ?? 0) | currency:'USD' }}</td>
+              <td>{{ (art.PrecioBase ?? 0) | currency:'USD':'symbol':'1.2-2' }}</td>
               <td>
                 <input type="number"
                        min="0"
@@ -129,17 +103,11 @@
                        (blur)="formatearDescuento(art)"
                        style="width: 60px; text-align: right;">
               </td>
+              <td>{{ calcularPrecioConDescuento(art) | currency:'USD':'symbol':'1.2-2' }}</td>
+              <td>{{ calcularIVASobreArticulo(art) | currency:'USD':'symbol':'1.2-2' }}</td>
+              <td>{{ calcularTotalArticulo(art) | currency:'USD':'symbol':'1.2-2' }}</td>
               <td>
-                {{ calcularPrecioConDescuento(art) | currency:'USD' }}
-              </td>
-              <td>
-                {{ calcularIVASobreArticulo(art) | currency:'USD' }}
-              </td>
-              <td>
-                {{ calcularTotalArticulo(art) | currency:'USD' }}
-              </td>
-              <td>
-                <button (click)="eliminarLineaArticulo(art.Codigo!, art.Tipo)" mat-icon-button color="warn">
+                <button (click)="eliminarLineaArticulo(art)" mat-icon-button color="warn">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -147,18 +115,13 @@
           </tbody>
         </table>
 
-         <div class="totales">
-          <p><strong>Subtotal (sin IVA):</strong> {{ subtotal | currency:'USD' }}</p>
-          <p><strong>Total Descuentos:</strong> {{ totalDescuentos | currency:'USD' }}</p>
-          <p><strong>Subtotal Neto (con descuentos, sin IVA):</strong> {{ subtotalNeto | currency:'USD' }}</p>
-          <p><strong>IVA (15%):</strong> {{ iva | currency:'USD' }}</p>
-          <p><strong>Total:</strong> {{ total | currency:'USD' }}</p>
-        </div>
+        <div class="totales">
+           </div>
 
         <div class="acciones">
-          <button (click)="limpiarCarrito()">Vaciar Carrito</button>
-          <button disabled>Procesar Venta</button>
-           <button (click)="generarProformaPDF()" [disabled]="!ClienteSeleccionado || carrito.length === 0">Generar Proforma PDF</button> <button disabled>Procesar Venta</button>
+          <button mat-raised-button color="warn" (click)="limpiarCarrito()">Vaciar Carrito</button>
+          <button mat-raised-button color="primary" (click)="generarProformaPDF()" [disabled]="!ClienteSeleccionado || carrito.length === 0">Generar Proforma PDF</button>
+          <button mat-raised-button color="accent" [disabled]="!ClienteSeleccionado || carrito.length === 0">Procesar Venta</button>
         </div>
       </div>
 

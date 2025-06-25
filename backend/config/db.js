@@ -5,8 +5,8 @@ const Basedatos = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'password',
-    database: 'base_datos_inventario_taller'
-
+    database: 'base_datos_inventario_taller',
+    multipleStatements: true // <-- ¡ESTA LÍNEA ES CRUCIAL!
 });
 
 // mysql.createConnection(err => {

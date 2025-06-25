@@ -127,6 +127,9 @@ Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Personalizado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Reparado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('A reparar');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Borrado');
+Insert into CatalogoEstadosConsolas (DescripcionEstado) values('En garantia');
+Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Descargado');
+Insert into CatalogoEstadosConsolas (DescripcionEstado) values('En proceso de venta');
 
 select * from CatalogoEstadosConsolas;
 select * from catalogoconsolas;
@@ -597,13 +600,13 @@ INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Pagado');
 INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Anulado');
 
 /*METODO DE PAGO*/
-CREATE TABLE METODOPAGO(
+/*CREATE TABLE METODOPAGO(
 	IdMetodoPagoPK INT AUTO_INCREMENT PRIMARY KEY,
     DescripcionMetodoPago varchar (100)
 );
 
 INSERT INTO METODOPAGO (DescripcionMetodoPago) values ('Efectivo');
-INSERT INTO METODOPAGO (DescripcionMetodoPago) values ('Transferencia');
+INSERT INTO METODOPAGO (DescripcionMetodoPago) values ('Transferencia');*/
 
 /*TABLA VENTASBASE CREADA el 10/04/2025 POR ROMMEL MALTEZ*/
 CREATE TABLE VentasBase(
@@ -618,15 +621,18 @@ CREATE TABLE VentasBase(
     IdEstadoVentaFK  int not null,
     IdMetodoDePagoFK int not null,
     /*VALORES EXTRAS VENTA*/
+    IdMargenVentaFK int not null,
     IdUsuarioFK int not null,
     IdClienteFK int not null,
     Observaciones varchar(255),
     FOREIGN KEY (IdTipoDocumentoFK) REFERENCES TipoDocumento(IdTipoDocumentoPK),
     FOREIGN KEY (IdEstadoVentaFK) REFERENCES ESTADOVENTA(IdEstadoVentaPK),
-    FOREIGN KEY (IdMetodoDePagoFK) REFERENCES METODOPAGO (IdMetodoPagoPK),
+    FOREIGN KEY (IdMetodoDePagoFK) REFERENCES metodosdepago (IdMetodoPagoPK),
+    FOREIGN KEY (IdMargenVentaFK) REFERENCES margenesventa (IdMargenPK),
     FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios (IdUsuarioPK),
     FOREIGN KEY (IdClienteFK) REFERENCES Clientes (IdCLientePK)
 );
+
 
 
 /*tabla adicional para almacenar informacion extra y opcional de la venta*/
@@ -685,6 +691,73 @@ INSERT INTO MetodosDePago (NombreMetodoPago, Descripcion) VALUES
 ('Transferencia',  'Pago por transferencia bancaria, anotar numero de referencia'),
 ('Tarjeta POS Electronico', 'Clientes con compras al por mayor'),
 ('Otros',  'Pagos por medios sin contacto como NFC, Billetera digital, Canje');
+
+-- Tabla principal del carrito
+CREATE TABLE CarritoVentas (
+    IdCarritoPK INT AUTO_INCREMENT PRIMARY KEY,
+    IdUsuarioFK INT NOT NULL,
+    IdClienteFK INT,
+    FechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Comentario VARCHAR(255),
+    EstadoCarrito VARCHAR(50) DEFAULT 'En curso',
+    FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios(IdUsuarioPK),
+    FOREIGN KEY (IdClienteFK) REFERENCES Clientes(IdClientePK)
+);
+
+-- Detalle del carrito (los artículos)
+CREATE TABLE DetalleCarritoVentas (
+    IdDetalleCarritoPK INT AUTO_INCREMENT PRIMARY KEY,
+    IdCarritoFK INT NOT NULL,
+    TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio') NOT NULL,
+    CodigoArticulo VARCHAR(25) NOT NULL,
+    PrecioVenta DECIMAL(10,2) NOT NULL,
+    Descuento DECIMAL(10,2) DEFAULT 0,
+    SubtotalSinIVA DECIMAL(10,2) NOT NULL,
+    Cantidad INT UNSIGNED DEFAULT 1,
+    FOREIGN KEY (IdCarritoFK) REFERENCES CarritoVentas(IdCarritoPK)
+);
+
+-- Detalle de cualquier venta (proforma o factura)
+CREATE TABLE DetalleVenta (
+    IdDetalleVentaPK INT AUTO_INCREMENT PRIMARY KEY,
+    IdVentaFK INT NOT NULL,
+    TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio') NOT NULL,
+    CodigoArticulo VARCHAR(25) NOT NULL,
+    PrecioVenta DECIMAL(10,2) NOT NULL,
+    Descuento DECIMAL(10,2) DEFAULT 0,
+    SubtotalSinIVA DECIMAL(10,2) NOT NULL,
+    Cantidad INT UNSIGNED DEFAULT 1,
+    FOREIGN KEY (IdVentaFK) REFERENCES VentasBase(IdVentaPK)
+);
+
+CREATE TABLE NotasCredito (
+    IdNotaCreditoPK INT AUTO_INCREMENT PRIMARY KEY,
+    IdVentaFK INT NOT NULL,
+    FechaEmision TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Motivo TEXT NOT NULL,
+    TotalCredito DECIMAL(10,2) NOT NULL,
+    UsuarioEmisorFK INT NOT NULL,
+    Estado BOOLEAN DEFAULT TRUE, -- TRUE = activa, FALSE = anulada
+    FOREIGN KEY (IdVentaFK) REFERENCES VentasBase(IdVentaPK),
+    FOREIGN KEY (UsuarioEmisorFK) REFERENCES Usuarios(IdUsuarioPK)
+);
+
+
+
+CREATE TABLE DetalleNotaCredito (
+    IdDetalleNotaPK INT AUTO_INCREMENT PRIMARY KEY,
+    IdNotaCreditoFK INT NOT NULL,
+    TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio') NOT NULL,
+    CodigoArticulo VARCHAR(25) NOT NULL,
+    Cantidad INT UNSIGNED DEFAULT 1,
+    PrecioUnitario DECIMAL(10,2),
+    Subtotal DECIMAL(10,2),
+    FOREIGN KEY (IdNotaCreditoFK) REFERENCES NotasCredito(IdNotaCreditoPK)
+);
+
+
+
+
 
 
 

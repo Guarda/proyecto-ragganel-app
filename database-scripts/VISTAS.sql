@@ -230,7 +230,7 @@ JOIN CatalogoConsolas cat ON p.Modelo = cat.IdModeloConsolaPK
 JOIN FABRICANTES f ON cat.Fabricante = f.IdFabricantePK
 JOIN CategoriasProductos c ON cat.Categoria = c.IdCategoriaPK
 JOIN SubcategoriasProductos s ON cat.Subcategoria = s.IdSubcategoria
-WHERE p.Estado not in (7,8) 
+WHERE p.Estado not in (7,8,9,10,11) 
 UNION
 
 -- Accesorios
@@ -247,7 +247,7 @@ JOIN CatalogoAccesorios cat ON a.ModeloAccesorio = cat.IdModeloAccesorioPK
 JOIN FabricanteAccesorios fa ON cat.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
 JOIN CategoriasAccesorios ca ON cat.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
 JOIN SubcategoriasAccesorios sa ON cat.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
-WHERE a.EstadoAccesorio not in (7,8) 
+WHERE a.EstadoAccesorio not in (7,8,9,10,11) 
 
 UNION
 
@@ -265,7 +265,7 @@ JOIN CatalogoInsumos cat ON i.ModeloInsumo = cat.IdModeloInsumosPK
 JOIN FabricanteInsumos fi ON cat.FabricanteInsumos = fi.IdFabricanteInsumosPK
 JOIN CategoriasInsumos ci ON cat.CategoriaInsumos = ci.IdCategoriaInsumosPK
 JOIN SubcategoriasInsumos si ON cat.SubcategoriaInsumos = si.IdSubcategoriaInsumos
-WHERE i.EstadoInsumo NOT IN (7,8)
+WHERE i.EstadoInsumo NOT IN (7,8,9,10,11) 
 UNION
 
 -- Servicios
