@@ -179,10 +179,10 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
   loadCartForSelectedClient(): void {
     if (this.usuario && this.ClienteSeleccionado) {
       this.subs.add(this.carritoService.refrescarCarrito(this.usuario, this.ClienteSeleccionado).subscribe(() => {
-          if (this.margenSeleccionado !== null) {
-            this.carritoService.actualizarPreciosDelCarritoConNuevoMargen(this.margenSeleccionado);
-          }
-          console.log('Carrito cargado y refrescado para el cliente.');
+        if (this.margenSeleccionado !== null) {
+          this.carritoService.actualizarPreciosDelCarritoConNuevoMargen(this.margenSeleccionado);
+        }
+        console.log('Carrito cargado y refrescado para el cliente.');
       }));
     } else {
       this.carritoService.refrescarCarrito(null!, null!).subscribe();
@@ -216,7 +216,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     }));
   }
 
-   // --- ACCIONES DEL CARRITO (CON CORRECCIONES) ---
+  // --- ACCIONES DEL CARRITO (CON CORRECCIONES) ---
 
   incrementarCantidad(articulo: ArticuloVenta): void {
     if (!this.usuario || !this.ClienteSeleccionado) return;
@@ -230,9 +230,14 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
   // CORREGIDO: Ahora acepta el objeto completo, como espera el servicio.
   eliminarLineaArticulo(articulo: ArticuloVenta): void {
-    if (!this.usuario || !this.ClienteSeleccionado) return;
-    this.carritoService.eliminarLineaCompletaArticulo(articulo, this.usuario, this.ClienteSeleccionado);
+  if (!this.usuario || !this.ClienteSeleccionado) {
+    this.snackBar.open('Seleccione un usuario y cliente para eliminar artículos.', 'Cerrar', { duration: 3000 });
+    return;
   }
+  
+  // ¡UNA SOLA LLAMADA, UNA SOLA FUENTE DE VERDAD!
+  this.carritoService.eliminarLineaCompletaArticulo(articulo, this.usuario, this.ClienteSeleccionado);
+}
 
   // CORREGIDO: Ahora recibe directamente el valor numérico.
   actualizarDescuento(articulo: ArticuloVenta, nuevoDescuento: number): void {
@@ -242,12 +247,22 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       this.snackBar.open('Seleccione un usuario y cliente.', 'Cerrar', { duration: 3000 });
     }
   }
-  
+
   limpiarCarrito(): void {
     if (!this.usuario || !this.ClienteSeleccionado) return;
+    this.ventasBaseService.limpiarCarritoDeVentas(this.usuario.id, this.ClienteSeleccionado.id).subscribe({
+      next: (res) => {
+        console.log('Carrito limpiado correctamente', res);
+        // Aquí puedes refrescar el carrito o hacer alguna acción
+      },
+      error: (error) => {
+        console.error('Error al limpiar el carrito', error);
+      }
+    });
+    // AHORA LLAMA AL SERVICIO CORRECTO
     this.carritoService.limpiarCarrito(this.usuario, this.ClienteSeleccionado);
   }
-  
+
   // CORREGIDO: Ahora acepta el código como un string, que es lo que pasa la plantilla.
   agregarArticuloPorCodigoDesdeInput(codigo: string): void {
     const codigoLimpio = codigo.trim();
@@ -289,7 +304,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     const cantidad = art.Cantidad ?? 1;
     return (precioConDescuento + ivaArticulo) * cantidad;
   }
-  
+
   // MÉTODO AÑADIDO: Para que la plantilla lo encuentre
   formatearDescuento(articulo: ArticuloVenta): void {
     if (articulo.DescuentoPorcentaje === null || articulo.DescuentoPorcentaje === undefined || isNaN(articulo.DescuentoPorcentaje)) {

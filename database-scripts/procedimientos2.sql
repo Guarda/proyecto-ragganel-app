@@ -264,6 +264,58 @@ END$$
 
 DELIMITER ;
 
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sp_Carrito_LimpiarPorUsuarioCliente$$
+CREATE PROCEDURE sp_Carrito_LimpiarPorUsuarioCliente(IN p_IdUsuario INT, IN p_IdCliente INT)
+BEGIN
+    -- Declaramos variables locales
+    DECLARE v_IdCarrito INT;
+    DECLARE v_IdDetalleCarrito INT;
+    DECLARE fin_cursor INT DEFAULT 0;
+
+    -- Cursor para iterar sobre los artículos del carrito que vamos a encontrar
+    DECLARE cur_detalles CURSOR FOR
+        SELECT IdDetalleCarritoPK
+        FROM DetalleCarritoVentas
+        WHERE IdCarritoFK = v_IdCarrito;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin_cursor = 1;
+
+    -- Paso 1: Encontrar el ID del carrito para el usuario y cliente especificados.
+    -- CORRECCIÓN: Se elimina la condición "AND Estado = 'EnCurso'" que causaba el error.
+    -- AÑADIDO: Se ordena por ID descendente para asegurar que tomamos el carrito más reciente si hubiera más de uno.
+    SELECT IdCarritoPK INTO v_IdCarrito
+    FROM CarritoVentas
+    WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente
+    ORDER BY IdCarritoPK DESC
+    LIMIT 1;
+
+    -- Paso 2: Solo si se encontró un carrito, procedemos a limpiarlo.
+    IF v_IdCarrito IS NOT NULL THEN
+        OPEN cur_detalles;
+
+        bucle_limpieza: LOOP
+            FETCH cur_detalles INTO v_IdDetalleCarrito;
+            IF fin_cursor = 1 THEN
+                LEAVE bucle_limpieza;
+            END IF;
+
+            -- Esta lógica interna se mantiene, ya que funciona correctamente.
+            CALL EliminarArticuloDelCarrito(v_IdDetalleCarrito);
+        END LOOP;
+
+        CLOSE cur_detalles;
+    END IF;
+
+END$$
+
+DELIMITER ;
+
+
+
 CALL sp_Carrito_AgregarArticulo(1,2, 'Insumo', 'INS-SAND-64GB', 10, 0, 1);
 CALL sp_Carrito_DisminuirArticulo(1,2, 'Insumo', 'INS-SAND-64GB');
 CALL sp_Carrito_EliminarLineaCompleta(1,2, 'Insumo', 'INS-KING-32GB');
+
+call sp_Carrito_LimpiarPorUsuarioCliente('1','1')

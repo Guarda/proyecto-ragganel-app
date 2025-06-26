@@ -71,6 +71,10 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
         }
       }
     ));
+
+    this.subs.add(this.carritoService.solicitarRecargaArticulos$.subscribe(() => {
+      this.recargarArticulos();
+    }));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -191,6 +195,24 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
     this.precioMax = 99999;
     this.searchTerm = '';
     this.aplicarFiltros();
+  }
+
+  public recargarArticulos(): void {
+    console.log('Recargando lista completa de artículos desde el servidor...');
+    this.subs.add(this.listadoArticulosVentaService.getAll().subscribe({
+      next: (data: ArticuloVenta[]) => {
+        this.todosLosArticulosOriginales = data.map(articulo => ({
+          ...articulo,
+          PrecioOriginalSinMargen: articulo.PrecioBase
+        }));
+        this.aplicarMargenYActualizarGrupos(); // Esto redibuja la lista con el stock actualizado
+        this.snackBar.open('Lista de artículos actualizada.', 'Cerrar', { duration: 2000 });
+      },
+      error: (err) => {
+        console.error('Error al recargar la lista de artículos:', err);
+        this.snackBar.open('No se pudo refrescar la lista de artículos.', 'Cerrar', { duration: 3000 });
+      }
+    }));
   }
 
   getImagePath(link: string | null, tipo: string | null): string {

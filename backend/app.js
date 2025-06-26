@@ -1,5 +1,5 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+//const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path'); 
 const app = express();
@@ -37,7 +37,7 @@ const servicesbaseRouter = require('./routes/services-base');
 const articlelistRouter = require('./routes/article-list');
 const salesbaseRouter = require('./routes/sales-base');
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
 
 // CORS configuration
 app.use(cors({

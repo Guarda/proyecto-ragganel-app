@@ -81,6 +81,53 @@ export class VentasBaseService {
       .pipe(catchError(this.errorHandler));
   }
 
+  limpiarCarritoDeVentas(idUsuario: number, idCliente: number): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/limpiar-carrito`;
+
+    // CAMBIO: Renombramos 'params' a 'body' para que sea más claro.
+    const body = {
+      IdUsuario: idUsuario,
+      IdCliente: idCliente
+    };
+
+    console.log(`[VentasBaseService] Realizando POST a ${url} con body:`, body);
+
+    // CAMBIO CLAVE: Pasamos el objeto 'body' directamente, sin envolverlo en { params }.
+    return this.httpClient.post(url, body, this.httpOptions)
+      .pipe(catchError(this.errorHandler));
+  }
+
+  eliminarArticuloDelCarrito(datos: {
+    IdUsuario: number,
+    IdCliente: number,
+    TipoArticulo: string,
+    CodigoArticulo: string
+  }): Observable<any> {
+    console.log("eliminarArticuloDelCarrito", datos);
+    return this.httpClient.post(this.apiURL + '/ventas-base/eliminar-linea-del-carrito', datos, this.httpOptions)
+      .pipe(catchError(this.errorHandler));
+  }
+
+  disminuirArticuloDelCarrito(datos: {
+    IdUsuario: number,
+    IdCliente: number,
+    TipoArticulo: string,
+    CodigoArticulo: string
+  }): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/eliminar-del-carrito`;
+
+    // Para enviar un body con una petición DELETE, se debe poner dentro de las opciones.
+    const options = {
+      headers: this.httpOptions.headers,
+      body: datos
+    };
+
+    console.log("[VentasBaseService] Realizando DELETE a", url, "con body:", datos);
+
+    return this.httpClient.delete(url, options)
+      .pipe(catchError(this.errorHandler));
+  }
+
   /**
    * Clears the entire shopping cart for a specific user and client in the backend.
    * This method sends a request to your backend API to remove all items from the current cart session.
@@ -88,19 +135,6 @@ export class VentasBaseService {
    * @param idCliente The ID of the client associated with the cart.
    * @returns An Observable that emits the backend's response (e.g., success status).
    */
-  limpiarCarritoDeVentas(idUsuario: number, idCliente: number): Observable<any> {
-    // You'll need to define an appropriate endpoint in your backend for this operation.
-    // A POST request with IDs in the body, or a DELETE with IDs as query params/body are common.
-    // For simplicity and common REST practices, a POST request is often used for actions.
-    // If your backend expects a DELETE, adjust accordingly.
-    const url = `${this.apiURL}/ventas-base/limpiar-carrito`; // Define your backend endpoint for clearing the cart
-    const body = { idUsuario, idCliente }; // Send user and client IDs in the request body
-
-    return this.httpClient.post(url, body, this.httpOptions)
-      .pipe(
-        catchError(this.errorHandler)
-      );
-  }
 
   errorHandler(error: any) {
     let errorMessage = '';

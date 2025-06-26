@@ -2,6 +2,34 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
+router.post('/limpiar-carrito', (req, res) => {
+  const { IdUsuario, IdCliente } = req.body;
+  
+  // Log para confirmar que el endpoint es alcanzado
+  console.log('ENDPOINT ALCANZADO: /limpiar-carrito. Body recibido:', req.body);
+  
+  if (!IdUsuario || !IdCliente) {
+    return res.status(400).json({
+      success: false,
+      mensaje: 'Faltan parámetros requeridos (IdUsuario, IdCliente) en el cuerpo de la solicitud.'
+    });
+  }
+
+  const query = 'CALL sp_Carrito_LimpiarPorUsuarioCliente(?, ?);';
+  const params = [IdUsuario, IdCliente];
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error('Error al ejecutar sp_Carrito_LimpiarPorUsuarioCliente:', err);
+      return res.status(500).json({ success: false, error: err });
+    }
+    res.json({
+      success: true,
+      mensaje: 'Carrito limpiado correctamente.'
+    });
+  });
+});
+
 // List all sales margins types
 router.get('/margenes-venta', (req, res) => {
   db.query('CALL `base_datos_inventario_taller`.`ListarPreciosVenta`();', (err, results) => {
@@ -156,35 +184,45 @@ router.delete('/eliminar-del-carrito', (req, res) => {
   });
 });
 
-router.delete('/vaciar-carrito/:idCarrito', (req, res) => {
-  const idCarrito = parseInt(req.params.idCarrito);
+// Endpoint para eliminar una línea completa del carrito
+router.post('/eliminar-linea-del-carrito', (req, res) => {
+  const { IdUsuario, IdCliente, TipoArticulo, CodigoArticulo } = req.body;
 
-  if (isNaN(idCarrito)) {
+  console.log('Intentando eliminar línea del carrito con:', req.body);
+
+  // Validación básica
+  if (!IdUsuario || !IdCliente || !TipoArticulo || !CodigoArticulo) {
     return res.status(400).json({
       success: false,
-      mensaje: 'ID de carrito inválido.'
+      mensaje: 'Faltan parámetros requeridos (IdUsuario, IdCliente, TipoArticulo, CodigoArticulo).'
     });
   }
 
-  const query = 'CALL base_datos_inventario_taller.VaciarCarrito(?);';
+  // Query para ejecutar el procedimiento almacenado
+  const query = 'CALL sp_Carrito_EliminarLineaCompleta(?, ?, ?, ?)';
+  const params = [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo];
 
-  db.query(query, [idCarrito], (err, results) => {
-    if (err) {
-      console.error('Error al vaciar carrito:', err);
+  db.query(query, params, (error, results) => {
+    if (error) {
+      console.error('Error al ejecutar sp_Carrito_EliminarLineaCompleta:', error);
       return res.status(500).json({
         success: false,
-        mensaje: 'Error al ejecutar el procedimiento almacenado.',
-        error: err
+        mensaje: 'Error al eliminar línea del carrito.',
+        error
       });
     }
 
-    res.json({
+    console.log('Resultado:', results);
+    return res.json({
       success: true,
-      mensaje: `Carrito con ID ${idCarrito} vaciado correctamente.`,
+      mensaje: 'Línea del carrito eliminada correctamente.',
       resultado: results[0] || []
     });
   });
 });
+
+
+
 
 
 //get ssales by user id
