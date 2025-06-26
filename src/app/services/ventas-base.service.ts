@@ -115,16 +115,18 @@ export class VentasBaseService {
     CodigoArticulo: string
   }): Observable<any> {
     const url = `${this.apiURL}/ventas-base/eliminar-del-carrito`;
-
-    // Para enviar un body con una petición DELETE, se debe poner dentro de las opciones.
-    const options = {
-      headers: this.httpOptions.headers,
-      body: datos
-    };
-
-    console.log("[VentasBaseService] Realizando DELETE a", url, "con body:", datos);
-
-    return this.httpClient.delete(url, options)
+    
+    // CAMBIO CLAVE: Se crea un objeto HttpParams para la URL.
+    const params = new HttpParams()
+      .set('IdUsuario', datos.IdUsuario.toString())
+      .set('IdCliente', datos.IdCliente.toString())
+      .set('TipoArticulo', datos.TipoArticulo)
+      .set('CodigoArticulo', datos.CodigoArticulo);
+    
+    console.log("[VentasBaseService] Realizando DELETE a", url, "con params:", params.toString());
+    
+    // El método .delete() envía los parámetros en la URL.
+    return this.httpClient.delete(url, { params: params, headers: this.httpOptions.headers })
       .pipe(catchError(this.errorHandler));
   }
 

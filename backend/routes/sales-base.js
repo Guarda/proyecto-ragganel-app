@@ -150,23 +150,23 @@ router.post('/agregar-al-carrito', (req, res) => {
 });
 
 router.delete('/eliminar-del-carrito', (req, res) => {
-  const {
-    IdUsuario,
-    IdCliente,
-    TipoArticulo,
-    CodigoArticulo
-  } = req.body;
+  // CAMBIO CLAVE: Se leen los parámetros desde req.query
+  const { IdUsuario, IdCliente, TipoArticulo, CodigoArticulo } = req.query;
+
+  console.log('INTENTO DE DISMINUIR. Query Params recibidos:', req.query);
 
   if (!IdUsuario || !IdCliente || !TipoArticulo || !CodigoArticulo) {
     return res.status(400).json({
       success: false,
-      mensaje: 'Faltan parámetros requeridos (IdUsuario, IdCliente, TipoArticulo, CodigoArticulo).'
+      mensaje: 'Faltan parámetros requeridos (IdUsuario, IdCliente, TipoArticulo, CodigoArticulo) en la URL.'
     });
   }
 
+  // La lógica de la base de datos no cambia.
   const query = 'CALL base_datos_inventario_taller.sp_Carrito_DisminuirArticulo(?, ?, ?, ?);';
+  const params = [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo];
 
-  db.query(query, [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo], (err, results) => {
+  db.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al disminuir/eliminar artículo del carrito:', err);
       return res.status(500).json({
