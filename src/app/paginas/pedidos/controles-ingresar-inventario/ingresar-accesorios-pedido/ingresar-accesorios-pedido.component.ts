@@ -49,7 +49,6 @@ export class IngresarAccesoriosPedidoComponent {
 
   Agregado = new EventEmitter();
 
-  accesorioForm!: FormGroup;
 
   categoriasaccesorios: categoriasAccesorios[] = [];
   categoria!: CategoriasAccesoriosBase;
@@ -98,114 +97,54 @@ export class IngresarAccesoriosPedidoComponent {
   }
 
   ngOnInit(): void {
-
-    if (!this.articulo) {
-      console.warn('⚠️ No se recibió un artículo válido.');
+    if (!this.form || !this.articulo) {
+      console.error('⚠️ Componente "IngresarAccesoriosPedido" no recibió un formulario o artículo válido.');
       return;
     }
-
-    console.log("Formulario recibido:", this.form);
-    console.log("imagen", this.articulo.ImagePath);
-    console.log("articulo recibido", this.articulo);
-
-
-    // Asegurarse de que `form` no sea undefined antes de asignar el listener
-    if (this.form) {
-      this.form.valueChanges.subscribe(() => {
-        if (this.form.valid) {
-          this.accesorioAgregado.emit(this.form.value);
-        }
-      });
-    } else {
-      console.warn("El formulario no fue recibido correctamente");
-    }
-
-    this.accessorieCode = this.articulo.IdModeloPK;
-    this.accessoriePrice = this.articulo.PrecioBase;
-    this.accessorieManufacturer = this.articulo.FabricanteArticulo;
-    this.accessorieCate = this.articulo.CategoriaArticulo;
-    this.accessorieSubCate = this.articulo.SubcategoriaArticulo;
-    this.orderID = this.articulo.IdCodigoPedidoFK;
-
-    this.categorias.find(this.accessorieCode).subscribe((data) => {
-      this.categoria = data[0];
     
-      console.log("📌 Imagen obtenida de la BD:", this.categoria.LinkImagen); // <-- Verificar valor
-    
-      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-    
-      console.log("🌟 Imagen generada por getimagePath:", this.ImagePath); // <-- Verificar resultado
-    
-      this.accessorieManufacturer = this.categoria.FabricanteAccesorio;
-    
-      this.cdr.markForCheck();
-    });
-    
-    
-    
+    this.cargarDatosParaSelects();
+    this.establecerValoresIniciales();
+    this.cargarDatosDinamicosDelArticulo();
+  }
 
+  private cargarDatosParaSelects(): void {
+    this.estados.getAll().subscribe(data => this.selectedEstado = data);
+    this.fabricanteService.getManufacturerWithModel().subscribe(data => this.selectedFabricanteAccesorio = data);
+    this.categoriaaccesorioService.getAll().subscribe(data => this.selectedCategoriaAccesorio = data);
+    // Las subcategorías se pueden cargar dinámicamente si dependen de la categoría seleccionada
+    this.subcategoriaaccesrorioService.getAll().subscribe(data => this.selectedSubCategoriaAccesorio = data);
+  }
 
-    this.categorias.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
-      this.keywords.update(() => []);
-      this.selectedCategoria = data;
-      this.categoria = data[0];
-     // this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-    })
-
-    this.accesorioForm = this.form;
-
-    if (this.articulo) {
-      this.accesorioForm.patchValue({
-        FabricanteAccesorio: this.articulo.FabricanteArticulo,
-        IdModeloAccesorioPK: this.articulo.IdModeloPK,
-        PrecioBase: this.formatNumber(this.articulo.Precio),
-        CateAccesorio: this.articulo.CategoriaArticulo,
-        SubCategoriaAccesorio: this.articulo.SubcategoriaArticulo,
-        NumeroSerie: this.articulo.NumeroSerie || '',
-        ColorAccesorio: this.articulo.ColorAccesorio || '',
-        EstadoAccesorio: this.articulo.EstadoAccesorio || '',
-        ProductosCompatibles: this.articulo.ProductosCompatibles || '',
-        ComentarioAccesorio: this.articulo.Comentario || '',
-        TodoList: this.articulo.TodoList || '',
-        IdPedido: this.articulo.IdCodigoPedidoFK
-      });      
-
-      this.cdr.detectChanges();
-      console.log("✅ Valores después de patchValue:", this.accesorioForm.value);
-    }
-
-    this.cdr.detectChanges(); // Detectar cambios después de patchValue
-
-    this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-      // //console.log(data);
-      this.selectedEstado = data;
+  private establecerValoresIniciales(): void {
+    // ✅ Se usa 'this.form' para establecer los valores
+    this.form.patchValue({
+      FabricanteAccesorio: this.articulo.FabricanteArticulo,
+      CateAccesorio: this.articulo.CategoriaArticulo,
+      SubCategoriaAccesorio: this.articulo.SubcategoriaArticulo,
+      PrecioBase: this.formatNumber(this.articulo.Precio),
+      NumeroSerie: this.articulo.NumeroSerie || '',
+      ColorAccesorio: this.articulo.ColorAccesorio || '',
+      EstadoAccesorio: this.articulo.EstadoAccesorio || '',
+      ComentarioAccesorio: this.articulo.Comentario || '',
+      IdPedido: this.articulo.IdCodigoPedidoFK
     });
 
-    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteAccesorio[]) => {
-      this.selectedFabricanteAccesorio = data;
-    });
+    const initialTodos = this.form.get('TodoList')?.value;
+    this.todolistKeywords.set(Array.isArray(initialTodos) && initialTodos.length > 0 ? initialTodos : ['Limpiar']);
 
-    this.categoriaaccesorioService.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
-      this.selectedCategoriaAccesorio = data;
-    });
-
-    this.subcategoriaaccesrorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => {
-      this.selectedSubCategoriaAccesorio = data;
-    });
-
+    const initialCompat = this.form.get('ProductosCompatibles')?.value;
+    this.keywords.set(Array.isArray(initialCompat) ? initialCompat : []);
     
+    this.cdr.detectChanges();
+  }
 
-    this.accesorioForm.get('TodoList')?.setValue(this.nkeywords());
-
-    // this.accesorioForm = this.form;
-
-    this.accesorioForm.valueChanges.subscribe(() => {
-      this.cdr.detectChanges(); // 🔥 Forzar detección de cambios en Angular
+  private cargarDatosDinamicosDelArticulo(): void {
+    this.categorias.find(this.articulo.IdModeloPK).subscribe(data => {
+      if (data && data.length > 0) {
+        this.ImagePath = this.getimagePath(data[0].LinkImagen);
+        this.cdr.markForCheck();
+      }
     });
-
-    
-
-
   }
 
   removeKeyword(keyword: string) {
@@ -231,36 +170,26 @@ export class IngresarAccesoriosPedidoComponent {
   }
 
 
-  add(event: MatChipInputEvent): void {
+  // Métodos para Chips de "Productos Compatibles"
+  addCompatibleProduct(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
-
-    // Add our keyword
     if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
-      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update the form control
+      this.keywords.update(current => [...current, value]);
+      this.form.get('ProductosCompatibles')?.setValue(this.keywords());
     }
-
-    // Clear the input value
     event.chipInput!.clear();
   }
 
-  addt(valor: String): void {
-    const value = (valor || '').trim();
-
-    // Add our keyword
-    if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
-      console.log(this.keywords());
-
-      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords());
-      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
-      // Force change detection
-      this.cdr.detectChanges();
-    }
-
-    // Clear the input value
-    //
-
+  removeCompatibleProduct(keyword: string): void {
+    this.keywords.update(current => {
+      const index = current.indexOf(keyword);
+      if (index >= 0) {
+        current.splice(index, 1);
+        this.form.get('ProductosCompatibles')?.setValue([...current]);
+        this.announcer.announce(`Removed ${keyword}`);
+      }
+      return [...current];
+    });
   }
 
   // Helper method to return the current keywords array
@@ -268,33 +197,29 @@ export class IngresarAccesoriosPedidoComponent {
     return this.todolistKeywords();
   }
 
-  removeReactiveKeyword(keyword: string) {
-    this.todolistKeywords.update(keywords => {
-      const index = keywords.indexOf(keyword);
-      if (index < 0) {
-        return keywords;
-      }
-
-      keywords.splice(index, 1);
-      this.announcer.announce(`removed ${keyword} from reactive form`);
-      return [...keywords];
-    });
-  }
-
-  addReactiveKeyword(event: MatChipInputEvent): void {
+   // Métodos para Chips de "Tareas a Realizar"
+  addTodo(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
-
-    // Add our keyword
     if (value) {
       this.todolistKeywords.update(keywords => [...keywords, value]);
-      this.accesorioForm.get('TodoList')?.setValue(this.keywords());
+      // ✅ Corregido: usa 'todolistKeywords()'
+      this.form.get('TodoList')?.setValue(this.todolistKeywords());
       this.announcer.announce(`added ${value} to reactive form`);
     }
-
-    // Clear the input value
     event.chipInput!.clear();
   }
 
+  removeTodo(keyword: string): void {
+    this.todolistKeywords.update(keywords => {
+      const index = keywords.indexOf(keyword);
+      if (index >= 0) {
+        keywords.splice(index, 1);
+        this.form.get('TodoList')?.setValue([...keywords]);
+        this.announcer.announce(`removed ${keyword} from reactive form`);
+      }
+      return [...keywords];
+    });
+  }
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
     console.log("kkkkkk",l);
@@ -306,14 +231,20 @@ export class IngresarAccesoriosPedidoComponent {
   }
 
   ngAfterViewInit() {
-    this.accesorioForm.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId => {
+    this.form.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId => {
       console.log(selectedId);
     });
   }
 
+  get precioFinalIngreso(): number {
+    const precioBase = parseFloat(this.form?.value?.PrecioBase || '0');
+    const costoDistribuido = parseFloat(this.form?.value?.CostoDistribuido || '0');
+    return precioBase + costoDistribuido;
+  }
+
   get f() {
 
-    return this.accesorioForm.controls;
+    return this.form.controls;
 
   }
 

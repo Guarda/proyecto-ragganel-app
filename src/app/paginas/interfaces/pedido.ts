@@ -12,6 +12,8 @@
     ShippingUSA: number;
     Impuestos: number;
     ShippingNIC: number;
+    EnvioUSA: number;
+    EnvioNIC: number;
     PrecioEstimadoDelPedido: number;
     Estado: string;
     Comentarios: string;

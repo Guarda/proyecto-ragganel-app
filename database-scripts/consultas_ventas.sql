@@ -9,13 +9,13 @@ JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
 JOIN EstadoVenta ev ON vb.IdEstadoVentaFK = ev.IdEstadoVentaPK
 JOIN MetodosDePago mp ON vb.IdMetodoDePagoFK = mp.IdMetodoPagoPK
 JOIN MargenesVenta mv ON vb.IdMargenVentaFK = mv.IdMargenPK
-WHERE td.DescripcionDocumento = 'Proforma' AND vb.IdVentaPK = 3;
+WHERE td.DescripcionDocumento = 'Proforma' AND vb.IdVentaPK = 41;
 
 -- 2. Consultar los detalles de cualquier venta
 SELECT dv.IdDetalleVentaPK, dv.TipoArticulo, dv.CodigoArticulo, dv.Cantidad,
        dv.PrecioVenta, dv.Descuento, dv.SubtotalSinIVA
 FROM DetalleVenta dv
-WHERE dv.IdVentaFK = 18;
+WHERE dv.IdVentaFK = 42;
 
 -- 3. Listado de facturas emitidas
 SELECT vb.IdVentaPK, vb.NumeroDocumento, vb.FechaCreacion, 

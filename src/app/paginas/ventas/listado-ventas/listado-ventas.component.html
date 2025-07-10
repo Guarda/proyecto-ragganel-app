@@ -32,7 +32,6 @@
 
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
 
-    <!-- Columnas -->
     <ng-container matColumnDef="Numero_Venta">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Venta</th>
       <td mat-cell *matCellDef="let element">{{element.IdVentaPK}}</td>
@@ -79,16 +78,40 @@
     </ng-container>
 
     <ng-container matColumnDef="Action">
-      <th mat-header-cell *matHeaderCellDef>Acciones</th>
-      <td mat-cell *matCellDef="let element" class="contenedor-botones">
-        <a mat-icon-button title="Ver venta">
-          <mat-icon>preview</mat-icon>
-        </a>
-        <a mat-icon-button title="Eliminar">
-          <mat-icon class="button-eliminar-prod">delete</mat-icon>
-        </a>
-      </td>
-    </ng-container>
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let element" class="contenedor-botones">
+
+          <ng-container *ngIf="element.IdTipoDocumentoFK === 2">
+  <a mat-icon-button title="Procesar Venta" class="button-procesar">
+    <mat-icon>shopping_cart_checkout</mat-icon>
+  </a>
+  
+            <a mat-icon-button 
+              title="Descargar PDF" 
+              class="button-pdf" 
+              (click)="abrirDialogoDescargar(element)">
+                <mat-icon>picture_as_pdf</mat-icon>
+            </a>
+
+            <a mat-icon-button title="Eliminar" class="button-eliminar-prod">
+              <mat-icon>delete</mat-icon>
+            </a>
+          </ng-container>
+
+          <ng-container *ngIf="element.IdTipoDocumentoFK === 3">
+            <a mat-icon-button title="Ver venta">
+              <mat-icon>preview</mat-icon>
+            </a>
+            <a mat-icon-button title="Descargar Factura" class="button-pdf">
+              <mat-icon>receipt_long</mat-icon>
+            </a>
+            <a mat-icon-button title="Aplicar Nota de Crédito" class="button-nota-credito">
+              <mat-icon>request_quote</mat-icon>
+            </a>
+          </ng-container>
+
+        </td>
+      </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

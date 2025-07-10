@@ -20,6 +20,9 @@ import { VentasBaseService } from '../../../services/ventas-base.service';
 import { MatSelect } from '@angular/material/select';
 import { AuthService } from '../../../UI/session/auth.service';
 
+import { ConfirmarVentaDialogComponent } from '../confirmar-venta-dialog/confirmar-venta-dialog.component';
+import { VentaFinalData } from '../../interfaces/ventafinal';
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; // <-- CAMBIO IMPORTANTE AQUÍ
 import { MetodosPago } from '../../interfaces/metodos-pago';
@@ -216,6 +219,85 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     }));
   }
 
+  abrirDialogoConfirmarVenta(): void {
+    // Validaciones previas
+    if (!this.ClienteSeleccionado || !this.usuario || this.carrito.length === 0) {
+      this.snackBar.open('Debe seleccionar un cliente y tener artículos en el carrito.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Abre el diálogo y le pasa los datos que necesita para mostrar el resumen
+    const dialogRef = this.dialog.open(ConfirmarVentaDialogComponent, {
+      width: '450px',
+      data: {
+        clienteNombre: this.ClienteSeleccionado.nombre,
+        total: this.total
+      }
+    });
+
+    // 3. Se suscribe a la respuesta del diálogo
+    this.subs.add(dialogRef.afterClosed().subscribe(result => {
+      // Si el resultado es 'true', significa que el usuario hizo clic en "Sí, Confirmar"
+      if (result === true) {
+        this.procesarVentaFinal();
+      }
+    }));
+  }
+
+  procesarVentaFinal(): void {
+    if (!this.metodoPagoSeleccionado || !this.idMargenSeleccionado) {
+      this.snackBar.open('Error: Método de pago o margen no seleccionado.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    const ventaData: VentaFinalData = {
+      fecha: new Date().toISOString().split('T')[0],
+      idTipoDocumento: 3,
+      // numeroDocumento: '', // <-- YA NO SE ENVÍA ESTA LÍNEA
+      subtotal: this.subtotalNeto,
+      iva: this.iva,
+      total: this.total,
+      idEstadoVenta: 2,
+      idMetodoPago: this.metodoPagoSeleccionado,
+      idMargen: this.idMargenSeleccionado,
+      idUsuario: this.usuario.id,
+      idCliente: this.ClienteSeleccionado!.id,
+      observaciones: `Ref. Transferencia: ${this.numeroReferenciaTransferencia || 'N/A'}. Otros: ${this.observacionesOtros || 'N/A'}`
+    };
+
+    this.subs.add(this.ventasBaseService.finalizarVenta(ventaData).subscribe({
+      next: (respuesta) => {
+        if (respuesta.success && respuesta.numeroDocumento) {
+          this.snackBar.open(`Venta ${respuesta.numeroDocumento} registrada con éxito.`, 'OK', { duration: 4000 });
+          this.imprimirFacturaPDF(respuesta.numeroDocumento);
+
+          // --- INICIO DE LA CORRECCIÓN ---
+
+          // ANTES (INCORRECTO):
+          // this.carritoService.limpiarCarrito(this.usuario!, this.ClienteSeleccionado!);
+
+          // AHORA (CORRECTO):
+          // Simplemente refrescamos la vista del carrito. Como el SP ya lo marcó como 'Completado',
+          // este método recibirá un carrito vacío del backend y limpiará la UI.
+          this.carritoService.refrescarCarrito(this.usuario!, this.ClienteSeleccionado!).subscribe();
+
+          // --- FIN DE LA CORRECCIÓN ---
+
+          // El resto de la limpieza de la UI está bien
+          this.ClienteSeleccionado = null;
+          this.clienteControl.setValue('');
+        } else {
+          this.snackBar.open(`Error al procesar la venta: ${respuesta.error || 'No se recibió el número de documento.'}`, 'Cerrar', { duration: 5000 });
+        }
+      },
+      error: (err) => {
+        console.error('Error en la transacción de venta:', err);
+        this.snackBar.open('Error de comunicación con el servidor al finalizar la venta.', 'Cerrar', { duration: 5000 });
+      }
+    }));
+  }
+
+
   // --- ACCIONES DEL CARRITO (CON CORRECCIONES) ---
 
   incrementarCantidad(articulo: ArticuloVenta): void {
@@ -230,14 +312,14 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
   // CORREGIDO: Ahora acepta el objeto completo, como espera el servicio.
   eliminarLineaArticulo(articulo: ArticuloVenta): void {
-  if (!this.usuario || !this.ClienteSeleccionado) {
-    this.snackBar.open('Seleccione un usuario y cliente para eliminar artículos.', 'Cerrar', { duration: 3000 });
-    return;
+    if (!this.usuario || !this.ClienteSeleccionado) {
+      this.snackBar.open('Seleccione un usuario y cliente para eliminar artículos.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // ¡UNA SOLA LLAMADA, UNA SOLA FUENTE DE VERDAD!
+    this.carritoService.eliminarLineaCompletaArticulo(articulo, this.usuario, this.ClienteSeleccionado);
   }
-  
-  // ¡UNA SOLA LLAMADA, UNA SOLA FUENTE DE VERDAD!
-  this.carritoService.eliminarLineaCompletaArticulo(articulo, this.usuario, this.ClienteSeleccionado);
-}
 
   // CORREGIDO: Ahora recibe directamente el valor numérico.
   actualizarDescuento(articulo: ArticuloVenta, nuevoDescuento: number): void {
@@ -390,26 +472,32 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     const doc = new jsPDF();
     const fecha = new Date().toLocaleDateString('es-NI');
 
+    // --- ENCABEZADO DEL DOCUMENTO (Sin cambios) ---
     doc.setFontSize(18);
     doc.text('PROFORMA DE VENTA', 105, 20, { align: 'center' });
     doc.setFontSize(10);
     doc.text('Ragganel Tech S.A.', 20, 30);
     doc.text('Colonia 14 de septiembre, Managua', 20, 35);
-    doc.text('Tu RUC: J0000000000000', 20, 40);
+    doc.text('RUC: J0000000000000', 20, 40);
     doc.text('Teléfono: +505 8643 9865', 20, 45);
     doc.text(`Fecha: ${fecha}`, 150, 30);
     doc.text(`Proforma #: ${codigoProforma}`, 150, 35);
 
+    // --- INFORMACIÓN DEL CLIENTE Y VENDEDOR (Etiquetas actualizadas) ---
     doc.setFontSize(12);
     doc.text('Cliente:', 20, 60);
     doc.setFontSize(10);
     doc.text(`Nombre: ${this.ClienteSeleccionado?.nombre || 'N/A'}`, 20, 67);
-    doc.text(`Identificación: ${this.ClienteSeleccionado?.ruc || 'N/A'}`, 20, 72);
-    doc.text(`Precio: ${this.nombreMargenSeleccionado || 'N/A'}`, 20, 77);
-    doc.text(`Nombre del vendedor: ${this.usuario?.name || 'N/A'}`, 20, 82);
+    doc.text(`Identificación: ${this.ClienteSeleccionado?.ruc || this.ClienteSeleccionado?.dni || 'N/A'}`, 20, 72);
+    // CAMBIO: Etiqueta "Precio" a "Tipo de Precio" para consistencia.
+    doc.text(`Tipo de Precio: ${this.nombreMargenSeleccionado || 'N/A'}`, 20, 77);
+    // CAMBIO: Etiqueta "Nombre del vendedor" a "Vendedor".
+    doc.text(`Vendedor: ${this.usuario?.name || 'N/A'}`, 20, 82);
     doc.text(`Código vendedor: ${this.usuario?.id || 'N/A'}`, 20, 87);
 
-    const head = [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. Desc.', 'Subtotal (sin IVA)']];
+    // --- TABLA DE ARTÍCULOS (Encabezados actualizados) ---
+    // CAMBIO: Encabezados de la tabla para coincidir con el otro PDF.
+    const head = [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. c/Desc.', 'Subtotal']];
     const body = this.carrito.map(art => {
       const precioUnitario = art.PrecioBase ?? 0;
       const cantidad = art.Cantidad ?? 1;
@@ -428,11 +516,11 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     });
 
     (doc as any).autoTable({
-      startY: 90,
+      startY: 90, // CAMBIO: Ajuste de posición inicial para alinear con la info del vendedor.
       head,
       body,
       theme: 'striped',
-      headStyles: { fillColor: [22, 160, 133] },
+      headStyles: { fillColor: [22, 160, 133] }, // Verde para proformas
       didDrawPage: (data: any) => {
         const pageHeight = data.doc.internal.pageSize.getHeight();
         data.doc.setFontSize(8);
@@ -440,13 +528,14 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       }
     });
 
-    let finalY = (doc as any).lastAutoTable.finalY || 150;
+    // --- SECCIÓN DE TOTALES (Etiquetas actualizadas) ---
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
     if (finalY > 260) { doc.addPage(); finalY = 20; }
-    else { finalY += 10; }
 
     const xAlignRight = 190;
     doc.setFontSize(10);
-    doc.text('Subtotal Bruto (s/desc):', 140, finalY, { align: 'right' });
+    // CAMBIO: Etiqueta "Subtotal Bruto (s/desc):" a "Subtotal Bruto:".
+    doc.text('Subtotal Bruto:', 140, finalY, { align: 'right' });
     doc.text(`${this.subtotal.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
@@ -468,14 +557,99 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     doc.text(`${this.total.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     doc.setFont('helvetica', 'normal');
 
+    // --- PIE DE PÁGINA (Texto actualizado) ---
     finalY += 15;
     if (finalY > 270) { doc.addPage(); finalY = 20; }
     doc.setFontSize(8);
-    doc.text('Esta proforma es válida por 15 días a partir de la fecha de emisión.', 20, finalY);
-    doc.text('Precios sujetos a cambio sin previo aviso después de la fecha de validez.', 20, finalY + 4);
-    doc.text('No incluye costos de envío si aplicasen.', 20, finalY + 8);
+    // CAMBIO: Se usa un único texto de pie de página más conciso.
+    doc.text('Esta proforma es válida por 15 días. Precios y disponibilidad sujetos a cambio.', 20, finalY);
 
-    doc.save(`Proforma-${this.ClienteSeleccionado?.nombre?.replace(/\s/g, '_') || 'Cliente'}-${codigoProforma}.pdf`);
+    // --- GUARDAR EL DOCUMENTO (Sin cambios) ---
+    const nombreArchivo = `Proforma-${codigoProforma}-${this.ClienteSeleccionado?.nombre?.replace(/\s/g, '_') || 'Cliente'}.pdf`;
+    doc.save(nombreArchivo);
+  }
+
+  imprimirFacturaPDF(numeroFactura: string): void {
+    const doc = new jsPDF();
+    const fecha = new Date().toLocaleDateString('es-NI');
+
+    // --- Cambios clave: Título y Número de Documento ---
+    doc.setFontSize(18);
+    doc.text('FACTURA DE VENTA', 105, 20, { align: 'center' }); // Título cambiado
+    doc.setFontSize(10);
+    // ... (resto de los datos de la empresa son iguales)
+    doc.text('Ragganel Tech S.A.', 20, 30);
+    doc.text('Colonia 14 de septiembre, Managua', 20, 35);
+    doc.text('Tu RUC: J0000000000000', 20, 40);
+    doc.text('Teléfono: +505 8643 9865', 20, 45);
+
+    doc.text(`Fecha: ${fecha}`, 150, 30);
+    doc.text(`Factura #: ${numeroFactura}`, 150, 35);
+
+    // --- El resto del documento es prácticamente idéntico ---
+    doc.setFontSize(12);
+    doc.text('Cliente:', 20, 60);
+    doc.setFontSize(10);
+    doc.text(`Nombre: ${this.ClienteSeleccionado?.nombre || 'N/A'}`, 20, 67);
+    doc.text(`Identificación: ${this.ClienteSeleccionado?.ruc || 'N/A'}`, 20, 72);
+    doc.text(`Precio: ${this.nombreMargenSeleccionado || 'N/A'}`, 20, 77);
+    doc.text(`Nombre del vendedor: ${this.usuario?.name || 'N/A'}`, 20, 82);
+    doc.text(`Código vendedor: ${this.usuario?.id || 'N/A'}`, 20, 87);
+
+    const head = [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. Desc.', 'Subtotal (sin IVA)']];
+    const body = this.carrito.map(art => {
+      const precioUnitario = art.PrecioBase ?? 0;
+      const cantidad = art.Cantidad ?? 1;
+      const precioConDescuento = this.calcularPrecioConDescuento(art);
+      const subtotal = precioConDescuento * cantidad;
+      return [
+        cantidad.toString(),
+        art.Codigo || 'N/A',
+        art.NombreArticulo || 'N/A',
+        precioUnitario.toFixed(2),
+        (art.DescuentoPorcentaje ?? 0).toFixed(2),
+        precioConDescuento.toFixed(2),
+        subtotal.toFixed(2)
+      ];
+    });
+
+    (doc as any).autoTable({
+      startY: 90,
+      head,
+      body,
+      theme: 'striped',
+      headStyles: { fillColor: [41, 128, 185] }, // Un color azul para diferenciar de la proforma
+      didDrawPage: (data: any) => {
+        // ... (paginación igual)
+      }
+    });
+
+    let finalY = (doc as any).lastAutoTable.finalY || 150;
+    if (finalY > 260) { doc.addPage(); finalY = 20; }
+    else { finalY += 10; }
+
+    // ... (cálculo de totales igual)
+    const xAlignRight = 190;
+    doc.setFontSize(10);
+    doc.text('Subtotal Bruto (s/desc):', 140, finalY, { align: 'right' });
+    doc.text(`${this.subtotal.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    finalY += 7;
+    doc.text('Total Descuentos:', 140, finalY, { align: 'right' });
+    doc.text(`-${this.totalDescuentos.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    finalY += 7;
+    doc.text('Subtotal Neto (s/IVA):', 140, finalY, { align: 'right' });
+    doc.text(`${this.subtotalNeto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    finalY += 7;
+    doc.text('IVA (15%):', 140, finalY, { align: 'right' });
+    doc.text(`${this.iva.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    finalY += 7;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL PAGADO:', 140, finalY, { align: 'right' }); // Cambiado a PAGADO
+    doc.text(`${this.total.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+
+    doc.save(`Factura-${this.ClienteSeleccionado?.nombre?.replace(/\s/g, '_') || 'Cliente'}-${numeroFactura}.pdf`);
   }
 }
 

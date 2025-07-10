@@ -55,3 +55,68 @@
   .example-form-field {
     width: 100%;
   }
+
+  /* --- Contenedor Principal del Formulario --- */
+.form-grid-container {
+  display: grid;
+  /* Define 2 columnas de tamaño flexible (1fr) */
+  grid-template-columns: repeat(2, 1fr);
+  /* Espacio horizontal de 16px entre columnas */
+  gap: 0 16px;
+}
+
+/* --- Clase de utilidad para ocupar todo el ancho --- */
+.grid-span-2 {
+  /* Hace que el elemento se expanda para ocupar las 2 columnas */
+  grid-column: span 2;
+}
+
+/* --- Estilos para el Precio Final --- */
+.precio-final {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Alinea el contenido a la derecha */
+  padding: 10px 0; /* Añade espacio vertical */
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.precio-final h4 {
+  margin: 0; /* Quita el margen por defecto del h4 */
+}
+
+/* --- Ajustes generales (opcional) --- */
+.example-full-width {
+    width: 100%;
+}
+
+/* --- Contenedor Principal del Formulario --- */
+.form-grid-container {
+  display: grid;
+  /* Define 2 columnas de tamaño flexible */
+  grid-template-columns: repeat(2, 1fr);
+  /* Espacio horizontal de 16px entre columnas */
+  gap: 0 16px;
+}
+
+/* --- Clase de utilidad para ocupar todo el ancho --- */
+.grid-span-2 {
+  /* Hace que el elemento se expanda para ocupar las 2 columnas */
+  grid-column: span 2;
+}
+
+/* --- Estilos para el Precio Final --- */
+.precio-final {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Alinea el contenido a la derecha */
+  padding: 10px 0;
+  font-size: 1.1em;
+  font-weight: 500;
+  border-top: 1px solid #e0e0e0; /* Opcional: añade una línea divisoria */
+  margin-top: 8px; /* Opcional: añade un pequeño margen superior */
+}
+
+.precio-final h4 {
+  margin: 0; /* Quita el margen por defecto del h4 */
+}

@@ -121,7 +121,9 @@
         <div class="acciones">
           <button mat-raised-button color="warn" (click)="limpiarCarrito()">Vaciar Carrito</button>
           <button mat-raised-button color="primary" (click)="generarProformaPDF()" [disabled]="!ClienteSeleccionado || carrito.length === 0">Generar Proforma PDF</button>
-          <button mat-raised-button color="accent" [disabled]="!ClienteSeleccionado || carrito.length === 0">Procesar Venta</button>
+           <button mat-raised-button color="accent" (click)="abrirDialogoConfirmarVenta()" [disabled]="!ClienteSeleccionado || carrito.length === 0">
+    Procesar Venta
+  </button>
         </div>
       </div>
 

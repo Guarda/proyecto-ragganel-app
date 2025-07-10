@@ -12,7 +12,7 @@
     </div>
 
     <div class="tarjetas-container">
-        <div *ngFor="let articulo of dataToDisplay">
+        <div *ngFor="let articulo of activeArticulos">
             <app-tarjeta-articulo 
                 [articulo]="articulo" 
                 (borrar)="removeArticulo(articulo)"
@@ -27,4 +27,3 @@
     </div>
     
 </div>
-

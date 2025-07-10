@@ -84,7 +84,7 @@ export class CarritoService {
    * @param cliente El cliente para poder refrescar el carrito.
    * @param nombreArticulo El nombre del artículo para los mensajes de feedback.
    */
-  private modificarArticuloEnCarrito(
+   private modificarArticuloEnCarrito(
     datosParaBackend: any,
     usuario: Usuarios,
     cliente: Cliente,
@@ -95,19 +95,26 @@ export class CarritoService {
       next: (respuesta) => {
         if (respuesta.success) {
           this.snackBar.open(mensajeExito, 'Cerrar', { duration: 2000 });
-          // **CAMBIO CLAVE: Refrescar el carrito desde la BD**
+          // Refrescar el carrito desde la BD
           this.refrescarCarrito(usuario, cliente).subscribe();
+          
+          // LÍNEA AÑADIDA: Notificar a la tabla principal que recargue el inventario.
+          this.solicitarRecargaArticulosSubject.next();
 
-          // Notificar ajuste de stock si es necesario (cuando se agrega/quita un artículo)
+          // La lógica para ajustar el stock localmente ya no es necesaria, 
+          // ya que la recarga completa desde el servidor es más precisa.
+          // Se puede comentar o eliminar la siguiente sección:
+          /*
           if (datosParaBackend.Cantidad === 1 || datosParaBackend.Cantidad === -1) {
             if (datosParaBackend.TipoArticulo !== 'Servicio') {
               this.solicitarAjusteStockInventarioSubject.next({
                 codigoArticulo: datosParaBackend.CodigoArticulo,
-                cantidadDelta: -datosParaBackend.Cantidad, // Invertimos: si agregamos 1 (-1 de stock), si quitamos 1 (+1 de stock)
+                cantidadDelta: -datosParaBackend.Cantidad,
                 tipoArticulo: datosParaBackend.TipoArticulo
               });
             }
           }
+          */
 
         } else {
           this.snackBar.open(`Error del servidor: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
@@ -167,7 +174,7 @@ export class CarritoService {
   /**
    * Decrementa la cantidad. El backend manejará la eliminación si la cantidad llega a 0.
    */
-  public decrementarCantidadEnCarrito(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
+ public decrementarCantidadEnCarrito(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
     const datosParaBackend = {
       IdUsuario: usuario.id,
       IdCliente: cliente.id,
@@ -175,25 +182,16 @@ export class CarritoService {
       CodigoArticulo: articulo.Codigo!
     };
 
-    // ANTES: Llamaba a modificarArticuloEnCarrito, que llamaba a AGREGAR.
-    // AHORA: Llama al nuevo método para DISMINUIR.
     this.ventasBaseService.disminuirArticuloDelCarrito(datosParaBackend).subscribe({
       next: (respuesta) => {
         if (respuesta.success) {
           this.snackBar.open('Cantidad disminuida.', 'Cerrar', { duration: 2000 });
           
-          // Después de una disminución exitosa, refrescamos todo el carrito
-          // para asegurarnos de que la UI muestra la cantidad correcta o si el ítem se eliminó.
+          // Refrescamos el carrito para actualizar la UI del carrito.
           this.refrescarCarrito(usuario, cliente).subscribe();
           
-          // También notificamos a la tabla de artículos que devuelva 1 unidad al stock.
-          if (articulo.Tipo !== 'Servicio') {
-            this.solicitarAjusteStockInventarioSubject.next({
-              codigoArticulo: articulo.Codigo!,
-              cantidadDelta: 1, // Se devuelve 1 al stock
-              tipoArticulo: articulo.Tipo!
-            });
-          }
+          // LÍNEA AÑADIDA: Notificar a la tabla principal que recargue el inventario.
+          this.solicitarRecargaArticulosSubject.next();
 
         } else {
           this.snackBar.open(`Error del servidor: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
@@ -209,61 +207,74 @@ export class CarritoService {
   /**
    * Elimina una línea completa de artículo del carrito.
    */
-  public eliminarLineaCompletaArticulo(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
-  const cantidadActual = articulo.Cantidad ?? 0;
-  
-  const datosParaBackend = {
-    IdUsuario: usuario.id,
-    IdCliente: cliente.id,
-    TipoArticulo: articulo.Tipo!,
-    CodigoArticulo: articulo.Codigo!
-  };
+   public eliminarLineaCompletaArticulo(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
+    const cantidadActual = articulo.Cantidad ?? 0;
+    
+    const datosParaBackend = {
+      IdUsuario: usuario.id,
+      IdCliente: cliente.id,
+      TipoArticulo: articulo.Tipo!,
+      CodigoArticulo: articulo.Codigo!
+    };
 
-  // LLAMAMOS AL NUEVO MÉTODO EN EL SERVICIO BASE
-  this.ventasBaseService.eliminarArticuloDelCarrito(datosParaBackend).subscribe({
-    next: (respuesta) => {
-      if (respuesta.success) {
-        this.snackBar.open(`${articulo.NombreArticulo} eliminado del carrito.`, 'Cerrar', { duration: 2000 });
-        
-        // 1. Refrescamos el carrito desde la BD para actualizar la lista.
-        this.refrescarCarrito(usuario, cliente).subscribe();
-        
-        // 2. Notificamos a la tabla de artículos que devuelva el stock.
-        if (articulo.Tipo !== 'Servicio') {
-          this.solicitarAjusteStockInventarioSubject.next({
-            codigoArticulo: articulo.Codigo!,
-            cantidadDelta: cantidadActual, // Devolvemos la cantidad completa al stock
-            tipoArticulo: articulo.Tipo!
-          });
+    this.ventasBaseService.eliminarArticuloDelCarrito(datosParaBackend).subscribe({
+      next: (respuesta) => {
+        if (respuesta.success) {
+          this.snackBar.open(`${articulo.NombreArticulo} eliminado del carrito.`, 'Cerrar', { duration: 2000 });
+          
+          // Refrescamos el carrito desde la BD para actualizar la lista.
+          this.refrescarCarrito(usuario, cliente).subscribe();
+          
+          // LÍNEA AÑADIDA: Notificar a la tabla principal que recargue el inventario.
+          this.solicitarRecargaArticulosSubject.next();
+          
+        } else {
+          this.snackBar.open(`Error del servidor: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
         }
-      } else {
-        this.snackBar.open(`Error del servidor: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
+      },
+      error: (err) => {
+        this.snackBar.open('Error de conexión al eliminar la línea.', 'Cerrar', { duration: 4000 });
+        console.error('Error de conexión:', err);
       }
-    },
-    error: (err) => {
-      this.snackBar.open('Error de conexión al eliminar la línea.', 'Cerrar', { duration: 4000 });
-      console.error('Error de conexión:', err);
-    }
-  });
-}
+    });
+  }
 
   /**
    * Actualiza el descuento de un artículo.
    */
-  public actualizarDescuentoArticulo(articulo: ArticuloVenta, nuevoDescuento: number, usuario: Usuarios, cliente: Cliente): void {
+   public actualizarDescuentoArticulo(articulo: ArticuloVenta, nuevoDescuento: number, usuario: Usuarios, cliente: Cliente): void {
     const sanitizedDescuento = Math.max(0, Math.min(100, nuevoDescuento || 0));
+    
+    // Calcula el nuevo subtotal basado en el descuento
+    const nuevoSubtotalSinIVA = (articulo.PrecioBase ?? 0) * (1 - sanitizedDescuento / 100);
+
+    // Prepara los datos para el NUEVO endpoint
     const datosParaBackend = {
       IdUsuario: usuario.id,
       IdCliente: cliente.id,
       TipoArticulo: articulo.Tipo!,
       CodigoArticulo: articulo.Codigo!,
-      PrecioVenta: Number(articulo.PrecioBase),
       Descuento: sanitizedDescuento,
-      SubtotalSinIVA: Number(articulo.PrecioBase) * (1 - sanitizedDescuento / 100),
-      Cantidad: articulo.Cantidad ?? 0 // Se envía la cantidad actual para recalcular totales en el backend
+      SubtotalSinIVA: nuevoSubtotalSinIVA
     };
 
-    this.modificarArticuloEnCarrito(datosParaBackend, usuario, cliente, articulo.NombreArticulo!, 'Descuento actualizado.');
+    // Llama al NUEVO método en ventas-base.service
+    this.ventasBaseService.actualizarDetalleCarrito(datosParaBackend).subscribe({
+      next: (respuesta) => {
+        if (respuesta.success) {
+          this.snackBar.open('Descuento actualizado.', 'Cerrar', { duration: 1500 });
+          // Refrescamos el carrito para que la UI refleje el cambio confirmado por la BD
+          this.refrescarCarrito(usuario, cliente).subscribe();
+          // NO es necesario recargar el inventario, ya que el stock no cambió.
+        } else {
+          this.snackBar.open(`Error al actualizar descuento: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
+        }
+      },
+      error: (err) => {
+        this.snackBar.open('Error de conexión al actualizar el descuento.', 'Cerrar', { duration: 4000 });
+        console.error('Error de conexión:', err);
+      }
+    });
   }
 
   

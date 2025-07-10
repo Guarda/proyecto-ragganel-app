@@ -9,7 +9,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgFor } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 
 import { EstadosConsolas } from '../../../interfaces/estados';
 import { EstadoConsolasService } from '../../../../services/estado-consolas.service';
@@ -31,7 +31,7 @@ import { InsumosBase } from '../../../interfaces/insumosbase';
   selector: 'app-ingresar-insumos-pedido',
   standalone: true,
   imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
+    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule],
   templateUrl: './ingresar-insumos-pedido.component.html',
   styleUrls: ['./ingresar-insumos-pedido.component.css']
 })
@@ -44,8 +44,6 @@ export class IngresarInsumosPedidoComponent {
 
 
   Agregado = new EventEmitter();
-
-  insumoForm!: FormGroup;
   insumo!: InsumosBase;
 
   categoriasconsolas: CategoriasInsumosBase[] = [];
@@ -92,125 +90,70 @@ export class IngresarInsumosPedidoComponent {
   ) { }
 
   ngOnInit(): void {
-
-    if (!this.articulo) {
-      console.warn('⚠️ No se recibió un artículo válido.');
+    if (!this.form || !this.articulo) {
+      console.error('⚠️ Componente "IngresarInsumosPedido" no recibió un formulario o artículo válido.');
       return;
     }
 
-    //console.log("Formulario recibido:", this.form);
-    console.log("imagen", this.articulo.ImagePath);
-
-
-    // Asegurarse de que `form` no sea undefined antes de asignar el listener
-    if (this.form) {
-      console.log('aaaaa')
-      this.form.valueChanges.subscribe(() => {
-        if (this.form.valid) {
-          this.insumoAgregado.emit(this.form.value);
-        }
-      });
-    } else {
-      console.warn("El formulario no fue recibido correctamente");
-    }
-
-
-
-    this.supplyCode = this.articulo.IdModeloPK;
-    // this.consoleColor = this.producto.Color;
-    // this.consoleState = this.producto.Estado;
-    // this.consoleHack = this.producto.Hack;
-    this.supplyStock = this.articulo.Cantidad;
-    this.supplyPrice = this.articulo.Precio;
-    console.log(" el precio es:", this.articulo);
-    this.supplyManufacturer = this.articulo.FabricanteArticulo;
-    this.supplyCate = this.articulo.CategoriaArticulo;
-    this.supplySubCate = this.articulo.SubcategoriaArticulo;
-
-    this.categorias.find(this.supplyCode).subscribe((data: CategoriasInsumosBase[]) => {
-      this.categoria = data[0];
-      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-    });
-
-    this.insumoForm = this.form;
-
-    //initialization of the form
-    if (this.articulo) {
-      this.insumoForm.patchValue({
-        FabricanteInsumo: this.supplyManufacturer,
-        CateInsumo: this.supplyCate,
-        SubCategoriaInsumo: this.supplySubCate,
-        EstadoInsumo: this.supplyState,
-        PrecioBase: this.supplyPrice,
-        Cantidad: this.supplyStock,
-        StockMinimo: this.supplyMinimumStock,
-        ComentarioInsumo: this.supplyComment,
-        NumeroSerie: this.supplySerialCode,
-        IdModeloInsumosPK: this.supplyCode,
-        IdPedido: this.articulo.IdCodigoPedidoFK
-      });
-    }
-
-    // this.insumoForm = new FormGroup({
-    //   FabricanteInsumo: new FormControl('', Validators.required),
-    //   CateInsumo: new FormControl('', Validators.required),
-    //   SubCategoriaInsumo: new FormControl('', Validators.required),
-    //   IdModeloInsumosPK: new FormControl('', Validators.required),
-    //   PrecioBase: new FormControl('', Validators.required),
-    //   Cantidad: new FormControl('', Validators.required),
-    //   StockMinimo: new FormControl('', Validators.required),
-    //   EstadoInsumo: new FormControl(1, Validators.required),
-    //   ComentarioInsumo: new FormControl(''),
-    //   NumeroSerie: new FormControl(''),
-    //   IdPedido: new FormControl('')
-    // });
-
-    this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-      //console.log(data);
-      this.selectedEstado = data;
-    });
-
-    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteInsumos[]) => {
-      this.selectedFabricanteInsumos = data;
-    });
-
-    this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-      this.selectedEstado = data;
-
-    });
-
-    this.fabricanteService.getAllBase().subscribe((data: FabricanteInsumos[]) => {
-      this.selectedFabricanteInsumos = data;
-    });
-
-    this.categoriasInsumosService.getAllBase().subscribe((data: categoriasInsumos[]) => {
-      this.selectedCategoriaInsumos = data;
-    });
-
-    this.subcategoriasInsumosService.getAll().subscribe((data: SubcategoriasInsumos[]) => {
-      this.selectedSubcategoriaInsumos = data;
-    });
-
-    
-
-
-    this.cdr.detectChanges();
-
+    this.cargarDatosParaSelects();
+    this.establecerValoresIniciales();
+    this.cargarDatosDinamicosDelArticulo();
   }
 
-  getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+  private cargarDatosParaSelects(): void {
+    this.estados.getAll().subscribe(data => this.selectedEstado = data);
+    this.fabricanteService.getAllBase().subscribe(data => this.selectedFabricanteInsumos = data);
+    this.categoriasInsumosService.getAllBase().subscribe(data => this.selectedCategoriaInsumos = data);
+    this.subcategoriasInsumosService.getAll().subscribe(data => this.selectedSubcategoriaInsumos = data);
+  }
 
-    if (l == null || l === '') {
-      return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;
-    } else {
-      return `${baseUrl}/img-insumos/${l}`;
-    }
+  private establecerValoresIniciales(): void {
+    // ✅ Se usa 'this.form' para establecer los valores
+    this.form.patchValue({
+      FabricanteInsumo: this.articulo.FabricanteArticulo,
+      CateInsumo: this.articulo.CategoriaArticulo,
+      SubCategoriaInsumo: this.articulo.SubcategoriaArticulo,
+      EstadoInsumo: this.articulo.EstadoInsumo || '',
+      PrecioBase: this.formatNumber(this.articulo.Precio),
+      Cantidad: this.articulo.Cantidad,
+      StockMinimo: this.articulo.StockMinimo || 1, // Valor por defecto
+      ComentarioInsumo: this.articulo.ComentarioInsumo || '',
+      NumeroSerie: this.articulo.NumeroSerie || '',
+      IdPedido: this.articulo.IdCodigoPedidoFK
+    });
+
+    this.cdr.detectChanges();
+  }
+
+  private cargarDatosDinamicosDelArticulo(): void {
+    this.categorias.find(this.articulo.IdModeloPK).subscribe((data: CategoriasInsumosBase[]) => {
+      if (data && data.length > 0) {
+        this.ImagePath = this.getImagePath(data[0].LinkImagen);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+
+  private formatNumber(value: number | null): string {
+    return (value ?? 0).toFixed(2);
+  }
+
+  private getImagePath(imageName: string | null): string {
+    const baseUrl = 'http://localhost:3000/img-insumos';
+    return imageName ? `${baseUrl}/${imageName}` : `${baseUrl}/kingston-32gb-clase10.jpg`;
+  }
+
+  get costoFinalIngreso(): number {
+    const precioBase = parseFloat(this.form?.value?.PrecioBase || '0');
+    const cantidad = parseFloat(this.form?.value?.Cantidad || '1');
+    const costoDistribuido = parseFloat(this.form?.value?.CostoDistribuido || '0');
+    return (precioBase * cantidad) + costoDistribuido;
   }
 
   get f() {
 
-    return this.insumoForm.controls;
+    return this.form.controls;
 
   }
 

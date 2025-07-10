@@ -272,49 +272,28 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 //         });
 //     });
 // });
-
 // Endpoint para ingresar inventario
 router.post('/ingresar-inventario/', (req, res) => {
     const { idPedido, productos, accesorios, insumos } = req.body;
     console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
 
-    // Llamada al procedimiento almacenado
-    const query = 'CALL IngresarArticulosPedidov2(?, ?, ?, ?)';
-
-    // Asegurar que cada accesorio tenga los valores correctos
+    // (Aquí va tu lógica forEach para procesar los arrays, eso está bien)
     accesorios.forEach((accesorio) => {
-        if (!accesorio.CodigoConsola) {
-            accesorio.CodigoConsola = 'Sin código'; 
-        }
-
-        // Convertir arrays a cadenas separadas por comas
-        if (Array.isArray(accesorio.TodoList)) {
-            accesorio.TodoList = accesorio.TodoList.join(',');
-        }
-        if (Array.isArray(accesorio.ProductosCompatibles)) {
-            accesorio.ProductosCompatibles = accesorio.ProductosCompatibles.join(',');
-        }
+        if (!accesorio.CodigoConsola) { accesorio.CodigoConsola = 'Sin código'; }
+        if (Array.isArray(accesorio.TodoList)) { accesorio.TodoList = accesorio.TodoList.join(','); }
+        if (Array.isArray(accesorio.ProductosCompatibles)) { accesorio.ProductosCompatibles = accesorio.ProductosCompatibles.join(','); }
     });
-
     productos.forEach((producto) => {
-        if (!producto.CodigoConsola) {
-            producto.CodigoConsola = 'Sin código'; 
-        }
-
-        // Convertir arrays a cadenas separadas por comas
-        if (Array.isArray(producto.TodoList)) {
-            producto.TodoList = producto.TodoList.join(',');
-        }
-        if (Array.isArray(producto.Accesorios)) {
-            producto.Accesorios = producto.Accesorios.join(',');
-        }
-    })
-
-    insumos.forEach((insumo) => {
-        if (!insumo.CodigoConsola) {
-            insumo.CodigoConsola = 'Sin código'; 
-        }        
+        if (!producto.CodigoConsola) { producto.CodigoConsola = 'Sin código'; }
+        if (Array.isArray(producto.TodoList)) { producto.TodoList = producto.TodoList.join(','); }
+        if (Array.isArray(producto.Accesorios)) { producto.Accesorios = producto.Accesorios.join(','); }
     });
+    insumos.forEach((insumo) => {
+        if (!insumo.CodigoConsola) { insumo.CodigoConsola = 'Sin código'; }
+    });
+
+    // Llamada al procedimiento almacenado
+    const query = 'CALL IngresarArticulosPedidov3(?, ?, ?, ?)';
 
     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
     db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios), JSON.stringify(insumos)], (err, results) => {
@@ -323,16 +302,11 @@ router.post('/ingresar-inventario/', (req, res) => {
             return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
         }
 
-        // Si la consulta es exitosa, podemos devolver los códigos generados
-        const codigosGenerados = results[0][0].CodigosIngresados;  
-
-        res.status(200).send({
-            mensaje: 'Inventario ingresado correctamente',
-            codigosGenerados
-        });
+        // ✅ ¡CORRECCIÓN! Envía el resultado DIRECTO del procedimiento almacenado.
+        // results[0] contendrá el array con el objeto: [ { Resultado: '...' } ]
+        res.status(200).json(results[0]);
     });
 });
-
 
 
 // Endpoint para cancelar un pedido

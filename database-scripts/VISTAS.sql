@@ -217,7 +217,7 @@ WHERE sb.Estado = 1;
 CREATE OR REPLACE VIEW VistaArticulosInventarioV3 AS
 
 -- Productos
-SELECT 
+SELECT
     'Producto' AS Tipo,
     CONCAT(f.NombreFabricante, ' - ', c.NombreCategoria, ' - ', s.NombreSubcategoria) AS NombreArticulo,
     p.PrecioBase,
@@ -230,56 +230,70 @@ JOIN CatalogoConsolas cat ON p.Modelo = cat.IdModeloConsolaPK
 JOIN FABRICANTES f ON cat.Fabricante = f.IdFabricantePK
 JOIN CategoriasProductos c ON cat.Categoria = c.IdCategoriaPK
 JOIN SubcategoriasProductos s ON cat.Subcategoria = s.IdSubcategoria
-WHERE p.Estado not in (7,8,9,10,11) 
+WHERE p.Estado NOT IN (7, 8, 9, 10, 11)
+
 UNION
 
 -- Accesorios
-SELECT 
+SELECT
     'Accesorio' AS Tipo,
     CONCAT(fa.NombreFabricanteAccesorio, ' - ', ca.NombreCategoriaAccesorio, ' - ', sa.NombreSubcategoriaAccesorio) AS NombreArticulo,
     a.PrecioBase,
     cat.LinkImagen,
     a.CodigoAccesorio AS Codigo,
     1 AS Cantidad,
-    a.EstadoAccesorio as Estado
+    a.EstadoAccesorio AS Estado
 FROM AccesoriosBase a
 JOIN CatalogoAccesorios cat ON a.ModeloAccesorio = cat.IdModeloAccesorioPK
 JOIN FabricanteAccesorios fa ON cat.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
 JOIN CategoriasAccesorios ca ON cat.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
 JOIN SubcategoriasAccesorios sa ON cat.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
-WHERE a.EstadoAccesorio not in (7,8,9,10,11) 
+WHERE a.EstadoAccesorio NOT IN (7, 8, 9, 10, 11)
 
 UNION
 
 -- Insumos
-SELECT 
+SELECT
     'Insumo' AS Tipo,
     CONCAT(fi.NombreFabricanteInsumos, ' - ', ci.NombreCategoriaInsumos, ' - ', si.NombreSubcategoriaInsumos) AS NombreArticulo,
     i.PrecioBase,
     cat.LinkImagen,
     i.CodigoInsumo AS Codigo,
     i.Cantidad,
-    i.EstadoInsumo as Estado
+    i.EstadoInsumo AS Estado
 FROM InsumosBase i
 JOIN CatalogoInsumos cat ON i.ModeloInsumo = cat.IdModeloInsumosPK
 JOIN FabricanteInsumos fi ON cat.FabricanteInsumos = fi.IdFabricanteInsumosPK
 JOIN CategoriasInsumos ci ON cat.CategoriaInsumos = ci.IdCategoriaInsumosPK
 JOIN SubcategoriasInsumos si ON cat.SubcategoriaInsumos = si.IdSubcategoriaInsumos
-WHERE i.EstadoInsumo NOT IN (7,8,9,10,11) 
+WHERE i.EstadoInsumo NOT IN (7, 8, 9, 10, 11)
+
 UNION
 
 -- Servicios
-SELECT 
+SELECT
     'Servicio' AS Tipo,
     sb.DescripcionServicio AS NombreArticulo,
     sb.PrecioBase,
     'default_servicio.png' AS LinkImagen,
     CAST(sb.IdServicioPK AS CHAR) AS Codigo,
-    1 AS Cantidad,
+    COALESCE(MIN(FLOOR(COALESCE(ib.Cantidad, 0) / NULLIF(ixs.CantidadDescargue, 0))), 1) AS Cantidad,
     sb.Estado
-FROM ServiciosBase sb
-WHERE sb.Estado = 1;
-
+FROM
+    ServiciosBase sb
+LEFT JOIN InsumosXServicio ixs ON sb.IdServicioPK = ixs.IdServicioFK AND ixs.Estado = 1
+LEFT JOIN InsumosBase ib ON ixs.CodigoInsumoFK = ib.CodigoInsumo
+WHERE
+    sb.Estado = 1
+GROUP BY
+    sb.IdServicioPK,
+    sb.DescripcionServicio,
+    sb.PrecioBase,
+    sb.Estado
+HAVING
+    -- NO LISTAR el servicio si la cantidad calculada a partir de los insumos disponibles es 0.
+    COALESCE(MIN(FLOOR(COALESCE(ib.Cantidad, 0) / NULLIF(ixs.CantidadDescargue, 0))), 1) > 0;
+    
 select * from vistaarticulosinventarioV3
 
 

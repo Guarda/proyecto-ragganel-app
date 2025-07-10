@@ -5,15 +5,14 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Usuarios } from '../paginas/interfaces/usuarios';
 import { Cliente } from '../paginas/interfaces/clientes';
+import { VentaFinalData } from '../paginas/interfaces/ventafinal';
+import { VentaCompletaResponse } from '../paginas/interfaces/ventacompletaresponse';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VentasBaseService {
-  // This line seems to be a leftover or placeholder, you might want to remove it
-  finalizarVenta(ventaData: { IdUsuarioFK: number; IdClienteFK: number; IdMetodoPagoFK: number; IdMargenVentaFK: number | null; TotalVentaSinIVA: number; IVA: number; TotalVentaConIVA: number; NumeroReferenciaTransferencia: string | null; ObservacionesOtrosMetodoPago: string | null; }) {
-    throw new Error('Method not implemented.');
-  }
+  
   private accessoriesSubject = new BehaviorSubject<any[]>([]);
 
   private apiURL = "http://localhost:3000";
@@ -123,12 +122,48 @@ export class VentasBaseService {
       .set('TipoArticulo', datos.TipoArticulo)
       .set('CodigoArticulo', datos.CodigoArticulo);
     
-    console.log("[VentasBaseService] Realizando DELETE a", url, "con params:", params.toString());
+   // console.log("[VentasBaseService] Realizando DELETE a", url, "con params:", params.toString());
     
     // El método .delete() envía los parámetros en la URL.
     return this.httpClient.delete(url, { params: params, headers: this.httpOptions.headers })
       .pipe(catchError(this.errorHandler));
   }
+
+  finalizarVenta(ventaData: VentaFinalData): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/finalizar`; // Asegúrate que la ruta coincida con tu API
+    console.log('[VentasBaseService] Finalizando venta con datos:', ventaData);
+    return this.httpClient.post(url, ventaData, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
+  actualizarDetalleCarrito(datos: {
+    IdUsuario: number,
+    IdCliente: number,
+    TipoArticulo: string,
+    CodigoArticulo: string,
+    Descuento: number,
+    SubtotalSinIVA: number
+  }): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/carrito/actualizar-detalle`;
+    console.log("[VentasBaseService] Actualizando detalle del carrito con datos:", datos);
+    return this.httpClient.post(url, datos, this.httpOptions)
+      .pipe(catchError(this.errorHandler));
+  }
+
+  getVentaCompleta(idVenta: number): Observable<VentaCompletaResponse> {
+    const url = `${this.apiURL}/ventas-base/venta-completa/${idVenta}`;
+    console.log(`[VentasBaseService] Solicitando venta completa desde: ${url}`);
+    
+    // Realiza una petición GET a la nueva ruta y espera una respuesta
+    // que coincida con la interfaz VentaCompletaResponse.
+    return this.httpClient.get<VentaCompletaResponse>(url, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
 
   /**
    * Clears the entire shopping cart for a specific user and client in the backend.

@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>📄 ¿Descargar Proforma?</h2>
+
+<mat-dialog-content>
+  <p>
+    Estás a punto de generar un archivo PDF con el detalle completo de la proforma.
+  </p>
+  <p>¿Deseas continuar con la descarga?</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false">Cancelar</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="true" cdkFocusInitial>Sí, Descargar</button>
+</mat-dialog-actions>
