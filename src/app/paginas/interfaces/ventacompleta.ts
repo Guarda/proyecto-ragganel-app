@@ -1,4 +1,5 @@
 export interface VentaCompleta {
+NombreMetodoPago: any;
   IdVentaPK: number;
   FechaCreacion: string;
   NumeroDocumento: string;

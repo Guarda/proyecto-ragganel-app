@@ -1,5 +1,5 @@
 export interface VentaFinalData {
-  fecha: string;
+  //fecha: string;
   idTipoDocumento: number;
   subtotal: number;
   iva: number;

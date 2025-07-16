@@ -1,0 +1,113 @@
+<div class="main-container">
+
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando datos de la factura...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-container">
+    <h2>Error</h2>
+    <p>{{ errorMessage }}</p>
+    <a mat-stroked-button routerLink="/home/listado-ventas">Volver al Listado</a>
+  </div>
+
+  <div *ngIf="!isLoading && venta" class="factura-content">
+    
+    <div class="header">
+      <h1>
+        <mat-icon class="header-icon">receipt_long</mat-icon>
+        Detalle de Factura: {{ venta.NumeroDocumento }}
+      </h1>
+      <div class="actions">
+        <button mat-raised-button color="accent" (click)="abrirDialogoNotaCredito()">
+          <mat-icon>request_quote</mat-icon>
+          Crear Nota de Crédito
+        </button>
+        <a mat-stroked-button routerLink="/home/listado-ventas">
+          <mat-icon>arrow_back</mat-icon>
+          Volver al listado
+        </a>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="info-cards">
+
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>Información General</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p><strong>Cliente:</strong> {{ venta.NombreCliente }}</p>
+          <p><strong>Identificación:</strong> {{ venta.RUC || venta.DNI || 'N/A' }}</p>
+          <p><strong>Fecha de Emisión:</strong> {{ venta.FechaCreacion | date:'dd/MM/yyyy h:mm a' }}</p>
+          <p><strong>Vendedor:</strong> {{ venta.NombreUsuario }}</p>
+          <p><strong>Método de Pago:</strong> {{ venta.NombreMetodoPago }}</p>
+          <p><strong>Observaciones:</strong> {{ venta.Observaciones || 'Sin observaciones' }}</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>Resumen Financiero</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="totales-content">
+        <div class="total-line">
+            <span>Subtotal Bruto:</span>
+            <span>{{ subtotalBruto | currency:'USD' }}</span>
+        </div>
+
+        <div class="total-line descuento">
+            <span>Descuento Total:</span>
+            <span>- {{ totalDescuentos | currency:'USD' }}</span>
+        </div>
+
+        <div class="total-line">
+            <span>Subtotal Neto (s/IVA):</span>
+            <span>{{ venta.SubtotalVenta | currency:'USD' }}</span>
+        </div>
+
+        <div class="total-line">
+            <span>IVA (15%):</span>
+            <span>{{ venta.IVA | currency:'USD' }}</span>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="total-line grand-total">
+            <span>TOTAL PAGADO:</span>
+            <span>{{ venta.TotalVenta | currency:'USD' }}</span>
+        </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Artículos de la Venta</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list role="list">
+          <ng-container *ngFor="let item of detalles; let last = last">
+            <mat-list-item role="listitem">
+            <div class="list-item-grid-container">
+                <span class="item-cantidad">{{ item.Cantidad }}x</span>
+                <span class="item-nombre">{{ item.NombreArticulo }}</span>
+               <span class="item-precio">
+                &#64; {{ (item.SubtotalLinea / item.Cantidad) | currency:'USD' }}
+                </span>
+                <span class="item-subtotal">
+                {{ item.SubtotalLinea | currency:'USD' }}
+                </span>
+            </div>
+            </mat-list-item>
+            <mat-divider *ngIf="!last"></mat-divider>
+          </ng-container>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

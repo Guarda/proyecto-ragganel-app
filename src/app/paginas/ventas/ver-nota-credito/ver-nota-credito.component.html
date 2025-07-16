@@ -1,0 +1,107 @@
+<div class="main-container">
+
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando datos de la Nota de Crédito...</p>
+  </div>
+  <div *ngIf="errorMessage" class="error-container">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <h2>Error al Cargar</h2>
+    <p>{{ errorMessage }}</p>
+    <a mat-stroked-button routerLink="/home/listado-notas-credito">Volver al Listado</a>
+  </div>
+
+  <div *ngIf="!isLoading && encabezado" class="content-container">
+    
+    <div class="header">
+      <h1>
+        <mat-icon class="header-icon" color="primary">description</mat-icon>
+        Nota de Crédito: #{{ encabezado.IdNotaCreditoPK }}
+      </h1>
+      <div class="actions">
+        <button mat-flat-button color="primary" (click)="descargarPDF()" matTooltip="Descargar como PDF">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Descargar
+        </button>
+        <button mat-stroked-button color="warn" (click)="anularNotaCredito()" [disabled]="encabezado.EstadoNota === 'Anulada'" matTooltip="Anular esta nota de crédito">
+            <mat-icon>block</mat-icon>
+            Anular
+        </button>
+        <a mat-stroked-button routerLink="/home/listado-notas-credito">
+          <mat-icon>arrow_back</mat-icon>
+          Volver
+        </a>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="info-cards">
+
+      <mat-card class="info-card">
+        <mat-card-header><mat-card-title>Información General</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <p><strong>Cliente:</strong> {{ encabezado.NombreCliente }}</p>
+          <p><strong>Identificación:</strong> {{ encabezado.RUC || encabezado.DNI || 'N/A' }}</p>
+          <p><strong>Factura Original:</strong> {{ encabezado.VentaOriginal }}</p>
+          <p><strong>Fecha de Emisión:</strong> {{ encabezado.FechaEmision | date:'dd/MM/yyyy h:mm a' }}</p>
+          <p><strong>Emitido por:</strong> {{ encabezado.UsuarioEmisor }}</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="info-card">
+        <mat-card-header><mat-card-title>Detalles del Crédito</mat-card-title></mat-card-header>
+        <mat-card-content class="totales-content">
+          <p><strong>Motivo Principal:</strong> {{ encabezado.Motivo }}</p>
+          <p><strong>Observaciones:</strong> {{ encabezado.ObservacionesAdicionales || 'Sin observaciones adicionales.' }}</p>
+          <mat-divider></mat-divider>
+          <div class="total-line grand-total">
+            <span>TOTAL CRÉDITO:</span>
+            <span>{{ encabezado.TotalCredito | currency:'USD' }}</span>
+          </div>
+          <div class="total-line status-line">
+            <span>Estado:</span>
+            <span class="status-badge" [ngClass]="encabezado.EstadoNota === 'Activa' ? 'status-activa' : 'status-anulada'">
+                {{ encabezado.EstadoNota }}
+            </span>
+          </div>
+          
+          <div *ngIf="encabezado.EstadoNota === 'Anulada'" class="anulacion-details">
+            <mat-divider></mat-divider>
+            <p><strong>Anulado por:</strong> {{ encabezado.UsuarioAnulador || 'No disponible' }}</p>
+            <p><strong>Fecha de Anulación:</strong> {{ encabezado.FechaAnulacion | date:'dd/MM/yyyy h:mm a' }}</p>
+            <p><strong>Motivo de Anulación:</strong> {{ encabezado.MotivoAnulacion || 'Sin motivo específico.' }}</p>
+          </div>
+
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Artículos Devueltos</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list role="list">
+          <ng-container *ngFor="let item of detalles; let last = last">
+            <mat-list-item role="listitem">
+              <div class="list-item-grid">
+                <span class="item-cantidad">{{ item.Cantidad }}x</span>
+                <span class="item-codigo">[{{ item.CodigoArticulo }}]</span>
+                <span class="item-tipo">{{ item.TipoArticulo }}</span>
+                <span class="item-precio">&#64; {{ item.PrecioUnitario | currency:'USD' }}</span>
+                <span class="item-subtotal">{{ item.Subtotal | currency:'USD' }}</span>
+              </div>
+            </mat-list-item>
+            <mat-divider *ngIf="!last"></mat-divider>
+          </ng-container>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>
+
+
+
+

@@ -1,0 +1,114 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>Crear Nota de Crédito</h2>
+  <button mat-icon-button (click)="onCancelar()" class="close-button" aria-label="Cerrar diálogo">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="mat-typography">
+  <p class="subtitle">
+    Aplicando nota a la Factura: <strong>{{ data.venta.NumeroDocumento }}</strong>
+  </p>
+
+  <div class="form-container">
+  <div class="form-row">
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Motivo del Crédito</mat-label>
+      <mat-select [(ngModel)]="motivoSeleccionado" (selectionChange)="onMotivoChange()" required>
+        <mat-option *ngFor="let motivo of motivos" [value]="motivo.IdMotivoPK">
+          {{ motivo.Descripcion }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Observaciones Adicionales (Motivo Detallado)</mat-label>
+      <textarea matInput [(ngModel)]="observaciones" rows="3" placeholder="Ej: El cliente devolvió el producto..."></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="checkbox-section">
+    <mat-checkbox 
+        [(ngModel)]="anularFactura"
+        [disabled]="esMotivoCancelacionCompleta()"
+        matTooltip="Marca esta casilla para anular la factura original. Se marcará automáticamente si eliges 'Cancelación de factura completa'.">
+      Anular factura original
+    </mat-checkbox>
+  </div>
+</div>
+  
+  <mat-divider></mat-divider>
+
+  <div class="table-section">
+    <h3>Seleccione la cantidad y/o monto a devolver</h3>
+    <div class="table-container mat-elevation-z2">
+      <table mat-table [dataSource]="itemsADevolver">
+        
+        <ng-container matColumnDef="nombreArticulo">
+          <th mat-header-cell *matHeaderCellDef>Artículo</th>
+          <td mat-cell *matCellDef="let item"> 
+            <div class="product-cell">
+              <span>{{item.NombreArticulo}}</span>
+              <small>Facturado &#64; {{ (item.SubtotalLinea / item.Cantidad) | currency:'USD' }} c/u</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidadOriginal">
+          <th mat-header-cell *matHeaderCellDef class="center-align">Cant. Orig.</th>
+          <td mat-cell *matCellDef="let item" class="center-align">{{item.Cantidad}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidadADevolver">
+          <th mat-header-cell *matHeaderCellDef class="center-align">Cant. a Devolver</th>
+          <td mat-cell *matCellDef="let item" class="center-align">
+            <mat-form-field class="cantidad-input" appearance="outline">
+              <input matInput type="number" [(ngModel)]="item.cantidadADevolver" (input)="onCantidadChange(item)" min="0" [max]="item.Cantidad">
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="subtotalDevolucion">
+          <th mat-header-cell *matHeaderCellDef class="right-align">Monto a Acreditar</th>
+          <td mat-cell *matCellDef="let item" class="right-align">
+            <mat-form-field class="subtotal-input" appearance="outline">
+              <span matTextPrefix>$&nbsp;</span>
+              <input matInput type="number" [(ngModel)]="item.subtotalDevolucion" (input)="onSubtotalChange(item)" min="0">
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="reingresarAInventario">
+          <th mat-header-cell *matHeaderCellDef class="center-align">Reingresar</th>
+          <td mat-cell *matCellDef="let item" class="center-align">
+            <mat-checkbox 
+                *ngIf="item.TipoArticulo !== 'Servicio'" 
+                [(ngModel)]="item.reingresarAInventario"
+                matTooltip="Marcar si el artículo debe volver al inventario. Desmarcar si está dañado.">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <mat-form-field class="descuento-general-input" appearance="outline">
+    <mat-label>Desc. General</mat-label>
+    <input matInput type="number" [(ngModel)]="descuentoGeneralPorcentaje" (input)="recalcularTotalCredito()" min="0" max="100">
+    <span matTextSuffix>%</span>
+  </mat-form-field>
+  <div class="total-summary">
+    <span>Total del Crédito:</span>
+    <span class="total-amount">{{ totalCredito | currency:'USD' }}</span>
+  </div>
+  <div class="action-buttons">
+    <button mat-stroked-button (click)="onCancelar()">Cancelar</button>
+    <button mat-raised-button color="primary" (click)="onConfirmar()" [disabled]="!motivoSeleccionado || totalCredito <= 0">Crear Nota</button>
+  </div>
+</mat-dialog-actions>

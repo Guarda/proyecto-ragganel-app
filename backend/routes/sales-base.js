@@ -57,7 +57,7 @@ router.get('/metodos-de-pago', (req, res) => {
 // create sale proforma
 router.post('/ingresar-venta', (req, res) => {
   const {
-    FechaCreacion, TipoDocumento,
+    TipoDocumento,
     SubtotalVenta, IVA, TotalVenta, EstadoVenta,
     MetodoPago, Margen, Usuario, Cliente, Observaciones,
     NumeroReferenciaTransferencia, Detalles
@@ -71,14 +71,13 @@ router.post('/ingresar-venta', (req, res) => {
   // El parámetro de SALIDA (OUT) se maneja con @codigoGenerado directamente.
   const query = `
     CALL InsertarVentaProforma(
-      ?, ?, @codigoGenerado, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, @codigoGenerado, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     );
     SELECT @codigoGenerado AS CodigoProforma;
   `;
 
   // CORRECIÓN: El orden de los parámetros debe coincidir con la consulta.
   const params = [
-    FechaCreacion,                      // p_Fecha
     TipoDocumento,                      // p_TipoDocumento
     // @codigoGenerado se maneja en el SQL, no se pasa aquí
     SubtotalVenta,                      // p_Subtotal
@@ -227,7 +226,7 @@ router.post('/eliminar-linea-del-carrito', (req, res) => {
 router.post('/finalizar', (req, res) => {
     // Se extraen los datos, ya NO se necesita 'numeroDocumento' del frontend
     const {
-        fecha, idTipoDocumento, subtotal, iva, total,
+        idTipoDocumento, subtotal, iva, total,
         idEstadoVenta, idMetodoPago, idMargen,
         idUsuario, idCliente, observaciones
     } = req.body;
@@ -238,13 +237,13 @@ router.post('/finalizar', (req, res) => {
 
     // El array de argumentos ahora tiene un elemento menos
     const args = [
-        fecha, idTipoDocumento, subtotal, iva, total,
+        idTipoDocumento, subtotal, iva, total,
         idEstadoVenta, idMetodoPago, idMargen,
         idUsuario, idCliente, observaciones
     ];
 
     // La llamada al SP también tiene un placeholder '?' menos
-    const sql = 'CALL RealizarVentaYDescargarInventario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = 'CALL RealizarVentaYDescargarInventario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
     db.query(sql, args, (err, results) => {
         if (err) {
@@ -391,6 +390,27 @@ router.get('/venta-completa/:idVenta', (req, res) => {
         detalles: detallesVenta
       }
     });
+  });
+});
+
+router.get('/motivos-nota-credito', (req, res) => {
+  // 1. Preparamos la llamada al procedimiento almacenado.
+  const query = 'CALL sp_ListarMotivosNotaCredito();';
+
+  // 2. Ejecutamos la consulta en la base de datos.
+  db.query(query, (err, results) => {
+    // 3. Manejo de errores.
+    if (err) {
+      console.error('Error al obtener los motivos de nota de crédito:', err);
+      return res.status(500).json({ 
+        success: false, 
+        mensaje: 'Error en el servidor al consultar los motivos.' 
+      });
+    }
+
+    // 4. Envío de la respuesta exitosa.
+    // El resultado de un SP siempre viene en un array, usualmente en la posición [0].
+    res.status(200).json(results[0]);
   });
 });
 

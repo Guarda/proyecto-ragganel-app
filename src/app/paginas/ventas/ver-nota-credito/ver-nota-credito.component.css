@@ -1,0 +1,123 @@
+:host {
+  display: block;
+}
+.main-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: auto;
+  font-family: 'Roboto', sans-serif;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.header h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.8em;
+  color: #3f51b5;
+  margin: 0;
+}
+.header .actions {
+  display: flex;
+  gap: 16px;
+}
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+.info-card p {
+  margin: 0 0 12px 0;
+  color: #555;
+}
+.info-card p strong {
+    color: #333;
+}
+.totales-content .total-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  align-items: center;
+}
+.totales-content .grand-total {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #d32f2f; /* Rojo para destacar el crédito */
+  margin-top: 8px;
+}
+.status-line {
+    font-size: 1.1em;
+}
+.list-item-grid {
+  display: grid;
+  grid-template-columns: 50px 150px 1fr 120px 120px;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+}
+.item-codigo {
+  font-family: 'Courier New', Courier, monospace;
+  color: #777;
+}
+.item-tipo {
+  font-weight: 500;
+}
+.item-precio, .item-subtotal {
+  text-align: right;
+  font-weight: 500;
+}
+.item-subtotal {
+    color: #333;
+}
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 50px;
+  gap: 20px;
+  color: #555;
+  text-align: center;
+}
+.error-container mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+}
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    color: #fff;
+    font-size: 12px;
+}
+.status-activa { background-color: #28a745; }
+.status-anulada { background-color: #dc3545; }
+
+/* ... todos tus estilos existentes ... */
+
+/* ===== NUEVOS ESTILOS PARA LA SECCIÓN DE ANULACIÓN ===== */
+.anulacion-details {
+  margin-top: 16px;
+  padding-top: 16px;
+  background-color: rgba(220, 53, 69, 0.05); /* Fondo rojo muy sutil */
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.anulacion-details p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.anulacion-details p strong {
+  color: #333;
+}

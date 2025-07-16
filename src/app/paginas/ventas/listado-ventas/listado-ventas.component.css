@@ -1,196 +1,226 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Roboto, sans-serif;
-  background-color: #f3f4f6;
-}
-
+/* Estructura principal y cabecera */
 .container {
-  margin: 20px auto;
-  max-width: 1280px;
-  background-color: #ffffff;
-  border-radius: 8px;
+  margin: 24px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-radius: 12px;
 }
 
-.cabezera {
+.header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  align-items: flex-end;
-  justify-content: space-between;
   margin-bottom: 24px;
 }
 
-.filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
+.header h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
 }
 
-.mat-form-field {
+.actions-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filtro-texto {
+  width: 250px;
+}
+.filtro-fecha {
+  width: 180px;
+}
+
+.button-crear {
+  height: 48px; /* Para alinear con los campos de formulario "outline" */
+}
+
+/* Contenedor de la tabla y estados de UI */
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  min-height: 400px;
+  width: 100%;
+}
+
+.spinner-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+}
+
+.error-container {
+  gap: 16px;
+  color: #777;
+}
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3f51b5;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilos de la tabla y celdas */
+table {
+  width: 100%;
+}
+
+th.mat-header-cell, td.mat-cell {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th.mat-header-cell:last-child, td.mat-cell:last-child {
+  text-align: center;
+}
+
+/* Badges de Estado */
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  color: #fff;
+  font-size: 12px;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-pagado { background-color: #28a745; }
+.status-anulado { background-color: #dc3545; }
+.status-pendiente { background-color: #ffc107; color: #333; }
+.status-default { background-color: #6c757d; }
+
+/* Colores de botones de acción */
+.actions-cell {
+  white-space: nowrap;
+}
+.color-pdf { color: #c0392b; }
+.color-factura { color: #2980b9; }
+.color-nota-credito { color: #f39c12; }
+
+/* ===== ESTILOS PARA EL LISTADO DE VENTAS RESPONSIVO Y MODERNO ===== */
+
+:host {
+  display: block; /* Asegura que el componente ocupe el espacio de bloque disponible */
+}
+
+/* 1. Contenedor principal fluido */
+.container {
+  /* Hacemos que el contenedor sea fluido y ocupe el ancho disponible */
+  width: calc(100% - 48px);
+  max-width: 1800px; /* Un límite generoso para pantallas ultra-anchas */
+  margin: 24px auto; /* Margen vertical y centrado horizontal */
+  
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+/* 2. Cabecera organizada con Flexbox */
+.cabezera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.cabezera h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+/* Contenedor para los filtros y el botón de crear */
+.filtros {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Ajustes a los campos de formulario y botones */
+.filtros .mat-form-field {
   width: 200px;
 }
 
 .button-crear-prod {
-  background-color: #1976d2;
-  color: white;
-  font-weight: 500;
-  border-radius: 4px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  height: 48px; /* Altura consistente con los campos de formulario "outline" */
+}
+
+/* 3. Estilos de la tabla y celdas */
+.table-container {
+  position: relative;
+  overflow-x: auto; /* Permite scroll horizontal en la tabla si es necesario */
+  width: 100%;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
 }
 
-th.mat-header-cell,
-td.mat-cell {
+th.mat-header-cell, td.mat-cell {
+  padding: 8px 16px;
+  text-align: left;
+  white-space: nowrap; /* Evita que el texto de las celdas se parta en varias líneas */
+}
+
+th.mat-header-cell:last-child, td.mat-cell:last-child {
   text-align: center;
-  padding: 12px 8px;
 }
 
+/* 4. Badges de Estado (consistente con otros componentes) */
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  color: #fff;
+  font-size: 12px;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-pagado { background-color: #28a745; }
+.status-anulado { background-color: #dc3545; }
+.status-pendiente { background-color: #ffc107; color: #333; }
+.status-default { background-color: #6c757d; }
+
+/* 5. Contenedor de botones de acción */
 .contenedor-botones {
   display: flex;
   justify-content: center;
-  gap: 10px;
-}
-
-.button-editar-prod {
-  color: green !important;
-}
-
-.button-eliminar-prod {
-  color: red !important;
-}
-
-.button-historial-prod {
-  color: purple !important;
-}
-
-.foo-paginator {
-  margin-top: 20px;
-  background-color: #fafafa;
-  border-top: 1px solid #ddd;
-  padding: 10px;
-}
-
-footer {
-  margin-top: 30px;
-  text-align: center;
-  font-size: 13px;
-  color: #666;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Roboto, sans-serif;
-  background-color: #f3f4f6;
-}
-
-.container {
-  margin: 20px auto;
-  max-width: 1280px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.cabezera {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
-}
-
-.mat-form-field {
-  width: 200px;
-}
-
-.button-crear-prod {
-  background-color: #1976d2;
-  color: white;
-  font-weight: 500;
-  border-radius: 4px;
-  height: 40px;
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th.mat-header-cell,
-td.mat-cell {
-  text-align: center;
-  padding: 12px 8px;
-}
-
-.contenedor-botones {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-/* ======== NUEVOS ESTILOS SUGERIDOS ======== */
-
-.button-procesar {
-  color: #28a745 !important; /* Verde */
-}
-
-.button-pdf {
-  color: #dc3545 !important; /* Rojo oscuro */
-}
-
-.button-nota-credito {
-  color: #ffc107 !important; /* Amarillo */
-}
-
-
-/* ======== ESTILOS EXISTENTES ======== */
-
-.button-editar-prod {
-  color: green !important;
-}
-
-.button-eliminar-prod {
-  color: red !important;
-}
-
-.button-historial-prod {
-  color: purple !important;
-}
-
+/* Paginador */
 .foo-paginator {
   margin-top: 20px;
-  background-color: #fafafa;
-  border-top: 1px solid #ddd;
-  padding: 10px;
-}
-
-footer {
-  margin-top: 30px;
-  text-align: center;
-  font-size: 13px;
-  color: #666;
 }

@@ -1,0 +1,133 @@
+/* --- Encabezado del Diálogo --- */
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+.dialog-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+.close-button {
+  margin-top: -8px;
+  margin-right: -12px;
+}
+
+/* --- Contenido Principal del Diálogo --- */
+mat-dialog-content {
+  padding: 24px;
+}
+.subtitle {
+  margin-top: -10px;
+  margin-bottom: 24px;
+  color: #616161;
+}
+
+/* --- Sección del Formulario (Motivo, Observaciones, Checkbox) --- */
+.form-container {
+  display: flex;
+  flex-direction: column; /* Apila las filas verticalmente */
+  gap: 16px;             /* Espacio entre la fila de inputs y el checkbox */
+  margin-bottom: 24px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+  gap: 20px;
+}
+.form-field {
+  width: 100%;
+}
+.checkbox-section {
+  padding-top: 8px; /* Espacio sobre el checkbox */
+}
+
+/* --- Sección de la Tabla de Artículos --- */
+.table-section h3 {
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+.table-container {
+  border-radius: 8px;
+  overflow: hidden;
+}
+table {
+  width: 100%;
+}
+
+/* --- Celdas y Columnas Específicas de la Tabla --- */
+th.mat-header-cell, td.mat-cell {
+  padding: 8px 16px;
+}
+td.mat-cell:last-of-type, th.mat-header-cell:last-of-type {
+  padding-right: 24px;
+}
+td.mat-cell:first-of-type, th.mat-header-cell:first-of-type {
+  padding-left: 24px;
+}
+
+.product-cell {
+  display: flex;
+  flex-direction: column;
+}
+.product-cell small {
+  font-size: 0.75rem;
+  color: #757575;
+}
+
+.cantidad-input {
+  width: 90px;
+}
+.subtotal-input {
+  width: 120px;
+}
+/* Elimina el espacio extra debajo de los inputs en la tabla */
+.cantidad-input .mat-form-field-wrapper,
+.subtotal-input .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+.center-align {
+  text-align: center;
+}
+.right-align {
+  text-align: right;
+}
+
+/* --- Barra de Acciones Inferior --- */
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.descuento-general-input {
+  width: 150px;
+  margin-right: 16px; /* Espacio a la derecha del input de descuento */
+}
+.descuento-general-input .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+.total-summary {
+  font-size: 1rem;
+  color: #424242;
+  flex-grow: 1; /* Hace que ocupe el espacio disponible */
+}
+.total-summary .total-amount {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #3f51b5; /* Primary color */
+  margin-left: 8px;
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}

@@ -633,7 +633,7 @@ CREATE TABLE VentasBase(
     FOREIGN KEY (IdClienteFK) REFERENCES Clientes (IdCLientePK)
 );
 
-
+ALTER TABLE VentasBase MODIFY COLUMN FechaCreacion DATETIME NOT NULL;
 
 /*tabla adicional para almacenar informacion extra y opcional de la venta*/
 CREATE TABLE VentasEXT(
@@ -742,6 +742,10 @@ CREATE TABLE NotasCredito (
     FOREIGN KEY (UsuarioEmisorFK) REFERENCES Usuarios(IdUsuarioPK)
 );
 
+ALTER TABLE NotasCredito
+ADD COLUMN IdMotivoFK INT,
+ADD FOREIGN KEY (IdMotivoFK) REFERENCES MotivosNotaCredito(IdMotivoPK);
+
 
 
 CREATE TABLE DetalleNotaCredito (
@@ -754,6 +758,33 @@ CREATE TABLE DetalleNotaCredito (
     Subtotal DECIMAL(10,2),
     FOREIGN KEY (IdNotaCreditoFK) REFERENCES NotasCredito(IdNotaCreditoPK)
 );
+
+CREATE TABLE MotivosNotaCredito (
+    IdMotivoPK INT AUTO_INCREMENT PRIMARY KEY,
+    Descripcion VARCHAR(255) NOT NULL,
+    Activo BOOLEAN DEFAULT TRUE
+);
+
+INSERT INTO MotivosNotaCredito (Descripcion) VALUES
+('Devolución por garantía'),
+('Producto dañado o defectuoso'),
+('Error en facturación'),
+('Cancelación de factura completa'),
+('Ajuste de precio post-venta'),
+('Producto incorrecto enviado');
+
+CREATE TABLE HistorialNotasCredito (    
+    IdHistorialNC_PK INT AUTO_INCREMENT PRIMARY KEY,    
+    IdNotaCreditoFK INT NOT NULL,    
+    TipoAccion ENUM('CREACION', 'ANULACION') NOT NULL,    
+    IdUsuarioFK INT NOT NULL,
+    FechaAccion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    Detalles VARCHAR(255) NULL,
+    FOREIGN KEY (IdNotaCreditoFK) REFERENCES NotasCredito(IdNotaCreditoPK),
+    FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios(IdUsuarioPK)
+);
+
+
 
 
 

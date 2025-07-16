@@ -36,6 +36,7 @@ const uploadimageinsumosRouter = require('./routes/upload-image-supplies');
 const servicesbaseRouter = require('./routes/services-base');
 const articlelistRouter = require('./routes/article-list');
 const salesbaseRouter = require('./routes/sales-base');
+const creditnotesRouter = require('./routes/credit-notes');
 // Middleware
 app.use(express.json());
 
@@ -81,6 +82,7 @@ app.use('/clientes', clientesRouter); // Ruta para clientes
 app.use('/servicios-base', servicesbaseRouter); // Ruta para servicios base
 app.use('/articulo-lista', articlelistRouter); // Ruta para lista de artículos
 app.use('/ventas-base', salesbaseRouter); // Ruta para ventas base
+app.use('/notas-credito', creditnotesRouter); // Ruta para notas de crédito
 app.use('/auth', authRoutes); // Ruta para autenticación
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {

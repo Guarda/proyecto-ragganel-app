@@ -1,0 +1,22 @@
+
+<h1 mat-dialog-title>Confirmar Descarga de Factura</h1>
+
+<div mat-dialog-content>
+  <p>Por favor, selecciona el formato de impresión que deseas para la factura.</p>
+  
+  <mat-radio-group [(ngModel)]="formatoSeleccionado" class="radio-group">
+    <mat-radio-button value="completo" class="radio-button">
+      Formato Completo (PDF estándar)
+    </mat-radio-button>
+    <mat-radio-button value="voucher" class="radio-button">
+      Formato Voucher (Tiquete térmico)
+    </mat-radio-button>
+  </mat-radio-group>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="confirmar()" cdkFocusInitial>
+    Descargar
+  </button>
+</div>

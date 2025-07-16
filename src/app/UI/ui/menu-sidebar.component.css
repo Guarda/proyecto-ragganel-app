@@ -164,5 +164,59 @@ mat-list-item.router-link-active {
   vertical-align: middle;
 }
 
+/* ===== NUEVOS ESTILOS PARA INTEGRAR EL MENÚ DESPLEGABLE ===== */
 
+/* 1. Eliminamos la apariencia de "caja" del panel de expansión */
+mat-expansion-panel {
+  background: transparent !important; /* Hacemos el fondo transparente */
+  box-shadow: none !important;      /* Eliminamos cualquier sombra */
+}
+
+/* 2. Hacemos que la cabecera del panel se vea exactamente como un mat-list-item */
+mat-expansion-panel-header {
+  padding: 0 16px; /* Ajustamos el padding para que coincida con los otros items */
+  height: 48px;    /* Misma altura que un mat-list-item */
+  font-size: 14px;
+  font-weight: 500;
+  color: #424242;
+  border-radius: 5px;
+  transition: background 0.3s ease-in-out;
+}
+mat-expansion-panel-header:hover {
+  background: rgba(25, 118, 210, 0.1);
+}
+
+/* 3. Ocultamos el ícono de flecha por defecto del panel */
+mat-expansion-panel-header::after {
+  display: none;
+}
+
+/* 4. Quitamos el padding del cuerpo del panel para que la lista anidada ocupe todo el espacio */
+.mat-expansion-panel-body {
+  padding: 0 !important;
+}
+
+/* 5. Añadimos la sangría a los sub-ítems para crear la jerarquía visual */
+mat-expansion-panel .mat-nav-list a[mat-list-item] {
+  padding-left: 36px !important; /* Aumentamos la sangría para los elementos anidados */
+}
+
+/* Si tienes un segundo nivel de anidación (un panel dentro de otro) */
+mat-expansion-panel mat-expansion-panel .mat-nav-list a[mat-list-item] {
+  padding-left: 56px !important; /* Aumentamos aún más la sangría */
+}
+
+/* --- AJUSTES ADICIONALES PARA CONSISTENCIA --- */
+
+/* Aseguramos que el ícono y el texto dentro de la cabecera estén alineados */
+mat-expansion-panel-header .mat-content {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Mismo espaciado que en tus mat-list-item */
+}
+
+/* Ajustes para el ícono principal dentro del panel */
+mat-expansion-panel-header .iconos_menu {
+  margin-right: 0; /* Quitamos el margen derecho que ya no es necesario gracias a 'gap' */
+}
 

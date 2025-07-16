@@ -3245,13 +3245,14 @@ END $$
 
 DELIMITER ;
 
+-- Primero, elimina el procedimiento existente para poder crearlo de nuevo
+DROP PROCEDURE IF EXISTS InsertarVentaProforma;
 
-
+-- Vuelve a crearlo con la lógica corregida
 DELIMITER $$
 
 CREATE PROCEDURE InsertarVentaProforma (
-/*PROCEDIMIENTO INGRESAR PROFORMA CREADO 09/06/2025*/
-    IN p_Fecha DATE,
+    -- 1. Se elimina el parámetro de entrada p_Fecha DATE
     IN p_TipoDocumento INT,
     OUT p_NumeroDocumento VARCHAR(255),
     IN p_Subtotal DECIMAL(10,2),
@@ -3267,60 +3268,61 @@ CREATE PROCEDURE InsertarVentaProforma (
     IN p_Detalles JSON
 )
 BEGIN
-  DECLARE lastVentaId INT;
-  DECLARE i INT DEFAULT 0;
-  DECLARE totalItems INT;
-  DECLARE nuevoCodigo VARCHAR(255);
+    DECLARE lastVentaId INT;
+    DECLARE i INT DEFAULT 0;
+    DECLARE totalItems INT;
+    DECLARE nuevoCodigo VARCHAR(255);
 
-  -- Generar el código: P-<timestamp cortado> o autoincremental
-  SET nuevoCodigo = CONCAT('P-', LPAD((SELECT COUNT(*) + 1 FROM VentasBase), 6, '0'));
-  SET p_NumeroDocumento = nuevoCodigo;
+    -- Se genera un código único para la proforma
+    SET nuevoCodigo = CONCAT('P-', LPAD((SELECT COUNT(*) + 1 FROM VentasBase WHERE IdTipoDocumentoFK = 2), 6, '0'));
+    SET p_NumeroDocumento = nuevoCodigo;
 
-  -- Insertar en tabla principal
-  INSERT INTO VentasBase (
-    FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
-    SubtotalVenta, IVA, TotalVenta,
-    IdEstadoVentaFK, IdMetodoDePagoFK, IdMargenVentaFK,
-    IdUsuarioFK, IdClienteFK, Observaciones
-  )
-  VALUES (
-    p_Fecha, p_TipoDocumento, nuevoCodigo,
-    p_Subtotal, p_IVA, p_Total,
-    p_Estado, p_MetodoPago, p_Margen,
-    p_Usuario, p_Cliente, p_Observaciones
-  );
-
-  SET lastVentaId = LAST_INSERT_ID();
-
-  -- Insertar en tabla EXT si hay referencia
-  IF p_ReferenciaTransferencia IS NOT NULL AND p_ReferenciaTransferencia != '' THEN
-    INSERT INTO VentasEXT (IdVentaFK, NumeroReferenciaTransferencia)
-    VALUES (lastVentaId, p_ReferenciaTransferencia);
-  END IF;
-
-  -- Insertar detalle
-  SET totalItems = JSON_LENGTH(p_Detalles);
-
-  WHILE i < totalItems DO
-    INSERT INTO DetalleVenta (
-      IdVentaFK, TipoArticulo, CodigoArticulo,
-      PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
+    -- Insertar en tabla principal
+    INSERT INTO VentasBase (
+        FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
+        SubtotalVenta, IVA, TotalVenta,
+        IdEstadoVentaFK, IdMetodoDePagoFK, IdMargenVentaFK,
+        IdUsuarioFK, IdClienteFK, Observaciones
     )
     VALUES (
-      lastVentaId,
-      JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Tipo'))),
-      JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Codigo'))),
-      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Precio')),
-      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Descuento')),
-      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Subtotal')),
-      JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Cantidad'))
+        -- 2. Se reemplaza p_Fecha por NOW() para que la BD inserte la fecha y hora actual
+        NOW(), p_TipoDocumento, nuevoCodigo,
+        p_Subtotal, p_IVA, p_Total,
+        p_Estado, p_MetodoPago, p_Margen,
+        p_Usuario, p_Cliente, p_Observaciones
     );
-    SET i = i + 1;
-  END WHILE;
+
+    SET lastVentaId = LAST_INSERT_ID();
+
+    -- Insertar en tabla EXT si hay referencia
+    IF p_ReferenciaTransferencia IS NOT NULL AND p_ReferenciaTransferencia != '' THEN
+        INSERT INTO VentasEXT (IdVentaFK, NumeroReferenciaTransferencia)
+        VALUES (lastVentaId, p_ReferenciaTransferencia);
+    END IF;
+
+    -- Insertar detalle (sin cambios)
+    SET totalItems = JSON_LENGTH(p_Detalles);
+    WHILE i < totalItems DO
+        INSERT INTO DetalleVenta (
+            IdVentaFK, TipoArticulo, CodigoArticulo,
+            PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
+        )
+        VALUES (
+            lastVentaId,
+            JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Tipo'))),
+            JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Codigo'))),
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Precio')),
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Descuento')),
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Subtotal')),
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Cantidad'))
+        );
+        SET i = i + 1;
+    END WHILE;
 
 END$$
 
 DELIMITER ;
+
 
 
 select * from ventasbase;
@@ -3377,13 +3379,14 @@ DELIMITER ;
 
 call ListarVentasPorUsuario(4);
 
-/**/
+-- Primero, elimina el procedimiento existente
 DROP PROCEDURE IF EXISTS RealizarVentaYDescargarInventario;
+
+-- Vuelve a crearlo con la lógica corregida
 DELIMITER $$
 
 CREATE PROCEDURE RealizarVentaYDescargarInventario (
-    -- Parámetros de entrada
-    IN p_Fecha DATE,
+    -- Eliminamos p_Fecha de los parámetros de entrada
     IN p_IdTipoDocumento INT,
     IN p_Subtotal DECIMAL(10,2),
     IN p_IVA DECIMAL(10,2),
@@ -3396,7 +3399,7 @@ CREATE PROCEDURE RealizarVentaYDescargarInventario (
     IN p_Observaciones VARCHAR(255)
 )
 BEGIN
-    -- Declaraciones de variables
+    -- (Declaraciones de variables sin cambios)
     DECLARE v_IdVenta INT;
     DECLARE v_IdCarrito INT;
     DECLARE v_NuevoNumeroDocumento VARCHAR(255);
@@ -3407,81 +3410,67 @@ BEGIN
     DECLARE v_SubtotalSinIVA DECIMAL(10,2);
     DECLARE v_Cantidad INT;
     DECLARE done INT DEFAULT FALSE;
-
-    -- Declaración del cursor
     DECLARE cur CURSOR FOR
         SELECT TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
         FROM DetalleCarritoVentas
         WHERE IdCarritoFK = v_IdCarrito;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    -- 1. Buscar carrito activo
+    -- 1. Buscar carrito activo (sin cambios)
     SELECT IdCarritoPK INTO v_IdCarrito
     FROM CarritoVentas
     WHERE IdUsuarioFK = p_IdUsuario AND EstadoCarrito = 'En curso'
     ORDER BY FechaCreacion DESC LIMIT 1;
 
-    -- Solo proceder si se encontró un carrito activo
     IF v_IdCarrito IS NOT NULL THEN
-    
         -- 2. Insertar cabecera de la venta
         INSERT INTO VentasBase (
+            -- **CAMBIO CLAVE**: Usamos NOW() para que la BD inserte la fecha y hora actual
             FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
             SubtotalVenta, IVA, TotalVenta, IdEstadoVentaFK, 
             IdMetodoDePagoFK, IdMargenVentaFK, IdUsuarioFK, IdClienteFK, Observaciones
         ) VALUES (
-            p_Fecha, p_IdTipoDocumento, '', p_Subtotal, p_IVA, p_Total, p_IdEstadoVenta,
+            -- Se reemplaza p_Fecha por NOW()
+            NOW(), p_IdTipoDocumento, '', p_Subtotal, p_IVA, p_Total, p_IdEstadoVenta,
             p_IdMetodoPago, p_IdMargen, p_IdUsuario, p_IdCliente, p_Observaciones
         );
         
         SET v_IdVenta = LAST_INSERT_ID();
 
-        -- 3. Generar y guardar el número de documento
-        SET v_NuevoNumeroDocumento = CONCAT('F-', YEAR(p_Fecha), '-', LPAD(v_IdVenta, 5, '0'));
+        -- 3. Generar número de documento (usamos NOW() también)
+        SET v_NuevoNumeroDocumento = CONCAT('F-', YEAR(NOW()), '-', LPAD(v_IdVenta, 5, '0'));
         UPDATE VentasBase SET NumeroDocumento = v_NuevoNumeroDocumento WHERE IdVentaPK = v_IdVenta;
 
-        -- 4. Procesar detalles y descargar inventario
+        -- (El resto del procedimiento para procesar detalles y descargar inventario no necesita cambios)
         OPEN cur;
         read_loop: LOOP
             FETCH cur INTO v_TipoArticulo, v_CodigoArticulo, v_Precio, v_Descuento, v_SubtotalSinIVA, v_Cantidad;
             IF done THEN
                 LEAVE read_loop;
             END IF;
-
             INSERT INTO DetalleVenta (IdVentaFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad)
             VALUES (v_IdVenta, v_TipoArticulo, v_CodigoArticulo, v_Precio, v_Descuento, v_SubtotalSinIVA, v_Cantidad);
-
-            -- 5. Descargar el artículo del inventario (LÓGICA FINAL)
             IF v_TipoArticulo = 'Producto' THEN
-                UPDATE ProductosBases SET Estado = 8 WHERE CodigoConsola = v_CodigoArticulo;
+                UPDATE ProductosBases SET Estado = 9 WHERE CodigoConsola = v_CodigoArticulo;
             ELSEIF v_TipoArticulo = 'Accesorio' THEN
-                UPDATE AccesoriosBase SET EstadoAccesorio = 8 WHERE CodigoAccesorio = v_CodigoArticulo;
+                UPDATE AccesoriosBase SET EstadoAccesorio = 9 WHERE CodigoAccesorio = v_CodigoArticulo;
             ELSEIF v_TipoArticulo = 'Insumo' THEN
-                -- No se realiza ninguna acción de inventario aquí.
                 SET @accion = 'Insumo ya descontado';
             ELSEIF v_TipoArticulo = 'Servicio' THEN
-                -- No se realiza ninguna acción de inventario aquí.
                 SET @accion = 'Insumos de servicio ya descontados';
             END IF;
-
         END LOOP read_loop;
         CLOSE cur;
 
-        -- 6. Limpiar los detalles del carrito ya que la venta se procesó
-        CALL sp_Carrito_LimpiarDetallesPostVenta(v_IdCarrito);
-
-        -- 7. Marcar el carrito como completado
         UPDATE CarritoVentas
         SET EstadoCarrito = 'Completado'
         WHERE IdCarritoPK = v_IdCarrito;
 
-        -- 8. Devolver el ID y el número de documento
         SELECT v_IdVenta AS CodigoVentaFinal, v_NuevoNumeroDocumento AS NumeroDocumentoFinal;
         
     ELSE
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontró un carrito activo para procesar la venta.';
     END IF;
-
 END$$
 
 DELIMITER ;
@@ -4022,3 +4011,387 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+DROP PROCEDURE IF EXISTS sp_CrearNotaCredito;
+
+DELIMITER $$
+
+CREATE PROCEDURE `sp_CrearNotaCredito`(
+    IN p_IdVentaFK INT,
+    IN p_UsuarioEmisorFK INT,
+    IN p_Motivo TEXT,
+    IN p_TotalCredito DECIMAL(10,2),
+    IN p_DetallesJSON JSON,
+    IN p_IdMotivoFK INT
+)
+BEGIN
+    DECLARE v_IdNotaCredito INT;
+    DECLARE i INT DEFAULT 0;
+    DECLARE totalItems INT;
+    
+    -- Variables para el bucle
+    DECLARE v_TipoArticulo VARCHAR(50);
+    DECLARE v_CodigoArticulo VARCHAR(25);
+    DECLARE v_Cantidad INT;
+    DECLARE v_PrecioUnitario DECIMAL(10,2);
+    DECLARE v_Subtotal DECIMAL(10,2);
+    DECLARE v_ReingresarAInventario BOOLEAN;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    -- 1. Insertar la cabecera
+    INSERT INTO NotasCredito (IdVentaFK, FechaEmision, Motivo, TotalCredito, UsuarioEmisorFK, IdMotivoFK)
+    VALUES (p_IdVentaFK, NOW(), p_Motivo, p_TotalCredito, p_UsuarioEmisorFK, p_IdMotivoFK);
+
+    SET v_IdNotaCredito = LAST_INSERT_ID();
+
+    -- 2. Procesar los detalles del JSON
+    SET totalItems = JSON_LENGTH(p_DetallesJSON);
+
+    WHILE i < totalItems DO
+        -- Extraer datos del JSON
+        SET v_TipoArticulo = JSON_UNQUOTE(JSON_EXTRACT(p_DetallesJSON, CONCAT('$[', i, '].TipoArticulo')));
+        SET v_CodigoArticulo = JSON_UNQUOTE(JSON_EXTRACT(p_DetallesJSON, CONCAT('$[', i, '].CodigoArticulo')));
+        SET v_Cantidad = JSON_EXTRACT(p_DetallesJSON, CONCAT('$[', i, '].Cantidad'));
+        SET v_PrecioUnitario = JSON_EXTRACT(p_DetallesJSON, CONCAT('$[', i, '].PrecioUnitario'));
+        SET v_Subtotal = JSON_EXTRACT(p_DetallesJSON, CONCAT('$[', i, '].Subtotal'));
+        SET v_ReingresarAInventario = JSON_EXTRACT(p_DetallesJSON, CONCAT('$[', i, '].ReingresarAInventario'));
+
+        -- Insertar el detalle de la nota de crédito
+        INSERT INTO DetalleNotaCredito (IdNotaCreditoFK, TipoArticulo, CodigoArticulo, Cantidad, PrecioUnitario, Subtotal)
+        VALUES (v_IdNotaCredito, v_TipoArticulo, v_CodigoArticulo, v_Cantidad, v_PrecioUnitario, v_Subtotal);
+
+        -- 3. Actualizar inventario si es necesario (con el estado corregido)
+        IF v_ReingresarAInventario = TRUE THEN
+            IF v_TipoArticulo = 'Producto' THEN
+                -- CORREGIDO: El producto devuelto entra en estado 9 ('En garantia') para revisión.
+                UPDATE ProductosBases SET Estado = 9 WHERE CodigoConsola = v_CodigoArticulo;
+            ELSEIF v_TipoArticulo = 'Accesorio' THEN
+                -- CORREGIDO: El accesorio devuelto entra en estado 9 ('En garantia') para revisión.
+                UPDATE AccesoriosBase SET EstadoAccesorio = 9 WHERE CodigoAccesorio = v_CodigoArticulo;
+            ELSEIF v_TipoArticulo = 'Insumo' THEN
+                -- Los insumos solo reingresan al stock.
+                UPDATE InsumosBase SET Cantidad = Cantidad + v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+            END IF;
+        END IF;
+
+        SET i = i + 1;
+    END WHILE;
+
+    -- 4. Anular factura original si corresponde
+    IF p_IdMotivoFK = 4 THEN -- ID 4 = 'Cancelación de factura completa'
+        UPDATE VentasBase SET IdEstadoVentaFK = 3 WHERE IdVentaPK = p_IdVentaFK;
+    END IF;
+
+    -- 5. Registrar la acción de creación en el historial
+    CALL sp_RegistrarHistorialNotaCredito(
+        v_IdNotaCredito,
+        p_UsuarioEmisorFK,
+        'CREACION',
+        p_Motivo
+    );
+
+    COMMIT;
+
+    SELECT v_IdNotaCredito AS IdNotaCreditoGenerada;
+
+END$$
+
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS sp_ListarMotivosNotaCredito;
+DELIMITER $$
+CREATE PROCEDURE sp_ListarMotivosNotaCredito()
+BEGIN
+    SELECT IdMotivoPK, Descripcion FROM MotivosNotaCredito WHERE Activo = TRUE;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_ListarNotasCredito()
+BEGIN
+    SELECT 
+        nc.IdNotaCreditoPK,
+        nc.FechaEmision,
+        vb.NumeroDocumento AS NumeroVentaOriginal,
+        c.NombreCliente,
+        mnc.Descripcion AS Motivo,
+        nc.TotalCredito,
+        u.Nombre AS UsuarioEmisor,
+        CASE 
+            WHEN nc.Estado = 1 THEN 'Activa'
+            ELSE 'Anulada'
+        END AS EstadoNota
+    FROM 
+        NotasCredito nc
+    JOIN 
+        VentasBase vb ON nc.IdVentaFK = vb.IdVentaPK
+    JOIN 
+        Usuarios u ON nc.UsuarioEmisorFK = u.IdUsuarioPK
+    JOIN
+        Clientes c ON vb.IdClienteFK = c.IdClientePK
+    LEFT JOIN
+        MotivosNotaCredito mnc ON nc.IdMotivoFK = mnc.IdMotivoPK
+    ORDER BY 
+        nc.FechaEmision DESC;
+END$$
+
+DELIMITER ;
+
+call sp_ListarNotasCredito();
+
+
+DROP PROCEDURE IF EXISTS sp_ObtenerNotaCreditoPorId;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_ObtenerNotaCreditoPorId(IN p_IdNotaCreditoPK INT)
+BEGIN
+
+    -- 1. Primera consulta: Obtiene los datos del encabezado de la Nota de Crédito.
+    SELECT 
+        nc.IdNotaCreditoPK,
+        nc.FechaEmision,
+        nc.TotalCredito,
+        CASE 
+            WHEN nc.Estado = 1 THEN 'Activa'
+            ELSE 'Anulada'
+        END AS EstadoNota,
+        vb.NumeroDocumento AS VentaOriginal,
+        c.NombreCliente,
+        c.RUC,
+        c.DNI,
+        u_emisor.Nombre AS UsuarioEmisor, -- Alias cambiado para claridad
+        mnc.Descripcion AS Motivo,
+        nc.Motivo AS ObservacionesAdicionales,
+        
+        -- === NUEVOS CAMPOS DEL HISTORIAL DE ANULACIÓN ===
+        u_anulador.Nombre AS UsuarioAnulador,
+        hnc.FechaAccion AS FechaAnulacion,
+        hnc.Detalles AS MotivoAnulacion
+        
+    FROM 
+        NotasCredito nc
+    JOIN 
+        VentasBase vb ON nc.IdVentaFK = vb.IdVentaPK
+    JOIN
+        Clientes c ON vb.IdClienteFK = c.IdClientePK
+    -- Se une con Usuarios para obtener el nombre de QUIEN CREÓ la nota
+    JOIN 
+        Usuarios u_emisor ON nc.UsuarioEmisorFK = u_emisor.IdUsuarioPK
+    LEFT JOIN
+        MotivosNotaCredito mnc ON nc.IdMotivoFK = mnc.IdMotivoPK
+        
+    -- === NUEVOS JOINS PARA OBTENER DATOS DE ANULACIÓN ===
+    -- Se une con el historial para encontrar el registro específico de anulación (si existe)
+    LEFT JOIN 
+        HistorialNotasCredito hnc ON nc.IdNotaCreditoPK = hnc.IdNotaCreditoFK AND hnc.TipoAccion = 'ANULACION'
+    -- Se une de nuevo con Usuarios para obtener el nombre de QUIEN ANULÓ la nota (si existe)
+    LEFT JOIN 
+        Usuarios u_anulador ON hnc.IdUsuarioFK = u_anulador.IdUsuarioPK
+        
+    WHERE 
+        nc.IdNotaCreditoPK = p_IdNotaCreditoPK;
+
+
+    -- 2. Segunda consulta: Obtiene las líneas de detalle (SIN CAMBIOS)
+    SELECT 
+        dnc.TipoArticulo, 
+        dnc.CodigoArticulo, 
+        dnc.Cantidad, 
+        dnc.PrecioUnitario, 
+        dnc.Subtotal
+    FROM 
+        DetalleNotaCredito dnc
+    WHERE 
+        dnc.IdNotaCreditoFK = p_IdNotaCreditoPK;
+
+END$$
+
+DELIMITER ;
+CALL sp_ObtenerNotaCreditoPorId(2);
+
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_RegistrarHistorialNotaCredito(
+    IN p_IdNotaCreditoFK INT,
+    IN p_IdUsuarioFK INT,
+    IN p_TipoAccion VARCHAR(20),
+    IN p_Detalles VARCHAR(255)
+)
+BEGIN
+    -- Inserta un nuevo registro en la tabla de historial con los datos proporcionados.
+    INSERT INTO HistorialNotasCredito (
+        IdNotaCreditoFK, 
+        IdUsuarioFK, 
+        TipoAccion, 
+        Detalles
+    ) 
+    VALUES (
+        p_IdNotaCreditoFK, 
+        p_IdUsuarioFK, 
+        p_TipoAccion, 
+        p_Detalles
+    );
+END$$
+
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS sp_AnularNotaCredito;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_AnularNotaCredito(
+    IN p_IdNotaCreditoPK INT,
+    IN p_IdUsuarioAnuladorFK INT,
+    IN p_MotivoAnulacion VARCHAR(255)
+)
+BEGIN
+    -- Declaración de variables para el cursor
+    DECLARE v_done INT DEFAULT FALSE;
+    DECLARE v_tipo_articulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio');
+    DECLARE v_codigo_articulo VARCHAR(25);
+    DECLARE v_cantidad INT;
+    DECLARE v_estado_actual BOOLEAN;
+
+    -- Declaración del cursor para recorrer los detalles de la nota de crédito
+    DECLARE cur_detalles CURSOR FOR 
+        SELECT TipoArticulo, CodigoArticulo, Cantidad 
+        FROM DetalleNotaCredito 
+        WHERE IdNotaCreditoFK = p_IdNotaCreditoPK;
+
+    -- Handler para el final del cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+
+    -- Handler para errores SQL, revertirá toda la operación
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    -- Inicia la transacción
+    START TRANSACTION;
+
+    -- 1. Verificar si la nota ya está anulada
+    SELECT Estado INTO v_estado_actual FROM NotasCredito WHERE IdNotaCreditoPK = p_IdNotaCreditoPK;
+    
+    IF v_estado_actual = FALSE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La Nota de Crédito ya se encuentra anulada.';
+    END IF;
+
+    -- 2. Anular la nota de crédito (soft delete)
+    UPDATE NotasCredito
+    SET Estado = 0 -- 0 para Inactivo/Anulado
+    WHERE IdNotaCreditoPK = p_IdNotaCreditoPK;
+
+    -- 3. Abrir el cursor y empezar a revertir el inventario
+    OPEN cur_detalles;
+
+    read_loop: LOOP
+        FETCH cur_detalles INTO v_tipo_articulo, v_codigo_articulo, v_cantidad;
+        IF v_done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Revertir el stock según el tipo de artículo
+        CASE v_tipo_articulo
+            WHEN 'Producto' THEN
+                -- CORREGIDO: El producto vuelve a estar 'Vendido' (estado 8), ya que se canceló su devolución.
+                UPDATE ProductosBases SET Estado = 8 WHERE CodigoConsola = v_codigo_articulo;
+            
+            WHEN 'Accesorio' THEN
+                -- CORREGIDO: El accesorio vuelve a estar 'Vendido' (estado 8).
+                UPDATE AccesoriosBase SET EstadoAccesorio = 8 WHERE CodigoAccesorio = v_codigo_articulo;
+            
+            WHEN 'Insumo' THEN
+                -- Se resta la cantidad que se había sumado al inventario.
+                UPDATE InsumosBase SET Cantidad = Cantidad - v_cantidad WHERE CodigoInsumo = v_codigo_articulo;
+            
+            WHEN 'Servicio' THEN
+                -- No hay cambios de inventario para servicios. Se ignora.
+                BEGIN END;
+        END CASE;
+    END LOOP;
+
+    -- Cerrar el cursor
+    CLOSE cur_detalles;
+
+    -- ==================================================================
+    -- 4. (NUEVO) Registrar la acción de anulación en el historial
+    -- ==================================================================
+    CALL sp_RegistrarHistorialNotaCredito(
+        p_IdNotaCreditoPK,
+        p_IdUsuarioAnuladorFK,
+        'ANULACION',
+        p_MotivoAnulacion
+    );
+
+    -- Si todo fue exitoso, confirma los cambios
+    COMMIT;
+
+END$$
+
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS sp_ListarCarritosActivos;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_ListarCarritosActivos()
+BEGIN
+    SELECT
+        cv.IdCarritoPK,
+        cv.FechaCreacion,
+        u.Nombre AS Usuario,
+        -- Si no hay un cliente asignado, se muestra 'Consumidor Final'
+        IFNULL(c.NombreCliente, 'Consumidor Final') AS Cliente,
+        -- Calcula el total de artículos distintos en el carrito
+        COUNT(dcv.IdDetalleCarritoPK) AS CantidadItems,
+        -- Calcula el monto total del carrito sumando los subtotales de sus detalles
+        IFNULL(SUM(dcv.SubtotalSinIVA), 0.00) AS TotalCarrito,
+        cv.Comentario,
+        cv.EstadoCarrito
+    FROM
+        CarritoVentas cv
+    -- Se une con Usuarios para obtener el nombre de quien creó el carrito
+    JOIN
+        Usuarios u ON cv.IdUsuarioFK = u.IdUsuarioPK
+    -- Se usa LEFT JOIN para Clientes porque puede ser nulo
+    LEFT JOIN
+        Clientes c ON cv.IdClienteFK = c.IdClientePK
+    -- Se usa LEFT JOIN para los detalles por si un carrito está vacío
+    LEFT JOIN
+        DetalleCarritoVentas dcv ON cv.IdCarritoPK = dcv.IdCarritoFK
+    WHERE
+        -- El filtro principal para traer solo los carritos 'En curso'
+        cv.EstadoCarrito = 'En curso'
+    -- Agrupamos por cada carrito para poder usar las funciones de agregación (COUNT y SUM)
+    GROUP BY
+        cv.IdCarritoPK,
+        cv.FechaCreacion,
+        u.Nombre,
+        c.NombreCliente,
+        cv.Comentario,
+        cv.EstadoCarrito
+    -- Ordenamos para mostrar los más recientes primero
+    ORDER BY
+        cv.FechaCreacion DESC;
+
+END$$
+
+DELIMITER ;
+
+CALL sp_ListarCarritosActivos();
+

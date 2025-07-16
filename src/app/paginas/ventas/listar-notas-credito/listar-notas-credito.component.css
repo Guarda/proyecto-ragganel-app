@@ -1,0 +1,108 @@
+/* :host asegura que nuestro componente se comporte como un bloque
+   y ocupe el espacio que le asigne su contenedor padre. */
+:host {
+  display: block;
+}
+
+.container {
+  /* --- MEJORA DE RESPONSIVIDAD --- */
+  /* ANTES: margin: 20px; (Esto creaba el espacio no utilizado) */
+  
+  /* AHORA: Hacemos el contenedor fluido */
+  width: calc(100% - 48px); /* Ocupa todo el ancho menos 24px de margen a cada lado */
+  max-width: 1800px;         /* Límite para pantallas ultra-anchas y mantener la estética */
+  margin: 24px auto;         /* 24px arriba/abajo, y 'auto' para centrarlo horizontalmente */
+  
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 12px; /* Bordes un poco más redondeados */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más suave */
+  box-sizing: border-box; /* Clave: el padding no aumenta el tamaño total del div */
+}
+
+/* --- AJUSTES ADICIONALES PARA MEJORAR LA VISTA --- */
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px; /* Añade espacio si el filtro se va a la siguiente línea en pantallas pequeñas */
+}
+
+.cabecera h1 {
+  color: #1a237e; /* Un color azul oscuro para el título */
+  font-size: 1.75rem; /* Título más prominente */
+  margin: 0;
+}
+
+.filtro-input {
+  min-width: 300px; /* Ancho mínimo para el campo de búsqueda */
+  max-width: 400px;
+}
+
+.table-container {
+  position: relative;
+  overflow-x: auto; /* Permite scroll horizontal en la tabla si es necesario */
+  min-height: 300px; 
+}
+
+table {
+  width: 100%;
+}
+
+/* Estilos para los badges de estado (sin cambios) */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #fff;
+  text-transform: capitalize;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.status-activa {
+  background-color: #28a745; /* Verde */
+}
+
+.status-anulada {
+  background-color: #dc3545; /* Rojo */
+}
+
+/* Estilos para el spinner y mensaje de no datos (sin cambios) */
+.spinner-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3f51b5; /* Azul índigo de Material */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.mat-row .mat-cell {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}

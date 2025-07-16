@@ -250,10 +250,10 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // En tu método procesarVentaFinal() de Angular
     const ventaData: VentaFinalData = {
-      fecha: new Date().toISOString().split('T')[0],
+      // fecha: "2025-07-11", <-- ELIMINA ESTA LÍNEA
       idTipoDocumento: 3,
-      // numeroDocumento: '', // <-- YA NO SE ENVÍA ESTA LÍNEA
       subtotal: this.subtotalNeto,
       iva: this.iva,
       total: this.total,
@@ -431,7 +431,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
     // Armar los datos de la proforma para enviar al backend
     const venta = {
-      FechaCreacion: new Date().toISOString().split('T')[0],
+      //FechaCreacion: new Date().toISOString().split('T')[0],
       TipoDocumento: 2, // 2 = Proforma
       SubtotalVenta: this.subtotal,
       IVA: this.iva,

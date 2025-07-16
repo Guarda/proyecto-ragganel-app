@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>Anular Nota de Crédito #{{ data.idNota }}</h2>
+<mat-dialog-content>
+  <p>Para anular, por favor especifica un motivo. Esta acción no se puede deshacer.</p>
+  <form [formGroup]="anulacionForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Motivo de la anulación</mat-label>
+      <textarea matInput formControlName="motivo"
+                placeholder="Ej: El cliente se arrepintió de la devolución."
+                rows="4" required></textarea>
+      <mat-error *ngIf="anulacionForm.get('motivo')?.hasError('required')">El motivo es obligatorio.</mat-error>
+      <mat-error *ngIf="anulacionForm.get('motivo')?.hasError('minlength')">El motivo debe tener al menos 10 caracteres.</mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancelClick()" [disabled]="isLoading">Cancelar</button>
+  <button mat-flat-button color="warn" 
+          [disabled]="anulacionForm.invalid || isLoading" 
+          (click)="onAnularClick()">
+    {{ isLoading ? 'Anulando...' : 'Confirmar Anulación' }}
+  </button>
+</mat-dialog-actions>

@@ -12,7 +12,7 @@ import { VentaCompletaResponse } from '../paginas/interfaces/ventacompletarespon
   providedIn: 'root'
 })
 export class VentasBaseService {
-  
+
   private accessoriesSubject = new BehaviorSubject<any[]>([]);
 
   private apiURL = "http://localhost:3000";
@@ -114,16 +114,16 @@ export class VentasBaseService {
     CodigoArticulo: string
   }): Observable<any> {
     const url = `${this.apiURL}/ventas-base/eliminar-del-carrito`;
-    
+
     // CAMBIO CLAVE: Se crea un objeto HttpParams para la URL.
     const params = new HttpParams()
       .set('IdUsuario', datos.IdUsuario.toString())
       .set('IdCliente', datos.IdCliente.toString())
       .set('TipoArticulo', datos.TipoArticulo)
       .set('CodigoArticulo', datos.CodigoArticulo);
-    
-   // console.log("[VentasBaseService] Realizando DELETE a", url, "con params:", params.toString());
-    
+
+    // console.log("[VentasBaseService] Realizando DELETE a", url, "con params:", params.toString());
+
     // El método .delete() envía los parámetros en la URL.
     return this.httpClient.delete(url, { params: params, headers: this.httpOptions.headers })
       .pipe(catchError(this.errorHandler));
@@ -155,7 +155,7 @@ export class VentasBaseService {
   getVentaCompleta(idVenta: number): Observable<VentaCompletaResponse> {
     const url = `${this.apiURL}/ventas-base/venta-completa/${idVenta}`;
     console.log(`[VentasBaseService] Solicitando venta completa desde: ${url}`);
-    
+
     // Realiza una petición GET a la nueva ruta y espera una respuesta
     // que coincida con la interfaz VentaCompletaResponse.
     return this.httpClient.get<VentaCompletaResponse>(url, this.httpOptions)
@@ -164,14 +164,13 @@ export class VentasBaseService {
       );
   }
 
-
-  /**
-   * Clears the entire shopping cart for a specific user and client in the backend.
-   * This method sends a request to your backend API to remove all items from the current cart session.
-   * @param idUsuario The ID of the user whose cart is to be cleared.
-   * @param idCliente The ID of the client associated with the cart.
-   * @returns An Observable that emits the backend's response (e.g., success status).
-   */
+  listarMotivosNotaCredito(): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/motivos-nota-credito`; // Asegúrate de crear este endpoint en tu backend
+    return this.httpClient.get(url, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  } 
 
   errorHandler(error: any) {
     let errorMessage = '';
