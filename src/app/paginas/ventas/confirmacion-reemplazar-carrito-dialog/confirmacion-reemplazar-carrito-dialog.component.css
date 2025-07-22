@@ -1,0 +1,44 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.4rem;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 16px;
+}
+
+.dialog-title mat-icon {
+  font-size: 28px;
+  height: 28px;
+  width: 28px;
+}
+
+.dialog-content {
+  padding-top: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+.dialog-content strong {
+  color: #d32f2f; /* Un color rojo para enfatizar la acción destructiva */
+  font-weight: 600;
+}
+
+.pregunta-final {
+  margin-top: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  background-color: #f9f9f9;
+  margin: 0 -24px -24px -24px; /* Extiende el fondo a los bordes del diálogo */
+}
+
+/* Espacio entre los botones */
+.dialog-actions button {
+  margin-left: 8px;
+}

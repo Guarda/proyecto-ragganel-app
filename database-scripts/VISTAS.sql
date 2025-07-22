@@ -294,6 +294,89 @@ HAVING
     -- NO LISTAR el servicio si la cantidad calculada a partir de los insumos disponibles es 0.
     COALESCE(MIN(FLOOR(COALESCE(ib.Cantidad, 0) / NULLIF(ixs.CantidadDescargue, 0))), 1) > 0;
     
-select * from vistaarticulosinventarioV3
+select * from vistaarticulosinventarioV3;
+
+
+CREATE OR REPLACE VIEW VistaInventarioGeneral AS
+-- ======================================================================================
+-- VISTA DE INVENTARIO GENERAL
+-- Propósito: Proporciona una lista unificada de todos los artículos físicos
+-- (Productos, Accesorios, Insumos) para gestión de inventario.
+--
+-- Mejoras clave sobre la vista de Punto de Venta:
+-- 1. Muestra la DESCRIPCIÓN del estado (Ej: 'Usado', 'En garantía') en lugar del ID.
+-- 2. Incluye la FECHA DE INGRESO para saber la antigüedad del stock.
+-- 3. Excluye únicamente los artículos 'Borrados' (Estado 7) para ver todo el inventario,
+--    incluyendo lo que no está disponible para la venta pero sigue existiendo.
+-- 4. Excluye los 'Servicios' ya que no son un stock físico.
+-- ======================================================================================
+
+-- SECCIÓN 1: PRODUCTOS (Consolas)
+SELECT
+    'Producto' AS Tipo,
+    p.CodigoConsola AS Codigo,
+    CONCAT(f.NombreFabricante, ' - ', c.NombreCategoria, ' - ', s.NombreSubcategoria) AS NombreArticulo,
+    est.DescripcionEstado AS Estado,
+    1 AS Cantidad,
+    p.PrecioBase,
+    p.FechaIngreso,
+    cat.LinkImagen
+FROM
+    ProductosBases p
+JOIN CatalogoConsolas cat ON p.Modelo = cat.IdModeloConsolaPK
+JOIN FABRICANTES f ON cat.Fabricante = f.IdFabricantePK
+JOIN CategoriasProductos c ON cat.Categoria = c.IdCategoriaPK
+JOIN SubcategoriasProductos s ON cat.Subcategoria = s.IdSubcategoria
+JOIN CatalogoEstadosConsolas est ON p.Estado = est.CodigoEstado
+-- Excluimos solo los artículos marcados como borrados
+WHERE
+    p.Estado != 7
+
+UNION ALL
+
+-- SECCIÓN 2: ACCESORIOS
+SELECT
+    'Accesorio' AS Tipo,
+    a.CodigoAccesorio AS Codigo,
+    CONCAT(fa.NombreFabricanteAccesorio, ' - ', ca.NombreCategoriaAccesorio, ' - ', sa.NombreSubcategoriaAccesorio) AS NombreArticulo,
+    est.DescripcionEstado AS Estado,
+    1 AS Cantidad,
+    a.PrecioBase,
+    a.FechaIngreso,
+    cat.LinkImagen
+FROM
+    AccesoriosBase a
+JOIN CatalogoAccesorios cat ON a.ModeloAccesorio = cat.IdModeloAccesorioPK
+JOIN FabricanteAccesorios fa ON cat.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
+JOIN CategoriasAccesorios ca ON cat.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
+JOIN SubcategoriasAccesorios sa ON cat.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+JOIN CatalogoEstadosConsolas est ON a.EstadoAccesorio = est.CodigoEstado
+WHERE
+    a.EstadoAccesorio != 7
+
+UNION ALL
+
+-- SECCIÓN 3: INSUMOS
+SELECT
+    'Insumo' AS Tipo,
+    i.CodigoInsumo AS Codigo,
+    CONCAT(fi.NombreFabricanteInsumos, ' - ', ci.NombreCategoriaInsumos, ' - ', si.NombreSubcategoriaInsumos) AS NombreArticulo,
+    est.DescripcionEstado AS Estado,
+    i.Cantidad,
+    i.PrecioBase,
+    i.FechaIngreso,
+    cat.LinkImagen
+FROM
+    InsumosBase i
+JOIN CatalogoInsumos cat ON i.ModeloInsumo = cat.IdModeloInsumosPK
+JOIN FabricanteInsumos fi ON cat.FabricanteInsumos = fi.IdFabricanteInsumosPK
+JOIN CategoriasInsumos ci ON cat.CategoriaInsumos = ci.IdCategoriaInsumosPK
+JOIN SubcategoriasInsumos si ON cat.SubcategoriaInsumos = si.IdSubcategoriaInsumos
+JOIN CatalogoEstadosConsolas est ON i.EstadoInsumo = est.CodigoEstado
+WHERE
+    i.EstadoInsumo != 7;
+    
+    
+    select * from vistainventariogeneral
 
 

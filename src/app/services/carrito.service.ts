@@ -7,15 +7,20 @@ import { Usuarios } from '../paginas/interfaces/usuarios';
 import { Cliente } from '../paginas/interfaces/clientes';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { map } from 'rxjs/operators';
+
 
 @Injectable({ providedIn: 'root' })
 export class CarritoService {
   // El BehaviorSubject es ahora la única fuente de verdad en el frontend.
   private carritoSubject = new BehaviorSubject<ArticuloVenta[]>([]);
   public carrito$ = this.carritoSubject.asObservable();
- 
+
   private solicitarAjusteStockInventarioSubject = new Subject<{ codigoArticulo: string, cantidadDelta: number, tipoArticulo: string }>();
   solicitarAjusteStockInventario$ = this.solicitarAjusteStockInventarioSubject.asObservable();
+
+  private solicitarCargaCarritoSubject = new BehaviorSubject<any | null>(null);
+  solicitarCargaCarrito$ = this.solicitarCargaCarritoSubject.asObservable();
 
   // Añade este nuevo Subject para notificar la recarga
   private solicitarRecargaArticulosSubject = new Subject<void>();
@@ -42,30 +47,36 @@ export class CarritoService {
       return of([]);
     }
 
+    // Llama al servicio de ventas-base que hace la petición HTTP
     return this.ventasBaseService.listarCarritoVentaUsuarioXClienteEnCurso(usuario, cliente).pipe(
-      tap((response: any) => {
-        // Permite manejar ambos casos: array directo o objeto con 'items'
-        const items = Array.isArray(response) ? response : (response?.items || []);
-        const formattedItems: ArticuloVenta[] = (items || []).map((item: any) => ({
+      tap((respuestaApi: any[]) => {
+        // La respuesta de la API ya es un array, como confirmaste.
+        // Ahora mapeamos cada objeto del array al formato ArticuloVenta.
+        const itemsFormateados: ArticuloVenta[] = (respuestaApi || []).map((item: any) => ({
+          // La propiedad en la UI se llama 'Tipo', la de la API es 'TipoArticulo'
           Tipo: item.TipoArticulo,
           Codigo: item.CodigoArticulo,
-          NombreArticulo: item.NombreArticulo,
+          NombreArticulo: item.NombreArticulo, // Asegúrate que tu SP devuelva este campo
           Cantidad: item.Cantidad,
           PrecioBase: parseFloat(item.PrecioVenta.toString()),
           DescuentoPorcentaje: parseFloat(item.Descuento.toString()),
           SubtotalSinIVA: parseFloat(item.SubtotalSinIVA.toString()),
           LinkImagen: item.LinkImagen || '',
+          // Estos campos son opcionales pero buenos para tener
           Estado: item.Estado || '',
           PrecioOriginalSinMargen: parseFloat(item.PrecioOriginalSinMargen?.toString() || item.PrecioVenta.toString()),
+          MargenAplicado: item.MargenAplicado ?? 0,
+          IdMargenFK: item.IdMargenFK ?? null,
+          PrecioVentaDisplay: item.PrecioVentaDisplay !== undefined
+            ? item.PrecioVentaDisplay
+            : (item.PrecioVenta !== undefined ? parseFloat(item.PrecioVenta.toString()).toFixed(2) : '0.00')
         }));
+        
         // Ordenamos para una visualización consistente
-        formattedItems.sort((a, b) => {
-          if (a.Tipo && b.Tipo && a.Tipo !== b.Tipo) return a.Tipo.localeCompare(b.Tipo);
-          if (a.NombreArticulo && b.NombreArticulo) return a.NombreArticulo.localeCompare(b.NombreArticulo);
-          return 0;
-        });
+        itemsFormateados.sort((a, b) => (a.NombreArticulo || '').localeCompare(b.NombreArticulo || ''));
 
-        this.carritoSubject.next(formattedItems); // Emitir el nuevo estado del carrito.
+        // Emitimos la lista de artículos formateada a todos los componentes suscritos
+        this.carritoSubject.next(itemsFormateados);
       }),
       catchError(err => {
         console.error('Error al refrescar el carrito desde la BD:', err);
@@ -84,7 +95,7 @@ export class CarritoService {
    * @param cliente El cliente para poder refrescar el carrito.
    * @param nombreArticulo El nombre del artículo para los mensajes de feedback.
    */
-   private modificarArticuloEnCarrito(
+  private modificarArticuloEnCarrito(
     datosParaBackend: any,
     usuario: Usuarios,
     cliente: Cliente,
@@ -97,7 +108,7 @@ export class CarritoService {
           this.snackBar.open(mensajeExito, 'Cerrar', { duration: 2000 });
           // Refrescar el carrito desde la BD
           this.refrescarCarrito(usuario, cliente).subscribe();
-          
+
           // LÍNEA AÑADIDA: Notificar a la tabla principal que recargue el inventario.
           this.solicitarRecargaArticulosSubject.next();
 
@@ -126,6 +137,10 @@ export class CarritoService {
         console.error('Error de conexión:', err);
       }
     });
+  }
+
+  public solicitarRecargaDeArticulos(): void {
+    this.solicitarRecargaArticulosSubject.next();
   }
 
 
@@ -174,7 +189,7 @@ export class CarritoService {
   /**
    * Decrementa la cantidad. El backend manejará la eliminación si la cantidad llega a 0.
    */
- public decrementarCantidadEnCarrito(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
+  public decrementarCantidadEnCarrito(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
     const datosParaBackend = {
       IdUsuario: usuario.id,
       IdCliente: cliente.id,
@@ -186,10 +201,10 @@ export class CarritoService {
       next: (respuesta) => {
         if (respuesta.success) {
           this.snackBar.open('Cantidad disminuida.', 'Cerrar', { duration: 2000 });
-          
+
           // Refrescamos el carrito para actualizar la UI del carrito.
           this.refrescarCarrito(usuario, cliente).subscribe();
-          
+
           // LÍNEA AÑADIDA: Notificar a la tabla principal que recargue el inventario.
           this.solicitarRecargaArticulosSubject.next();
 
@@ -204,12 +219,14 @@ export class CarritoService {
     });
   }
 
+  
+
   /**
    * Elimina una línea completa de artículo del carrito.
    */
-   public eliminarLineaCompletaArticulo(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
+  public eliminarLineaCompletaArticulo(articulo: ArticuloVenta, usuario: Usuarios, cliente: Cliente): void {
     const cantidadActual = articulo.Cantidad ?? 0;
-    
+
     const datosParaBackend = {
       IdUsuario: usuario.id,
       IdCliente: cliente.id,
@@ -221,13 +238,13 @@ export class CarritoService {
       next: (respuesta) => {
         if (respuesta.success) {
           this.snackBar.open(`${articulo.NombreArticulo} eliminado del carrito.`, 'Cerrar', { duration: 2000 });
-          
+
           // Refrescamos el carrito desde la BD para actualizar la lista.
           this.refrescarCarrito(usuario, cliente).subscribe();
-          
+
           // LÍNEA AÑADIDA: Notificar a la tabla principal que recargue el inventario.
           this.solicitarRecargaArticulosSubject.next();
-          
+
         } else {
           this.snackBar.open(`Error del servidor: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
         }
@@ -242,9 +259,9 @@ export class CarritoService {
   /**
    * Actualiza el descuento de un artículo.
    */
-   public actualizarDescuentoArticulo(articulo: ArticuloVenta, nuevoDescuento: number, usuario: Usuarios, cliente: Cliente): void {
+  public actualizarDescuentoArticulo(articulo: ArticuloVenta, nuevoDescuento: number, usuario: Usuarios, cliente: Cliente): void {
     const sanitizedDescuento = Math.max(0, Math.min(100, nuevoDescuento || 0));
-    
+
     // Calcula el nuevo subtotal basado en el descuento
     const nuevoSubtotalSinIVA = (articulo.PrecioBase ?? 0) * (1 - sanitizedDescuento / 100);
 
@@ -277,9 +294,9 @@ export class CarritoService {
     });
   }
 
-  
 
-public limpiarCarrito(usuario: Usuarios, cliente: Cliente): void {
+
+  public limpiarCarrito(usuario: Usuarios, cliente: Cliente): void {
     if (!usuario?.id || !cliente?.id) return;
 
     this.ventasBaseService.limpiarCarritoDeVentas(usuario.id, cliente.id).subscribe({
@@ -289,7 +306,7 @@ public limpiarCarrito(usuario: Usuarios, cliente: Cliente): void {
 
           // 1. Refresca el carrito (esto hará que la UI del carrito desaparezca)
           this.refrescarCarrito(usuario, cliente).subscribe();
-          
+
           // 2. AHORA, NOTIFICAMOS A LA TABLA DE ARTÍCULOS QUE DEBE RECARGARSE
           this.solicitarRecargaArticulosSubject.next();
 
@@ -324,6 +341,26 @@ public limpiarCarrito(usuario: Usuarios, cliente: Cliente): void {
 
     this.carritoSubject.next(carritoActualizado);
   }
+
+  public listarCarritosActivosPorUsuario(idUsuario: number): Observable<any[]> {
+    const url = `http://localhost:3000/carrito/vigentes/${idUsuario}`;
+    return this.httpClient.get<any>(url).pipe( // Cambiado a get<any>
+      map(respuesta => respuesta.data || respuesta), // Extrae la propiedad 'data' o devuelve la respuesta si no existe
+      catchError(this.errorHandler)
+    );
+  }
+
+  public solicitarCargaDeCarrito(carrito: any): void {
+    this.solicitarCargaCarritoSubject.next(carrito);
+  }
+
+  public liberarCarrito(idCarrito: number): Observable<any> {
+    const url = `http://localhost:3000/carrito/${idCarrito}`;
+    return this.httpClient.delete(url).pipe(
+      catchError(this.errorHandler)
+    );
+  }
+
 
   errorHandler(error: any) {
     let errorMessage = '';

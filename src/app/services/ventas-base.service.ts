@@ -7,6 +7,7 @@ import { Usuarios } from '../paginas/interfaces/usuarios';
 import { Cliente } from '../paginas/interfaces/clientes';
 import { VentaFinalData } from '../paginas/interfaces/ventafinal';
 import { VentaCompletaResponse } from '../paginas/interfaces/ventacompletaresponse';
+import { ProformaResponse } from '../paginas/interfaces/proformaresponse';
 
 @Injectable({
   providedIn: 'root'
@@ -65,6 +66,7 @@ export class VentasBaseService {
       .pipe(catchError(this.errorHandler));
   }
 
+  // MÉTODO CORREGIDO
   agregarArticuloAlCarrito(datos: {
     IdUsuario: number,
     IdCliente: number,
@@ -72,10 +74,13 @@ export class VentasBaseService {
     CodigoArticulo: string,
     PrecioVenta: number,
     Descuento: number,
-    SubtotalSinIVA: number,
-    Cantidad: number
+    Cantidad: number,
+    // --- CAMPOS AÑADIDOS Y CORREGIDOS ---
+    PrecioBaseOriginal: number,
+    MargenAplicado: number,
+    IdMargenFK: number | null // Acepta el ID del margen
   }): Observable<any> {
-    console.log("agregarArticuloAlCarrito", datos);
+    console.log("agregarArticuloAlCarrito con datos completos:", datos);
     return this.httpClient.post(this.apiURL + '/ventas-base/agregar-al-carrito', datos, this.httpOptions)
       .pipe(catchError(this.errorHandler));
   }
@@ -130,9 +135,20 @@ export class VentasBaseService {
   }
 
   finalizarVenta(ventaData: VentaFinalData): Observable<any> {
-    const url = `${this.apiURL}/ventas-base/finalizar`; // Asegúrate que la ruta coincida con tu API
+    const url = `${this.apiURL}/ventas-base/finalizar`;
     console.log('[VentasBaseService] Finalizando venta con datos:', ventaData);
     return this.httpClient.post(url, ventaData, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
+  getProformaDetails(idProforma: number): Observable<ProformaResponse> {
+    const url = `${this.apiURL}/ventas-base/proforma/${idProforma}`;
+    console.log(`[VentasBaseService] Solicitando detalles de proforma desde: ${url}`);
+
+    // Realiza una petición GET y espera una respuesta que coincida con la interfaz ProformaResponse.
+    return this.httpClient.get<ProformaResponse>(url, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       );
@@ -170,7 +186,7 @@ export class VentasBaseService {
       .pipe(
         catchError(this.errorHandler)
       );
-  } 
+  }
 
   errorHandler(error: any) {
     let errorMessage = '';

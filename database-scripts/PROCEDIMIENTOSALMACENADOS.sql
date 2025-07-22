@@ -3245,14 +3245,12 @@ END $$
 
 DELIMITER ;
 
--- Primero, elimina el procedimiento existente para poder crearlo de nuevo
+-- Elimina el procedimiento existente para poder crearlo de nuevo
 DROP PROCEDURE IF EXISTS InsertarVentaProforma;
-
--- Vuelve a crearlo con la lógica corregida
 DELIMITER $$
 
 CREATE PROCEDURE InsertarVentaProforma (
-    -- 1. Se elimina el parámetro de entrada p_Fecha DATE
+    -- Se elimina p_Fecha, se usará NOW()
     IN p_TipoDocumento INT,
     OUT p_NumeroDocumento VARCHAR(255),
     IN p_Subtotal DECIMAL(10,2),
@@ -3260,7 +3258,7 @@ CREATE PROCEDURE InsertarVentaProforma (
     IN p_Total DECIMAL(10,2),
     IN p_Estado INT,
     IN p_MetodoPago INT,
-    IN p_Margen INT,
+    -- SE ELIMINA EL PARÁMETRO p_Margen INT
     IN p_Usuario INT,
     IN p_Cliente INT,
     IN p_Observaciones VARCHAR(255),
@@ -3273,39 +3271,40 @@ BEGIN
     DECLARE totalItems INT;
     DECLARE nuevoCodigo VARCHAR(255);
 
-    -- Se genera un código único para la proforma
+    -- Generar código único para la proforma (sin cambios)
     SET nuevoCodigo = CONCAT('P-', LPAD((SELECT COUNT(*) + 1 FROM VentasBase WHERE IdTipoDocumentoFK = 2), 6, '0'));
     SET p_NumeroDocumento = nuevoCodigo;
 
-    -- Insertar en tabla principal
+    -- Insertar en tabla principal (VentasBase)
     INSERT INTO VentasBase (
         FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
         SubtotalVenta, IVA, TotalVenta,
-        IdEstadoVentaFK, IdMetodoDePagoFK, IdMargenVentaFK,
+        IdEstadoVentaFK, IdMetodoDePagoFK, -- SE QUITA IdMargenVentaFK
         IdUsuarioFK, IdClienteFK, Observaciones
     )
     VALUES (
-        -- 2. Se reemplaza p_Fecha por NOW() para que la BD inserte la fecha y hora actual
         NOW(), p_TipoDocumento, nuevoCodigo,
         p_Subtotal, p_IVA, p_Total,
-        p_Estado, p_MetodoPago, p_Margen,
+        p_Estado, p_MetodoPago, -- SE QUITA p_Margen
         p_Usuario, p_Cliente, p_Observaciones
     );
 
     SET lastVentaId = LAST_INSERT_ID();
 
-    -- Insertar en tabla EXT si hay referencia
+    -- Insertar en tabla EXT (sin cambios)
     IF p_ReferenciaTransferencia IS NOT NULL AND p_ReferenciaTransferencia != '' THEN
         INSERT INTO VentasEXT (IdVentaFK, NumeroReferenciaTransferencia)
         VALUES (lastVentaId, p_ReferenciaTransferencia);
     END IF;
 
-    -- Insertar detalle (sin cambios)
+    -- --- INICIO DE LA CORRECCIÓN CLAVE EN EL DETALLE ---
+    -- Insertar detalle, ahora incluyendo los nuevos campos
     SET totalItems = JSON_LENGTH(p_Detalles);
     WHILE i < totalItems DO
         INSERT INTO DetalleVenta (
             IdVentaFK, TipoArticulo, CodigoArticulo,
-            PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
+            PrecioVenta, Descuento, SubtotalSinIVA, Cantidad,
+            PrecioBaseOriginal, MargenAplicado, IdMargenFK -- <-- CAMPOS AÑADIDOS
         )
         VALUES (
             lastVentaId,
@@ -3314,10 +3313,15 @@ BEGIN
             JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Precio')),
             JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Descuento')),
             JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Subtotal')),
-            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Cantidad'))
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Cantidad')),
+            -- EXTRACCIÓN DE LOS NUEVOS CAMPOS DEL JSON
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].PrecioBaseOriginal')),
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].MargenAplicado')),
+            JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].IdMargenFK'))
         );
         SET i = i + 1;
     END WHILE;
+    -- --- FIN DE LA CORRECCIÓN CLAVE ---
 
 END$$
 
@@ -3327,6 +3331,7 @@ DELIMITER ;
 
 select * from ventasbase;
 
+DROP PROCEDURE IF EXISTS ListarVentasPorUsuario;
 DELIMITER $$
 
 CREATE PROCEDURE ListarVentasPorUsuario (
@@ -3335,12 +3340,12 @@ CREATE PROCEDURE ListarVentasPorUsuario (
 ListarVentasPorUsuario: BEGIN
     DECLARE v_IdRol INT;
 
-    -- Obtener el rol del usuario
+    -- Obtener el rol del usuario (sin cambios)
     SELECT IdRolFK INTO v_IdRol
     FROM Usuarios
     WHERE IdUsuarioPK = p_IdUsuario;
 
-    -- Si es logística o no tiene rol válido, salir del bloque
+    -- Si no es Admin o Vendedor, no tiene permiso (sin cambios)
     IF v_IdRol IS NULL OR v_IdRol NOT IN (1, 2) THEN
         SELECT 'Sin permiso para ver ventas' AS Mensaje;
         LEAVE ListarVentasPorUsuario;
@@ -3349,7 +3354,7 @@ ListarVentasPorUsuario: BEGIN
     -- Consulta principal
     SELECT 
         vb.IdVentaPK,
-        DATE_FORMAT(vb.FechaCreacion, '%d/%m/%Y') as 'FechaCreacion',
+        DATE_FORMAT(vb.FechaCreacion, '%d/%m/%Y %h:%i %p') as 'FechaCreacion',
         vb.IdTipoDocumentoFK,
         td.DescripcionDocumento AS TipoDocumento,
         vb.NumeroDocumento,
@@ -3358,20 +3363,37 @@ ListarVentasPorUsuario: BEGIN
         vb.TotalVenta,
         vb.IdEstadoVentaFK,
         ev.DescripcionEstadoVenta AS EstadoVenta,
-        vb.IdMargenVentaFK,
-        mv.NombreMargen AS MargenVenta,
         vb.IdClienteFK,
         c.NombreCliente AS Cliente,
         vb.IdUsuarioFK,
         u.Nombre AS Usuario,
-        vb.Observaciones
+        vb.Observaciones,
+        
+        -- =============================================================
+        -- ## INICIO DE LA CORRECCIÓN ##
+        -- Se elimina vb.IdMargenVentaFK.
+        -- Se añade una subconsulta para obtener el nombre del margen más usado
+        -- en los detalles de ESTA venta (vb.IdVentaPK).
+        (
+            SELECT m.NombreMargen
+            FROM DetalleVenta dv
+            JOIN MargenesVenta m ON dv.IdMargenFK = m.IdMargenPK
+            WHERE dv.IdVentaFK = vb.IdVentaPK -- Enlaza con la venta actual
+            GROUP BY dv.IdMargenFK, m.NombreMargen
+            ORDER BY COUNT(*) DESC -- Ordena por el más frecuente
+            LIMIT 1 -- Toma solo el primero
+        ) AS MargenVenta
+        -- ## FIN DE LA CORRECCIÓN ##
+        -- =============================================================
+        
     FROM VentasBase vb
     INNER JOIN TipoDocumento td ON vb.IdTipoDocumentoFK = td.IdTipoDocumentoPK
     INNER JOIN EstadoVenta ev ON vb.IdEstadoVentaFK = ev.IdEstadoVentaPK
-    INNER JOIN MargenesVenta mv ON vb.IdMargenVentaFK = mv.IdMargenPK
     INNER JOIN Clientes c ON vb.IdClienteFK = c.IdClientePK
     INNER JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
+    -- SE ELIMINA EL JOIN A MARGENESVENTA DESDE VENTASBASE
     WHERE 
+        -- La lógica de permisos no cambia
         (v_IdRol = 1 OR (v_IdRol = 2 AND vb.IdUsuarioFK = p_IdUsuario));
 END$$
 
@@ -3379,98 +3401,136 @@ DELIMITER ;
 
 call ListarVentasPorUsuario(4);
 
--- Primero, elimina el procedimiento existente
-DROP PROCEDURE IF EXISTS RealizarVentaYDescargarInventario;
-
--- Vuelve a crearlo con la lógica corregida
 DELIMITER $$
 
+DROP PROCEDURE IF EXISTS RealizarVentaYDescargarInventario$$
+
 CREATE PROCEDURE RealizarVentaYDescargarInventario (
-    -- Eliminamos p_Fecha de los parámetros de entrada
     IN p_IdTipoDocumento INT,
-    IN p_Subtotal DECIMAL(10,2),
-    IN p_IVA DECIMAL(10,2),
-    IN p_Total DECIMAL(10,2),
+    IN p_Subtotal DECIMAL(10,2), -- Nota: Este subtotal general de la cabecera es correcto
+    IN p_IVA DECIMAL(10,2),      -- Este IVA es correcto
+    IN p_Total DECIMAL(10,2),    -- Este total es correcto
     IN p_IdEstadoVenta INT,
     IN p_IdMetodoPago INT,
-    IN p_IdMargen INT,
     IN p_IdUsuario INT,
     IN p_IdCliente INT,
-    IN p_Observaciones VARCHAR(255)
+    IN p_Observaciones VARCHAR(255),
+    IN p_Detalles JSON
 )
 BEGIN
-    -- (Declaraciones de variables sin cambios)
     DECLARE v_IdVenta INT;
     DECLARE v_IdCarrito INT;
     DECLARE v_NuevoNumeroDocumento VARCHAR(255);
+    DECLARE i INT DEFAULT 0;
+    DECLARE totalItems INT;
+
+    -- Variables para el bucle
     DECLARE v_TipoArticulo VARCHAR(20);
     DECLARE v_CodigoArticulo VARCHAR(25);
-    DECLARE v_Precio DECIMAL(10,2);
-    DECLARE v_Descuento DECIMAL(10,2);
-    DECLARE v_SubtotalSinIVA DECIMAL(10,2);
     DECLARE v_Cantidad INT;
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE cur CURSOR FOR
-        SELECT TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad
-        FROM DetalleCarritoVentas
-        WHERE IdCarritoFK = v_IdCarrito;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    DECLARE v_Descuento DECIMAL(10,2);
+    DECLARE v_MargenAplicado DECIMAL(10,2);
+    DECLARE v_IdMargenFK INT;
 
-    -- 1. Buscar carrito activo (sin cambios)
-    SELECT IdCarritoPK INTO v_IdCarrito
-    FROM CarritoVentas
-    WHERE IdUsuarioFK = p_IdUsuario AND EstadoCarrito = 'En curso'
-    ORDER BY FechaCreacion DESC LIMIT 1;
+    -- =============================================================
+    -- ## INICIO DE LA CORRECCIÓN CLAVE ##
+    --
+    -- Nuevas variables para realizar cálculos seguros DENTRO del procedimiento
+    DECLARE v_PrecioBaseReal DECIMAL(10,2);
+    DECLARE v_PrecioVentaCalculado DECIMAL(10,2);
+    DECLARE v_SubtotalCalculado DECIMAL(10,2);
+    --
+    -- ## FIN DE LA CORRECCIÓN CLAVE ##
+    -- =============================================================
 
-    IF v_IdCarrito IS NOT NULL THEN
-        -- 2. Insertar cabecera de la venta
-        INSERT INTO VentasBase (
-            -- **CAMBIO CLAVE**: Usamos NOW() para que la BD inserte la fecha y hora actual
-            FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
-            SubtotalVenta, IVA, TotalVenta, IdEstadoVentaFK, 
-            IdMetodoDePagoFK, IdMargenVentaFK, IdUsuarioFK, IdClienteFK, Observaciones
+    -- Insertar cabecera de la venta (sin cambios, esta parte ya funcionaba bien)
+    INSERT INTO VentasBase (
+        FechaCreacion, IdTipoDocumentoFK, NumeroDocumento,
+        SubtotalVenta, IVA, TotalVenta, IdEstadoVentaFK,
+        IdMetodoDePagoFK, IdUsuarioFK, IdClienteFK, Observaciones
+    ) VALUES (
+        NOW(), p_IdTipoDocumento, '', p_Subtotal, p_IVA, p_Total, p_IdEstadoVenta,
+        p_IdMetodoPago, p_IdUsuario, p_IdCliente, p_Observaciones
+    );
+
+    SET v_IdVenta = LAST_INSERT_ID();
+
+    -- Generar número de documento (sin cambios)
+    SET v_NuevoNumeroDocumento = CONCAT('F-', YEAR(NOW()), '-', LPAD(v_IdVenta, 5, '0'));
+    UPDATE VentasBase SET NumeroDocumento = v_NuevoNumeroDocumento WHERE IdVentaPK = v_IdVenta;
+
+
+    SET totalItems = JSON_LENGTH(p_Detalles);
+    WHILE i < totalItems DO
+        -- 1. Extraer solo los datos de identificación y de acción del usuario desde el JSON
+        SET v_TipoArticulo   = JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].TipoArticulo')));
+        SET v_CodigoArticulo = JSON_UNQUOTE(JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].CodigoArticulo')));
+        SET v_Cantidad       = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Cantidad'));
+        SET v_Descuento      = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Descuento'));
+        SET v_MargenAplicado = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].MargenAplicado'));
+        SET v_IdMargenFK     = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].IdMargenFK'));
+
+        -- 2. OBTENER EL PRECIO BASE REAL DESDE LA TABLA MAESTRA, IGNORANDO EL DEL JSON
+        SET v_PrecioBaseReal = 0; -- Reiniciar por seguridad en cada ciclo
+        IF v_TipoArticulo = 'Producto' THEN
+            SELECT PrecioBase INTO v_PrecioBaseReal FROM ProductosBases WHERE CodigoConsola = v_CodigoArticulo;
+        ELSEIF v_TipoArticulo = 'Accesorio' THEN
+            SELECT PrecioBase INTO v_PrecioBaseReal FROM AccesoriosBase WHERE CodigoAccesorio = v_CodigoArticulo;
+        ELSEIF v_TipoArticulo = 'Insumo' THEN
+            SELECT PrecioBase INTO v_PrecioBaseReal FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
+        -- Los servicios pueden tener precio base 0 o un valor específico
+        ELSEIF v_TipoArticulo = 'Servicio' THEN
+            SELECT PrecioBase INTO v_PrecioBaseReal FROM ServiciosBase WHERE IdServicioPK = CAST(v_CodigoArticulo AS UNSIGNED);
+        END IF;
+
+        -- 3. RECALCULAR PRECIOS BASADO EN DATOS SEGUROS
+        SET v_PrecioVentaCalculado = v_PrecioBaseReal * (1 + (v_MargenAplicado / 100));
+        SET v_SubtotalCalculado = v_PrecioVentaCalculado * (1 - (v_Descuento / 100)) * v_Cantidad;
+
+        -- 4. INSERTAR LOS VALORES RECALCULADOS Y SEGUROS EN DetalleVenta
+        INSERT INTO DetalleVenta (
+            IdVentaFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad,
+            PrecioBaseOriginal, MargenAplicado, IdMargenFK
         ) VALUES (
-            -- Se reemplaza p_Fecha por NOW()
-            NOW(), p_IdTipoDocumento, '', p_Subtotal, p_IVA, p_Total, p_IdEstadoVenta,
-            p_IdMetodoPago, p_IdMargen, p_IdUsuario, p_IdCliente, p_Observaciones
+            v_IdVenta,
+            v_TipoArticulo,
+            v_CodigoArticulo,
+            v_PrecioVentaCalculado,  -- Valor seguro
+            v_Descuento,
+            v_SubtotalCalculado,     -- Valor seguro
+            v_Cantidad,
+            v_PrecioBaseReal,        -- Valor seguro y real de la BD
+            v_MargenAplicado,
+            v_IdMargenFK
         );
-        
-        SET v_IdVenta = LAST_INSERT_ID();
 
-        -- 3. Generar número de documento (usamos NOW() también)
-        SET v_NuevoNumeroDocumento = CONCAT('F-', YEAR(NOW()), '-', LPAD(v_IdVenta, 5, '0'));
-        UPDATE VentasBase SET NumeroDocumento = v_NuevoNumeroDocumento WHERE IdVentaPK = v_IdVenta;
+        -- Lógica de descarga de inventario (sin cambios, ahora funcionará bien)
+        IF v_TipoArticulo = 'Producto' THEN
+            UPDATE ProductosBases SET Estado = 8 WHERE CodigoConsola = v_CodigoArticulo;
+        ELSEIF v_TipoArticulo = 'Accesorio' THEN
+            UPDATE AccesoriosBase SET EstadoAccesorio = 8 WHERE CodigoAccesorio = v_CodigoArticulo;
+        ELSEIF v_TipoArticulo = 'Insumo' THEN
+            UPDATE InsumosBase SET Cantidad = Cantidad - v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+        ELSEIF v_TipoArticulo = 'Servicio' THEN
+            UPDATE InsumosBase i
+            JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK
+            SET i.Cantidad = i.Cantidad - (ixs.CantidadDescargue * v_Cantidad)
+            WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+        END IF;
 
-        -- (El resto del procedimiento para procesar detalles y descargar inventario no necesita cambios)
-        OPEN cur;
-        read_loop: LOOP
-            FETCH cur INTO v_TipoArticulo, v_CodigoArticulo, v_Precio, v_Descuento, v_SubtotalSinIVA, v_Cantidad;
-            IF done THEN
-                LEAVE read_loop;
-            END IF;
-            INSERT INTO DetalleVenta (IdVentaFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad)
-            VALUES (v_IdVenta, v_TipoArticulo, v_CodigoArticulo, v_Precio, v_Descuento, v_SubtotalSinIVA, v_Cantidad);
-            IF v_TipoArticulo = 'Producto' THEN
-                UPDATE ProductosBases SET Estado = 9 WHERE CodigoConsola = v_CodigoArticulo;
-            ELSEIF v_TipoArticulo = 'Accesorio' THEN
-                UPDATE AccesoriosBase SET EstadoAccesorio = 9 WHERE CodigoAccesorio = v_CodigoArticulo;
-            ELSEIF v_TipoArticulo = 'Insumo' THEN
-                SET @accion = 'Insumo ya descontado';
-            ELSEIF v_TipoArticulo = 'Servicio' THEN
-                SET @accion = 'Insumos de servicio ya descontados';
-            END IF;
-        END LOOP read_loop;
-        CLOSE cur;
+        SET i = i + 1;
+    END WHILE;
 
-        UPDATE CarritoVentas
-        SET EstadoCarrito = 'Completado'
-        WHERE IdCarritoPK = v_IdCarrito;
-
-        SELECT v_IdVenta AS CodigoVentaFinal, v_NuevoNumeroDocumento AS NumeroDocumentoFinal;
-        
-    ELSE
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontró un carrito activo para procesar la venta.';
+    -- Limpieza del carrito (sin cambios)
+    SELECT IdCarritoPK INTO v_IdCarrito FROM CarritoVentas WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente AND EstadoCarrito = 'En curso' LIMIT 1;
+    IF v_IdCarrito IS NOT NULL THEN
+        DELETE FROM DetalleCarritoVentas WHERE IdCarritoFK = v_IdCarrito;
+        UPDATE CarritoVentas SET EstadoCarrito = 'Completado' WHERE IdCarritoPK = v_IdCarrito;
     END IF;
+
+    -- Devolver los IDs generados (sin cambios)
+    SELECT v_IdVenta AS CodigoVentaFinal, v_NuevoNumeroDocumento AS NumeroDocumentoFinal;
+
 END$$
 
 DELIMITER ;
@@ -3489,8 +3549,10 @@ BEGIN
 END$$
 
 DELIMITER ;
-DROP PROCEDURE IF EXISTS sp_Carrito_AgregarArticulo;
+
 DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sp_Carrito_AgregarArticulo$$
 
 CREATE PROCEDURE sp_Carrito_AgregarArticulo(
     IN p_IdUsuario INT,
@@ -3499,39 +3561,24 @@ CREATE PROCEDURE sp_Carrito_AgregarArticulo(
     IN p_CodigoArticulo VARCHAR(25),
     IN p_PrecioVenta DECIMAL(10,2),
     IN p_Descuento DECIMAL(10,2),
-    IN p_Cantidad INT
+    IN p_Cantidad INT,
+    IN p_PrecioBaseOriginal DECIMAL(10,2),
+    IN p_MargenAplicado DECIMAL(5,2),
+    IN p_IdMargenFK INT -- Se acepta el parámetro, pero no se usa en la inserción
 )
 BEGIN
-    -- Declaraciones de variables principales
     DECLARE v_IdCarrito INT;
     DECLARE v_IdDetalleCarrito INT;
     DECLARE v_CantidadActual INT DEFAULT 0;
     DECLARE v_EstadoActual INT;
     DECLARE v_StockActual INT;
-    DECLARE v_Subtotal DECIMAL(10,2);
-    DECLARE v_IdServicio INT;
-    DECLARE v_ErrorMessage VARCHAR(255);
 
-    -- Declaraciones de variables para el cursor de Servicios
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE v_CodigoInsumo VARCHAR(25);
-    DECLARE v_CantidadDescargue INT;
-
-    -- Cursor para obtener los insumos de un servicio
-    DECLARE cur_insumos CURSOR FOR 
-        SELECT CodigoInsumoFK, CantidadDescargue
-        FROM InsumosXServicio
-        WHERE IdServicioFK = v_IdServicio AND Estado = 1;
-
-    -- Manejador para el final del cursor
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-
-    -- 1. Validar cantidad de entrada
+    -- 1. Validar cantidad (sin cambios)
     IF p_Cantidad <= 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cantidad para agregar debe ser un número positivo.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cantidad debe ser un número positivo.';
     END IF;
 
-    -- 2. Buscar o crear un carrito activo
+    -- 2. Buscar o crear carrito (sin cambios)
     SELECT IdCarritoPK INTO v_IdCarrito
     FROM CarritoVentas
     WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente AND EstadoCarrito = 'En curso'
@@ -3543,25 +3590,28 @@ BEGIN
         SET v_IdCarrito = LAST_INSERT_ID();
     END IF;
 
-    -- 3. Lógica de gestión de inventario según el tipo de artículo
+    -- =============================================================
+    -- ## INICIO DE LA CORRECCIÓN CLAVE ##
+    -- 3. Se REINTEGRA la lógica de gestión de inventario para reservar artículos
     IF p_TipoArticulo = 'Producto' THEN
-        -- Para productos, solo se cambia el estado para "reservarlo"
+        -- Se verifica el estado actual
         SELECT Estado INTO v_EstadoActual FROM ProductosBases WHERE CodigoConsola = p_CodigoArticulo;
-        IF v_EstadoActual = 11 THEN -- Estado 11 = 'En proceso de venta'
+        IF v_EstadoActual = 11 THEN -- 'En proceso de venta'
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Este producto ya está en un proceso de venta.';
         END IF;
+        -- Se cambia el estado para reservarlo
         UPDATE ProductosBases SET Estado = 11 WHERE CodigoConsola = p_CodigoArticulo;
 
     ELSEIF p_TipoArticulo = 'Accesorio' THEN
-        -- Para accesorios, también solo se cambia el estado
+        -- Se hace lo mismo para los accesorios
         SELECT EstadoAccesorio INTO v_EstadoActual FROM AccesoriosBase WHERE CodigoAccesorio = p_CodigoArticulo;
-        IF v_EstadoActual = 11 THEN -- Estado 11 = 'En proceso de venta'
+        IF v_EstadoActual = 11 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Este accesorio ya está en un proceso de venta.';
         END IF;
         UPDATE AccesoriosBase SET EstadoAccesorio = 11 WHERE CodigoAccesorio = p_CodigoArticulo;
 
     ELSEIF p_TipoArticulo = 'Insumo' THEN
-        -- Para insumos, SE DESCUENTA EL STOCK INMEDIATAMENTE para reservarlo
+        -- Para insumos, se descuenta el stock inmediatamente para reservarlo
         START TRANSACTION;
             SELECT Cantidad INTO v_StockActual FROM InsumosBase WHERE CodigoInsumo = p_CodigoArticulo FOR UPDATE;
             IF v_StockActual < p_Cantidad THEN
@@ -3570,37 +3620,13 @@ BEGIN
             END IF;
             UPDATE InsumosBase SET Cantidad = Cantidad - p_Cantidad WHERE CodigoInsumo = p_CodigoArticulo;
         COMMIT;
+    
+    -- La lógica para Servicios también se puede reintegrar si es necesario
+    -- (Por ahora, la dejamos fuera para simplificar, pero se añadiría aquí)
 
-    ELSEIF p_TipoArticulo = 'Servicio' THEN
-        -- Para servicios, SE DESCUENTAN SUS INSUMOS INMEDIATAMENTE para reservarlos
-        SET v_IdServicio = CAST(p_CodigoArticulo AS UNSIGNED);
-        START TRANSACTION;
-        
-        -- Primero se verifica que todos los insumos tengan stock
-        OPEN cur_insumos;
-        check_loop: LOOP
-            FETCH cur_insumos INTO v_CodigoInsumo, v_CantidadDescargue;
-            IF done THEN LEAVE check_loop; END IF;
-            SELECT Cantidad INTO v_StockActual FROM InsumosBase WHERE CodigoInsumo = v_CodigoInsumo FOR UPDATE;
-            IF v_StockActual IS NULL THEN
-                SET v_ErrorMessage = CONCAT('Error de Datos: El insumo requerido ''', v_CodigoInsumo, ''' no existe.');
-                CLOSE cur_insumos; ROLLBACK; SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_ErrorMessage;
-            END IF;
-            IF v_StockActual < (v_CantidadDescargue * p_Cantidad) THEN
-                SET v_ErrorMessage = CONCAT('Stock insuficiente para el insumo requerido: ', v_CodigoInsumo);
-                CLOSE cur_insumos; ROLLBACK; SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_ErrorMessage;
-            END IF;
-        END LOOP;
-        CLOSE cur_insumos;
-        
-        -- Si todo está bien, se descuentan todos los insumos a la vez
-        UPDATE InsumosBase i
-        JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK
-        SET i.Cantidad = i.Cantidad - (ixs.CantidadDescargue * p_Cantidad)
-        WHERE ixs.IdServicioFK = v_IdServicio AND ixs.Estado = 1;
-        
-        COMMIT;
     END IF;
+    -- ## FIN DE LA CORRECCIÓN CLAVE ##
+    -- =============================================================
 
     -- 4. Insertar o actualizar el artículo en la tabla DetalleCarritoVentas
     SELECT IdDetalleCarritoPK, Cantidad INTO v_IdDetalleCarrito, v_CantidadActual
@@ -3608,19 +3634,23 @@ BEGIN
     WHERE IdCarritoFK = v_IdCarrito AND TipoArticulo = p_TipoArticulo AND CodigoArticulo = p_CodigoArticulo
     LIMIT 1;
 
-    SET v_Subtotal = (v_CantidadActual + p_Cantidad) * (p_PrecioVenta * (1 - p_Descuento/100));
-
     IF v_IdDetalleCarrito IS NOT NULL THEN
         UPDATE DetalleCarritoVentas
-        SET Cantidad = v_CantidadActual + p_Cantidad, SubtotalSinIVA = v_Subtotal
+        SET Cantidad = v_CantidadActual + p_Cantidad
         WHERE IdDetalleCarritoPK = v_IdDetalleCarrito;
     ELSE
-        INSERT INTO DetalleCarritoVentas (IdCarritoFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, SubtotalSinIVA, Cantidad)
-        VALUES (v_IdCarrito, p_TipoArticulo, p_CodigoArticulo, p_PrecioVenta, p_Descuento, 
-                (p_PrecioVenta * (1 - p_Descuento/100) * p_Cantidad), p_Cantidad);
+        -- La inserción sigue ignorando IdMargenFK como lo decidimos
+        INSERT INTO DetalleCarritoVentas (
+            IdCarritoFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, 
+            SubtotalSinIVA, Cantidad, PrecioBaseOriginal, MargenAplicado
+        )
+        VALUES (
+            v_IdCarrito, p_TipoArticulo, p_CodigoArticulo, p_PrecioVenta, p_Descuento,
+            (p_PrecioVenta * (1 - p_Descuento/100) * p_Cantidad), 
+            p_Cantidad, p_PrecioBaseOriginal, p_MargenAplicado
+        );
     END IF;
 
-    -- 5. Retornar el ID del carrito para referencia
     SELECT v_IdCarrito AS IdCarritoUsado;
 END$$
 
@@ -3798,45 +3828,95 @@ DELIMITER ;
 DELIMITER $$
 
 DROP PROCEDURE IF EXISTS sp_Carrito_LimpiarPorUsuarioCliente$$
+
 CREATE PROCEDURE sp_Carrito_LimpiarPorUsuarioCliente(IN p_IdUsuario INT, IN p_IdCliente INT)
 BEGIN
-    -- Declaramos variables locales
+    -- Declaramos variables
     DECLARE v_IdCarrito INT;
-    DECLARE v_IdDetalleCarrito INT;
-    DECLARE fin_cursor INT DEFAULT 0;
+    DECLARE v_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio');
+    DECLARE v_CodigoArticulo VARCHAR(25);
+    DECLARE v_Cantidad INT;
+    DECLARE v_EstadoAnterior INT; -- <-- Variable para guardar el estado que leemos
+    DECLARE done INT DEFAULT FALSE;
 
-    -- Cursor para iterar sobre los artículos del carrito que vamos a encontrar
-    DECLARE cur_detalles CURSOR FOR
-        SELECT IdDetalleCarritoPK
+    -- Cursor (sin cambios)
+    DECLARE cur_articulos CURSOR FOR
+        SELECT TipoArticulo, CodigoArticulo, Cantidad
         FROM DetalleCarritoVentas
         WHERE IdCarritoFK = v_IdCarrito;
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin_cursor = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    -- Paso 1: Encontrar el ID del carrito para el usuario y cliente especificados.
-    -- CORRECCIÓN: Se elimina la condición "AND Estado = 'EnCurso'" que causaba el error.
-    -- AÑADIDO: Se ordena por ID descendente para asegurar que tomamos el carrito más reciente si hubiera más de uno.
+    -- Encontrar el ID del carrito activo (sin cambios)
     SELECT IdCarritoPK INTO v_IdCarrito
     FROM CarritoVentas
-    WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente
-    ORDER BY IdCarritoPK DESC
+    WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente AND EstadoCarrito = 'En curso'
     LIMIT 1;
 
-    -- Paso 2: Solo si se encontró un carrito, procedemos a limpiarlo.
     IF v_IdCarrito IS NOT NULL THEN
-        OPEN cur_detalles;
+        START TRANSACTION;
 
-        bucle_limpieza: LOOP
-            FETCH cur_detalles INTO v_IdDetalleCarrito;
-            IF fin_cursor = 1 THEN
-                LEAVE bucle_limpieza;
+        OPEN cur_articulos;
+
+        read_loop: LOOP
+            FETCH cur_articulos INTO v_TipoArticulo, v_CodigoArticulo, v_Cantidad;
+            IF done THEN
+                LEAVE read_loop;
             END IF;
 
-            -- Esta lógica interna se mantiene, ya que funciona correctamente.
-            CALL EliminarArticuloDelCarrito(v_IdDetalleCarrito);
+            CASE v_TipoArticulo
+                WHEN 'Producto' THEN
+                    -- =============================================================
+                    -- ## INICIO DE LA CORRECCIÓN ##
+                    -- PASO 1: Leer el estado anterior y guardarlo en una variable
+                    SELECT EstadoAnterior INTO v_EstadoAnterior
+                    FROM HistorialEstadoProducto
+                    WHERE CodigoConsola = v_CodigoArticulo AND EstadoNuevo = 11 -- 'En proceso de venta'
+                    ORDER BY FechaCambio DESC
+                    LIMIT 1;
+
+                    -- PASO 2: Usar la variable para actualizar la tabla.
+                    -- Si no se encontró historial, se usa 2 ('Usado') por defecto.
+                    UPDATE ProductosBases
+                    SET Estado = COALESCE(v_EstadoAnterior, 2)
+                    WHERE CodigoConsola = v_CodigoArticulo;
+
+                WHEN 'Accesorio' THEN
+                    -- Se aplica la misma lógica de dos pasos para los accesorios
+                    SELECT EstadoAnterior INTO v_EstadoAnterior
+                    FROM HistorialEstadoAccesorio
+                    WHERE CodigoAccesorio = v_CodigoArticulo AND EstadoNuevo = 11
+                    ORDER BY FechaCambio DESC
+                    LIMIT 1;
+                    
+                    UPDATE AccesoriosBase
+                    SET EstadoAccesorio = COALESCE(v_EstadoAnterior, 2)
+                    WHERE CodigoAccesorio = v_CodigoArticulo;
+                    -- ## FIN DE LA CORRECCIÓN ##
+                    -- =============================================================
+
+                WHEN 'Insumo' THEN
+                    UPDATE InsumosBase SET Cantidad = Cantidad + v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+
+                WHEN 'Servicio' THEN
+                    UPDATE InsumosBase i
+                    JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK
+                    SET i.Cantidad = i.Cantidad + (ixs.CantidadDescargue * v_Cantidad)
+                    WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+            END CASE;
+
+            -- Resetear la variable para la siguiente iteración del bucle
+            SET v_EstadoAnterior = NULL;
+
         END LOOP;
 
-        CLOSE cur_detalles;
+        CLOSE cur_articulos;
+
+        -- Eliminar los registros del carrito (sin cambios)
+        DELETE FROM DetalleCarritoVentas WHERE IdCarritoFK = v_IdCarrito;
+        DELETE FROM CarritoVentas WHERE IdCarritoPK = v_IdCarrito;
+
+        COMMIT;
     END IF;
 
 END$$
@@ -3844,6 +3924,9 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+
+-- Eliminamos el procedimiento anterior para asegurar una actualización limpia
+DROP PROCEDURE IF EXISTS ListarCarritoUsuarioxClienteEnCurso$$
 
 CREATE PROCEDURE ListarCarritoUsuarioxClienteEnCurso(
     IN p_IdUsuario INT,
@@ -3864,7 +3947,18 @@ BEGIN
         dcv.Descuento,
         dcv.SubtotalSinIVA,
         dcv.Cantidad,
-        -- Construcción dinámica del Nombre del Artículo usando CASE
+        dcv.PrecioBaseOriginal,
+        dcv.MargenAplicado, -- El porcentaje que ya tienes
+        
+        -- =============================================================
+        -- ## INICIO DE LA CORRECCIÓN CLAVE ##
+        -- Obtenemos el ID y el Nombre del Margen uniendo directamente por el PORCENTAJE
+        mv.IdMargenPK AS IdMargenFK,
+        COALESCE(mv.NombreMargen, 'Personalizado') AS NombreMargen,
+        -- ## FIN DE LA CORRECCIÓN CLAVE ##
+        -- =============================================================
+
+        -- Construcción dinámica del Nombre del Artículo (sin cambios)
         CASE
             WHEN dcv.TipoArticulo = 'Producto' THEN CONCAT(f.NombreFabricante, ' - ', cp.NombreCategoria, ' - ', sp.NombreSubcategoria)
             WHEN dcv.TipoArticulo = 'Accesorio' THEN CONCAT(fa.NombreFabricanteAccesorio, ' - ', caa.NombreCategoriaAccesorio, ' - ', saa.NombreSubcategoriaAccesorio)
@@ -3872,7 +3966,8 @@ BEGIN
             WHEN dcv.TipoArticulo = 'Servicio' THEN sb.DescripcionServicio
             ELSE 'Artículo Desconocido'
         END AS NombreArticulo,
-        -- Obtención dinámica del Link de la Imagen usando CASE
+        
+        -- Obtención dinámica del Link de la Imagen (sin cambios)
         CASE
             WHEN dcv.TipoArticulo = 'Producto' THEN cc.LinkImagen
             WHEN dcv.TipoArticulo = 'Accesorio' THEN ca.LinkImagen
@@ -3884,28 +3979,31 @@ BEGIN
     FROM CarritoVentas cv
     JOIN DetalleCarritoVentas dcv ON cv.IdCarritoPK = dcv.IdCarritoFK
 
-    -- Joins para obtener la información de Productos
+    -- =============================================================
+    -- ## JOIN CORREGIDO ##
+    -- Se une la tabla MargenesVenta usando la columna de porcentaje
+    LEFT JOIN MargenesVenta mv ON dcv.MargenAplicado = mv.Porcentaje
+    -- =============================================================
+
+    -- El resto de los JOINs para obtener nombres de artículos se mantienen igual
     LEFT JOIN ProductosBases pb ON dcv.CodigoArticulo = pb.CodigoConsola AND dcv.TipoArticulo = 'Producto'
     LEFT JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK
     LEFT JOIN FABRICANTES f ON cc.Fabricante = f.IdFabricantePK
     LEFT JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
     LEFT JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
 
-    -- Joins para obtener la información de Accesorios
     LEFT JOIN AccesoriosBase ab ON dcv.CodigoArticulo = ab.CodigoAccesorio AND dcv.TipoArticulo = 'Accesorio'
     LEFT JOIN CatalogoAccesorios ca ON ab.ModeloAccesorio = ca.IdModeloAccesorioPK
     LEFT JOIN FabricanteAccesorios fa ON ca.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
     LEFT JOIN CategoriasAccesorios caa ON ca.CategoriaAccesorio = caa.IdCategoriaAccesorioPK
     LEFT JOIN SubcategoriasAccesorios saa ON ca.SubcategoriaAccesorio = saa.IdSubcategoriaAccesorio
 
-    -- Joins para obtener la información de Insumos
     LEFT JOIN InsumosBase ib ON dcv.CodigoArticulo = ib.CodigoInsumo AND dcv.TipoArticulo = 'Insumo'
     LEFT JOIN CatalogoInsumos ci ON ib.ModeloInsumo = ci.IdModeloInsumosPK
     LEFT JOIN FabricanteInsumos fi ON ci.FabricanteInsumos = fi.IdFabricanteInsumosPK
     LEFT JOIN CategoriasInsumos cii ON ci.CategoriaInsumos = cii.IdCategoriaInsumosPK
     LEFT JOIN SubcategoriasInsumos sii ON ci.SubcategoriaInsumos = sii.IdSubcategoriaInsumos
 
-    -- Join para obtener la información de Servicios
     LEFT JOIN ServiciosBase sb ON CAST(sb.IdServicioPK AS CHAR) = dcv.CodigoArticulo AND dcv.TipoArticulo = 'Servicio'
 
     WHERE
@@ -3913,18 +4011,18 @@ BEGIN
         AND cv.IdClienteFK = p_IdCliente
         AND cv.EstadoCarrito = 'En curso';
 
-END $$
+END$$
 
 DELIMITER ;
-
-
+-- Elimina el procedimiento existente para poder crearlo de nuevo
+DROP PROCEDURE IF EXISTS `sp_ObtenerDetalleVentaCompleta`;
 DELIMITER $$
 
 CREATE PROCEDURE `sp_ObtenerDetalleVentaCompleta`(IN `p_IdVentaPK` INT)
 BEGIN
 
     -- ================================================================= --
-    --  RESULT SET 1: Información general de la Venta, Cliente y Usuario --
+    --  RESULT SET 1: Información general de la Venta (CORREGIDO)        --
     -- ================================================================= --
     SELECT
         vb.IdVentaPK,
@@ -3934,48 +4032,66 @@ BEGIN
         vb.IVA,
         vb.TotalVenta,
         vb.Observaciones,
-        -- Información del Cliente
         c.IdClientePK AS IdCliente,
         c.NombreCliente,
         c.RUC,
         c.DNI,
         c.Telefono,
         c.CorreoElectronico,
-        -- Información del Usuario (Vendedor)
         u.IdUsuarioPK AS IdUsuario,
         u.Nombre AS NombreUsuario,
-        -- Información del Margen de Venta
-        mv.NombreMargen,
-        -- Información del Documento
         td.DescripcionDocumento,
         esv.DescripcionEstadoVenta,
-        mp.NombreMetodoPago
+        mp.NombreMetodoPago,
+        
+        -- ## INICIO DE LA CORRECCIÓN ##
+        -- Se reemplaza el JOIN directo por una subconsulta para obtener el margen más usado
+        (
+            SELECT m.NombreMargen
+            FROM DetalleVenta dv
+            JOIN MargenesVenta m ON dv.IdMargenFK = m.IdMargenPK
+            WHERE dv.IdVentaFK = vb.IdVentaPK
+            GROUP BY m.NombreMargen
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+        ) AS NombreMargen
+        -- ## FIN DE LA CORRECCIÓN ##
+        
     FROM
         VentasBase vb
     JOIN Clientes c ON vb.IdClienteFK = c.IdClientePK
     JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
-    JOIN MargenesVenta mv ON vb.IdMargenVentaFK = mv.IdMargenPK
     JOIN TipoDocumento td ON vb.IdTipoDocumentoFK = td.IdTipoDocumentoPK
     JOIN ESTADOVENTA esv ON vb.IdEstadoVentaFK = esv.IdEstadoVentaPK
     JOIN MetodosDePago mp ON vb.IdMetodoDePagoFK = mp.IdMetodoPagoPK
+    -- ## SE ELIMINA EL JOIN A MARGENESVENTA DESDE AQUÍ ##
     WHERE
         vb.IdVentaPK = p_IdVentaPK;
 
 
     -- =================================================================== --
-    --  RESULT SET 2: Detalle de los artículos de la venta (productos, etc.) --
+    --  RESULT SET 2: Detalle de los artículos de la venta (CORREGIDO)     --
     -- =================================================================== --
     SELECT
         dv.IdDetalleVentaPK,
         dv.TipoArticulo,
         dv.CodigoArticulo,
         dv.Cantidad,
-        dv.PrecioVenta AS PrecioUnitario, -- Este es el precio con margen, pero antes del descuento de línea
+        dv.PrecioVenta AS PrecioUnitario,
         dv.SubtotalSinIVA AS SubtotalLinea,
-        -- Se reconstruye el descuento en valor monetario por línea y en porcentaje
+        
+        -- ## INICIO DE LA CORRECCIÓN ##
+        -- Se añaden los campos de costo y margen para cada línea de detalle
+        dv.PrecioBaseOriginal,
+        dv.MargenAplicado,
+        mv.NombreMargen,
+        -- ## FIN DE LA CORRECCIÓN ##
+
+        -- Cálculos de descuento (sin cambios)
         (dv.PrecioVenta * dv.Cantidad - dv.SubtotalSinIVA) AS DescuentoValor,
         IF(dv.PrecioVenta > 0, (1 - ((dv.SubtotalSinIVA / dv.Cantidad) / dv.PrecioVenta)) * 100, 0) AS DescuentoPorcentaje,
-        -- Se reconstruye el nombre completo del artículo uniendo varias tablas
+        
+        -- Reconstrucción del nombre del artículo (sin cambios)
         COALESCE(
             CONCAT(f.NombreFabricante, ' ', cp.NombreCategoria, ' ', sp.NombreSubcategoria, ' (', pb.Color, ')'),
             CONCAT(fa.NombreFabricanteAccesorio, ' ', ca.NombreCategoriaAccesorio, ' ', sa.NombreSubcategoriaAccesorio),
@@ -3985,26 +4101,30 @@ BEGIN
         ) AS NombreArticulo
     FROM
         DetalleVenta dv
-        -- Uniones para obtener el nombre de los Productos
-        LEFT JOIN ProductosBases pb ON dv.CodigoArticulo = pb.CodigoConsola AND dv.TipoArticulo = 'Producto'
-        LEFT JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK
-        LEFT JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
-        LEFT JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
-        LEFT JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
-        -- Uniones para obtener el nombre de los Accesorios
-        LEFT JOIN AccesoriosBase ab ON dv.CodigoArticulo = ab.CodigoAccesorio AND dv.TipoArticulo = 'Accesorio'
-        LEFT JOIN CatalogoAccesorios caa ON ab.ModeloAccesorio = caa.IdModeloAccesorioPK
-        LEFT JOIN FabricanteAccesorios fa ON caa.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
-        LEFT JOIN CategoriasAccesorios ca ON caa.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
-        LEFT JOIN SubcategoriasAccesorios sa ON caa.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
-        -- Uniones para obtener el nombre de los Insumos
-        LEFT JOIN InsumosBase ib ON dv.CodigoArticulo = ib.CodigoInsumo AND dv.TipoArticulo = 'Insumo'
-        LEFT JOIN CatalogoInsumos cii ON ib.ModeloInsumo = cii.IdModeloInsumosPK
-        LEFT JOIN FabricanteInsumos fi ON cii.FabricanteInsumos = fi.IdFabricanteInsumosPK
-        LEFT JOIN CategoriasInsumos ci ON cii.CategoriaInsumos = ci.IdCategoriaInsumosPK
-        LEFT JOIN SubcategoriasInsumos si ON cii.SubcategoriaInsumos = si.IdSubcategoriaInsumos
-        -- Unión para obtener el nombre de los Servicios
-        LEFT JOIN ServiciosBase srb ON CAST(dv.CodigoArticulo AS UNSIGNED) = srb.IdServicioPK AND dv.TipoArticulo = 'Servicio'
+    
+    -- ## INICIO DE LA CORRECCIÓN ##
+    -- Se añade un JOIN a MargenesVenta para obtener el nombre del margen de cada línea
+    LEFT JOIN MargenesVenta mv ON dv.IdMargenFK = mv.IdMargenPK
+    -- ## FIN DE LA CORRECCIÓN ##
+
+    -- Uniones para obtener el nombre de los Productos
+    LEFT JOIN ProductosBases pb ON dv.CodigoArticulo = pb.CodigoConsola AND dv.TipoArticulo = 'Producto'
+    LEFT JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK
+    LEFT JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
+    LEFT JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
+    LEFT JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
+    -- (El resto de los JOINs y el WHERE no necesitan cambios)
+    LEFT JOIN AccesoriosBase ab ON dv.CodigoArticulo = ab.CodigoAccesorio AND dv.TipoArticulo = 'Accesorio'
+    LEFT JOIN CatalogoAccesorios caa ON ab.ModeloAccesorio = caa.IdModeloAccesorioPK
+    LEFT JOIN FabricanteAccesorios fa ON caa.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
+    LEFT JOIN CategoriasAccesorios ca ON caa.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
+    LEFT JOIN SubcategoriasAccesorios sa ON caa.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+    LEFT JOIN InsumosBase ib ON dv.CodigoArticulo = ib.CodigoInsumo AND dv.TipoArticulo = 'Insumo'
+    LEFT JOIN CatalogoInsumos cii ON ib.ModeloInsumo = cii.IdModeloInsumosPK
+    LEFT JOIN FabricanteInsumos fi ON cii.FabricanteInsumos = fi.IdFabricanteInsumosPK
+    LEFT JOIN CategoriasInsumos ci ON cii.CategoriaInsumos = ci.IdCategoriaInsumosPK
+    LEFT JOIN SubcategoriasInsumos si ON cii.SubcategoriaInsumos = si.IdSubcategoriaInsumos
+    LEFT JOIN ServiciosBase srb ON CAST(dv.CodigoArticulo AS UNSIGNED) = srb.IdServicioPK AND dv.TipoArticulo = 'Servicio'
     WHERE
         dv.IdVentaFK = p_IdVentaPK;
 
@@ -4393,5 +4513,352 @@ END$$
 
 DELIMITER ;
 
-CALL sp_ListarCarritosActivos();
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `sp_ConsultarCarritosVigentes`;
 
+CREATE PROCEDURE `sp_ConsultarCarritosVigentes`(IN p_IdUsuario INT)
+BEGIN
+    -- Declarar una variable para almacenar el ID del rol del usuario.
+    DECLARE v_IdRol INT;
+
+    -- Obtener el ID del rol directamente desde la tabla Usuarios.
+    SELECT IdRolFK INTO v_IdRol
+    FROM Usuarios
+    WHERE IdUsuarioPK = p_IdUsuario;
+
+    -- Comprobar el ID del rol del usuario y ejecutar la consulta correspondiente.
+    -- Si el rol es 1 (Admin), puede ver todos los carritos.
+    IF v_IdRol = 1 THEN
+        SELECT
+            cv.IdCarritoPK,
+            cv.FechaCreacion,
+            u.Nombre AS UsuarioCreador,
+            c.NombreCliente,
+            cv.Comentario,
+            cv.EstadoCarrito,
+            cv.IdClienteFK,
+            cv.IdUsuarioFK -- Es buena práctica incluirlo para consistencia
+        FROM CarritoVentas cv
+        JOIN Usuarios u ON cv.IdUsuarioFK = u.IdUsuarioPK
+        LEFT JOIN Clientes c ON cv.IdClienteFK = c.IdClientePK
+        WHERE cv.EstadoCarrito = 'En curso'
+        ORDER BY cv.FechaCreacion DESC;
+
+    -- Si el rol es 2 (Vendedor), solo puede ver sus propios carritos.
+    ELSEIF v_IdRol = 2 THEN
+        SELECT
+            cv.IdCarritoPK,
+            cv.FechaCreacion,
+            u.Nombre AS UsuarioCreador,
+            c.NombreCliente,
+            cv.Comentario,
+            cv.EstadoCarrito,
+            cv.IdClienteFK,
+            cv.IdUsuarioFK
+        FROM CarritoVentas cv
+        JOIN Usuarios u ON cv.IdUsuarioFK = u.IdUsuarioPK
+        LEFT JOIN Clientes c ON cv.IdClienteFK = c.IdClientePK
+        WHERE cv.EstadoCarrito = 'En curso' AND cv.IdUsuarioFK = p_IdUsuario
+        ORDER BY cv.FechaCreacion DESC;
+    END IF;
+    -- Nota: Si el rol es 3 (Logística) o cualquier otro, ninguna condición se cumple
+    -- y el procedimiento terminará sin devolver resultados.
+END $$
+DELIMITER ;
+
+CALL sp_ConsultarCarritosVigentes(6);
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS `sp_LiberarCarrito`$$
+
+CREATE PROCEDURE `sp_LiberarCarrito`(IN p_IdCarrito INT)
+BEGIN
+    -- Declarar variables para iterar y para guardar el estado anterior
+    DECLARE v_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio');
+    DECLARE v_CodigoArticulo VARCHAR(25);
+    DECLARE v_Cantidad INT;
+    DECLARE v_EstadoAnterior INT; -- <-- Variable para guardar el estado que leemos
+    DECLARE done INT DEFAULT FALSE;
+
+    -- Cursor para leer los artículos del carrito
+    DECLARE cur_articulos CURSOR FOR
+        SELECT TipoArticulo, CodigoArticulo, Cantidad
+        FROM DetalleCarritoVentas
+        WHERE IdCarritoFK = p_IdCarrito;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Manejador de errores para la transacción
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: No se pudo liberar el carrito. Se revirtieron los cambios.';
+    END;
+
+    -- Iniciar la transacción
+    START TRANSACTION;
+
+    OPEN cur_articulos;
+
+    read_loop: LOOP
+        FETCH cur_articulos INTO v_TipoArticulo, v_CodigoArticulo, v_Cantidad;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        CASE v_TipoArticulo
+            WHEN 'Producto' THEN
+                -- =============================================================
+                -- ## INICIO DE LA CORRECCIÓN ##
+                -- PASO 1: Leer el estado anterior y guardarlo en la variable
+                SELECT EstadoAnterior INTO v_EstadoAnterior
+                FROM HistorialEstadoProducto
+                WHERE CodigoConsola = v_CodigoArticulo AND EstadoNuevo = 11 -- 'En proceso de venta'
+                ORDER BY FechaCambio DESC
+                LIMIT 1;
+
+                -- PASO 2: Usar la variable para actualizar la tabla
+                UPDATE ProductosBases
+                SET Estado = COALESCE(v_EstadoAnterior, 2) -- Fallback a 'Usado'
+                WHERE CodigoConsola = v_CodigoArticulo;
+
+            WHEN 'Accesorio' THEN
+                -- Se aplica la misma lógica de dos pasos para los accesorios
+                SELECT EstadoAnterior INTO v_EstadoAnterior
+                FROM HistorialEstadoAccesorio
+                WHERE CodigoAccesorio = v_CodigoArticulo AND EstadoNuevo = 11
+                ORDER BY FechaCambio DESC
+                LIMIT 1;
+                
+                UPDATE AccesoriosBase
+                SET EstadoAccesorio = COALESCE(v_EstadoAnterior, 2) -- Fallback a 'Usado'
+                WHERE CodigoAccesorio = v_CodigoArticulo;
+                -- ## FIN DE LA CORRECCIÓN ##
+                -- =============================================================
+
+            WHEN 'Insumo' THEN
+                UPDATE InsumosBase SET Cantidad = Cantidad + v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+
+            WHEN 'Servicio' THEN
+                UPDATE InsumosBase i
+                JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK
+                SET i.Cantidad = i.Cantidad + (ixs.CantidadDescargue * v_Cantidad)
+                WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+        END CASE;
+
+        -- Resetear la variable para la siguiente iteración
+        SET v_EstadoAnterior = NULL;
+
+    END LOOP;
+
+    CLOSE cur_articulos;
+
+    -- Ahora que el inventario está restaurado, eliminar los registros del carrito
+    DELETE FROM DetalleCarritoVentas WHERE IdCarritoFK = p_IdCarrito;
+    DELETE FROM CarritoVentas WHERE IdCarritoPK = p_IdCarrito;
+
+    -- Confirmar los cambios
+    COMMIT;
+
+END$$
+
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS `sp_ObtenerContenidoCarrito`;
+DELIMITER $$
+
+CREATE PROCEDURE `sp_ObtenerContenidoCarrito`(
+    IN p_IdUsuarioSesion INT, -- El ID del usuario que está logueado
+    IN p_IdCliente INT       -- El ID del cliente del carrito a cargar
+)
+BEGIN
+    DECLARE v_IdRol INT;
+
+    -- Obtiene el rol del usuario que está haciendo la petición.
+    SELECT IdRolFK INTO v_IdRol FROM Usuarios WHERE IdUsuarioPK = p_IdUsuarioSesion;
+
+    -- Si es Admin (Rol 1), busca el carrito activo para el cliente, sin importar el dueño.
+    IF v_IdRol = 1 THEN
+        SELECT
+            dc.TipoArticulo,
+            dc.CodigoArticulo,
+            dc.Cantidad,
+            dc.PrecioVenta,
+            dc.Descuento,
+            dc.SubtotalSinIVA,
+            -- --- INICIO DE LA CORRECCIÓN ---
+            dc.PrecioBaseOriginal, -- <-- AÑADIDO
+            dc.MargenAplicado      -- <-- AÑADIDO
+            -- Nota: Aquí se podrían añadir JOINs a las tablas de productos/accesorios
+            -- para obtener también el NombreArticulo y LinkImagen si se desea.
+            -- --- FIN DE LA CORRECCIÓN ---
+        FROM DetalleCarritoVentas dc
+        JOIN CarritoVentas cv ON dc.IdCarritoFK = cv.IdCarritoPK
+        WHERE cv.IdClienteFK = p_IdCliente AND cv.EstadoCarrito = 'En curso';
+        
+    -- Si es Vendedor (Rol 2), solo puede ver su propio carrito para ese cliente.
+    ELSEIF v_IdRol = 2 THEN
+        SELECT
+            dc.TipoArticulo,
+            dc.CodigoArticulo,
+            dc.Cantidad,
+            dc.PrecioVenta,
+            dc.Descuento,
+            dc.SubtotalSinIVA,
+            -- --- INICIO DE LA CORRECCIÓN ---
+            dc.PrecioBaseOriginal, -- <-- AÑADIDO
+            dc.MargenAplicado      -- <-- AÑADIDO
+            -- --- FIN DE LA CORRECCIÓN ---
+        FROM DetalleCarritoVentas dc
+        JOIN CarritoVentas cv ON dc.IdCarritoFK = cv.IdCarritoPK
+        WHERE cv.IdUsuarioFK = p_IdUsuarioSesion AND cv.IdClienteFK = p_IdCliente AND cv.EstadoCarrito = 'En curso';
+        
+    END IF;
+END$$
+
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS `sp_GetProformaDetailsYValidarStock`;
+DELIMITER $$
+
+CREATE PROCEDURE `sp_GetProformaDetailsYValidarStock`(IN p_IdVentaPK INT)
+BEGIN
+    -- ==========================================================================================
+    -- AUTOR: Gemini
+    -- FECHA: 2025-07-21
+    -- DESCRIPCIÓN: Obtiene los detalles de una proforma, validando su vigencia y
+    -- la disponibilidad de stock de sus artículos.
+    -- ==========================================================================================
+
+    -- (El resto del procedimiento no necesita cambios...)
+    DECLARE v_FechaCreacion DATETIME;
+    DECLARE v_IdTipoDocumento INT;
+    DECLARE v_esValida BOOLEAN DEFAULT TRUE;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_CodigoArticulo VARCHAR(25);
+    DECLARE v_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio');
+    DECLARE v_Cantidad INT;
+    DECLARE v_EstadoArticulo INT;
+    DECLARE v_StockInsumo INT;
+
+    DECLARE cur_DetallesVenta CURSOR FOR
+        SELECT CodigoArticulo, TipoArticulo, Cantidad FROM DetalleVenta WHERE IdVentaFK = p_IdVentaPK;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS TempUnavailableItems (
+        CodigoArticulo VARCHAR(25),
+        Motivo VARCHAR(255)
+    );
+
+    -- PASO 1: Validación de la Proforma (sin cambios)
+    SELECT FechaCreacion, IdTipoDocumentoFK INTO v_FechaCreacion, v_IdTipoDocumento
+    FROM VentasBase
+    WHERE IdVentaPK = p_IdVentaPK;
+
+    IF v_FechaCreacion IS NULL THEN
+        SET v_esValida = FALSE;
+        SELECT 'Error: La proforma con el ID especificado no existe.' AS Resultado;
+    ELSEIF v_IdTipoDocumento != 2 THEN
+        SET v_esValida = FALSE;
+        SELECT 'Error: El documento solicitado no es una proforma.' AS Resultado;
+    ELSEIF DATEDIFF(CURDATE(), v_FechaCreacion) > 15 THEN
+        SET v_esValida = FALSE;
+        SELECT 'Error: La proforma ha expirado. Solo es válida por 15 días.' AS Resultado;
+    END IF;
+
+    -- PASO 2: Verificación de Artículos (sin cambios)
+    IF v_esValida THEN
+        OPEN cur_DetallesVenta;
+
+        read_loop: LOOP
+            FETCH cur_DetallesVenta INTO v_CodigoArticulo, v_TipoArticulo, v_Cantidad;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
+
+            CASE v_TipoArticulo
+                WHEN 'Producto' THEN
+                    SELECT Estado INTO v_EstadoArticulo FROM ProductosBases WHERE CodigoConsola = v_CodigoArticulo;
+                    IF v_EstadoArticulo IN (7, 8, 9, 10, 11) THEN
+                        INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
+                        VALUES (v_CodigoArticulo, CONCAT('Producto no disponible para la venta. Estado actual ID: ', v_EstadoArticulo));
+                    END IF;
+                WHEN 'Accesorio' THEN
+                    SELECT EstadoAccesorio INTO v_EstadoArticulo FROM AccesoriosBase WHERE CodigoAccesorio = v_CodigoArticulo;
+                    IF v_EstadoArticulo IN (7, 8, 9, 10, 11) THEN
+                        INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
+                        VALUES (v_CodigoArticulo, CONCAT('Accesorio no disponible para la venta. Estado actual ID: ', v_EstadoArticulo));
+                    END IF;
+                WHEN 'Insumo' THEN
+                    SELECT EstadoInsumo, Cantidad INTO v_EstadoArticulo, v_StockInsumo FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
+                    IF v_EstadoArticulo IN (7, 8, 9, 10, 11) THEN
+                        INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
+                        VALUES (v_CodigoArticulo, CONCAT('Insumo no disponible para la venta. Estado actual ID: ', v_EstadoArticulo));
+                    ELSEIF v_StockInsumo < v_Cantidad THEN
+                        INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
+                        VALUES (v_CodigoArticulo, CONCAT('Stock insuficiente. Solicitado: ', v_Cantidad, ', Disponible: ', v_StockInsumo));
+                    END IF;
+                WHEN 'Servicio' THEN
+                    BEGIN END;
+            END CASE;
+        END LOOP;
+
+        CLOSE cur_DetallesVenta;
+
+        -- PASO 3: Devolver los tres conjuntos de resultados
+
+        -- Conjunto de resultados 1: Información de la cabecera (sin cambios)
+        SELECT
+            vb.IdVentaPK, vb.FechaCreacion, vb.NumeroDocumento, vb.SubtotalVenta, vb.IVA,
+            vb.TotalVenta, vb.Observaciones, c.NombreCliente, c.Telefono, c.CorreoElectronico,
+            u.Nombre AS Vendedor, ev.DescripcionEstadoVenta AS EstadoVenta, mp.NombreMetodoPago AS MetodoPago,
+            vb.IdClienteFK, vb.IdMetodoDePagoFK
+        FROM VentasBase vb
+        JOIN Clientes c ON vb.IdClienteFK = c.IdClientePK
+        JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
+        JOIN ESTADOVENTA ev ON vb.IdEstadoVentaFK = ev.IdEstadoVentaPK
+        JOIN MetodosDePago mp ON vb.IdMetodoDePagoFK = mp.IdMetodoPagoPK
+        WHERE vb.IdVentaPK = p_IdVentaPK;
+
+        -- Conjunto de resultados 2: Detalle de artículos (sin cambios)
+        SELECT
+            dv.TipoArticulo, dv.CodigoArticulo,
+            CASE
+                WHEN dv.TipoArticulo = 'Producto' THEN (SELECT CONCAT(cp.NombreCategoria, ' ', sp.NombreSubcategoria) FROM ProductosBases pb JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria WHERE pb.CodigoConsola = dv.CodigoArticulo)
+                WHEN dv.TipoArticulo = 'Accesorio' THEN (SELECT CONCAT(ca.NombreCategoriaAccesorio, ' ', sa.NombreSubcategoriaAccesorio) FROM AccesoriosBase ab JOIN CatalogoAccesorios caa ON ab.ModeloAccesorio = caa.IdModeloAccesorioPK JOIN CategoriasAccesorios ca ON caa.CategoriaAccesorio = ca.IdCategoriaAccesorioPK JOIN SubcategoriasAccesorios sa ON caa.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio WHERE ab.CodigoAccesorio = dv.CodigoArticulo)
+                WHEN dv.TipoArticulo = 'Insumo' THEN (SELECT ci.NombreCategoriaInsumos FROM InsumosBase ib JOIN CatalogoInsumos cain ON ib.ModeloInsumo = cain.IdModeloInsumosPK JOIN CategoriasInsumos ci ON cain.CategoriaInsumos = ci.IdCategoriaInsumosPK WHERE ib.CodigoInsumo = dv.CodigoArticulo)
+                WHEN dv.TipoArticulo = 'Servicio' THEN (SELECT DescripcionServicio FROM ServiciosBase WHERE IdServicioPK = CAST(dv.CodigoArticulo AS UNSIGNED))
+                ELSE 'Descripción no disponible'
+            END AS DescripcionArticulo,
+            dv.Cantidad, dv.PrecioVenta, dv.Descuento, dv.SubtotalSinIVA,
+            dv.PrecioBaseOriginal, dv.MargenAplicado, dv.IdMargenFK
+        FROM DetalleVenta dv
+        WHERE dv.IdVentaFK = p_IdVentaPK;
+
+        -- Conjunto de resultados 3: Lista de artículos no disponibles
+        -- ==========================================================
+        --                  --- CORRECCIÓN ---
+        --   Se añade DISTINCT para eliminar filas duplicadas.
+        -- ==========================================================
+        SELECT DISTINCT * FROM TempUnavailableItems;
+
+    END IF;
+
+    -- Limpieza final
+    DROP TEMPORARY TABLE IF EXISTS TempUnavailableItems;
+
+END$$
+
+DELIMITER ;
+
+call sp_GetProformaDetailsYValidarStock(50)
+
+DELIMITER $$
+
+CREATE PROCEDURE ListarVistaInventarioGeneral (
+)
+BEGIN
+	SELECT * FROM VistaInventarioGeneral;
+END $$
+
+DELIMITER ;

@@ -29,6 +29,8 @@ import { MetodosPago } from '../../interfaces/metodos-pago';
 import { Usuarios } from '../../interfaces/usuarios';
 import { response } from 'express';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSpinner } from '@angular/material/progress-spinner';
+import { ConfirmacionReemplazarCarritoDialog } from '../confirmacion-reemplazar-carrito-dialog/confirmacion-reemplazar-carrito-dialog.component';
 
 
 @Component({
@@ -36,13 +38,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   standalone: true,
   imports: [FormsModule, MatInputModule, MatIconButton, ReactiveFormsModule, TablaArticulosVentasComponent,
     CommonModule, MatIcon, MatButton, CrearClienteComponent, MatFormField, MatOption, MatAutocompleteModule,
-    MatSelect],
+    MatSelect, MatSpinner],
   templateUrl: './punto-venta.component.html',
   styleUrl: './punto-venta.component.css'
 })
 export class PuntoVentaComponent implements OnInit, OnDestroy {
   carrito$: Observable<ArticuloVenta[]> = new Observable();
   carrito: ArticuloVenta[] = [];
+
+  // Añade estas dos propiedades a tu componente
+  carritoACargar: any | null = null;
+  cargandoCarrito = false;
 
   clienteControl = new FormControl<string | Cliente>('');
   listaClientes: Cliente[] = [];
@@ -83,29 +89,173 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subs.add(this.carritoService.carrito$.subscribe(data => {
-      this.carrito = data;
-    }));
+    // Suscripciones existentes
+    this.subs.add(this.carritoService.carrito$.subscribe(data => this.carrito = data));
+    this.subs.add(this.authService.getUser().subscribe(user => this.usuario = user as unknown as Usuarios));
 
-    this.subs.add(this.authService.getUser().subscribe(
-      (user) => {
-        if (user) {
-          this.usuario = user as unknown as Usuarios;
-          console.log('Usuario autenticado:', this.usuario);
-        } else {
-          console.warn('Usuario no autenticado.');
-          this.snackBar.open('No se pudo cargar el usuario autenticado.', 'Cerrar', { duration: 3000 });
-        }
-      },
-      (err) => {
-        console.error('Error al obtener usuario autenticado:', err);
-        this.snackBar.open('Error al cargar información del usuario.', 'Cerrar', { duration: 3000 });
-      }
-    ));
-
-    this.getClientList();
+    // Llamadas para cargar datos iniciales
+    this.getClientList(); // Esta función ahora será más inteligente
     this.loadMargenesVenta();
     this.loadMetodosPago();
+
+    // Suscripción al "buzón" del servicio
+    this.subs.add(
+      this.carritoService.solicitarCargaCarrito$.subscribe(carritoInfo => {
+        if (carritoInfo) {
+          this.procesarCarritoEntrante(carritoInfo);
+        }
+      })
+    );
+
+    const idProforma = history.state.idProformaACargar;
+    if (idProforma) {
+      this.iniciarCargaDeProforma(idProforma);
+    }
+  }
+
+  private iniciarCargaDeProforma(idProforma: number): void {
+    // Antes de cargar nada, verificamos si el carrito actual tiene items
+    if (this.carrito.length > 0) {
+      // Si hay items, mostramos el diálogo de confirmación
+      const dialogRef = this.dialog.open(ConfirmacionReemplazarCarritoDialog, {
+        width: '450px',
+        data: { idProforma: idProforma } // Pasamos el ID para mostrarlo en el mensaje
+      });
+
+      dialogRef.afterClosed().subscribe(resultado => {
+        if (resultado === true) {
+          // El usuario confirmó: limpiar y luego cargar
+          this.carritoService.limpiarCarrito(this.usuario, this.ClienteSeleccionado!);
+          this.cargarDatosDeProformaEnCarrito(idProforma);
+        }
+        // Si el resultado es falso (cancelar), no hacemos nada.
+      });
+
+    } else {
+      // Si el carrito está vacío, no hay conflicto. Cargamos directamente.
+      this.cargarDatosDeProformaEnCarrito(idProforma);
+    }
+  }
+
+  // En punto-venta.component.ts
+
+private cargarDatosDeProformaEnCarrito(idProforma: number): void {
+  this.cargandoCarrito = true;
+  this.snackBar.open('Cargando datos de la proforma...', undefined, { duration: 2000 });
+
+  this.ventasBaseService.getProformaDetails(idProforma).subscribe({
+    next: (response) => {
+      if (response.success) {
+        const { proforma, detalles, itemsNoDisponibles } = response.data;
+
+        // 1. Advertir sobre items no disponibles
+        if (itemsNoDisponibles.length > 0) {
+          const nombresItems = itemsNoDisponibles.map(item => item.CodigoArticulo).join(', ');
+          this.snackBar.open(`Atención: Artículos no disponibles: ${nombresItems}`, 'Entendido', { duration: 7000 });
+        }
+
+        // 2. Establecer el cliente en la UI
+        const clienteEncontrado = this.listaClientes.find(c => c.id === proforma.IdClienteFK);
+        if (clienteEncontrado) {
+          this.ClienteSeleccionado = clienteEncontrado;
+          this.clienteControl.setValue(clienteEncontrado);
+        }
+
+        // 3. Pre-llenar otros campos
+        this.metodoPagoSeleccionado = proforma.IdMetodoDePagoFK;
+        this.observacionesOtros = proforma.Observaciones;
+
+        // ==============================================================
+        //  4. POBLAR EL CARRITO (LÓGICA CORREGIDA)
+        // ==============================================================
+
+        const detallesDisponibles = detalles.filter(detalle =>
+          !itemsNoDisponibles.some(noDisp => noDisp.CodigoArticulo === detalle.CodigoArticulo)
+        );
+
+        // Se crea un array de Observables para todas las llamadas a la API
+        const llamadasApi = detallesDisponibles.map(item => {
+          // Preparamos el cuerpo de la solicitud con TODOS los datos requeridos
+          const datosArticulo = {
+            IdUsuario: this.usuario.id,
+            IdCliente: this.ClienteSeleccionado!.id,
+            TipoArticulo: item.TipoArticulo,
+            CodigoArticulo: item.CodigoArticulo,
+            Cantidad: item.Cantidad,
+            PrecioVenta: item.PrecioVenta,
+            Descuento: item.Descuento,
+            PrecioBaseOriginal: item.PrecioBaseOriginal ?? 0, // Garantiza que sea number
+            MargenAplicado: item.MargenAplicado ?? 0,         // Garantiza que sea number
+            IdMargenFK: item.IdMargenFK
+          };
+          // Llamamos al servicio correcto que envía todos los datos al backend
+          return this.ventasBaseService.agregarArticuloAlCarrito(datosArticulo);
+        });
+
+        // Si hay artículos para agregar, los ejecutamos y luego refrescamos el carrito
+        if (llamadasApi.length > 0) {
+          // forkJoin(llamadasApi).subscribe({...}) // (Una forma más avanzada)
+          // Por simplicidad, ejecutaremos una por una y al final refrescaremos.
+          // Para este caso, como `agregarArticuloAlCarrito` ya debe manejar la cantidad, no hace falta un bucle.
+          Promise.all(llamadasApi.map(obs => obs.toPromise())).then(() => {
+            this.snackBar.open(`Proforma N° ${proforma.NumeroDocumento} cargada.`, 'OK', { duration: 3000 });
+            // Al final de todas las operaciones, refrescamos el carrito para sincronizar la UI
+            this.carritoService.refrescarCarrito(this.usuario, this.ClienteSeleccionado!).subscribe();
+            this.cargandoCarrito = false;
+          }).catch(error => {
+            console.error("Error al agregar artículos de la proforma", error);
+            this.snackBar.open('Uno o más artículos no se pudieron agregar.', 'Cerrar', { duration: 4000 });
+            this.cargandoCarrito = false;
+          });
+        } else {
+          this.snackBar.open('No hay artículos disponibles para cargar de esta proforma.', 'OK', { duration: 4000 });
+          this.cargandoCarrito = false;
+        }
+
+      } else {
+        this.snackBar.open(response.error || 'Error al cargar los datos.', 'Cerrar', { duration: 4000 });
+        this.cargandoCarrito = false;
+      }
+    },
+    error: (err) => {
+      console.error('Error al obtener detalles de la proforma:', err);
+      this.snackBar.open(err.error?.error || 'Error de comunicación al cargar la proforma.', 'Cerrar', { duration: 5000 });
+      this.cargandoCarrito = false;
+    }
+  });
+}
+
+  procesarCarritoEntrante(carritoInfo: any): void {
+    this.cargandoCarrito = true;
+    this.carritoACargar = carritoInfo; // Guardamos el carrito que necesita ser procesado
+
+    // Si la lista de clientes ya se cargó, lo procesamos.
+    // Si no, la función getClientList() se encargará cuando termine.
+    if (this.listaClientes.length > 0) {
+      this.procesarCarritoConClientes();
+    }
+  }
+  private procesarCarritoConClientes(): void {
+    if (!this.carritoACargar) {
+      this.cargandoCarrito = false;
+      return;
+    }
+
+    const clienteDelCarrito = this.listaClientes.find(c => c.id === this.carritoACargar.IdClienteFK);
+
+    if (clienteDelCarrito) {
+      this.ClienteSeleccionado = clienteDelCarrito;
+      this.clienteControl.setValue(clienteDelCarrito);
+      this.loadCartForSelectedClient(); // Este método ya refresca el carrito
+      this.snackBar.open(`Carrito #${this.carritoACargar.IdCarritoPK} cargado.`, 'OK', { duration: 3000 });
+    } else {
+      this.snackBar.open('Error: Cliente del carrito no encontrado.', 'Cerrar', { duration: 4000 });
+    }
+
+    // Limpiamos las variables de estado
+    this.carritoService.solicitarCargaDeCarrito(null);
+    this.carritoACargar = null;
+    this.cargandoCarrito = false;
   }
 
   ngOnDestroy(): void {
@@ -125,10 +275,17 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     this.subs.add(this.clientesService.getAll().subscribe({
       next: (clientes: Cliente[]) => {
         this.listaClientes = clientes;
+
+        // ¡LÓGICA CLAVE!
+        // Si había un carrito esperando a que la lista de clientes se cargara,
+        // lo procesamos ahora.
+        if (this.carritoACargar) {
+          this.procesarCarritoConClientes();
+        }
       },
       error: (err) => {
         console.error('Error al obtener lista de clientes:', err);
-        this.snackBar.open('Error al cargar la lista de clientes.', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('Error al cargar clientes.', 'Cerrar', { duration: 3000 });
       }
     }));
   }
@@ -146,9 +303,6 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
           this.margenSeleccionado = this.margenesVenta[0].Porcentaje;
           this.nombreMargenSeleccionado = this.margenesVenta[0].NombreMargen;
           this.idMargenSeleccionado = this.margenesVenta[0].IdMargenPK;
-        }
-        if (this.margenSeleccionado !== null) {
-          this.carritoService.actualizarPreciosDelCarritoConNuevoMargen(this.margenSeleccionado);
         }
       },
       error: (err) => {
@@ -181,10 +335,8 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
   loadCartForSelectedClient(): void {
     if (this.usuario && this.ClienteSeleccionado) {
+      // Simplemente refrescamos. La data que viene es la que se muestra.
       this.subs.add(this.carritoService.refrescarCarrito(this.usuario, this.ClienteSeleccionado).subscribe(() => {
-        if (this.margenSeleccionado !== null) {
-          this.carritoService.actualizarPreciosDelCarritoConNuevoMargen(this.margenSeleccionado);
-        }
         console.log('Carrito cargado y refrescado para el cliente.');
       }));
     } else {
@@ -198,6 +350,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       this.nombreMargenSeleccionado = margen.NombreMargen;
       this.idMargenSeleccionado = margen.IdMargenPK;
     }
+    // ¡Activamos la lógica!
     if (this.margenSeleccionado !== null) {
       this.carritoService.actualizarPreciosDelCarritoConNuevoMargen(this.margenSeleccionado);
     }
@@ -217,6 +370,11 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
         this.loadCartForSelectedClient();
       }
     }));
+  }
+
+  seleccionarCliente(cliente: any) {
+    this.ClienteSeleccionado = cliente;
+    this.loadCartForSelectedClient(); // Opcional: cargar el carrito del cliente seleccionado
   }
 
   abrirDialogoConfirmarVenta(): void {
@@ -245,52 +403,76 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
   }
 
   procesarVentaFinal(): void {
+    // 1. --- Validación de Requisitos Mínimos ---
+    // Se asegura de que haya un método de pago y un margen seleccionados antes de continuar.
     if (!this.metodoPagoSeleccionado || !this.idMargenSeleccionado) {
       this.snackBar.open('Error: Método de pago o margen no seleccionado.', 'Cerrar', { duration: 3000 });
       return;
     }
 
-    // En tu método procesarVentaFinal() de Angular
+    // 2. --- Construcción del Payload para el Backend ---
+    // Se crea el objeto 'ventaData' que se enviará al endpoint '/finalizar'.
     const ventaData: VentaFinalData = {
-      // fecha: "2025-07-11", <-- ELIMINA ESTA LÍNEA
-      idTipoDocumento: 3,
-      subtotal: this.subtotalNeto,
-      iva: this.iva,
-      total: this.total,
-      idEstadoVenta: 2,
-      idMetodoPago: this.metodoPagoSeleccionado,
-      idMargen: this.idMargenSeleccionado,
-      idUsuario: this.usuario.id,
-      idCliente: this.ClienteSeleccionado!.id,
-      observaciones: `Ref. Transferencia: ${this.numeroReferenciaTransferencia || 'N/A'}. Otros: ${this.observacionesOtros || 'N/A'}`
+      // Cabecera de la venta: Estos datos vienen de los getters (subtotal, iva, total).
+      TipoDocumento: 3, // 3 = Factura
+      SubtotalVenta: this.subtotalNeto,
+      IVA: this.iva,
+      TotalVenta: this.total,
+      EstadoVenta: 2, // 2 = Pagado
+      MetodoPago: this.metodoPagoSeleccionado,
+      Usuario: this.usuario.id,
+      Cliente: this.ClienteSeleccionado?.id!,
+      Observaciones: `Ref. Transferencia: ${this.numeroReferenciaTransferencia || 'N/A'}. Otros: ${this.observacionesOtros || 'N/A'}`,
+
+      // Detalle de la venta: Se mapea el carrito para generar los detalles.
+      // Esta es la parte más crítica que hemos corregido.
+      Detalles: this.carrito.map(art => {
+        // Se toman los datos base para asegurar la integridad de los cálculos.
+        const costoOriginal = art.PrecioOriginalSinMargen ?? 0;
+        const margenAplicado = art.MargenAplicado ?? 0;
+        const descuentoPorcentaje = art.DescuentoPorcentaje ?? 0;
+        const cantidad = art.Cantidad ?? 1;
+
+        // Se calcula el precio de venta unitario justo antes de enviar,
+        // basándose en el costo original y el margen, para evitar errores.
+        const precioVentaUnitario = costoOriginal * (1 + margenAplicado / 100);
+
+        // Se retorna el objeto con los NOMBRES DE CLAVE CORRECTOS que el SP espera.
+        return {
+          TipoArticulo: art.Tipo!,
+          CodigoArticulo: art.Codigo!,
+          PrecioVenta: precioVentaUnitario,
+          Descuento: descuentoPorcentaje,
+          Cantidad: cantidad,
+          PrecioBaseOriginal: costoOriginal,
+          MargenAplicado: margenAplicado,
+          IdMargenFK: art.IdMargenFK ?? this.idMargenSeleccionado
+        };
+      })
     };
 
+    // 3. --- Llamada al Servicio y Manejo de Respuesta ---
     this.subs.add(this.ventasBaseService.finalizarVenta(ventaData).subscribe({
       next: (respuesta) => {
+        // Si la venta en el backend fue exitosa...
         if (respuesta.success && respuesta.numeroDocumento) {
           this.snackBar.open(`Venta ${respuesta.numeroDocumento} registrada con éxito.`, 'OK', { duration: 4000 });
           this.imprimirFacturaPDF(respuesta.numeroDocumento);
 
-          // --- INICIO DE LA CORRECCIÓN ---
-
-          // ANTES (INCORRECTO):
-          // this.carritoService.limpiarCarrito(this.usuario!, this.ClienteSeleccionado!);
-
-          // AHORA (CORRECTO):
-          // Simplemente refrescamos la vista del carrito. Como el SP ya lo marcó como 'Completado',
-          // este método recibirá un carrito vacío del backend y limpiará la UI.
+          // Se refresca el carrito. El SP ya lo marcó como 'Completado',
+          // por lo que el servicio traerá un carrito vacío y limpiará la UI.
           this.carritoService.refrescarCarrito(this.usuario!, this.ClienteSeleccionado!).subscribe();
 
-          // --- FIN DE LA CORRECCIÓN ---
-
-          // El resto de la limpieza de la UI está bien
+          // Se limpia el resto de la UI para una nueva venta.
           this.ClienteSeleccionado = null;
           this.clienteControl.setValue('');
         } else {
+          // Manejo de errores controlados desde el backend.
           this.snackBar.open(`Error al procesar la venta: ${respuesta.error || 'No se recibió el número de documento.'}`, 'Cerrar', { duration: 5000 });
         }
       },
       error: (err) => {
+        // Manejo de errores de comunicación o excepciones no controladas.
         console.error('Error en la transacción de venta:', err);
         this.snackBar.open('Error de comunicación con el servidor al finalizar la venta.', 'Cerrar', { duration: 5000 });
       }
@@ -418,59 +600,94 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     return this.subtotalNeto + this.iva;
   }
 
+  public getNombreMargen(idMargen: number | null): string {
+    if (idMargen === null || !this.margenesVenta) {
+      return 'N/A';
+    }
+    const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMargen);
+    return margenEncontrado ? margenEncontrado.NombreMargen : 'Desconocido';
+  }
+
   generarProformaPDF(): void {
     if (!this.ClienteSeleccionado) {
-      alert('Por favor, seleccione un cliente para generar la proforma.');
+      this.snackBar.open('Por favor, seleccione un cliente para generar la proforma.', 'Cerrar', { duration: 3000 });
       return;
     }
 
     if (this.carrito.length === 0) {
-      alert('El carrito está vacío. Agregue artículos para generar una proforma.');
+      this.snackBar.open('El carrito está vacío. Agregue artículos para generar una proforma.', 'Cerrar', { duration: 3000 });
       return;
     }
 
     // Armar los datos de la proforma para enviar al backend
     const venta = {
-      //FechaCreacion: new Date().toISOString().split('T')[0],
       TipoDocumento: 2, // 2 = Proforma
-      SubtotalVenta: this.subtotal,
+      SubtotalVenta: this.subtotalNeto,
       IVA: this.iva,
       TotalVenta: this.total,
       EstadoVenta: 1, // Pendiente
       MetodoPago: this.metodoPagoSeleccionado,
-      Margen: this.idMargenSeleccionado,
+      // SE ELIMINA EL CAMPO 'Margen' DEL OBJETO PRINCIPAL
       Usuario: this.usuario?.id,
       Cliente: this.ClienteSeleccionado?.id,
       Observaciones: this.observacionesOtros || '',
       NumeroReferenciaTransferencia: this.numeroReferenciaTransferencia || '',
-      Detalles: this.carrito.map(art => ({
-        Tipo: art.Tipo,
-        Codigo: art.Codigo,
-        Precio: this.calcularPrecioConDescuento(art),
-        Descuento: art.DescuentoPorcentaje ?? 0,
-        Subtotal: this.calcularPrecioConDescuento(art) * (art.Cantidad ?? 1),
-        Cantidad: art.Cantidad ?? 1
-      }))
-    };
 
+      // --- INICIO DE LA CORRECCIÓN CLAVE EN LOS DETALLES ---
+      Detalles: this.carrito.map(art => {
+        // Obtenemos el ID del margen del artículo en el carrito.
+        // Si no existe (caso improbable), usamos el margen seleccionado como fallback.
+        const idMargenDelArticulo = art.IdMargenFK ?? this.idMargenSeleccionado;
+
+        return {
+          Tipo: art.Tipo,
+          Codigo: art.Codigo,
+          Precio: this.calcularPrecioConDescuento(art),
+          Descuento: art.DescuentoPorcentaje ?? 0,
+          Subtotal: this.calcularPrecioConDescuento(art) * (art.Cantidad ?? 1),
+          Cantidad: art.Cantidad ?? 1,
+          // CAMPOS AHORA OBLIGATORIOS
+          PrecioBaseOriginal: art.PrecioOriginalSinMargen ?? 0,
+          MargenAplicado: art.MargenAplicado ?? this.margenSeleccionado ?? 0,
+          IdMargenFK: idMargenDelArticulo
+        };
+      })
+      // --- FIN DE LA CORRECCIÓN CLAVE ---
+    };
     this.ventasBaseService.IngresarVenta(venta).subscribe({
       next: (resp: any) => {
         if (resp.success && resp.codigo) {
-          const codigoProforma = resp.codigo; // este es el valor real de la proforma
+          const codigoProforma = resp.codigo;
+          this.snackBar.open(`Proforma ${codigoProforma} registrada.`, 'OK', { duration: 3000 });
           this.imprimirProformaPDF(codigoProforma);
         } else {
-          alert('No se pudo obtener el código de proforma. La generación del PDF fue cancelada.');
+          this.snackBar.open('Error: No se pudo obtener el código de la proforma.', 'Cerrar', { duration: 4000 });
         }
       },
       error: err => {
         console.error('Error al registrar proforma:', err);
-        alert('Ocurrió un error al registrar la proforma en la base de datos.');
+        this.snackBar.open('Ocurrió un error al registrar la proforma.', 'Cerrar', { duration: 4000 });
       }
     });
   }
+
   imprimirProformaPDF(codigoProforma: string): void {
     const doc = new jsPDF();
     const fecha = new Date().toLocaleDateString('es-NI');
+
+    let nombreMargenParaImprimir = 'N/A';
+    if (this.carrito.length > 0) {
+      const conteoMargenes = this.carrito.reduce((acc, art) => {
+        const id = art.IdMargenFK ?? -1;
+        acc[id] = (acc[id] || 0) + 1;
+        return acc;
+      }, {} as { [key: number]: number });
+      const idMasFrecuente = parseInt(Object.keys(conteoMargenes).reduce((a, b) => conteoMargenes[a as any] > conteoMargenes[b as any] ? a : b));
+      const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMasFrecuente);
+      if (margenEncontrado) {
+        nombreMargenParaImprimir = margenEncontrado.NombreMargen;
+      }
+    }
 
     // --- ENCABEZADO DEL DOCUMENTO (Sin cambios) ---
     doc.setFontSize(18);
@@ -572,6 +789,20 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
   imprimirFacturaPDF(numeroFactura: string): void {
     const doc = new jsPDF();
     const fecha = new Date().toLocaleDateString('es-NI');
+
+    let nombreMargenParaImprimir = 'N/A';
+    if (this.carrito.length > 0) {
+      const conteoMargenes = this.carrito.reduce((acc, art) => {
+        const id = art.IdMargenFK ?? -1;
+        acc[id] = (acc[id] || 0) + 1;
+        return acc;
+      }, {} as { [key: number]: number });
+      const idMasFrecuente = parseInt(Object.keys(conteoMargenes).reduce((a, b) => conteoMargenes[a as any] > conteoMargenes[b as any] ? a : b));
+      const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMasFrecuente);
+      if (margenEncontrado) {
+        nombreMargenParaImprimir = margenEncontrado.NombreMargen;
+      }
+    }
 
     // --- Cambios clave: Título y Número de Documento ---
     doc.setFontSize(18);

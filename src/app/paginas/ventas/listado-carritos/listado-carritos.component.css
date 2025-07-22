@@ -1,0 +1,34 @@
+/* ... (estilos existentes como .contenedor-principal, .titulo-card, etc.) ... */
+
+/* ESTILOS PARA LA NUEVA TABLA */
+.tabla-container {
+  border-radius: 8px;
+  overflow: hidden; /* Para que los bordes redondeados se apliquen a la tabla */
+  margin-top: 20px;
+}
+
+.tabla-completa {
+  width: 100%;
+}
+
+.fila-interactiva {
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.fila-interactiva:hover {
+  background-color: #f5f5f5;
+}
+
+th.mat-header-cell {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+  background-color: #eef2f5;
+}
+
+td.mat-cell {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e0e0e0;
+}

@@ -11,7 +11,7 @@
 
   <p *ngIf="articulos.length === 1">
     <strong>Código:</strong> {{ articulos[0].Codigo }}<br />
-    <strong>Precio:</strong> {{ articulos[0].PrecioBase | currency:'USD' }}<br />
+    <strong>Precio:</strong> {{ articulos[0].PrecioVentaDisplay  | currency:'USD' }}<br />
     <strong>Cantidad:</strong> {{ articulos[0].Cantidad ?? '-' }}<br />
     <strong>Estado:</strong> {{ getNombreEstado(articulos[0].Estado) }}
   </p>

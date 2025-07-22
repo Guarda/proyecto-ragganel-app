@@ -218,3 +218,104 @@
   text-align: left; /* O 'center', 'right' */
 }
 
+/* ESTILOS PARA LA NUEVA SECCIÓN DE TOTALES */
+.totales {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.total-row.discount span:last-child {
+  color: #d32f2f; /* Color rojo para los descuentos */
+  font-weight: 500;
+}
+
+.total-divider {
+  border: 0;
+  border-top: 1px dashed #ccc;
+  margin: 0.5rem 0;
+}
+
+.grand-total {
+  font-size: 1.25rem;
+  font-weight: bold;
+  padding-top: 1rem;
+  border-top: 2px solid #333;
+  margin-top: 0.5rem;
+}
+
+.grand-total strong {
+  color: #003366; /* Un color oscuro para resaltar */
+}
+
+/* Añade esto a punto-venta.component.css */
+.cargando-carrito {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.cargando-carrito span {
+  font-size: 14px;
+  color: #666;
+}
+
+.cliente-autocomplete[disabled] {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* En punto-venta.component.css */
+
+.etiqueta-margen {
+  display: inline-block; /* Para que se comporte como un bloque pero en línea */
+  margin-top: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 12px; /* Píldora redondeada */
+  background-color: #e0e0e0; /* Un color gris neutro */
+  color: #3f51b5; /* Un color de texto que contraste */
+  border: 1px solid #c5c5c5;
+}
+
+.codigo-articulo {
+  display: block; /* Para que el código se vaya a una nueva línea */
+  margin-top: 4px;
+  color: #757575;
+}
+
+/* ... al final del archivo ... */
+.campo-adicional {
+  margin-top: 1rem;
+}
+
+.campo-adicional label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.campo-adicional input,
+.campo-adicional textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+}
+

@@ -44,7 +44,7 @@ FROM CarritoVentas cv
 JOIN Usuarios u ON cv.IdUsuarioFK = u.IdUsuarioPK
 LEFT JOIN Clientes c ON cv.IdClienteFK = c.IdClientePK
 JOIN DetalleCarritoVentas dc ON cv.IdCarritoPK = dc.IdCarritoFK
-WHERE cv.IdCarritoPK = 1;
+WHERE cv.IdCarritoPK = 59;
 
 -- 7. Resumen de ventas por tipo de documento
 SELECT td.DescripcionDocumento, COUNT(*) AS Cantidad, SUM(vb.TotalVenta) AS TotalVendido

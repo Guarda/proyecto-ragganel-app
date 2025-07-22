@@ -612,7 +612,7 @@ INSERT INTO METODOPAGO (DescripcionMetodoPago) values ('Transferencia');*/
 CREATE TABLE VentasBase(
 	/*VALORES DE LA VENTA*/
 	IdVentaPK INT AUTO_INCREMENT PRIMARY KEY, 
-    FechaCreacion date NOT NULL,
+    FechaCreacion DATETIME NOT NULL,
     IdTipoDocumentoFK int not null,
     NumeroDocumento varchar(255),
     SubtotalVenta Decimal(6,2),
@@ -620,20 +620,16 @@ CREATE TABLE VentasBase(
     TotalVenta Decimal(6,2),
     IdEstadoVentaFK  int not null,
     IdMetodoDePagoFK int not null,
-    /*VALORES EXTRAS VENTA*/
-    IdMargenVentaFK int not null,
+    /*VALORES EXTRAS VENTA*/   
     IdUsuarioFK int not null,
     IdClienteFK int not null,
     Observaciones varchar(255),
     FOREIGN KEY (IdTipoDocumentoFK) REFERENCES TipoDocumento(IdTipoDocumentoPK),
     FOREIGN KEY (IdEstadoVentaFK) REFERENCES ESTADOVENTA(IdEstadoVentaPK),
-    FOREIGN KEY (IdMetodoDePagoFK) REFERENCES metodosdepago (IdMetodoPagoPK),
-    FOREIGN KEY (IdMargenVentaFK) REFERENCES margenesventa (IdMargenPK),
+    FOREIGN KEY (IdMetodoDePagoFK) REFERENCES metodosdepago (IdMetodoPagoPK),    
     FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios (IdUsuarioPK),
     FOREIGN KEY (IdClienteFK) REFERENCES Clientes (IdCLientePK)
 );
-
-ALTER TABLE VentasBase MODIFY COLUMN FechaCreacion DATETIME NOT NULL;
 
 /*tabla adicional para almacenar informacion extra y opcional de la venta*/
 CREATE TABLE VentasEXT(
@@ -717,6 +713,10 @@ CREATE TABLE DetalleCarritoVentas (
     FOREIGN KEY (IdCarritoFK) REFERENCES CarritoVentas(IdCarritoPK)
 );
 
+ALTER TABLE DetalleCarritoVentas
+ADD COLUMN PrecioBaseOriginal DECIMAL(10,2) NOT NULL,
+ADD COLUMN MargenAplicado DECIMAL(5,2) NOT NULL;
+
 -- Detalle de cualquier venta (proforma o factura)
 CREATE TABLE DetalleVenta (
     IdDetalleVentaPK INT AUTO_INCREMENT PRIMARY KEY,
@@ -729,6 +729,19 @@ CREATE TABLE DetalleVenta (
     Cantidad INT UNSIGNED DEFAULT 1,
     FOREIGN KEY (IdVentaFK) REFERENCES VentasBase(IdVentaPK)
 );
+
+-- Esto ya está en tu script, lo cual es perfecto.
+ALTER TABLE DetalleVenta
+ADD COLUMN PrecioBaseOriginal DECIMAL(10,2) NOT NULL,
+ADD COLUMN MargenAplicado DECIMAL(5,2) NOT NULL;
+-- Agrega la columna para guardar el ID del tipo de margen
+ALTER TABLE DetalleVenta
+ADD COLUMN IdMargenFK INT NULL COMMENT 'FK a la tabla MargenesVenta para contexto de negocio';
+
+-- Ahora, crea la relación de llave foránea
+ALTER TABLE DetalleVenta
+ADD CONSTRAINT fk_detalleventa_margenes
+FOREIGN KEY (IdMargenFK) REFERENCES MargenesVenta(IdMargenPK);
 
 CREATE TABLE NotasCredito (
     IdNotaCreditoPK INT AUTO_INCREMENT PRIMARY KEY,

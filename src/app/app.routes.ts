@@ -35,6 +35,8 @@ import { ListadoVentasComponent } from './paginas/ventas/listado-ventas/listado-
 import { VerFacturaComponent } from './paginas/ventas/ver-factura/ver-factura.component';
 import { ListarNotasCreditoComponent } from './paginas/ventas/listar-notas-credito/listar-notas-credito.component';
 import { VerNotaCreditoComponent } from './paginas/ventas/ver-nota-credito/ver-nota-credito.component';
+import { ListadoCarritosComponent } from './paginas/ventas/listado-carritos/listado-carritos.component';
+import { ListadoInventarioGeneralComponent } from './paginas/inventario/listado-inventario-general/listado-inventario-general.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -62,8 +64,16 @@ export const routes: Routes = [
         data: { expectedRoles: [1, 2] }
       },
       {
+        path: 'listado-carritos', component: ListadoCarritosComponent, canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1, 2] } // Corrected
+      },
+      {
         path: 'listado-ventas/ver-factura/:CodigoVenta/view', component: VerFacturaComponent, canActivate: [AuthGuard, RoleGuard],
         data: { expectedRoles: [1, 2] } // Corrected
+      },
+      {
+        path: 'inventario-general', component: ListadoInventarioGeneralComponent, canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1, 3] } // Corrected
       },
       {
         path: 'listado-productos',

@@ -1,113 +1,114 @@
-body {
-  margin: 0;
-  padding: 0;
-}
-
+/* Estructura principal y cabecera */
 .container {
-  padding: 0;
-  margin-right: 0;
-  margin-left: 1%;
+  margin: 24px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: calc(100% - 48px);
+  max-width: 1800px;
+  box-sizing: border-box;
 }
 
-table {
-  width: 125%;
-}
-
-.mat-mdc-form-field {
-  font-size: 14px;
-  border-radius: 5px;
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.columna-descripcion{
-  width: 40vw!important;
+.header h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
 }
 
-
-td,
-th {
-  height: 100%!important;
-  
-  height: 100%;
-  align-items: center;
-  /* width: 10vw; */
-}
-
-.cabezera {
+.actions-header {
   display: flex;
+  gap: 16px;
   align-items: center;
-  padding: 1%;
-  justify-content: space-evenly;
-  /* justify-content: space-around; */
-  width: 125%;
 }
 
-.foo-paginator {
-  width: 125%;
-  background-color: #f0f0f0;
-  bottom: 0px;
-  position: sticky;
+.filtro-texto {
+  width: 300px;
+}
+
+.button-crear {
+  height: 56px;
+}
+
+/* Contenedor de la tabla y estados de carga/error */
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  min-height: 400px;
+  width: 100%;
+}
+
+.spinner-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85);
   z-index: 10;
+  gap: 16px;
 }
 
-.white-backgrounded-field .mdc-text-field--outlined .mdc-notched-outline {
-  z-index: 0;
-  width: 50%!important;
+/* Estilos de la tabla */
+table {
+  width: 100%;
 }
 
-.white-backgrounded-field .mdc-notched-outline__notch,
-.white-backgrounded-field .mdc-notched-outline__leading,
-.white-backgrounded-field .mdc-notched-outline__trailing {
-  background-color: white !important;
-  color: white !important;
+th.mat-header-cell, td.mat-cell {
+  padding: 8px 16px;
+  white-space: nowrap;
 }
 
-.btn-create-prod {
-  margin-left: 10% !important;
+.col-descripcion {
+  white-space: normal; /* Permitir que descripciones largas se ajusten */
+  max-width: 400px;
 }
 
-.contenedor-botones {
-  display: flex;
-  height: 52px!important;
-  margin-bottom: 0%;
-} 
-
-
-th.mat-header-cell,
-td.mat-cell {
-  
+.actions-cell {
   text-align: center;
 }
 
-.button-editar-prod{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: green!important;
-  background-color: white!important;
+/* Badges de Estado */
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  color: #fff;
+  font-size: 12px;
+  text-transform: capitalize;
+  display: inline-block;
 }
 
+.status-nuevo { background-color: #17a2b8; }
+.status-usado { background-color: #6c757d; }
+.status-garantia { background-color: #fd7e14; }
+.status-reparar { background-color: #ffc107; color: #333; }
+.status-piezas { background-color: #dc3545; }
+.status-proceso-venta { background-color: #6f42c1; } /* Violeta */
+.status-descargado { background-color: #343a40; } /* Gris oscuro */
+.status-default { background-color: #adb5bd; }
 
-/* cambia el tamaño del icono pero no del holder donde esta XD  */
-/* .iconos-custom {
-  display: flex;
-  align-items: space-around;
-  justify-content: center;
-} */
-
-.button-eliminar-prod{
-  color: red;
-  background-color: white;
-  justify-content: center;
-  display: flex;
-  align-items: center;
-}
-
-.button-historial-prod{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: purple!important;
-  background-color: white!important;
+/* Media Query para responsividad */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actions-header {
+    width: 100%;
+  }
+  .filtro-texto {
+    width: 100%;
+  }
 }

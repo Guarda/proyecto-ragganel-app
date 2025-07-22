@@ -1,4 +1,7 @@
 export interface ArticuloVenta {
+  PrecioVentaDisplay: number;
+  MargenAplicado: number | null;
+  IdMargenFK: number | null;
   Tipo: string;
   NombreArticulo: string;
   PrecioBase: number | null;

@@ -1,0 +1,111 @@
+<div class="container mat-elevation-z8">
+
+  <header class="header">
+    <h1>Inventario General</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar en inventario...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Código, nombre, tipo..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <a mat-raised-button color="primary" class="button-crear" routerLink="/ruta/a/tu/formulario-de-articulo">
+        <mat-icon>add</mat-icon>
+        Nuevo Artículo
+      </a>
+    </div>
+  </header>
+
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Inventario...</p>
+    </div>
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="cargarInventario()">Reintentar</button>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
+
+      <ng-container matColumnDef="LinkImagen">
+        <th mat-header-cell *matHeaderCellDef> Imagen </th>
+        <td mat-cell *matCellDef="let item" class="col-imagen">
+            <img [src]="item.ImagePath_full" 
+                 alt="Imagen de {{item.NombreArticulo}}"
+                 (error)="onImageError($event)">
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Codigo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+        <td mat-cell *matCellDef="let item"> {{item.Codigo}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="NombreArticulo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre del Artículo </th>
+        <td mat-cell *matCellDef="let item" class="col-nombre"> {{item.NombreArticulo}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Tipo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="tipo-badge" [ngClass]="getTipoClass(item.Tipo)">
+            {{item.Tipo}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Estado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="estado-badge" [ngClass]="getEstadoClass(item.Estado)">
+            {{item.Estado}}
+          </span>
+        </td>
+      </ng-container>
+      
+      <ng-container matColumnDef="Cantidad">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Cant. </th>
+        <td mat-cell *matCellDef="let item" class="col-cantidad"> {{item.Cantidad}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="PrecioBase">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Costo </th>
+        <td mat-cell *matCellDef="let item"> {{item.PrecioBase | currency:'USD'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="FechaIngreso">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Ingreso </th>
+        <td mat-cell *matCellDef="let item"> {{item.FechaIngreso | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Action">
+        <th mat-header-cell *matHeaderCellDef> Acciones </th>
+        <td mat-cell *matCellDef="let item" class="actions-cell">
+          <button mat-icon-button color="primary" matTooltip="Ver / Editar Detalles">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="accent" matTooltip="Ver Historial de Estados">
+            <mat-icon>history</mat-icon>
+          </button>
+          <button *ngIf="item.Tipo === 'Insumo'" mat-icon-button color="warn" matTooltip="Ajustar Stock">
+            <mat-icon>inventory_2</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No se encontraron artículos que coincidan con la búsqueda.
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
+</div>

@@ -1,16 +1,16 @@
-import { AfterViewInit, Component, EventEmitter, Inject, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Producto } from '../../interfaces/producto';
 import { ProductosService } from '../productos.service';
@@ -19,119 +19,66 @@ import { EditarProductosComponent } from '../editar-productos/editar-productos.c
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 import { HistorialProductoComponent } from '../historial-producto/historial-producto.component';
 
-
 @Component({
   selector: 'app-listar-productos',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    MatTableModule,
-    MatLabel,
-    MatFormField,
-    MatInputModule,
-    MatInputModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatIcon,
-    MatButtonModule
+    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
   ],
   templateUrl: './listar-productos.component.html',
-  styleUrl: './listar-productos.component.css'
+  styleUrls: ['./listar-productos.component.css']
 })
 export class ListarProductosComponent implements AfterViewInit {
-  productos: Producto[] = [];
-  myArray: any[] = [];
-  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Color', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase', 'Comentario', 'Action'];
-  //dataSource = ELEMENT_DATA;
-  dataSource = new MatTableDataSource<Producto>;
+  displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase', 'Action'];
+  dataSource = new MatTableDataSource<Producto>();
 
+  // Propiedades para manejar estados de UI
+  isLoading = true;
+  errorMessage: string | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  @Output() select = new EventEmitter<string>();
 
-  constructor(public productoService: ProductosService, private cdr: ChangeDetectorRef, private router: Router, private dialog: MatDialog) {
+  constructor(
+    public productoService: ProductosService,
+    private dialog: MatDialog
+  ) { }
 
-  }
-
-  public openDialogAgregar() {
-    const dialogRef = this.dialog.open(AgregarProdutosComponent, {
-      disableClose: true,
-      height: '100%',
-      width: '50%',
-    });
-    dialogRef.componentInstance.Agregado.subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-  public openDialogEliminar(cons: string) {
-    const dialogRef = this.dialog.open(EliminarProductosComponent, {
-      disableClose: true,
-      data: { value: cons }
-    });
-    dialogRef.componentInstance.Borrado.subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-  public openDialogHistorial(cons: string) {
-    const dialogRef = this.dialog.open(HistorialProductoComponent, {
-      disableClose: true,
-      data: { value: cons }
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getProductList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-
-
-  /**
-  * Write code on Method
-  *
-  * @return response()
-  */
   ngOnInit(): void {
     this.getProductList();
   }
 
-  getProductList() {
-    this.productoService.getAll().subscribe((data: Producto[]) => {
-      this.dataSource = new MatTableDataSource<Producto>(data);
-      console.log(data);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    })
-  }
-
-  onAdd(a: any) {
-    this.ngOnInit();
-  }
-
   ngAfterViewInit() {
-
+    // La asignación del paginador y el sort se hace una sola vez aquí.
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
-  onSelectedProduct() {
-    // this.select.emit(this.);
+  // --- PASO 1: REEMPLAZA TU MÉTODO getProductList CON ESTE ---
+  getProductList() {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    this.productoService.getAll().subscribe({
+      next: (data: Producto[]) => {
+        // Transformamos los datos ANTES de pasarlos a la tabla
+        const datosProcesados = data.map(producto => ({
+          ...producto,
+          // Convertimos el string "dd/mm/aaaa" a un objeto Date válido
+          Fecha_Ingreso: this.parsearFecha(producto.Fecha_Ingreso) 
+        }));
+
+        this.dataSource.data = datosProcesados; // Usamos los datos ya procesados
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error al cargar productos:", err);
+        this.errorMessage = "No se pudieron cargar los productos.";
+        this.isLoading = false;
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -143,10 +90,74 @@ export class ListarProductosComponent implements AfterViewInit {
     }
   }
 
+  private parsearFecha(fechaStr: string | Date): Date {
+    // Si por alguna razón ya es un objeto Date, lo devolvemos
+    if (fechaStr instanceof Date) {
+      return fechaStr;
+    }
 
+    // Dividimos el string "dd/mm/aaaa" en sus partes
+    const partes = fechaStr.split('/');
+    if (partes.length === 3) {
+      const dia = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10) - 1; // Meses en JS son de 0 a 11
+      const anio = parseInt(partes[2], 10);
+      return new Date(anio, mes, dia);
+    }
+    
+    // Si el formato es inesperado, intentamos una conversión directa
+    return new Date(fechaStr);
+  }
+  
+  // Lógica para los badges de estado
+  getEstadoClass(status: string): string {
+    if (!status) return 'status-default';
+    const statusNormalized = status.toLowerCase().replace(/\s+/g, '-');
+    switch (statusNormalized) {
+      case 'nuevo': return 'status-nuevo';
+      case 'usado': return 'status-usado';
+      case 'en-garantia': return 'status-garantia';
+      case 'a-reparar': return 'status-reparar';
+      case 'para-piezas': return 'status-piezas';
+      case 'en-proceso-de-venta': return 'status-proceso-venta';
+      case 'descargado': return 'status-descargado';
+      default: return 'status-default';
+    }
+  }
 
+  // --- Métodos de Diálogos (simplificados) ---
 
+  public openDialogAgregar() {
+    const dialogRef = this.dialog.open(AgregarProdutosComponent, {
+      width: '50%',
+      height: '85%',
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      // Si el diálogo devuelve 'true' (o cualquier valor afirmativo), recargamos la lista.
+      if (result) {
+        this.getProductList();
+      }
+    });
+  }
 
+  public openDialogEliminar(codigoConsola: string) {
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {
+      width: '400px',
+      disableClose: true,
+      data: { value: codigoConsola }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getProductList();
+      }
+    });
+  }
 
-
+  public openDialogHistorial(codigoConsola: string) {
+    this.dialog.open(HistorialProductoComponent, {
+      width: '600px',
+      data: { value: codigoConsola }
+    });
+  }
 }

@@ -54,53 +54,47 @@ router.get('/metodos-de-pago', (req, res) => {
   });
 });
 
-// create sale proforma
 router.post('/ingresar-venta', (req, res) => {
+  // 1. Se elimina 'Margen' de la desestructuración
   const {
     TipoDocumento,
     SubtotalVenta, IVA, TotalVenta, EstadoVenta,
-    MetodoPago, Margen, Usuario, Cliente, Observaciones,
+    MetodoPago, Usuario, Cliente, Observaciones, // Se quitó 'Margen'
     NumeroReferenciaTransferencia, Detalles
   } = req.body;
 
-  console.log('Datos recibidos:', req.body);
-
   const detallesJSON = JSON.stringify(Detalles);
 
-  // CORRECCIÓN: La consulta debe tener 13 '?' para los 13 parámetros de ENTRADA (IN).
-  // El parámetro de SALIDA (OUT) se maneja con @codigoGenerado directamente.
+  // 2. La consulta ahora tiene un '?' menos.
   const query = `
     CALL InsertarVentaProforma(
-      ?, @codigoGenerado, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, @codigoGenerado, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     );
     SELECT @codigoGenerado AS CodigoProforma;
   `;
 
-  // CORRECIÓN: El orden de los parámetros debe coincidir con la consulta.
+  // 3. Se elimina 'Margen' del array de parámetros
   const params = [
-    TipoDocumento,                      // p_TipoDocumento
-    // @codigoGenerado se maneja en el SQL, no se pasa aquí
-    SubtotalVenta,                      // p_Subtotal
-    IVA,                                // p_IVA
-    TotalVenta,                         // p_Total
-    EstadoVenta,                        // p_Estado
-    MetodoPago,                         // p_MetodoPago
-    Margen,                             // p_Margen
-    Usuario,                            // p_Usuario
-    Cliente,                            // p_Cliente
-    Observaciones,                      // p_Observaciones
-    NumeroReferenciaTransferencia,      // p_ReferenciaTransferencia
-    detallesJSON                        // p_Detalles
+    TipoDocumento,
+    SubtotalVenta,
+    IVA,
+    TotalVenta,
+    EstadoVenta,
+    MetodoPago,
+    // Se quitó Margen de aquí
+    Usuario,
+    Cliente,
+    Observaciones,
+    NumeroReferenciaTransferencia,
+    detallesJSON
   ];
 
   db.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al ejecutar InsertarVentaProforma:', err);
-      // Devuelve el error completo para facilitar la depuración
       return res.status(500).json({ success: false, error: err });
     }
 
-    // El resultado de la variable de sesión está en el segundo resultado (índice 1)
     const codigoGenerado = results[1][0]?.CodigoProforma;
     return res.status(200).json({
       success: true,
@@ -109,17 +103,22 @@ router.post('/ingresar-venta', (req, res) => {
   });
 });
 
-// Agregar artículo al carrito (creando carrito si no existe)
 router.post('/agregar-al-carrito', (req, res) => {
+  // 1. Extraemos TODOS los campos del cuerpo de la solicitud, incluyendo IdMargenFK
   const {
     IdUsuario, IdCliente,
     TipoArticulo, CodigoArticulo,
-    PrecioVenta, Descuento, /* SubtotalSinIVA, */ Cantidad // SubtotalSinIVA commented out here
+    PrecioVenta, Descuento,
+    Cantidad,
+    PrecioBaseOriginal,
+    MargenAplicado,
+    IdMargenFK // <-- SE AÑADE EL PARÁMETRO QUE FALTABA
   } = req.body;
-
-  // The stored procedure now expects 7 arguments:
-  // p_IdUsuario, p_IdCliente, p_TipoArticulo, p_CodigoArticulo, p_PrecioVenta, p_Descuento, p_Cantidad
-  const query = `CALL base_datos_inventario_taller.sp_Carrito_AgregarArticulo(?, ?, ?, ?, ?, ?, ?);`; // Reduced to 7 placeholders
+  console.log('payload recibido:', req.body);
+  // 2. La consulta ahora debe esperar 10 parámetros
+  const query = `CALL sp_Carrito_AgregarArticulo(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`; 
+  
+  // 3. Los parámetros deben incluir el nuevo campo en el orden correcto
   const params = [
     IdUsuario,
     IdCliente,
@@ -127,22 +126,27 @@ router.post('/agregar-al-carrito', (req, res) => {
     CodigoArticulo,
     PrecioVenta,
     Descuento,
-    // SubtotalSinIVA, // <<< REMOVE THIS LINE
-    Cantidad
+    Cantidad,
+    PrecioBaseOriginal,
+    MargenAplicado,
+    IdMargenFK // <-- SE AÑADE EL PARÁMETRO AL ARRAY
   ];
 
   db.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al agregar artículo al carrito:', err);
-      return res.status(500).json({ success: false, error: err });
+      return res.status(500).json({ 
+          success: false, 
+          error: 'Error del servidor al procesar la solicitud.',
+          dbError: err.sqlMessage || err.message
+      });
     }
 
-    // Retorna el ID del carrito utilizado (nuevo o existente)
     const idCarrito = results[0][0]?.IdCarritoUsado ?? null;
 
     res.json({
       success: true,
-      mensaje: 'Artículo agregado correctamente.',
+      mensaje: 'Artículo agregado correctamente al carrito.',
       idCarritoUsado: idCarrito
     });
   });
@@ -222,54 +226,62 @@ router.post('/eliminar-linea-del-carrito', (req, res) => {
 
 
 // En tu archivo de rutas del backend (ej: /routes/sales-base.js)
-
 router.post('/finalizar', (req, res) => {
-    // Se extraen los datos, ya NO se necesita 'numeroDocumento' del frontend
+    // --- INICIO DE LA CORRECCIÓN ---
+    // 1. Usamos nombres de variables consistentes con el endpoint de proformas.
     const {
-        idTipoDocumento, subtotal, iva, total,
-        idEstadoVenta, idMetodoPago, idMargen,
-        idUsuario, idCliente, observaciones
+        TipoDocumento,
+        SubtotalVenta,
+        IVA,
+        TotalVenta,
+        EstadoVenta,
+        MetodoPago,
+        Usuario,
+        Cliente,
+        Observaciones,
+        Detalles
     } = req.body;
 
-    if (!idUsuario || !idCliente || !idMetodoPago || !idMargen) {
+    // 2. La validación ahora comprueba las nuevas variables.
+    if (!Usuario || !Cliente || !MetodoPago || !Detalles) {
         return res.status(400).json({ success: false, error: 'Faltan parámetros esenciales.' });
     }
+    // --- FIN DE LA CORRECCIÓN ---
 
-    // El array de argumentos ahora tiene un elemento menos
+    const detallesJSON = JSON.stringify(Detalles);
+
     const args = [
-        idTipoDocumento, subtotal, iva, total,
-        idEstadoVenta, idMetodoPago, idMargen,
-        idUsuario, idCliente, observaciones
+        TipoDocumento,
+        SubtotalVenta,
+        IVA,
+        TotalVenta,
+        EstadoVenta,
+        MetodoPago,
+        Usuario,
+        Cliente,
+        Observaciones,
+        detallesJSON
     ];
-
-    // La llamada al SP también tiene un placeholder '?' menos
+    
     const sql = 'CALL RealizarVentaYDescargarInventario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
     db.query(sql, args, (err, results) => {
         if (err) {
             console.error('Error al ejecutar el SP RealizarVentaYDescargarInventario:', err);
-            return res.status(500).json({ success: false, error: err.message });
+            return res.status(500).json({ success: false, error: err.message, sqlState: err.sqlState });
         }
-
-        // --- LÍNEA DE DEPURACIÓN AÑADIDA ---
-        // Imprime la estructura completa que devuelve la base de datos.
-        console.log('Respuesta cruda de la base de datos (results):', JSON.stringify(results, null, 2));
-        // ------------------------------------
-
-        // **CAMBIO IMPORTANTE: Capturar ambos valores de la respuesta del SP**
+        
         const ventaId = results[0][0].CodigoVentaFinal;
         const numeroDocumento = results[0][0].NumeroDocumentoFinal;
 
-        // Devolver ambos valores al frontend
         res.json({
             success: true,
             message: 'Venta realizada y registrada con éxito.',
             ventaId: ventaId,
-            numeroDocumento: numeroDocumento // Se añade el nuevo campo
+            numeroDocumento: numeroDocumento
         });
     });
 });
-
 // En tu archivo de rutas del backend (ej: /routes/sales-base.js)
 
 // ... (tu código de express, router, db, etc.)
@@ -388,6 +400,55 @@ router.get('/venta-completa/:idVenta', (req, res) => {
       data: {
         venta: ventaInfo,
         detalles: detallesVenta
+      }
+    });
+  });
+});
+
+router.get('/proforma/:idProforma', (req, res) => {
+  // 1. Extraer el ID de los parámetros de la URL.
+  const { idProforma } = req.params;
+
+  // 2. Validación básica para asegurar que se proporcionó un ID.
+  if (!idProforma) {
+    return res.status(400).json({ success: false, error: 'ID de proforma no proporcionado.' });
+  }
+
+  // 3. La consulta para llamar al procedimiento almacenado.
+  const query = 'CALL sp_GetProformaDetailsYValidarStock(?);';
+
+  // 4. Ejecutar la consulta en la base de datos.
+  db.query(query, [idProforma], (err, results) => {
+    // Manejo de errores de conexión o sintaxis SQL.
+    if (err) {
+      console.error('Error al ejecutar sp_GetProformaDetailsYValidarStock:', err);
+      return res.status(500).json({ success: false, error: 'Error en la base de datos.', details: err });
+    }
+
+    // 5. Procesar la respuesta del procedimiento almacenado.
+    // Primero, verificamos si el SP devolvió un mensaje de error de lógica (ej. proforma expirada).
+    // El SP fue diseñado para devolver un campo "Resultado" en este caso.
+    if (results && results[0] && results[0][0] && results[0][0].Resultado) {
+      return res.status(400).json({ success: false, error: results[0][0].Resultado });
+    }
+
+    // Si la proforma es válida, el SP devuelve 3 conjuntos de resultados.
+    // Verificamos que la estructura sea la esperada.
+    if (!results || results.length < 3) {
+      return res.status(404).json({ success: false, error: 'Proforma no encontrada o la respuesta de la base de datos es inesperada.' });
+    }
+
+    // 6. Estructurar la respuesta exitosa para el frontend.
+    const proformaInfo = results[0][0];       // El primer SELECT devuelve la cabecera.
+    const detallesProforma = results[1];      // El segundo SELECT devuelve los detalles.
+    const itemsNoDisponibles = results[2]; // El tercer SELECT devuelve los ítems sin stock.
+
+    res.json({
+      success: true,
+      data: {
+        proforma: proformaInfo,
+        detalles: detallesProforma,
+        itemsNoDisponibles: itemsNoDisponibles
       }
     });
   });

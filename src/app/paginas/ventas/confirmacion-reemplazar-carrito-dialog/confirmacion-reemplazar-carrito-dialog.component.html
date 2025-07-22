@@ -1,0 +1,26 @@
+<h1 mat-dialog-title class="dialog-title">
+  <mat-icon color="warn">warning</mat-icon>
+  Confirmar Acción
+</h1>
+
+<div mat-dialog-content class="dialog-content">
+  <p>
+    Ya existe un carrito de compras en curso.
+  </p>
+  <p>
+    Si continúa, el carrito actual será <strong>descartado y reemplazado</strong> por los artículos de la
+    <strong>proforma N° {{ data.idProforma }}</strong>.
+  </p>
+  <p class="pregunta-final">
+    ¿Está seguro de que desea continuar?
+  </p>
+</div>
+
+<div mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button (click)="onCancel()">
+    No, Cancelar
+  </button>
+  <button mat-flat-button color="warn" (click)="onConfirm()" cdkFocusInitial>
+    Sí, Reemplazar Carrito
+  </button>
+</div>

@@ -56,7 +56,8 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
         // { label: 'Listado de Ventas', route: '/home/ventas/listado', roles: [1, 2] }
         { label: 'Punto de Venta (POS)', route: '/home/punto-venta', roles: [1, 2] },
         { label: 'Listado de Ventas', route: '/home/listado-ventas', roles: [1, 2] },
-        { label: 'Listado de Notas de Crédito', route: '/home/listado-notas-credito', roles: [1, 2] }
+        { label: 'Listado de Notas de Crédito', route: '/home/listado-notas-credito', roles: [1, 2] },
+        { label: 'Listado de Carritos', route: '/home/listado-carritos', roles: [1, 2] }
       ],
       roles: [1, 2]
     },
@@ -66,7 +67,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
       subItems: [
         {
           label: 'Inventario General',
-          route: '/home/modulo-en-construccion',
+          route: '/home/inventario-general',
           roles: [1, 2, 3]
         },
         {
@@ -129,7 +130,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
         { label: 'Crear Backup de BD', route: '/home/modulo-en-construccion', roles: [1] },
         { label: 'Configuración Productos', route: '/home/preferencias/index-categorias', roles: [1] },
         { label: 'Configuración Accesorios', route: '/home/preferencias/index-categorias-accesorios', roles: [1] },
-        { label: 'Configuración Insumos', route: '/home/preferencias/index-categorias-insumos', roles: [1] }
+        { label: 'Configuración Insumos', route: '/home/preferencias/index-categorias-insumos', roles: [1] },
       ],
       roles: [1]
     }

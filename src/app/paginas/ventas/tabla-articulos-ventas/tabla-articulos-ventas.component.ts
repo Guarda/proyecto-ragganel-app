@@ -25,16 +25,17 @@ import { VentasBaseService } from '../../../services/ventas-base.service';
   styleUrls: ['./tabla-articulos-ventas.component.css']
 })
 
-export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChanges { // Added OnChanges
+export class TablaArticulosVentasComponent implements OnInit, OnDestroy { // Added OnChanges
 
   @Input() margenActual: number | null = 0;
+  @Input() idMargenActual: number | null = null;
   @Input() clienteSeleccionado: Cliente | null = null;
   @Input() usuario: Usuarios | null = null;
 
   gruposDeArticulos: GrupoArticulos[] = [];
   gruposDeArticulosFiltrados: GrupoArticulos[] = [];
   todosLosArticulosOriginales: ArticuloVenta[] = [];
-  
+
   private subs = new Subscription();
   tipos: string[] = ['Producto', 'Accesorio', 'Insumo', 'Servicio'];
   tipoSeleccionado: string | null = null;
@@ -45,9 +46,10 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
   constructor(
     private listadoArticulosVentaService: ListadoArticulosVentaService,
     private carritoService: CarritoService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private ventasBaseService: VentasBaseService
   ) { }
-  
+
   ngOnInit(): void {
     this.subs.add(this.listadoArticulosVentaService.getAll().subscribe({
       next: (data: ArticuloVenta[]) => {
@@ -77,11 +79,11 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
     }));
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['margenActual'] && this.todosLosArticulosOriginales.length > 0) {
-      this.aplicarMargenYActualizarGrupos();
-    }
-  }
+  // ngOnChanges(changes: SimpleChanges): void {
+  //   if (changes['margenActual'] && this.todosLosArticulosOriginales.length > 0) {
+  //     this.aplicarMargenYActualizarGrupos();
+  //   }
+  // }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
@@ -89,11 +91,14 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
 
   private aplicarMargenYActualizarGrupos(): void {
     const articulosConMargenAplicado = this.todosLosArticulosOriginales.map(articulo => {
-      const precioOriginal = articulo.PrecioOriginalSinMargen ?? 0;
+      // Tomamos el costo original, que ahora sabemos que está seguro en PrecioBase.
+      const precioOriginal = articulo.PrecioBase ?? 0;
       const precioConMargen = precioOriginal * (1 + ((this.margenActual ?? 0) / 100));
+
+      // En lugar de sobrescribir PrecioBase, creamos una nueva propiedad para el precio de venta.
       return {
         ...articulo,
-        PrecioBase: parseFloat(precioConMargen.toFixed(4))
+        PrecioVentaDisplay: parseFloat(precioConMargen.toFixed(4)) // Nueva propiedad para la UI
       };
     });
 
@@ -118,35 +123,72 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
     this.aplicarFiltros();
   }
 
-  // --- MÉTODO CENTRAL PARA AGREGAR ---
-  private procesarYEnviarArticulo(articuloMaestro: ArticuloVenta): void {
-    if (!this.clienteSeleccionado || !this.usuario || this.margenActual === null) {
+  private procesarYEnviarArticulo(articuloDesdeUI: ArticuloVenta): void {
+    // 1. Validaciones (cliente, usuario, margen seleccionado) - Sin cambios
+    if (!this.clienteSeleccionado || !this.usuario || this.margenActual === null || this.idMargenActual === null) {
       this.snackBar.open('Error: Debe seleccionar cliente, usuario y margen.', 'Cerrar', { duration: 4000 });
       return;
     }
-    
-    if (articuloMaestro.Tipo !== 'Servicio' && (articuloMaestro.Cantidad ?? 0) <= 0) {
-      this.snackBar.open(`Sin stock para ${articuloMaestro.NombreArticulo}`, 'Cerrar', { duration: 3000 });
+
+    // =============================================================
+    // ## INICIO DE LA CORRECCIÓN DEFINITIVA ##
+
+    // 2. ¡NO CONFÍES EN EL ARTÍCULO DE LA UI!
+    // Usa el código del artículo de la UI para encontrar el artículo ORIGINAL y PURO
+    // en nuestra lista maestra, que nunca se modifica.
+    const articuloOriginalMaestro = this.todosLosArticulosOriginales.find(a => a.Codigo === articuloDesdeUI.Codigo);
+
+    if (!articuloOriginalMaestro) {
+      this.snackBar.open('Error crítico: No se pudo encontrar el artículo original en la lista maestra.', 'Cerrar', { duration: 4000 });
       return;
     }
 
-    const precioOriginal = articuloMaestro.PrecioOriginalSinMargen ?? articuloMaestro.PrecioBase;
-    if (precioOriginal === undefined || precioOriginal === null) {
-        this.snackBar.open(`El artículo no tiene un precio base válido.`, 'Cerrar', { duration: 4000 });
-        return;
+    // 3. Ahora, TODOS los cálculos se basan en el costo 100% fiable del artículo maestro.
+    const precioOriginal = articuloOriginalMaestro.PrecioBase ?? 0; // Este es el costo puro.
+
+    // 4. Validar stock usando el artículo maestro (que tiene el stock real)
+    if (articuloOriginalMaestro.Tipo !== 'Servicio' && (articuloOriginalMaestro.Cantidad ?? 0) <= 0) {
+      this.snackBar.open(`Sin stock para ${articuloOriginalMaestro.NombreArticulo}`, 'Cerrar', { duration: 3000 });
+      return;
     }
-    
-    const precioConMargen = (precioOriginal ?? 0) * (1 + (this.margenActual / 100));
-    const articuloParaCarrito: ArticuloVenta = {
-      ...articuloMaestro,
-      PrecioBase: parseFloat(precioConMargen.toFixed(4)),
-      PrecioOriginalSinMargen: precioOriginal,
+
+    // ## FIN DE LA CORRECCIÓN DEFINITIVA ##
+    // =============================================================
+
+    const precioVentaFinal = precioOriginal * (1 + (this.margenActual / 100));
+
+    const datosParaBackend = {
+      IdUsuario: this.usuario.id,
+      IdCliente: this.clienteSeleccionado.id,
+      TipoArticulo: articuloOriginalMaestro.Tipo!,
+      CodigoArticulo: articuloOriginalMaestro.Codigo!,
+      PrecioVenta: precioVentaFinal,
+      Descuento: 0,
+      Cantidad: 1,
+      PrecioBaseOriginal: precioOriginal, // <-- GARANTIZADO que es el costo correcto
+      MargenAplicado: this.margenActual,
+      IdMargenFK: this.idMargenActual
     };
 
-    // Delegar toda la lógica al servicio
-    this.carritoService.notificarAgregadoAlCarrito(articuloParaCarrito, this.usuario, this.clienteSeleccionado);
+    // La llamada al servicio no cambia
+    this.subs.add(
+      this.ventasBaseService.agregarArticuloAlCarrito(datosParaBackend).subscribe({
+        // ... (código de next y error no cambia)
+        next: (respuesta) => {
+          if (respuesta.success) {
+            this.snackBar.open(`'${articuloOriginalMaestro.NombreArticulo}' agregado al carrito.`, 'OK', { duration: 3000 });
+            this.carritoService.refrescarCarrito(this.usuario!, this.clienteSeleccionado!).subscribe();
+          } else {
+            this.snackBar.open(`Error: ${respuesta.dbError || 'No se pudo agregar el artículo.'}`, 'Cerrar', { duration: 5000 });
+          }
+        },
+        error: (err) => {
+          console.error("Error al agregar artículo:", err);
+          this.snackBar.open('Error de comunicación al agregar el artículo.', 'Cerrar', { duration: 4000 });
+        }
+      })
+    );
   }
-
   // --- MÉTODOS PÚBLICOS DE INTERFAZ ---
   public agregarAlCarrito(articuloOriginalDesdeUI: ArticuloVenta): void {
     this.procesarYEnviarArticulo(articuloOriginalDesdeUI);
@@ -160,28 +202,32 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
     }
     this.procesarYEnviarArticulo(articuloMaestro);
   }
-  
+
   // --- MÉTODOS DE FILTRADO Y VISUALIZACIÓN ---
   aplicarFiltros(): void {
-    let tempGrupos = this.gruposDeArticulos;
+    const lowerCaseSearch = this.searchTerm.toLowerCase();
 
-    if (this.tipoSeleccionado) {
-      tempGrupos = tempGrupos.filter(g => g.articulos.some(a => a.Tipo === this.tipoSeleccionado));
-    }
-    
-    tempGrupos = tempGrupos.filter(g => g.articulos.some(a => {
-      const price = a.PrecioBase ?? 0;
-      return price >= this.precioMin && price <= this.precioMax;
-    }));
+    // Filtramos la lista completa de grupos en un solo paso
+    this.gruposDeArticulosFiltrados = this.gruposDeArticulos.filter(grupo => {
 
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      tempGrupos = tempGrupos.filter(g =>
-        g.nombre.toLowerCase().includes(term) ||
-        g.articulos.some(a => a.Codigo?.toLowerCase().includes(term))
-      );
-    }
-    this.gruposDeArticulosFiltrados = tempGrupos;
+      // Condición 1: Filtro por Tipo de Artículo
+      const tipoMatch = !this.tipoSeleccionado || grupo.articulos[0].Tipo === this.tipoSeleccionado;
+
+      // Condición 2: Filtro por Precio
+      // Usa la nueva propiedad 'PrecioVentaDisplay' para la comparación
+      const precioMatch = grupo.articulos.some(a => {
+        const price = a.PrecioVentaDisplay ?? 0;
+        return price >= this.precioMin && price <= this.precioMax;
+      });
+
+      // Condición 3: Filtro por Término de Búsqueda (en nombre o código)
+      const searchMatch = !this.searchTerm ||
+        grupo.nombre.toLowerCase().includes(lowerCaseSearch) ||
+        grupo.articulos.some(a => a.Codigo?.toLowerCase().includes(lowerCaseSearch));
+
+      // Un grupo se muestra solo si cumple TODAS las condiciones activas
+      return tipoMatch && precioMatch && searchMatch;
+    });
   }
 
   filtrarPorTipo(tipo: string): void {

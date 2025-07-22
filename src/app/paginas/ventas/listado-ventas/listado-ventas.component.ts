@@ -27,6 +27,7 @@ import { DetalleVentaCompleta } from '../../interfaces/detalleventacompleta';
 import { DialogDescargarPdfProformaComponent } from '../dialog-descargar-pdf-proforma/dialog-descargar-pdf-proforma.component';
 import { DialogDescargarPdfVentaComponent } from '../dialog-descargar-pdf-venta/dialog-descargar-pdf-venta.component';
 import { CrearNotaCreditoComponent } from '../crear-nota-credito/crear-nota-credito.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-listado-ventas',
@@ -60,7 +61,8 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private creditNotesService: NotasCreditoService
+    private creditNotesService: NotasCreditoService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -111,6 +113,20 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       }
     });
+  }
+
+  public esProformaVigente(fechaCreacion: Date | string): boolean {
+    const fechaProforma = new Date(fechaCreacion);
+    const hoy = new Date();
+
+    // Calcula la diferencia de tiempo en milisegundos
+    const diferenciaMilisegundos = hoy.getTime() - fechaProforma.getTime();
+
+    // Convierte la diferencia a días (1000ms * 60s * 60min * 24h)
+    const diferenciaDias = diferenciaMilisegundos / (1000 * 60 * 60 * 24);
+
+    // La proforma es vigente si han pasado menos de 15 días completos.
+    return diferenciaDias < 15;
   }
 
   /**
@@ -191,32 +207,32 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
   }
 
   private parsearFecha(fecha: string | Date): Date {
-  // 1. Si el valor ya es un objeto Date, lo devolvemos directamente.
-  if (fecha instanceof Date) {
-    return fecha;
+    // 1. Si el valor ya es un objeto Date, lo devolvemos directamente.
+    if (fecha instanceof Date) {
+      return fecha;
+    }
+
+    // 2. Si es un string, procedemos con la lógica de conversión.
+    const fechaStr = fecha;
+    if (!fechaStr) {
+      return new Date(); // Devuelve la fecha actual si el string es nulo o vacío
+    }
+
+    const partes = fechaStr.split(/[\s/:]+/);
+
+    if (partes.length >= 3) {
+      const dia = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10) - 1; // Meses en JS son 0-11
+      const anio = parseInt(partes[2], 10);
+      const hora = partes.length > 3 ? parseInt(partes[3], 10) : 0;
+      const minuto = partes.length > 4 ? parseInt(partes[4], 10) : 0;
+
+      return new Date(anio, mes, dia, hora, minuto);
+    }
+
+    // Fallback por si el formato es inesperado
+    return new Date(fechaStr);
   }
-
-  // 2. Si es un string, procedemos con la lógica de conversión.
-  const fechaStr = fecha;
-  if (!fechaStr) {
-    return new Date(); // Devuelve la fecha actual si el string es nulo o vacío
-  }
-
-  const partes = fechaStr.split(/[\s/:]+/);
-
-  if (partes.length >= 3) {
-    const dia = parseInt(partes[0], 10);
-    const mes = parseInt(partes[1], 10) - 1; // Meses en JS son 0-11
-    const anio = parseInt(partes[2], 10);
-    const hora = partes.length > 3 ? parseInt(partes[3], 10) : 0;
-    const minuto = partes.length > 4 ? parseInt(partes[4], 10) : 0;
-    
-    return new Date(anio, mes, dia, hora, minuto);
-  }
-
-  // Fallback por si el formato es inesperado
-  return new Date(fechaStr);
-}
   // ... (El resto de tus métodos de descarga no necesitan cambios)
   abrirDialogoDescargar(venta: Ventas): void {
     const dialogRef = this.dialog.open(DialogDescargarPdfProformaComponent, {
@@ -227,6 +243,15 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
       if (result === true) {
         this.procederConDescargaPDF(venta.IdVentaPK);
       }
+    });
+  }
+
+  continuarVentaDesdeProforma(venta: Ventas): void {
+    // Navegamos al punto de venta y pasamos el ID de la proforma
+    // a través del "state" del router. Es una forma limpia de pasar datos
+    // temporales durante la navegación.
+    this.router.navigate(['/home/punto-venta'], {
+      state: { idProformaACargar: venta.IdVentaPK }
     });
   }
 

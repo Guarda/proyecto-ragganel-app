@@ -1,0 +1,14 @@
+<h1 mat-dialog-title>
+  <mat-icon color="warn">warning</mat-icon>
+  Confirmar Liberación
+</h1>
+
+<div mat-dialog-content class="dialog-content">
+  <p>¿Estás seguro de que quieres liberar el carrito <strong>#{{ data.idCarrito }}</strong>?</p>
+  <p class="advertencia">Esta acción es permanente y no se puede deshacer.</p>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onNoClick()">No, Cancelar</button>
+  <button mat-raised-button color="warn" (click)="onYesClick()" cdkFocusInitial>Sí, Liberar</button>
+</div>
