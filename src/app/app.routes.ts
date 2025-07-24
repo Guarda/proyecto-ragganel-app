@@ -37,6 +37,8 @@ import { ListarNotasCreditoComponent } from './paginas/ventas/listar-notas-credi
 import { VerNotaCreditoComponent } from './paginas/ventas/ver-nota-credito/ver-nota-credito.component';
 import { ListadoCarritosComponent } from './paginas/ventas/listado-carritos/listado-carritos.component';
 import { ListadoInventarioGeneralComponent } from './paginas/inventario/listado-inventario-general/listado-inventario-general.component';
+import { ListadoInventarioGarantiaComponent } from './paginas/inventario/listado-inventario-garantia/listado-inventario-garantia.component';
+import { DashboardComponent } from './paginas/dashboard/dashboard/dashboard.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -46,6 +48,10 @@ export const routes: Routes = [
     component: MenuSidebarComponent,
     canActivate: [AuthGuard],
     children: [
+      {
+        path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1] } // Corrected
+      },
       { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
       {
         path: 'punto-venta', component: PuntoVentaComponent, canActivate: [AuthGuard, RoleGuard],
@@ -73,6 +79,10 @@ export const routes: Routes = [
       },
       {
         path: 'inventario-general', component: ListadoInventarioGeneralComponent, canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1, 3] } // Corrected
+      },
+      {
+        path: 'inventario-garantia', component: ListadoInventarioGarantiaComponent, canActivate: [AuthGuard, RoleGuard],
         data: { expectedRoles: [1, 3] } // Corrected
       },
       {

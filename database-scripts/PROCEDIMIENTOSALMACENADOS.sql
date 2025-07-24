@@ -280,8 +280,6 @@ DELIMITER //
     END //
 DELIMITER ;
 
-call ListarAccesoriosXIdTipoProducto(1);
-
 /*PROCEDIMIENTO LLAMAR CATEGORIAS POR FABRICANTE CREADO 11/09/24*/
 DELIMITER //
 	CREATE PROCEDURE ListarCategoriasXFabricante(FabricanteP varchar(100))
@@ -387,8 +385,6 @@ END //
 DELIMITER ; 
 
 
-CALL InsertTareas('12345', "Reparar pantalla, Chipear, Pintar");
-CALL ListarTareasxProducto('GCSO004-3');
 
 DELIMITER //
 
@@ -2315,15 +2311,15 @@ BEGIN
     FROM 
         Clientes;
     -- WHERE 
-    --    Estado = 1; -- Solo traer clientes activos
+     --   Estado = 1; -- Solo traer clientes activos
 END$$
 
 DELIMITER ;
 
 DELIMITER $$
 
+DROP PROCEDURE IF EXISTS IngresarCliente; -- Para poder recrearlo sin errores
 CREATE PROCEDURE IngresarCliente(
-/*PROCEDIMIENTO ALMANCEANADO PARA INGRESAR UN CLIENTE 29/03/2025*/
     IN p_NombreCliente VARCHAR(255),
     IN p_DNI VARCHAR(255),
     IN p_RUC VARCHAR(255),
@@ -2335,7 +2331,7 @@ BEGIN
     INSERT INTO Clientes (
         NombreCliente, DNI, RUC, Telefono, CorreoElectronico, Direccion, FechaRegistro, Estado
     ) VALUES (
-        p_NombreCliente, p_DNI, p_RUC, p_Telefono, p_CorreoElectronico, p_Direccion, CURDATE(), DEFAULT
+        p_NombreCliente, p_DNI, p_RUC, p_Telefono, p_CorreoElectronico, p_Direccion, CURDATE(), 1 -- Se pasa el valor 1 explícitamente.
     );
 END $$
 
@@ -2444,7 +2440,7 @@ DELIMITER ;
 
 
 
-DELIMITER //CALL `base_datos_inventario_taller`.`ListarTablaInsumosBasesXId`('INS-ADATA-DDR4');
+DELIMITER //
 
 /*PROCEDIMIENTO LISTAR TODOS LOS FABRICANTES DE INSUMOS CON UN MODELO ASOCIADO CREADO 17/04/2025*/
 CREATE PROCEDURE ListarFabricantesInsumosModelo()
@@ -3330,7 +3326,6 @@ DELIMITER ;
 
 
 select * from ventasbase;
-
 DROP PROCEDURE IF EXISTS ListarVentasPorUsuario;
 DELIMITER $$
 
@@ -3340,12 +3335,12 @@ CREATE PROCEDURE ListarVentasPorUsuario (
 ListarVentasPorUsuario: BEGIN
     DECLARE v_IdRol INT;
 
-    -- Obtener el rol del usuario (sin cambios)
+    -- Obtener el rol del usuario
     SELECT IdRolFK INTO v_IdRol
     FROM Usuarios
     WHERE IdUsuarioPK = p_IdUsuario;
 
-    -- Si no es Admin o Vendedor, no tiene permiso (sin cambios)
+    -- Validar permiso
     IF v_IdRol IS NULL OR v_IdRol NOT IN (1, 2) THEN
         SELECT 'Sin permiso para ver ventas' AS Mensaje;
         LEAVE ListarVentasPorUsuario;
@@ -3368,38 +3363,34 @@ ListarVentasPorUsuario: BEGIN
         vb.IdUsuarioFK,
         u.Nombre AS Usuario,
         vb.Observaciones,
-        
-        -- =============================================================
-        -- ## INICIO DE LA CORRECCIÓN ##
-        -- Se elimina vb.IdMargenVentaFK.
-        -- Se añade una subconsulta para obtener el nombre del margen más usado
-        -- en los detalles de ESTA venta (vb.IdVentaPK).
         (
             SELECT m.NombreMargen
             FROM DetalleVenta dv
             JOIN MargenesVenta m ON dv.IdMargenFK = m.IdMargenPK
-            WHERE dv.IdVentaFK = vb.IdVentaPK -- Enlaza con la venta actual
+            WHERE dv.IdVentaFK = vb.IdVentaPK
             GROUP BY dv.IdMargenFK, m.NombreMargen
-            ORDER BY COUNT(*) DESC -- Ordena por el más frecuente
-            LIMIT 1 -- Toma solo el primero
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
         ) AS MargenVenta
-        -- ## FIN DE LA CORRECCIÓN ##
-        -- =============================================================
         
     FROM VentasBase vb
     INNER JOIN TipoDocumento td ON vb.IdTipoDocumentoFK = td.IdTipoDocumentoPK
     INNER JOIN EstadoVenta ev ON vb.IdEstadoVentaFK = ev.IdEstadoVentaPK
     INNER JOIN Clientes c ON vb.IdClienteFK = c.IdClientePK
     INNER JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
-    -- SE ELIMINA EL JOIN A MARGENESVENTA DESDE VENTASBASE
+    
     WHERE 
-        -- La lógica de permisos no cambia
-        (v_IdRol = 1 OR (v_IdRol = 2 AND vb.IdUsuarioFK = p_IdUsuario));
+        -- Condición 1: Lógica de permisos de rol
+        (v_IdRol = 1 OR (v_IdRol = 2 AND vb.IdUsuarioFK = p_IdUsuario))
+        
+        -- ===== LÍNEA AÑADIDA PARA DOBLE SEGURIDAD =====
+        AND vb.IdEstadoVentaFK != 4; -- Excluye explícitamente el estado 'Borrado'
+
 END$$
 
 DELIMITER ;
 
-call ListarVentasPorUsuario(4);
+
 
 DELIMITER $$
 
@@ -4266,7 +4257,7 @@ END$$
 
 DELIMITER ;
 
-call sp_ListarNotasCredito();
+
 
 
 DROP PROCEDURE IF EXISTS sp_ObtenerNotaCreditoPorId;
@@ -4337,7 +4328,7 @@ BEGIN
 END$$
 
 DELIMITER ;
-CALL sp_ObtenerNotaCreditoPorId(2);
+
 
 
 DELIMITER $$
@@ -4566,7 +4557,7 @@ BEGIN
 END $$
 DELIMITER ;
 
-CALL sp_ConsultarCarritosVigentes(6);
+
 DELIMITER $$
 
 DROP PROCEDURE IF EXISTS `sp_LiberarCarrito`$$
@@ -4851,7 +4842,7 @@ END$$
 
 DELIMITER ;
 
-call sp_GetProformaDetailsYValidarStock(50)
+
 
 DELIMITER $$
 
@@ -4862,3 +4853,179 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+
+DELIMITER $$
+
+-- Eliminamos el procedimiento anterior si existe para evitar errores
+DROP PROCEDURE IF EXISTS sp_EliminarProforma $$
+
+-- Creamos el nuevo procedimiento con la lógica de "soft delete"
+CREATE PROCEDURE sp_EliminarProforma(
+    IN p_IdVentaPK INT
+)
+BEGIN
+    -- Declaración de variables
+    DECLARE v_IdTipoDocumento INT;
+    DECLARE v_IdEstadoActual INT;
+    DECLARE v_IdEstadoBorrado INT DEFAULT 4; -- ID del nuevo estado 'Borrado'
+
+    -- Obtenemos el tipo de documento y el estado actual de la venta
+    SELECT IdTipoDocumentoFK, IdEstadoVentaFK INTO v_IdTipoDocumento, v_IdEstadoActual
+    FROM VentasBase
+    WHERE IdVentaPK = p_IdVentaPK;
+
+    -- Verificamos si la venta existe
+    IF v_IdTipoDocumento IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: La venta no existe.';
+    -- Verificamos que sea una proforma (Tipo Documento 2)
+    ELSEIF v_IdTipoDocumento != 2 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El documento no es una proforma.';
+    -- Verificamos que no esté ya borrada
+    ELSEIF v_IdEstadoActual = v_IdEstadoBorrado THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: Esta proforma ya ha sido borrada.';
+    ELSE
+        -- ¡ACCIÓN PRINCIPAL! Actualizamos el estado en lugar de borrar
+        UPDATE VentasBase
+        SET IdEstadoVentaFK = v_IdEstadoBorrado
+        WHERE IdVentaPK = p_IdVentaPK;
+    END IF;
+
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sp_ListarArticulosEnGarantia;
+CREATE PROCEDURE sp_ListarArticulosEnGarantia()
+BEGIN
+    DECLARE var_id_estado_garantia INT DEFAULT 9; -- El ID para 'En garantia'
+
+    -- Consulta para PRODUCTOS
+    SELECT 
+        'Producto' AS TipoArticulo,
+        pb.CodigoConsola AS CodigoArticulo,
+        CONCAT(f.NombreFabricante, ' ', cp.NombreCategoria, ' ', sp.NombreSubcategoria, ' (Color: ', pb.Color, ')') AS Descripcion,
+        pb.FechaIngreso,
+        pb.PrecioBase,
+        cec.DescripcionEstado AS Estado,
+        pb.Estado AS IdEstado, -- <--- LÍNEA AÑADIDA
+        pb.NumeroSerie,
+        pb.Comentario
+    FROM 
+        ProductosBases pb
+    JOIN CatalogoEstadosConsolas cec ON pb.Estado = cec.CodigoEstado
+    JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK
+    JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
+    JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
+    JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
+    WHERE pb.Estado = var_id_estado_garantia
+
+    UNION ALL
+
+    -- Consulta para ACCESORIOS
+    SELECT 
+        'Accesorio' AS TipoArticulo,
+        ab.CodigoAccesorio AS CodigoArticulo,
+        CONCAT(fa.NombreFabricanteAccesorio, ' ', ca.NombreCategoriaAccesorio, ' ', sa.NombreSubcategoriaAccesorio, ' (Color: ', ab.ColorAccesorio, ')') AS Descripcion,
+        ab.FechaIngreso,
+        ab.PrecioBase,
+        cec.DescripcionEstado AS Estado,
+        ab.EstadoAccesorio AS IdEstado, -- <--- LÍNEA AÑADIDA
+        ab.NumeroSerie,
+        ab.Comentario
+    FROM 
+        AccesoriosBase ab
+    JOIN CatalogoEstadosConsolas cec ON ab.EstadoAccesorio = cec.CodigoEstado
+    JOIN CatalogoAccesorios cacc ON ab.ModeloAccesorio = cacc.IdModeloAccesorioPK
+    JOIN FabricanteAccesorios fa ON cacc.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
+    JOIN CategoriasAccesorios ca ON cacc.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
+    JOIN SubcategoriasAccesorios sa ON cacc.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+    WHERE ab.EstadoAccesorio = var_id_estado_garantia;
+
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_ActualizarEstadoArticulo;
+
+CREATE PROCEDURE sp_ActualizarEstadoArticulo(
+    IN p_TipoArticulo VARCHAR(50),
+    IN p_CodigoArticulo VARCHAR(25),
+    IN p_NuevoEstadoID INT
+)
+BEGIN
+    -- Determina qué tabla actualizar basado en el tipo de artículo
+    IF p_TipoArticulo = 'Producto' THEN
+        UPDATE ProductosBases
+        SET Estado = p_NuevoEstadoID
+        WHERE CodigoConsola = p_CodigoArticulo;
+        
+    ELSEIF p_TipoArticulo = 'Accesorio' THEN
+        UPDATE AccesoriosBase
+        SET EstadoAccesorio = p_NuevoEstadoID
+        WHERE CodigoAccesorio = p_CodigoArticulo;
+    END IF;
+
+    -- Puedes añadir lógica de historial aquí si lo deseas en el futuro
+    
+END$$
+
+DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS sp_ObtenerHistorialArticulo;
+DELIMITER $$
+CREATE PROCEDURE sp_ObtenerHistorialArticulo(
+    IN p_TipoArticulo VARCHAR(50),
+    IN p_CodigoArticulo VARCHAR(25)
+)
+BEGIN
+    IF p_TipoArticulo = 'Producto' THEN
+        SELECT 
+            FechaCambio,
+            EstadoAnterior,
+            EstadoNuevo,
+            (SELECT DescripcionEstado FROM CatalogoEstadosConsolas WHERE CodigoEstado = hep.EstadoAnterior) AS EstadoAnteriorDescripcion,
+            (SELECT DescripcionEstado FROM CatalogoEstadosConsolas WHERE CodigoEstado = hep.EstadoNuevo) AS EstadoNuevoDescripcion,
+            NULL AS StockAnterior, -- Columnas de Insumo en NULL
+            NULL AS StockNuevo
+        FROM HistorialEstadoProducto hep
+        WHERE CodigoConsola = p_CodigoArticulo
+        ORDER BY FechaCambio ASC;
+        
+    ELSEIF p_TipoArticulo = 'Accesorio' THEN
+        SELECT 
+            FechaCambio,
+            EstadoAnterior,
+            EstadoNuevo,
+            (SELECT DescripcionEstado FROM CatalogoEstadosConsolas WHERE CodigoEstado = hea.EstadoAnterior) AS EstadoAnteriorDescripcion,
+            (SELECT DescripcionEstado FROM CatalogoEstadosConsolas WHERE CodigoEstado = hea.EstadoNuevo) AS EstadoNuevoDescripcion,
+            NULL AS StockAnterior,
+            NULL AS StockNuevo
+        FROM HistorialEstadoAccesorio hea
+        WHERE CodigoAccesorio = p_CodigoArticulo
+        ORDER BY FechaCambio ASC;
+
+    ELSEIF p_TipoArticulo = 'Insumo' THEN
+        SELECT 
+            FechaCambio,
+            EstadoAnterior,
+            EstadoNuevo,
+            (SELECT DescripcionEstado FROM CatalogoEstadosConsolas WHERE CodigoEstado = hei.EstadoAnterior) AS EstadoAnteriorDescripcion,
+            (SELECT DescripcionEstado FROM CatalogoEstadosConsolas WHERE CodigoEstado = hei.EstadoNuevo) AS EstadoNuevoDescripcion,
+            StockAnterior,
+            StockNuevo
+        FROM HistorialEstadoInsumo hei
+        WHERE CodigoInsumo = p_CodigoArticulo
+        ORDER BY FechaCambio ASC;
+    END IF;
+END$$
+
+DELIMITER ;
+
+

@@ -454,6 +454,54 @@ router.get('/proforma/:idProforma', (req, res) => {
   });
 });
 
+router.delete('/proforma/:id', (req, res) => {
+  // 1. Obtener el ID de la proforma desde los parámetros de la URL.
+  const { id } = req.params;
+  console.log(`Solicitud para eliminar proforma con ID: ${id}`);
+
+  // 2. Validación básica.
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      mensaje: 'No se proporcionó un ID de proforma para eliminar.'
+    });
+  }
+
+  // 3. Preparar la llamada al procedimiento almacenado.
+  const query = 'CALL sp_EliminarProforma(?);';
+  const params = [id];
+
+  // 4. Ejecutar la consulta en la base de datos.
+  db.query(query, params, (err, results) => {
+    // Manejo de errores de la base de datos.
+    if (err) {
+      console.error('Error al ejecutar sp_EliminarProforma:', err);
+      
+      // Si el error fue lanzado por nosotros desde el SP (código '45000')
+      if (err.sqlState === '45000') {
+        return res.status(400).json({
+          success: false,
+          mensaje: err.sqlMessage // Muestra el mensaje personalizado del SP
+        });
+      }
+      
+      // Para otros errores de servidor.
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Error en el servidor al intentar eliminar la proforma.',
+        error: err.sqlMessage || err.message
+      });
+    }
+
+    // 5. Enviar una respuesta exitosa.
+    res.status(200).json({
+      success: true,
+      mensaje: `Proforma con ID ${id} eliminada exitosamente.`
+    });
+  });
+});
+
+
 router.get('/motivos-nota-credito', (req, res) => {
   // 1. Preparamos la llamada al procedimiento almacenado.
   const query = 'CALL sp_ListarMotivosNotaCredito();';

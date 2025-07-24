@@ -16,8 +16,8 @@ Install File Saver with npm install --save-dev @types/file-saver
 Install JsonWEBTOKEN with npm install express bcryptjs jsonwebtoken mysql2 body-parser cors
 Install Bycript with npm install bcryptjs
 Install jspdf for generating PDFs with npm install jspdf@2.5.1 jspdf-autotable@3.5.28
-
-
+Install chats with npm install @swimlane/ngx-charts --save for the dashboard
+Install animations with npm install @angular/animations --save
 
 ## DATABASE
 

@@ -60,6 +60,18 @@ export class AccesorioBaseService {
       )
   }
 
+  actualizarEstado(codigo: string, nuevoEstadoId: number): Observable<any> {
+    const body = {
+      tipoArticulo: 'Accesorio',
+      codigoArticulo: codigo,
+      nuevoEstadoId: nuevoEstadoId
+    };
+    return this.httpClient.post(`${this.apiURL}/inventario/cambiar-estado`, body, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
   eliminar(accesorio: AccesoriosBase): Observable<any> {   
     // console.log(accesorio) 
     return this.httpClient.put(this.apiURL + '/accesorios-base/accesorio-eliminar/' + accesorio.CodigoAccesorio, JSON.stringify(accesorio), this.httpOptions)

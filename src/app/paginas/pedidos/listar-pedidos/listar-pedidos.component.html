@@ -1,67 +1,76 @@
-<div class="container">
-  <div class="cabezera">
-      <h1>Pedidos</h1>      
-      <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
-        <mat-label>Filtro</mat-label>
-        <input
-          matInput
-          (keyup)="applyFilter($event)" 
-          placeholder="P-DDMMAAAA-X"
-          #input
-        />
+<div class="container mat-elevation-z8">
+
+  <header class="header">
+    <h1>Gestión de Pedidos</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar por Código...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="P-DDMMAAAA-X" #input>
+        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
-      
-      <a mat-raised-button  title="crear/pedido accesorio" class="button-crear-prod" [routerLink]="['/home/listado-productos/crear-pedido']" (Agregado)="onAdd($event)" color="primary">
+      <a mat-raised-button color="primary" class="button-crear" [routerLink]="['/home/listado-productos/crear-pedido']">
         <mat-icon>add</mat-icon>
-        Crear un nuevo Pedido
+        Nuevo Pedido
       </a>
     </div>
+  </header>
 
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Pedidos...</p>
+    </div>
 
-    <mat-tab-group #tabGroup>
-      <mat-tab label="En espera">
-        <app-tabla-pedidos 
-          [dataSource]="pedidosEnEspera" 
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="cargarPedidos()">Reintentar</button>
+    </div>
+
+    <mat-tab-group #tabGroup [hidden]="isLoading || errorMessage">
+      <mat-tab label="En espera ({{pedidosEnEspera.length}})">
+        <app-tabla-pedidos
+          [dataSource]="pedidosEnEspera"
           [displayedColumns]="displayedColumns"
           [filterValue]="filterValue"
           (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
-      <mat-tab label="En Transito">
-        <app-tabla-pedidos 
-          [dataSource]="pedidosEnTransito" 
+      <mat-tab label="En Tránsito ({{pedidosEnTransito.length}})">
+        <app-tabla-pedidos
+          [dataSource]="pedidosEnTransito"
           [displayedColumns]="displayedColumns"
           [filterValue]="filterValue"
-          (actualizarPedidos)="cargarPedidos()"/> 
+          (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
-      <mat-tab label="En Estados Unidos"> 
-        <app-tabla-pedidos 
-          [dataSource]="pedidosRecibidosUSA" 
+      <mat-tab label="En USA ({{pedidosRecibidosUSA.length}})">
+        <app-tabla-pedidos
+          [dataSource]="pedidosRecibidosUSA"
           [displayedColumns]="displayedColumns"
           [filterValue]="filterValue"
-          (actualizarPedidos)="cargarPedidos()"/> 
+          (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
-      <mat-tab label="En aduana / Agencia"> 
-        <app-tabla-pedidos 
-          [dataSource]="pedidosEnAduana" 
+      <mat-tab label="En Aduana/Agencia ({{pedidosEnAduana.length}})">
+        <app-tabla-pedidos
+          [dataSource]="pedidosEnAduana"
           [displayedColumns]="displayedColumns"
           [filterValue]="filterValue"
-          (actualizarPedidos)="cargarPedidos()"/> 
+          (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
-      <mat-tab label="Recibidos"> 
-        <app-tabla-pedidos 
-          [dataSource]="pedidosRecibidos" 
+      <mat-tab label="Recibidos ({{pedidosRecibidos.length}})">
+        <app-tabla-pedidos
+          [dataSource]="pedidosRecibidos"
           [displayedColumns]="displayedColumns"
           [filterValue]="filterValue"
-          (actualizarPedidos)="cargarPedidos()"/> 
+          (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
-      <mat-tab label="Cancelados"> 
-        <app-tabla-pedidos 
-          [dataSource]="pedidosCancelados" 
+      <mat-tab label="Cancelados ({{pedidosCancelados.length}})">
+        <app-tabla-pedidos
+          [dataSource]="pedidosCancelados"
           [displayedColumns]="displayedColumns"
           [filterValue]="filterValue"
-          (actualizarPedidos)="cargarPedidos()"/> 
+          (actualizarPedidos)="cargarPedidos()"/>
       </mat-tab>
     </mat-tab-group>
 
-    
+  </div>
 </div>

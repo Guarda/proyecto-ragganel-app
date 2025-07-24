@@ -1,0 +1,117 @@
+/* ======================================================== */
+/* ESTILOS PARA LISTADO DE INVENTARIO - Basado en Listado Ventas */
+/* ======================================================== */
+
+/* Estructura principal y cabecera */
+.container {
+  margin: 24px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: calc(100% - 48px);
+  max-width: 1800px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.actions-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filtro-texto {
+  width: 300px;
+}
+
+/* Contenedor de la tabla y estados de carga/error */
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  min-height: 400px;
+  width: 100%;
+}
+
+.spinner-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  gap: 16px;
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/* Estilos de la tabla */
+table {
+  width: 100%;
+}
+
+th.mat-header-cell, td.mat-cell {
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+.col-nombre {
+  max-width: 350px;
+  white-space: normal;
+  font-weight: 500;
+}
+
+/* Badges de Tipo y Estado */
+.tipo-badge, .estado-badge {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  color: #fff;
+  font-size: 12px;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+/* Colores para Tipo */
+.tipo-producto { background-color: #3f51b5; } /* Azul */
+.tipo-accesorio { background-color: #28a745; } /* Verde */
+.tipo-insumo { background-color: #ff9800; } /* Naranja */
+.tipo-default { background-color: #6c757d; } /* Gris */
+
+/* Colores para Estado (solo se usa el de garantía aquí, pero se mantienen por consistencia) */
+.estado-garantia { background-color: #fd7e14; }   /* Naranja Oscuro */
+
+/* Media Query para responsividad en pantallas pequeñas */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actions-header {
+    width: 100%;
+  }
+  .filtro-texto {
+    width: 100%;
+  }
+}

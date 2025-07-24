@@ -92,120 +92,95 @@ export class VerPedidoComponent {
   }
 
   ngOnInit(): void {
-    this.id = this.route.snapshot.params['CodigoPedido'];
+  this.id = this.route.snapshot.params['CodigoPedido'];
+  this.OrderId = this.id;
+
+  this.pedidoService.find(this.id).subscribe((data) => {
+    this.pedido = data[0];
+    console.log(data);
     this.OrderId = this.id;
 
-    this.pedidoService.find(this.id).subscribe((data) => {
-      this.pedido = data[0];
-      console.log(data)
-      this.OrderId = this.id;
-      // Convertir fechas al formato correcto
-      this.OrderCreationDate = this.parseDate(this.pedido.FechaCreacionPedido.toString());
-      this.USAArrivalDate = this.parseDate(this.pedido.FechaArriboUSA.toString());
-      this.NICArrivalDate = this.parseDate(this.pedido.FechaEstimadaRecepcion.toString());
-      this.TrackingNumber1 = this.pedido.NumeroTracking1;
-      this.TrackingNumber2 = this.pedido.NumeroTracking2;
-      this.Website = this.pedido.SitioWeb;
-      this.OrderType = this.pedido.ViaPedido;
-      this.OrderState = this.pedido.Estado;
-      this.OrderTotalAmount = this.pedido.PrecioEstimadoDelPedido;
-      this.Comments = this.pedido.Comentarios;
-      this.Weight = this.pedido.PesoPedido;
-      this.OrderSubtotalAmount = this.pedido.SubTotalArticulos;
-      this.Taxes = this.pedido.Impuestos;
-      this.ShippingUSA = this.pedido.ShippingUSA;
-      this.ShippingNIC = this.pedido.ShippingNIC;
-      this.Active = this.pedido.Activo;
+    // ===== CORRECCIÓN 1: Manejo seguro de fechas nulas =====
+    this.OrderCreationDate = this.pedido.FechaCreacionPedido ? this.parseDate(this.pedido.FechaCreacionPedido.toString()) : null;
+    this.USAArrivalDate = this.pedido.FechaArriboUSA ? this.parseDate(this.pedido.FechaArriboUSA.toString()) : null;
+    this.NICArrivalDate = this.pedido.FechaEstimadaRecepcion ? this.parseDate(this.pedido.FechaEstimadaRecepcion.toString()) : null;
+    // =========================================================
 
-      this.estadopedidoService.getAll().subscribe((data: EstadoPedido[]) => {
-        this.selectedEstadoPedido = data;
-      });
+    this.TrackingNumber1 = this.pedido.NumeroTracking1;
+    this.TrackingNumber2 = this.pedido.NumeroTracking2;
+    this.Website = this.pedido.SitioWeb;
+    this.OrderType = this.pedido.ViaPedido;
+    this.OrderState = this.pedido.Estado;
+    this.OrderTotalAmount = this.pedido.PrecioEstimadoDelPedido;
+    this.Comments = this.pedido.Comentarios;
+    this.Weight = this.pedido.PesoPedido;
+    this.OrderSubtotalAmount = this.pedido.SubTotalArticulos;
+    this.Taxes = this.pedido.Impuestos;
+    this.ShippingUSA = this.pedido.ShippingUSA;
+    this.ShippingNIC = this.pedido.ShippingNIC;
+    this.Active = this.pedido.Activo;
 
-      this.tipoPedidoService.getAll().subscribe((data: TipoPedido[]) => {
-        this.selectedTipoPedido = data;
-      });
-
-      this.sitiowebService.getAll().subscribe((data: SitioWeb[]) => {
-        this.selectedSitioWeb = data;
-      });
-
-      // Suscríbete al servicio para obtener el subtotal
-      this.sharedpedidoService.SubTotalArticulosPedido$.subscribe((total) => {
-        this.OrderSubtotalAmount = total;
-        // console.log(total);
-
-        // Actualiza el valor del campo en el formulario
-        this.pedidoForm.patchValue({ SubTotalArticulos: this.OrderSubtotalAmount });
-      });
-
-
-      // Obtener artículos y calcular el subtotal
-      this.pedidoService.getArticlesbyOrderId(this.id).subscribe((data: Articulo[]) => {
-        this.articulos = data;
-        // console.log("Artículos del pedido:", this.articulos);
-
-        // Calcular el subtotal de los artículos
-        this.updateSubTotalArticulos();
-      });
-
-      //Initialize the form with the product data
-      this.pedidoForm = this.fb.group({
-        CodigoPedido: [this.OrderId],
-        FechaCreacionPedido: [this.OrderCreationDate, Validators.required],
-        FechaArrivoUSA: [this.USAArrivalDate, Validators.required],
-        FechaEstimadaRecepcion: [this.NICArrivalDate, Validators.required],
-        NumeroTracking1: [this.TrackingNumber1],
-        NumeroTracking2: [this.TrackingNumber2],
-        PesoPedido: [this.Weight],
-        SitioWeb: [this.Website],
-        // Moneda: [this.consoleCurrency]
-        ViaPedido: [this.OrderType],
-        SubTotalArticulos: [this.OrderSubtotalAmount],
-        ShippingUSA: [this.ShippingUSA],
-        Impuestos: [this.Taxes], // Add the parsed array here
-        ShippingNic: [this.ShippingNIC],
-        PrecioEstimadoDelPedido: [this.OrderTotalAmount],
-        Estado: [this.OrderState],
-        Comentarios: [this.Comments],
-        Activo: [this.Active]
-      });
-
-      // Suscribirse a los cambios del formulario y actualizar el servicio
-      this.pedidoForm.valueChanges.subscribe((values) => {
-        this.sharedpedidoService.updateField('SubTotalArticulos', values.SubTotalArticulos);
-        this.sharedpedidoService.updateField('Impuestos', values.Impuestos);
-        this.sharedpedidoService.updateField('ShippingUSA', values.ShippingUSA);
-        this.sharedpedidoService.updateField('ShippingNic', values.ShippingNic);
-        this.calcularTotalPedido();
-      });
-
+    this.estadopedidoService.getAll().subscribe((data: EstadoPedido[]) => {
+      this.selectedEstadoPedido = data;
     });
 
+    this.tipoPedidoService.getAll().subscribe((data: TipoPedido[]) => {
+      this.selectedTipoPedido = data;
+    });
 
+    this.sitiowebService.getAll().subscribe((data: SitioWeb[]) => {
+      this.selectedSitioWeb = data;
+    });
 
-    this.ImagePath = this.getimagePath("");
+    this.sharedpedidoService.SubTotalArticulosPedido$.subscribe((total) => {
+      this.OrderSubtotalAmount = total;
+      this.pedidoForm.patchValue({ SubTotalArticulos: this.OrderSubtotalAmount });
+    });
 
+    this.pedidoService.getArticlesbyOrderId(this.id).subscribe((data: Articulo[]) => {
+      this.articulos = data;
+      this.updateSubTotalArticulos();
+    });
+
+    // Inicializamos el formulario CON los datos del pedido
     this.pedidoForm = this.fb.group({
-      CodigoPedido: new FormControl('',Validators.required),
-      FechaCreacionPedido: new FormControl('', Validators.required),
-      FechaArrivoUSA: new FormControl('', Validators.required),
-      FechaEstimadaRecepcion: new FormControl('', Validators.required),
-      NumeroTracking1: new FormControl('', Validators.required),
-      NumeroTracking2: new FormControl(''),
-      PesoPedido: new FormControl('', Validators.required),
-      SitioWeb: new FormControl('', Validators.required),
-      ViaPedido: new FormControl('', Validators.required),
-      SubTotalArticulos: new FormControl(''),
-      ShippingUSA: new FormControl(''),
-      Impuestos: new FormControl(''),
-      ShippingNic: new FormControl(''),
-      PrecioEstimadoDelPedido: new FormControl(''),
-      Estado: new FormControl(''),
-      Comentarios: new FormControl(''),
+      CodigoPedido: [this.OrderId],
+      FechaCreacionPedido: [this.OrderCreationDate, Validators.required],
+      FechaArrivoUSA: [this.USAArrivalDate, Validators.required],
+      FechaEstimadaRecepcion: [this.NICArrivalDate, Validators.required],
+      NumeroTracking1: [this.TrackingNumber1],
+      NumeroTracking2: [this.TrackingNumber2],
+      PesoPedido: [this.Weight],
+      SitioWeb: [this.Website],
+      ViaPedido: [this.OrderType],
+      SubTotalArticulos: [this.OrderSubtotalAmount],
+      ShippingUSA: [this.ShippingUSA],
+      Impuestos: [this.Taxes],
+      ShippingNic: [this.ShippingNIC],
+      PrecioEstimadoDelPedido: [this.OrderTotalAmount],
+      Estado: [this.OrderState],
+      Comentarios: [this.Comments],
+      Activo: [this.Active]
     });
 
-    this.cdr.detectChanges();
-  }
+    this.pedidoForm.valueChanges.subscribe((values) => {
+      this.sharedpedidoService.updateField('SubTotalArticulos', values.SubTotalArticulos);
+      this.sharedpedidoService.updateField('Impuestos', values.Impuestos);
+      this.sharedpedidoService.updateField('ShippingUSA', values.ShippingUSA);
+      this.sharedpedidoService.updateField('ShippingNic', values.ShippingNic);
+      this.calcularTotalPedido();
+    });
+
+  });
+
+  this.ImagePath = this.getimagePath("");
+
+  // ===== CORRECCIÓN 2: ELIMINAR ESTE BLOQUE COMPLETO =====
+  // Se elimina la segunda inicialización del formulario que borraba los datos.
+  // ========================================================
+  
+  this.cdr.detectChanges();
+}
   ngAfterViewInit(): void {
     // Sincroniza el total de artículos en el formulario
     this.pedidoForm.setValidators(this.validarArticulos.bind(this));

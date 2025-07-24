@@ -1,11 +1,13 @@
+// En: ver-factura.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { VentasBaseService } from '../../../services/ventas-base.service'; // Ajusta la ruta si es necesario
+import { VentasBaseService } from '../../../services/ventas-base.service';
 import { VentaCompleta } from '../../interfaces/ventacompleta';
 import { DetalleVentaCompleta } from '../../interfaces/detalleventacompleta';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-// Módulos de Angular Material para la vista
+// Módulos de Angular Material
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,33 +16,33 @@ import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+// Componentes y Servicios necesarios
+import { CrearNotaCreditoComponent } from '../crear-nota-credito/crear-nota-credito.component';
+import { MatDialog } from '@angular/material/dialog';
+import { AuthService } from '../../../UI/session/auth.service';
+import { NotasCreditoService } from '../../../services/notas-credito.service';
+import { Usuarios } from '../../interfaces/usuarios';
+import { Subscription } from 'rxjs';
+
+
 @Component({
   selector: 'app-ver-factura',
   standalone: true,
-  // Asegúrate de importar todos los módulos necesarios
   imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatListModule,
-    MatDividerModule,
-    MatProgressSpinnerModule
+    CommonModule, RouterModule, MatCardModule, MatButtonModule,
+    MatIconModule, MatListModule, MatDividerModule, MatProgressSpinnerModule
   ],
   templateUrl: './ver-factura.component.html',
   styleUrls: ['./ver-factura.component.css']
 })
 export class VerFacturaComponent implements OnInit {
 
-  // Propiedades para almacenar los datos de la factura
   venta: VentaCompleta | null = null;
   detalles: DetalleVentaCompleta[] = [];
-
+  usuario: Usuarios | null = null;
   subtotalBruto = 0;
   totalDescuentos = 0;
-
-  // Banderas para controlar el estado de la carga
+  private subs = new Subscription();
   isLoading = true;
   errorMessage: string | null = null;
 
@@ -48,13 +50,22 @@ export class VerFacturaComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private ventasService: VentasBaseService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+    private authService: AuthService,
+    private creditNotesService: NotasCreditoService
   ) { }
 
   ngOnInit(): void {
-    // Obtenemos el ID de la factura desde los parámetros de la URL
-    const idVenta = this.route.snapshot.paramMap.get('CodigoVenta');
+    // Es buena práctica usar una suscripción para limpiar la memoria después.
+    this.subs.add(
+      this.authService.getUser().subscribe(user => {
+        // Asegúrate de que el objeto 'user' tenga la estructura de 'Usuarios'
+        this.usuario = user as unknown as Usuarios;
+      })
+    );
 
+    const idVenta = this.route.snapshot.paramMap.get('CodigoVenta');
     if (idVenta) {
       this.cargarDatosFactura(+idVenta);
     } else {
@@ -64,10 +75,11 @@ export class VerFacturaComponent implements OnInit {
     }
   }
 
-  /**
-   * Llama al servicio para obtener los datos completos de la venta.
-   * @param id El ID de la venta a consultar.
-   */
+  // El método ngOnDestroy es una buena práctica para evitar fugas de memoria.
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
   cargarDatosFactura(id: number): void {
     this.isLoading = true;
     this.errorMessage = null;
@@ -77,33 +89,73 @@ export class VerFacturaComponent implements OnInit {
         if (response.success) {
           this.venta = response.data.venta;
           this.detalles = response.data.detalles;
-
-          // --- INICIO DE LA LÓGICA DE CÁLCULO ---
-          // Se calcula el descuento total sumando la diferencia entre el precio original y el subtotal de cada línea.
           this.totalDescuentos = this.detalles.reduce((acc, item) =>
             acc + (item.PrecioUnitario * item.Cantidad - item.SubtotalLinea), 0);
-
-          // El subtotal bruto es el subtotal neto (el que viene de la BD) más los descuentos aplicados.
           this.subtotalBruto = (this.venta?.SubtotalVenta || 0) + this.totalDescuentos;
-          // --- FIN DE LA LÓGICA DE CÁLCULO ---
-
         } else {
           this.errorMessage = 'No se pudieron cargar los datos de la factura.';
         }
         this.isLoading = false;
       },
       error: (err) => {
-        // ... (código de error sin cambios)
+        this.isLoading = false;
+        this.errorMessage = 'Error de comunicación al obtener los datos de la factura.';
+        console.error(err);
       }
     });
   }
 
-  /**
-   * Placeholder para la funcionalidad de la nota de crédito.
-   */
+  // ===== INICIO DE LA CORRECCIÓN =====
   abrirDialogoNotaCredito(): void {
-    // Aquí irá la lógica para abrir un diálogo y crear la nota de crédito.
-    console.log('Abriendo diálogo para crear Nota de Crédito para la venta ID:', this.venta?.IdVentaPK);
-    this.snackBar.open('Funcionalidad de Nota de Crédito en desarrollo.', 'Cerrar', { duration: 3000 });
+    if (!this.venta || !this.detalles || !this.usuario) {
+      this.snackBar.open('No se pueden cargar los datos necesarios para la nota de crédito.', 'Cerrar', { duration: 4000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CrearNotaCreditoComponent, {
+      width: '800px',
+      data: {
+        venta: this.venta,
+        detalles: this.detalles,
+        usuario: this.usuario
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(resultadoDialogo => {
+      if (resultadoDialogo) {
+        // **LÓGICA CLAVE ADAPTADA DE 'listado-ventas.component.ts'**
+        // 1. Construimos el objeto que la API espera.
+        const datosParaApi = {
+          IdVentaFK: this.venta!.IdVentaPK, // Usamos el ID de la venta actual
+          UsuarioEmisorFK: this.usuario!.id, // Usamos el ID del usuario en sesión
+          IdMotivoFK: resultadoDialogo.IdMotivoFK,
+          Observaciones: resultadoDialogo.Observaciones,
+          TotalCredito: resultadoDialogo.TotalCredito,
+          EsDevolucionCompleta: resultadoDialogo.EsDevolucionCompleta,
+          Detalles: resultadoDialogo.Detalles
+        };
+
+        this.snackBar.open('Registrando Nota de Crédito...', undefined, { duration: 3000 });
+
+        // 2. Enviamos el objeto construido, no el resultado directo del diálogo.
+        this.creditNotesService.crearNotaCredito(datosParaApi).subscribe({
+          next: (respuestaApi) => {
+            this.snackBar.open(respuestaApi.mensaje || 'Nota de crédito creada con éxito.', 'OK', {
+              duration: 5000,
+              panelClass: ['snackbar-success']
+            });
+            this.router.navigate(['/home/listado-ventas']);
+          },
+          error: (err) => {
+            console.error("Error al crear la nota de crédito:", err);
+            this.snackBar.open('Error al registrar la nota de crédito. Revise la consola.', 'Cerrar', {
+              duration: 6000,
+              panelClass: ['snackbar-error']
+            });
+          }
+        });
+      }
+    });
   }
+  // ===== FIN DE LA CORRECCIÓN =====
 }

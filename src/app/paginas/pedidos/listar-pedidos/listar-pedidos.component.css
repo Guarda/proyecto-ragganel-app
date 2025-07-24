@@ -1,87 +1,79 @@
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #f0f0f0; /* Opcional: fondo del cuerpo */
-}
-
+/* Estructura principal y cabecera */
 .container {
-  width: 100%;
-  padding: 0.5rem; /* Reducir padding global */
+  margin: 24px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: calc(100% - 48px);
+  max-width: 1800px;
   box-sizing: border-box;
 }
 
-.cabezera {
+.header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0.5rem; /* Reducir padding para menos espacio */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.actions-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filtro-texto {
+  width: 300px;
+}
+
+.button-crear {
+  height: 56px;
+}
+
+/* Contenedor de la tabla y estados de carga/error */
+.table-container {
+  position: relative;
+  min-height: 500px; /* Asegura un alto mínimo para ver el spinner */
   width: 100%;
-  box-sizing: border-box;
 }
 
-.container-tabla {
-  display: flex; /* Flexbox para centrar */
-  justify-content: center; /* Centrar horizontalmente */
-  align-items: center; /* Centrar verticalmente (si es necesario) */
-  width: 100%; /* Asegura que ocupe todo el ancho */
-  margin: 0 auto; /* Centrar dentro del contenedor padre */
-  padding: 0.5rem; /* Reducir padding para ajustar márgenes */
-  box-sizing: border-box;
-}
-
-table {
-  width: 90%; /* Aumentar el ancho para ocupar más espacio */
-  max-width: 1200px; /* Limitar el ancho máximo para pantallas grandes */
-  margin: 0 auto; /* Centra la tabla dentro del contenedor */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Opcional: sombra para destacar */
-  border-spacing: 0; /* Elimina espacios entre celdas */
-  background-color: white;
-}
-
-th.mat-header-cell,
-td.mat-cell {
+.spinner-container, .error-container {
   display: flex;
-  justify-content: center; /* Centrar texto en las celdas */
-  align-items: center;
-  padding: 0.5rem;
-  text-align: center;
-}
-
-.button-editar-prod {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  color: white !important;
-  background-color: green !important;
-  padding: 0.5rem;
-  border-radius: 4px;
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
-
-
-.foo-paginator {
-  width: 100%; /* Asegura que el paginador ocupe todo el ancho */
-  background-color: #f0f0f0; /* Opcional: fondo claro */
-  bottom: 0px;
-  position: sticky;
+  align-items: center;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85);
   z-index: 10;
+  gap: 16px;
 }
 
-/* Estilos para dispositivos pequeños */
+/* Ajustes para el grupo de pestañas */
+mat-tab-group {
+  width: 100%;
+}
+
+/* Media Query para responsividad */
 @media (max-width: 768px) {
-  .cabezera {
+  .header {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .container-tabla {
-    padding: 0.25rem; /* Reducir aún más en dispositivos pequeños */
+  .actions-header {
+    width: 100%;
   }
-
-  table {
-    width: 95%; /* Aumentar el ancho en dispositivos pequeños */
-    font-size: 0.9rem;
+  .filtro-texto {
+    width: 100%;
   }
 }

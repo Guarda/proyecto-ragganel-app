@@ -45,7 +45,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
     {
       label: 'Dashboard',
       icon: 'dashboard',
-      route: '/home/modulo-en-construccion',
+      route: '/home/dashboard',
       roles: [1]
     },
     {
@@ -94,7 +94,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
           ],
           roles: [1, 3]
         },
-        { label: 'Proveedores', route: '/home/inventario/proveedores', roles: [1, 3] }
+        { label: 'En garantia', route: '/home/inventario-garantia', roles: [1, 3] }
       ],
       roles: [1, 2, 3]
     },

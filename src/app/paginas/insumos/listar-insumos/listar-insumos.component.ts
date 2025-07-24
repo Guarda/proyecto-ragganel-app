@@ -1,20 +1,19 @@
-import { AfterViewInit, Component, EventEmitter, Inject, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { InsumosBaseService } from '../../../services/insumos-base.service';
 import { InsumosBase } from '../../interfaces/insumosbase';
-
+import { InsumosBaseService } from '../../../services/insumos-base.service';
 import { IngresarAgregarInsumoDialogComponent } from '../ingresar-agregar-insumo-dialog/ingresar-agregar-insumo-dialog.component';
 import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.component';
 import { HistorialInsumoComponent } from '../historial-insumo/historial-insumo.component';
@@ -23,115 +22,121 @@ import { HistorialInsumoComponent } from '../historial-insumo/historial-insumo.c
   selector: 'app-listar-insumos',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    MatTableModule,
-    MatLabel,
-    MatFormField,
-    MatInputModule,
-    MatInputModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatIcon,
-    MatButtonModule
+    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
   ],
   templateUrl: './listar-insumos.component.html',
-  styleUrl: './listar-insumos.component.css'
+  styleUrls: ['./listar-insumos.component.css']
 })
-export class ListarInsumosComponent implements AfterViewInit {
+export class ListarInsumosComponent implements OnInit, AfterViewInit {
+  displayedColumns: string[] = ['CodigoInsumo', 'DescripcionInsumo', 'Estado', 'Cantidad', 'StockMinimo', 'Fecha_Ingreso', 'PrecioBase', 'Action'];
+  dataSource = new MatTableDataSource<InsumosBase>();
 
-  insumos: any[] = []; // Cambia el tipo a 'any' o define una interfaz adecuada
-  myArray: any[] = [];
-  displayedColumns: string[] = ['CodigoInsumo', 'DescripcionInsumo', 'Estado', 'Fecha_Ingreso', 'PrecioBase', 'Comentario', 'NumeroSerie', 'Cantidad', 'StockMinimo', 'Action'];
-  dataSource = new MatTableDataSource<any>(); // Cambia el tipo a 'any' o define una interfaz adecuada
-
+  isLoading = true;
+  errorMessage: string | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  @Output() select = new EventEmitter<string>();
-
 
   constructor(
     public insumosService: InsumosBaseService,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
-    private dialog: MatDialog,
-  ) {
-  }
-
-  ngAfterViewInit() {
-
-  }
-
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.getSupplyList();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   getSupplyList() {
-    this.insumosService.getAll().subscribe((data: InsumosBase[]) => {
-      this.dataSource = new MatTableDataSource<InsumosBase>(data);
-      console.log(data);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    })
-  }
+    this.isLoading = true;
+    this.errorMessage = null;
 
-  public openDialogAgregar() {
-    const dialogRef = this.dialog.open(IngresarAgregarInsumoDialogComponent, {
-      disableClose: true,
-      height: '30%',
-      width: '27%',
-    });
-    dialogRef.componentInstance.Agregado.subscribe(() => {
-      this.getSupplyList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getSupplyList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
+    this.insumosService.getAll().subscribe({
+      next: (data: InsumosBase[]) => {
+        const datosProcesados = data.map(insumo => ({
+          ...insumo,
+          Fecha_Ingreso: this.parsearFecha(insumo.FechaIngreso)
+        }));
+        this.dataSource.data = datosProcesados;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error al cargar insumos:", err);
+        this.errorMessage = "No se pudieron cargar los insumos.";
+        this.isLoading = false;
+      }
     });
   }
-
-  public openDialogEliminar(cons: string) {
-    const dialogRef = this.dialog.open(EliminarInsumosComponent, {
-      disableClose: true,
-      data: { value: cons }
-    });
-    dialogRef.componentInstance.Borrado.subscribe(() => {
-      this.getSupplyList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getSupplyList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-
-  public openDialogHistorial(cons: string) {
-    const dialogRef = this.dialog.open(HistorialInsumoComponent, {
-      disableClose: true,
-      data: { value: cons }
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getSupplyList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
-
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  private parsearFecha(fechaStr: string | Date): Date {
+    if (fechaStr instanceof Date) return fechaStr;
+    if (!fechaStr) return new Date();
+    const partes = fechaStr.split('/');
+    if (partes.length === 3) {
+      const dia = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10) - 1;
+      const anio = parseInt(partes[2], 10);
+      return new Date(anio, mes, dia);
+    }
+    return new Date(fechaStr);
+  }
+
+  getEstadoClass(status: string): string {
+    if (!status) return 'status-default';
+    const statusNormalized = status.toLowerCase().replace(/\s+/g, '-');
+    switch (statusNormalized) {
+      case 'nuevo': return 'status-nuevo';
+      case 'usado': return 'status-usado';
+      case 'en-garantia': return 'status-garantia';
+      case 'a-reparar': return 'status-reparar';
+      case 'para-piezas': return 'status-piezas';
+      default: return 'status-default';
+    }
+  }
+
+  public openDialogAgregar() {
+    const dialogRef = this.dialog.open(IngresarAgregarInsumoDialogComponent, {
+      width: '500px',
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getSupplyList();
+      }
+    });
+  }
+
+  public openDialogEliminar(codigoInsumo: string) {
+    const dialogRef = this.dialog.open(EliminarInsumosComponent, {
+      width: '400px',
+      disableClose: true,
+      data: { value: codigoInsumo }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getSupplyList();
+      }
+    });
+  }
+
+  public openDialogHistorial(codigoInsumo: string) {
+    this.dialog.open(HistorialInsumoComponent, {
+      width: '600px',
+      data: { value: codigoInsumo }
+    });
   }
 }

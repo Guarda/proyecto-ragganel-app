@@ -1,85 +1,90 @@
+<div class="container mat-elevation-z8">
 
-<div class="container">
-
-    <div class="cabezera">
-      <h1>Usuarios</h1>      
-      <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Lesther" #input>
+  <header class="header">
+    <h1>Gestión de Usuarios</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar usuario...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, correo, rol..." #input>
+        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
-      <!-- <a mat-raised-button class="button-crear-user"  (Agregado)="onAdd($event)" color="primary"> -->
-      <a mat-raised-button class="button-crear-user" (click)="openDialogAgregar()" (Agregado)="onAdd($event)" color="primary">
+      <a mat-raised-button color="primary" class="button-crear" (click)="openDialogAgregar()">
         <mat-icon>add</mat-icon>
-        Añade un nuevo usuario
+        Nuevo Usuario
       </a>
     </div>
+  </header>
 
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Usuarios...</p>
+    </div>
 
-        <!--- Note that these columns can be defined in any order.
-              The actual rendered columns are set as a property on the row definition" -->
-              
-        <!-- Position Column -->
-        <ng-container matColumnDef="CodigoUsuario">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
-          <td mat-cell *matCellDef="let element"> {{element.IdUsuarioPK }} </td>
-        </ng-container>
-      
-        <!-- Name Column -->
-        <ng-container matColumnDef="NombreUsuario" class="columna-descripcion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Usuario </th>
-          <td mat-cell *matCellDef="let element"> {{element.Nombre}} </td>
-        </ng-container>
-      
-        <!-- Weight Column -->
-        <ng-container matColumnDef="Correo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Correo </th>
-          <td mat-cell *matCellDef="let element"> {{element.Correo}} </td>
-        </ng-container>
-      
-        <!-- Symbol Column -->
-        <ng-container matColumnDef="Estado">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
-          <td mat-cell *matCellDef="let element"> {{element.DescripcionEstado}} </td>
-        </ng-container>
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="getUsuarioList()">Reintentar</button>
+    </div>
 
-        <!-- Date Column -->
-        <ng-container matColumnDef="FechaIngresoUsuario">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Ingreso </th>
-          <td mat-cell *matCellDef="let element"> {{element.FechaIngresoUsuario}} </td>
-        </ng-container>
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
 
-        <!-- Symbol Column -->
-        <ng-container matColumnDef="Rol">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Rol Asignado </th>
-          <td mat-cell *matCellDef="let element"> {{element.NombreRol }} </td>
-        </ng-container>
+      <ng-container matColumnDef="IdUsuarioPK">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+        <td mat-cell *matCellDef="let item"> {{item.IdUsuarioPK}} </td>
+      </ng-container>
 
-         <!-- Symbol Column -->
-         <ng-container matColumnDef="Action">
-          <th mat-header-cell *matHeaderCellDef> Acciones </th>
-          <td mat-cell *matCellDef="let element" class="contenedor-botones"> 
-            <!-- <a mat-flat-button class="button-editar-user" (click)="openDialogEditar(element.CodigoConsola)"  title="editar useructo" > -->
-            <!-- <a mat-flat-button href="#" class="button-editar-user"  title="ver/editar usuario" > -->
-            <a mat-flat-button href="#" [routerLink]="['/home/administracion/ver-usuario', element.IdUsuarioPK,'view']" class="button-editar-user"  title="ver/editar user" >
-            <mat-icon class="iconos-custom">preview</mat-icon>
-            </a>
-            <!-- <a mat-flat-button  (click)="openDialogEliminar(element.CodigoConsola)" title="borrar useructo" > -->
-            <a mat-flat-button title="borrar usuario" >
-              <mat-icon class="button-eliminar-user">delete</mat-icon>
-            </a>
-          </td>
-        </ng-container>
+      <ng-container matColumnDef="Nombre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Usuario </th>
+        <td mat-cell *matCellDef="let item" class="col-nombre"> {{item.Nombre}} </td>
+      </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <ng-container matColumnDef="Correo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Correo </th>
+        <td mat-cell *matCellDef="let item"> {{item.Correo}} </td>
+      </ng-container>
 
-        <!-- Row shown when there is no matching data. -->
+      <ng-container matColumnDef="DescripcionEstado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="status-badge" [ngClass]="getEstadoClass(item.DescripcionEstado)">
+            {{item.DescripcionEstado}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="FechaIngresoUsuario">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Ingreso </th>
+        <td mat-cell *matCellDef="let item"> {{item.FechaIngresoUsuario | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="NombreRol">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Rol Asignado </th>
+        <td mat-cell *matCellDef="let item"> {{item.NombreRol}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Action">
+        <th mat-header-cell *matHeaderCellDef> Acciones </th>
+        <td mat-cell *matCellDef="let item" class="actions-cell">
+          <a mat-icon-button color="primary" [routerLink]="['/home/administracion/ver-usuario', item.IdUsuarioPK, 'view']" matTooltip="Ver / Editar Usuario">
+            <mat-icon>visibility</mat-icon>
+          </a>
+          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.IdUsuarioPK)" matTooltip="Eliminar Usuario">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">No se encuentran datos con  "{{input.value}}"</td>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No se encontraron usuarios que coincidan con la búsqueda "{{input.value}}".
+        </td>
       </tr>
+    </table>
+  </div>
 
-      </table>
-      <mat-paginator class="foo-paginator" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users" ></mat-paginator>
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
 </div>
-

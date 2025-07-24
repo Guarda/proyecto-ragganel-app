@@ -1,1 +1,94 @@
-<p>listado-inventario-garantia works!</p>
+<div class="container mat-elevation-z8">
+
+  <header class="header">
+    <h1>Inventario en Garantía</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar en garantía...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Código, descripción..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+  </header>
+
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Artículos en Garantía...</p>
+    </div>
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="cargarGarantias()">Reintentar</button>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
+
+      <ng-container matColumnDef="TipoArticulo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Tipo </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="tipo-badge" [ngClass]="getTipoClass(item.TipoArticulo)">
+            {{item.TipoArticulo}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="CodigoArticulo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+        <td mat-cell *matCellDef="let item"> {{item.CodigoArticulo}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Descripcion">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </th>
+        <td mat-cell *matCellDef="let item" class="col-nombre"> {{item.Descripcion}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Estado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="estado-badge estado-garantia">
+            {{item.Estado}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="FechaIngreso">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Ingreso </th>
+        <td mat-cell *matCellDef="let item"> {{item.FechaIngreso | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="PrecioBase">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Costo </th>
+        <td mat-cell *matCellDef="let item"> {{item.PrecioBase | currency:'USD'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="NumeroSerie">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> N° Serie </th>
+        <td mat-cell *matCellDef="let item"> {{item.NumeroSerie || 'N/A'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Action">
+  <th mat-header-cell *matHeaderCellDef> Acciones </th>
+  <td mat-cell *matCellDef="let item" class="actions-cell">
+    <button mat-icon-button color="primary" matTooltip="Ver / Editar Detalles" (click)="editarArticulo(item)">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button mat-icon-button color="accent" (click)="abrirDialogoCambiarEstado(item)" matTooltip="Cambiar Estado">
+      <mat-icon>published_with_changes</mat-icon>
+    </button>
+    </td>
+</ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No se encontraron artículos en garantía que coincidan con la búsqueda.
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
+</div>

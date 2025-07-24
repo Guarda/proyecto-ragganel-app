@@ -28,6 +28,7 @@ import { DialogDescargarPdfProformaComponent } from '../dialog-descargar-pdf-pro
 import { DialogDescargarPdfVentaComponent } from '../dialog-descargar-pdf-venta/dialog-descargar-pdf-venta.component';
 import { CrearNotaCreditoComponent } from '../crear-nota-credito/crear-nota-credito.component';
 import { Router } from '@angular/router';
+import { DialogoConfirmacionComponent } from '../dialogo-confirmacion/dialogo-confirmacion.component';
 
 @Component({
   selector: 'app-listado-ventas',
@@ -127,6 +128,52 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
 
     // La proforma es vigente si han pasado menos de 15 días completos.
     return diferenciaDias < 15;
+  }
+
+  public abrirDialogoEliminar(venta: Ventas): void {
+    const numeroDocumento = venta.NumeroDocumento || `ID ${venta.IdVentaPK}`;
+
+    // Abrimos el diálogo personalizado
+    const dialogRef = this.dialog.open(DialogoConfirmacionComponent, {
+      width: '450px',
+      // Pasamos los datos que nuestro diálogo espera
+      data: {
+        title: 'Confirmar Anulación de Proforma',
+        message: `¿Estás seguro de que deseas anular la proforma N° ${numeroDocumento}? Esta acción no se puede deshacer.`
+      }
+    });
+
+    // Nos suscribimos para saber qué botón presionó el usuario
+    dialogRef.afterClosed().subscribe(result => {
+      // El 'result' será 'true' si el usuario presionó "Confirmar"
+      if (result === true) {
+        this.procederConEliminacion(venta.IdVentaPK);
+      }
+    });
+  }
+
+  private procederConEliminacion(idProforma: number): void {
+    this.snackBar.open('Eliminando proforma, por favor espera...', undefined, { duration: 2000 });
+
+    this.ventasService.eliminarProforma(idProforma).subscribe({
+      next: (response) => {
+        // La eliminación fue exitosa
+        this.snackBar.open(response.mensaje || 'Proforma eliminada con éxito.', 'OK', {
+          duration: 5000,
+          panelClass: ['snackbar-success'] // (Opcional) Clase para estilizar el snackbar de éxito
+        });
+        this.cargarVentas(); // ¡Importante! Recargamos la tabla para que el cambio se vea reflejado.
+      },
+      error: (err) => {
+        // Ocurrió un error
+        console.error('Error al eliminar la proforma:', err);
+        // El errorHandler del servicio ya formatea el mensaje de error.
+        this.snackBar.open(err.message, 'Cerrar', {
+          duration: 6000,
+          panelClass: ['snackbar-error'] // (Opcional) Clase para estilizar el snackbar de error
+        });
+      }
+    });
   }
 
   /**

@@ -1,0 +1,22 @@
+<h1 mat-dialog-title>Cambiar Estado de {{ data.tipoArticulo }}</h1>
+<div mat-dialog-content>
+  <p>
+    Estás a punto de cambiar el estado del artículo con código
+    <strong>{{ data.codigoArticulo }}</strong>.
+  </p>
+  <p>Selecciona el nuevo estado al que deseas moverlo:</p>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Nuevo Estado</mat-label>
+    <mat-select [(ngModel)]="estadoSeleccionadoId">
+      <mat-option *ngFor="let estado of estadosPermitidos" [value]="estado.id">
+        {{ estado.descripcion }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancelar()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onConfirmar()" [disabled]="!estadoSeleccionadoId">
+    Confirmar Cambio
+  </button>
+</div>

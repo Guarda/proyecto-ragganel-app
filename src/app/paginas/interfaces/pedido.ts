@@ -1,8 +1,8 @@
  export type Pedido = {
-    CodigoPedido: string;
-    FechaCreacionPedido: Date;
-    FechaArriboUSA: Date;
-    FechaEstimadaRecepcion: Date;
+    CodigoPedido: string ;
+    FechaCreacionPedido: Date | null;
+    FechaArriboUSA: Date | null;
+    FechaEstimadaRecepcion: Date | null;
     NumeroTracking1: string;
     NumeroTracking2: string;
     PesoPedido: number;

@@ -85,6 +85,19 @@ export class ProductosService {
       )
   }
 
+  actualizarEstado(codigo: string, nuevoEstadoId: number): Observable<any> {
+    const body = {
+      tipoArticulo: 'Producto',
+      codigoArticulo: codigo,
+      nuevoEstadoId: nuevoEstadoId
+    };
+    // Reutilizamos el endpoint genérico del inventario
+    return this.httpClient.post(`${this.apiURL}/inventario/cambiar-estado`, body, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
 
   elininar(producto: Producto): Observable<any> {   
     console.log(producto) 

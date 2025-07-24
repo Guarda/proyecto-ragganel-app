@@ -1,0 +1,45 @@
+<h1 mat-dialog-title>
+  <mat-icon>{{ data.tipo === 'Insumo' ? 'inventory_2' : 'inventory' }}</mat-icon>
+  Historial del {{ data.tipo }}: {{ data.codigo }}
+</h1>
+
+<mat-dialog-content class="dialog-content">
+  <div *ngIf="data.historial.length > 0; else noHistory" class="timeline">
+    
+    <div *ngFor="let item of data.historial; let isFirst = first" class="timeline-item">
+      <div class="timeline-icon">
+        <mat-icon>{{ isFirst ? 'add_circle' : 'change_circle' }}</mat-icon>
+      </div>
+      <div class="timeline-card">
+        <div class="card-header">
+          <span class="estado-nuevo">{{ item.EstadoNuevoDescripcion }}</span>
+          <span class="fecha">{{ item.FechaCambio | date:'dd/MM/yyyy h:mm a' }}</span>
+        </div>
+        <div class="card-body">
+          <div *ngIf="!isFirst" class="detalle-cambio">
+            <strong>Cambio:</strong> {{ item.EstadoAnteriorDescripcion }} &rarr; {{ item.EstadoNuevoDescripcion }}
+          </div>
+          <div *ngIf="isFirst" class="detalle-cambio">
+            <strong>Artículo Creado</strong>
+          </div>
+          
+          <div *ngIf="data.tipo === 'Insumo' && item.StockNuevo !== null" class="detalle-stock">
+            <strong>Stock:</strong> {{ item.StockAnterior ?? 'N/A' }} &rarr; {{ item.StockNuevo }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>
+
+<ng-template #noHistory>
+  <div class="no-history">
+    <mat-icon>info</mat-icon>
+    <p>No se encontraron registros de historial para este artículo.</p>
+  </div>
+</ng-template>

@@ -1,92 +1,93 @@
-<div class="container">
+<div class="container mat-elevation-z8">
 
-    <div class="cabezera">
-      <h1>Accesorios</h1>      
-      <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Gameboy" #input>
+  <header class="header">
+    <h1>Catálogo de Accesorios</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar accesorio...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Código, descripción, color..." #input>
+        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
-      <a mat-raised-button class="button-crear-prod" (click)="openDialogAgregar()" (Agregado)="onAdd($event)" color="primary">
-      <!-- <a mat-raised-button class="button-crear-prod" color="primary"> -->
+      <a mat-raised-button color="primary" class="button-crear" (click)="openDialogAgregar()">
         <mat-icon>add</mat-icon>
-        Añade un nuevo accesorio
+        Nuevo Accesorio
       </a>
     </div>
+  </header>
 
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Accesorios...</p>
+    </div>
 
-        <!--- Note that these columns can be defined in any order.
-              The actual rendered columns are set as a property on the row definition" -->
-              
-        <!-- Position Column -->
-        <ng-container matColumnDef="CodigoAccesorio">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
-          <td mat-cell *matCellDef="let element"> {{element.CodigoAccesorio}} </td>
-        </ng-container>
-      
-        <!-- Name Column -->
-        <ng-container matColumnDef="DescripcionAccesorio" class="columna-descripcion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </th>
-          <td mat-cell *matCellDef="let element"> {{element.DescripcionAccesorio}} </td>
-        </ng-container>
-      
-        <!-- Weight Column -->
-        <ng-container matColumnDef="ColorAccesorio">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Color </th>
-          <td mat-cell *matCellDef="let element"> {{element.ColorAccesorio}} </td>
-        </ng-container>
-      
-        <!-- Symbol Column -->
-        <ng-container matColumnDef="EstadoAccesorio">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
-          <td mat-cell *matCellDef="let element"> {{element.Estado}} </td>
-        </ng-container>
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="getAccesorioList()">Reintentar</button>
+    </div>
 
-        <!-- Symbol Column -->
-        <ng-container matColumnDef="FechaIngreso">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Ingreso </th>
-          <td mat-cell *matCellDef="let element"> {{element.FechaIngreso}} </td>
-        </ng-container>
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
 
-         <!-- Symbol Column -->
-        <ng-container matColumnDef="PrecioBase">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Precio base</th>
-          <td mat-cell *matCellDef="let element"> {{element.PrecioBase | number:'1.1-2'}} </td>
-        </ng-container>
+      <ng-container matColumnDef="CodigoAccesorio">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+        <td mat-cell *matCellDef="let item"> {{item.CodigoAccesorio}} </td>
+      </ng-container>
 
-        <!-- Symbol Column -->
-        <ng-container matColumnDef="Comentario">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Comentario </th>
-          <td mat-cell *matCellDef="let element"> {{element.Comentario }} </td>
-        </ng-container>
+      <ng-container matColumnDef="DescripcionAccesorio">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Descripción </th>
+        <td mat-cell *matCellDef="let item" class="col-descripcion"> {{item.DescripcionAccesorio}} </td>
+      </ng-container>
 
-         <!-- Symbol Column -->
-         <ng-container matColumnDef="Action">
-          <th mat-header-cell *matHeaderCellDef> Acciones </th>
-          <td mat-cell *matCellDef="let element" class="contenedor-botones"> 
-            <!-- <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.CodigoConsola)"  title="editar producto" > -->
-            <a mat-flat-button href="#" [routerLink]="['/home/listado-accesorios/ver-accesorio', element.CodigoAccesorio, 'view']" class="button-editar-prod"  title="ver/editar accesorio" >
-            <mat-icon class="iconos-custom">preview</mat-icon>
-            </a>
-            <a mat-flat-button  (click)="openDialogEliminar(element.CodigoAccesorio)" title="borrar producto" >
-            <!-- <a mat-flat-button color="warn" title="borrar accesorio" > -->
-              <mat-icon class="button-eliminar-prod">delete</mat-icon>
-            </a>
-            <a mat-flat-button  (click)="openDialogHistorial(element.CodigoAccesorio)" title="historial producto" >
-              <mat-icon class="button-historial-prod">history</mat-icon>
-            </a>
-            <!-- <button type="button" class="btn btn-danger">Delete</button>  -->
-          </td>
-        </ng-container>
+      <ng-container matColumnDef="ColorAccesorio">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Color </th>
+        <td mat-cell *matCellDef="let item"> {{item.ColorAccesorio}} </td>
+      </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <ng-container matColumnDef="EstadoAccesorio">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="status-badge" [ngClass]="getEstadoClass(item.Estado)">
+            {{item.Estado}}
+          </span>
+        </td>
+      </ng-container>
 
-        <!-- Row shown when there is no matching data. -->
+      <ng-container matColumnDef="FechaIngreso">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Ingreso </th>
+        <td mat-cell *matCellDef="let item"> {{item.FechaIngreso | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="PrecioBase">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Costo </th>
+        <td mat-cell *matCellDef="let item"> {{item.PrecioBase | currency:'USD'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Action">
+        <th mat-header-cell *matHeaderCellDef> Acciones </th>
+        <td mat-cell *matCellDef="let item" class="actions-cell">
+          <a mat-icon-button color="primary" [routerLink]="['/home/listado-accesorios/ver-accesorio', item.CodigoAccesorio, 'view']" matTooltip="Ver / Editar Detalles">
+            <mat-icon>visibility</mat-icon>
+          </a>
+          <button mat-icon-button color="accent" (click)="openDialogHistorial(item.CodigoAccesorio)" matTooltip="Ver Historial">
+            <mat-icon>history</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.CodigoAccesorio)" matTooltip="Eliminar Accesorio">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">No se encuentran datos con  "{{input.value}}"</td>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No se encontraron accesorios que coincidan con la búsqueda "{{input.value}}".
+        </td>
       </tr>
+    </table>
+  </div>
 
-      </table>
-      <mat-paginator class="foo-paginator" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users" ></mat-paginator>
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
 </div>

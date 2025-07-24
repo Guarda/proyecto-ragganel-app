@@ -1,0 +1,169 @@
+:host {
+  --primary-color: #3f51b5;
+  --accent-color: #ff4081;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --text-color: #333;
+  --text-muted: #666;
+  --bg-light: #f9f9f9;
+  --border-color: #eee;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.container {
+  padding: 24px;
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+.dashboard-header h1 {
+  font-size: 2em;
+  font-weight: 500;
+  color: var(--text-color);
+  margin: 0;
+}
+.dashboard-header p {
+  font-size: 1em;
+  color: var(--text-muted);
+}
+
+.spinner-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  gap: 20px;
+  color: var(--text-muted);
+}
+
+.dashboard-grid {
+display: grid;
+gap: 24px;
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Default para móviles */
+}
+
+/* Para pantallas más grandes (tablets y desktops) */
+@media (min-width: 768px) {
+.dashboard-grid {
+grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+}
+
+/* Estilo Mejorado para Tarjetas KPI */
+.kpi-card {
+  padding: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+.kpi-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.kpi-icon-wrapper {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kpi-icon-wrapper mat-icon {
+  color: #fff;
+  font-size: 32px;
+  height: 32px;
+  width: 32px;
+}
+.kpi-text {
+  display: flex;
+  flex-direction: column;
+}
+.kpi-value {
+  font-size: 2em;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1.2;
+}
+.kpi-label {
+  font-size: 1em;
+  color: var(--text-muted);
+}
+
+/* Colores de Iconos KPI */
+.icon-ventas { background-color: var(--primary-color); }
+.icon-semana { background-color: var(--success-color); }
+.icon-mes { background-color: var(--warning-color); }
+.icon-taller { background-color: var(--danger-color); }
+
+/* Estilos para otras tarjetas */
+.chart-card, .list-card {
+  padding: 24px;
+}
+.large-card {
+  grid-column: 1 / -1; /* Ocupa todo el ancho por defecto */
+}
+@media (min-width: 960px) {
+  .large-card {
+    grid-column: span 2; /* Ocupa 2 columnas en pantallas medianas */
+  }
+}
+@media (min-width: 1280px) {
+  .large-card {
+    grid-column: span 3; /* Ocupa 3 columnas en pantallas grandes */
+  }
+}
+
+.mat-card-title {
+  font-size: 1.2em;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.dashboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dashboard-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.dashboard-list li:last-child {
+  border-bottom: none;
+}
+.dashboard-list span, .dashboard-list small {
+  color: var(--text-muted);
+}
+.dashboard-list strong {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+.stock-alerta {
+  color: var(--danger-color) !important;
+}
+.venta-info {
+  display: flex;
+  flex-direction: column;
+}
+.venta-info small {
+  font-size: 0.8em;
+}
+
+.abc-chart-card {
+/* Por defecto ocupa 1 columna */
+}
+
+@media (min-width: 768px) {
+.abc-chart-card {
+grid-column: span 2; /* Ocupa 2 columnas en tablets */
+}
+}

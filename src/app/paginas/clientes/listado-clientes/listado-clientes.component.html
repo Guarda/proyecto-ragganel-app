@@ -1,89 +1,95 @@
-<div class="container">
+<div class="container mat-elevation-z8">
 
-    <div class="cabezera">
-      <h1>Clientes</h1>      
-      <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
-        <mat-label>Filtrar</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Buscar cliente" #input>
+  <header class="header">
+    <h1>Catálogo de Clientes</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar cliente...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, DNI, RUC..." #input>
+        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
-      <a mat-raised-button class="button-crear-cliente" (click)="openDialogAgregar()" (Agregado)="onAdd($event)" color="primary">
+      <a mat-raised-button color="primary" class="button-crear" (click)="openDialogAgregar()">
         <mat-icon>add</mat-icon>
-        Añadir un nuevo cliente
+        Nuevo Cliente
       </a>
     </div>
+  </header>
 
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Clientes...</p>
+    </div>
 
-        <!-- Nombre Column -->
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.nombre}} </td>
-        </ng-container>
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="getClientList()">Reintentar</button>
+    </div>
 
-        <!-- DNI Column -->
-        <ng-container matColumnDef="dni">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> DNI </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.dni}} </td>
-        </ng-container>
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
 
-        <!-- RUC Column -->
-        <ng-container matColumnDef="ruc">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> RUC </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.ruc}} </td>
-        </ng-container>
+      <ng-container matColumnDef="NombreCliente">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
+        <td mat-cell *matCellDef="let item" class="col-nombre"> {{item.nombre}} </td>
+      </ng-container>
 
-        <!-- Teléfono Column -->
-        <ng-container matColumnDef="telefono">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Teléfono </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.telefono}} </td>
-        </ng-container>
+      <ng-container matColumnDef="DNI">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> DNI </th>
+        <td mat-cell *matCellDef="let item"> {{item.dni}} </td>
+      </ng-container>
 
-        <!-- Email Column -->
-        <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.correo}} </td>
-        </ng-container>
+      <ng-container matColumnDef="RUC">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> RUC </th>
+        <td mat-cell *matCellDef="let item"> {{item.ruc}} </td>
+      </ng-container>
 
-        <!-- Dirección Column -->
-        <ng-container matColumnDef="direccion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Dirección </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.direccion}} </td>
-        </ng-container>
+      <ng-container matColumnDef="Telefono">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Teléfono </th>
+        <td mat-cell *matCellDef="let item"> {{item.telefono}} </td>
+      </ng-container>
 
-        <!-- Fecha Registro Column -->
-        <ng-container matColumnDef="fechaRegistro">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Registro </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.fechaRegistro}} </td>
-        </ng-container>        
+      <ng-container matColumnDef="CorreoElectronico">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+        <td mat-cell *matCellDef="let item"> {{item.correo}} </td>
+      </ng-container>
 
-        <!-- Estado Column -->
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
-          <td mat-cell *matCellDef="let cliente"> {{cliente.estado === 0 ? 'Inactivo' : cliente.estado === 1 ? 'Activo' : 'Indefinido'}} </td>
-        </ng-container>
+      <ng-container matColumnDef="FechaRegistro">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha Registro </th>
+        <td mat-cell *matCellDef="let item"> {{item.FechaRegistro | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
 
-        <!-- Acciones Column -->
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef> Acciones </th>
-          <td mat-cell *matCellDef="let cliente" class="contenedor-botones"> 
-            <a mat-flat-button href="#" [routerLink]="['/home/listado-clientes/ver-cliente', cliente.id, 'view']" class="button-editar-cliente" title="ver/editar cliente">
-              <mat-icon class="iconos-custom">preview</mat-icon>
-            </a>
-            <!-- <a mat-flat-button  title="borrar cliente"> -->
-            <a mat-flat-button (click)="openDialogEliminar(cliente.id)" title="borrar cliente">
-              <mat-icon class="button-eliminar-cliente">delete</mat-icon>
-            </a>
-          </td>
-        </ng-container>
+      <ng-container matColumnDef="Estado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <td mat-cell *matCellDef="let item">
+          <span class="status-badge" [ngClass]="getEstadoClass(item.estado)">
+            {{ item.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+      </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef> Acciones </th>
+        <td mat-cell *matCellDef="let item" class="actions-cell">
+          <a mat-icon-button color="primary" [routerLink]="['/home/listado-clientes/ver-cliente', item.IdClientePK, 'view']" matTooltip="Ver / Editar Detalles">
+            <mat-icon>visibility</mat-icon>
+          </a>
+          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.IdClientePK)" matTooltip="Desactivar Cliente" [disabled]="!item.Estado">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" colspan="8">No se encuentran datos con "{{input.value}}"</td>
-        </tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No se encontraron clientes que coincidan con la búsqueda "{{input.value}}".
+        </td>
+      </tr>
     </table>
-    <mat-paginator class="foo-paginator" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of clients"></mat-paginator>
+  </div>
+
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
 </div>

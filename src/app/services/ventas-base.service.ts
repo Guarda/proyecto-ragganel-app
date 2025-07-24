@@ -142,6 +142,17 @@ export class VentasBaseService {
         catchError(this.errorHandler)
       );
   }
+  
+  eliminarProforma(idProforma: number): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/proforma/${idProforma}`;
+    console.log(`[VentasBaseService] Eliminando proforma desde: ${url}`);
+
+    // Se utiliza el método .delete() para esta operación.
+    return this.httpClient.delete(url, this.httpOptions)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
 
   getProformaDetails(idProforma: number): Observable<ProformaResponse> {
     const url = `${this.apiURL}/ventas-base/proforma/${idProforma}`;

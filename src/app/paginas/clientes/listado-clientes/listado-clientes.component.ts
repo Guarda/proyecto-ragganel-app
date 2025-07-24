@@ -1,121 +1,145 @@
-import { AfterViewInit, Component, EventEmitter, Inject, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Cliente } from '../../interfaces/clientes';
 import { ClientesService } from '../../../services/clientes.service';
 import { CrearClienteComponent } from '../crear-cliente/crear-cliente.component';
 import { EliminarClienteComponent } from '../eliminar-cliente/eliminar-cliente.component';
+
 @Component({
   selector: 'app-listado-clientes',
   standalone: true,
-  imports: [CommonModule,
-    RouterModule,
-    MatTableModule,
-    MatLabel,
-    MatFormField,
-    MatInputModule,
-    MatInputModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatIcon,
-    MatButtonModule],
+  imports: [
+    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+  ],
   templateUrl: './listado-clientes.component.html',
-  styleUrl: './listado-clientes.component.css'
+  styleUrls: ['./listado-clientes.component.css']
 })
-export class ListadoClientesComponent {
+export class ListadoClientesComponent implements OnInit, AfterViewInit {
+  displayedColumns: string[] = ['NombreCliente', 'DNI', 'RUC', 'Telefono', 'CorreoElectronico', 'FechaRegistro', 'Estado', 'acciones'];
+  dataSource = new MatTableDataSource<Cliente>();
 
-  clientes: Cliente[] = [];
-  myArray: any[] = [];
-  displayedColumns: string[] = [ 'nombre', 'dni', 'ruc', 'telefono', 'email', 'direccion', 'fechaRegistro', 'estado', 'acciones'];	
-  //dataSource = ELEMENT_DATA;
-  dataSource = new MatTableDataSource<Cliente>;
+  isLoading = true;
+  errorMessage: string | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  @Output() select = new EventEmitter<string>();
 
-  constructor(public clienteService: ClientesService, private cdr: ChangeDetectorRef, private router: Router, private dialog: MatDialog) {
+  constructor(
+    public clienteService: ClientesService,
+    private dialog: MatDialog
+  ) { }
 
+  ngOnInit(): void {
+    this.getClientList();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
+  getClientList() {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    this.clienteService.getAll().subscribe({
+      next: (data: Cliente[]) => {
+        const datosProcesados = data.map(cliente => ({
+          ...cliente,
+          FechaRegistro: this.parsearFecha(cliente.fechaRegistro)
+        }));
+        this.dataSource.data = datosProcesados;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error al cargar clientes:", err);
+        this.errorMessage = "No se pudieron cargar los clientes.";
+        this.isLoading = false;
+      }
+    });
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
+   // ===== REEMPLAZA ESTA FUNCIÓN COMPLETA =====
+  private parsearFecha(fechaStr: string | Date | undefined): Date {
+    // Si no hay fecha o ya es un objeto Date, no hacemos nada o lo retornamos.
+    if (!fechaStr) return new Date('Invalid Date');
+    if (fechaStr instanceof Date) return fechaStr;
+
+    // Esta lógica es robusta para el formato "dd/MM/yyyy".
+    const partesSlash = fechaStr.split('/');
+    if (partesSlash.length === 3) {
+      const dia = parseInt(partesSlash[0], 10);
+      const mes = parseInt(partesSlash[1], 10) - 1; // Meses en JS son de 0 a 11
+      const anio = parseInt(partesSlash[2], 10);
+      if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) {
+        return new Date(anio, mes, dia);
+      }
+    }
+
+    // Si el formato no es dd/MM/yyyy, intentamos una conversión directa
+    // que funciona bien para formatos como YYYY-MM-DD o ISO.
+    const fecha = new Date(fechaStr);
+    if (!isNaN(fecha.getTime())) {
+      return fecha;
+    }
+
+    // Si todo falla, devolvemos una fecha inválida para que sea evidente.
+    return new Date('Invalid Date');
+  }
+
+  getEstadoClass(status: boolean | number): string {
+    if (status === true || status === 1) {
+      return 'status-activo';
+    } else {
+      return 'status-inactivo';
+    }
   }
 
   public openDialogAgregar() {
-      const dialogRef = this.dialog.open(CrearClienteComponent, {
-        disableClose: true,
-        height: '100%',
-        width: '30%',
-      });
-      dialogRef.componentInstance.Agregado.subscribe(() => {
-       this.getClientList();
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-      });
-      dialogRef.afterClosed().subscribe(() => {
-        this.getClientList();
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-      });
-    }
-
-    public openDialogEliminar(cons: string) {
-        const dialogRef = this.dialog.open(EliminarClienteComponent, {
-          disableClose: true,
-          data: { value: cons }
-        });
-        dialogRef.componentInstance.Eliminar.subscribe(() => {
-          this.getClientList();
-          this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        });
-        dialogRef.afterClosed().subscribe(() => {
-          this.getClientList();
-          this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        });
-      }
-
-     /**
-      * Write code on Method
-      *
-      * @return response()
-      */
-      ngOnInit(): void {
+    const dialogRef = this.dialog.open(CrearClienteComponent, {
+      width: '500px',
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
         this.getClientList();
       }
-    
-      getClientList() {
-        this.clienteService.getAll().subscribe((data: Cliente[]) => {
-          this.dataSource = new MatTableDataSource<Cliente>(data);
-          console.log(data);
-          this.dataSource.paginator = this.paginator;
-          this.dataSource.sort = this.sort;
-        })
+    });
+  }
+
+  public openDialogEliminar(idCliente: number) {
+    const dialogRef = this.dialog.open(EliminarClienteComponent, {
+      width: '400px',
+      disableClose: true,
+      data: { value: idCliente }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getClientList();
       }
-    
-      onAdd(a: any) {
-        this.ngOnInit();
-      }
-    
-      ngAfterViewInit() {
-    
-      }
-    
-      applyFilter(event: Event) {
-        const filterValue = (event.target as HTMLInputElement).value;
-        this.dataSource.filter = filterValue.trim().toLowerCase();
-    
-        if (this.dataSource.paginator) {
-          this.dataSource.paginator.firstPage();
-        }
-      }
+    });
+  }
 }

@@ -1,131 +1,157 @@
-import { AfterViewInit, Component, EventEmitter, Inject, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { TablaPedidosComponent } from '../tabla-pedidos/tabla-pedidos.component';
-
 import { AgregarPedidoComponent } from '../agregar-pedido/agregar-pedido.component';
 import { PedidoService } from '../../../services/pedido.service';
-
 import { Pedido } from '../../interfaces/pedido';
+
 @Component({
   selector: 'app-listar-pedidos',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatTableModule, MatTabsModule, TablaPedidosComponent],
+  imports: [
+    CommonModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
+    MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
+    MatTabsModule, TablaPedidosComponent, MatProgressSpinnerModule, MatTooltipModule
+  ],
   templateUrl: './listar-pedidos.component.html',
-  styleUrl: './listar-pedidos.component.css'
+  styleUrls: ['./listar-pedidos.component.css']
 })
 export class ListarPedidosComponent implements OnInit {
-   
+
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
-  productos: Pedido[] = [];
-  myArray: any[] = [];
+
   displayedColumns: string[] = ['CodigoPedido', 'FechaCreacionPedido', 'FechaArriboEstadosUnidos', 'FechaIngreso', 'DescripcionEstadoPedido', 'NumeroTracking1', 'SubtotalArticulos', 'TotalPedido', 'Action'];
-  dataSource!: MatTableDataSource<Pedido>;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  // Propiedades para manejar estados de UI
+  isLoading = true;
+  errorMessage: string | null = null;
 
+  // Arrays para cada pestaña
   pedidosEnEspera: Pedido[] = [];
   pedidosEnTransito: Pedido[] = [];
   pedidosRecibidosUSA: Pedido[] = [];
   pedidosEnAduana: Pedido[] = [];
   pedidosRecibidos: Pedido[] = [];
   pedidosCancelados: Pedido[] = [];
-  pedidosEliminados: Pedido[] = [];
-
-  filterValue: string = ''; // Agrega esta propiedad para almacenar el filtro
+  
+  filterValue: string = '';
 
   constructor(
     private pedidoService: PedidoService,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
-    private dialog: MatDialog) {
-
-  }
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
-    this.getOrdersList();
+    this.cargarPedidos();
   }
 
   cargarPedidos(): void {
-    this.getOrdersList();
-  }
+    this.isLoading = true;
+    this.errorMessage = null;
 
-  public openDialogAgregar() {
-    const dialogRef = this.dialog.open(AgregarPedidoComponent, {
-      disableClose: true,
-      height: '100%',
-      width: '50%',
+    this.pedidoService.getAll().subscribe({
+      next: (data: Pedido[]) => {
+        // Procesamos las fechas en todos los pedidos
+        const datosProcesados = data.map(pedido => ({
+          ...pedido,
+          FechaCreacionPedido: this.parsearFecha(pedido.FechaCreacionPedido),
+          FechaArriboEstadosUnidos: this.parsearFecha(pedido.FechaArriboUSA),
+          FechaIngreso: this.parsearFecha(pedido.FechaEstimadaRecepcion),
+        }));
+
+        // Filtramos los pedidos por estado en sus respectivos arrays
+        this.pedidosEnEspera = datosProcesados.filter(p => p.Estado === 'En espera');
+        this.pedidosEnTransito = datosProcesados.filter(p => p.Estado === 'En tránsito');
+        this.pedidosRecibidosUSA = datosProcesados.filter(p => p.Estado === 'Recibido en Estados Unidos');
+        this.pedidosEnAduana = datosProcesados.filter(p => p.Estado === 'En aduana/agencia');
+        this.pedidosRecibidos = datosProcesados.filter(p => p.Estado === 'Recibido');
+        this.pedidosCancelados = datosProcesados.filter(p => p.Estado === 'Cancelado');
+
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error al cargar pedidos:", err);
+        this.errorMessage = "No se pudieron cargar los pedidos. Intente de nuevo más tarde.";
+        this.isLoading = false;
+      }
     });
   }
 
-  onAdd(a: any) {
-    this.ngOnInit();
+  private parsearFecha(fechaStr: string | Date | undefined | null): Date | null {
+  // 1. Si la entrada es nula, indefinida o ya es una fecha, se maneja igual.
+  if (!fechaStr) return null;
+  if (fechaStr instanceof Date) return fechaStr;
+
+  // 2. Primero, intentamos parsear el formato "dd/MM/yyyy" manualmente.
+  const partes = fechaStr.split('/');
+  if (partes.length === 3) {
+    const dia = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1; // Meses en JS son de 0 a 11
+    const anio = parseInt(partes[2], 10);
+    // Se valida que las partes sean números válidos.
+    if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) {
+      return new Date(anio, mes, dia);
+    }
   }
 
-  getOrdersList() {
-    this.pedidoService.getAll().subscribe((data: Pedido[]) => {
-      this.dataSource = new MatTableDataSource<Pedido>(data);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
+  // 3. Si no es "dd/MM/yyyy", intentamos la conversión directa (para YYYY-MM-DD, etc.).
+  const fecha = new Date(fechaStr);
+  if (!isNaN(fecha.getTime())) {
+    return fecha;
+  }
 
-      // Filtramos los pedidos por estado
-      this.pedidosEnEspera = data.filter(pedido => pedido.Estado === 'En espera');
-      this.pedidosEnTransito = data.filter(pedido => pedido.Estado === 'En tránsito');
-      this.pedidosRecibidosUSA = data.filter(pedido => pedido.Estado === 'Recibido en Estados Unidos');
-      this.pedidosEnAduana = data.filter(pedido => pedido.Estado === 'En aduana/agencia');
-      this.pedidosRecibidos = data.filter(pedido => pedido.Estado === 'Recibido');
-      this.pedidosCancelados = data.filter(pedido => pedido.Estado === 'Cancelado');
-      this.pedidosEliminados = data.filter(pedido => pedido.Estado === 'Eliminado');
+  // 4. Si todo lo demás falla, devolvemos null.
+  return null;
+}
+
+  public openDialogAgregar() {
+    const dialogRef = this.dialog.open(AgregarPedidoComponent, {
+      width: '50%',
+      height: '85%',
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.cargarPedidos();
+      }
     });
   }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.filterValue = filterValue;
-    this.dataSource.filter = filterValue;
-   // console.log("Filtro aplicado:", this.filterValue);  // Para verificar que el filtro 
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
-
-    // Filtrar y luego cambiar la pestaña si el filtro encuentra algún dato
     this.selectTabForFilter(filterValue);
   }
 
   selectTabForFilter(filterValue: string) {
-    //console.log("aaa")
-    // Verifica en qué estado se encuentra el pedido que coincide con el filtro
-    if (this.pedidosEnEspera.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
-      this.tabGroup.selectedIndex = 0; // En espera
-    } else if (this.pedidosEnTransito.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
-      this.tabGroup.selectedIndex = 1; // En tránsito
-    } else if (this.pedidosRecibidosUSA.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
-      this.tabGroup.selectedIndex = 2; // En Estados Unidos
-    } else if (this.pedidosEnAduana.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
-      this.tabGroup.selectedIndex = 3; // En aduana/agencia
-    } else if (this.pedidosRecibidos.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
-      this.tabGroup.selectedIndex = 4; // Recibidos
-    } else if (this.pedidosCancelados.some(pedido => pedido.CodigoPedido.toLowerCase().includes(filterValue))) {
-      this.tabGroup.selectedIndex = 5; // Cancelados
-    } else {
-      // Si no se encuentra ningún pedido en los filtros
-      this.tabGroup.selectedIndex = -1; // Sin selección
+    if (!filterValue) return;
+
+    if (this.pedidosEnEspera.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 0;
+    } else if (this.pedidosEnTransito.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 1;
+    } else if (this.pedidosRecibidosUSA.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 2;
+    } else if (this.pedidosEnAduana.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 3;
+    } else if (this.pedidosRecibidos.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 4;
+    } else if (this.pedidosCancelados.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
+      this.tabGroup.selectedIndex = 5;
     }
-    console.log(this.tabGroup.selectedIndex);
   }
 }

@@ -274,11 +274,8 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
   getClientList(): void {
     this.subs.add(this.clientesService.getAll().subscribe({
       next: (clientes: Cliente[]) => {
-        this.listaClientes = clientes;
-
-        // ¡LÓGICA CLAVE!
-        // Si había un carrito esperando a que la lista de clientes se cargara,
-        // lo procesamos ahora.
+        
+        this.listaClientes = clientes.filter(cliente => cliente.estado);    
         if (this.carritoACargar) {
           this.procesarCarritoConClientes();
         }

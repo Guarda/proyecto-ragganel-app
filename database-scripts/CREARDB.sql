@@ -598,6 +598,7 @@ CREATE TABLE ESTADOVENTA(
 INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Pendiente');
 INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Pagado');
 INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Anulado');
+INSERT INTO ESTADOVENTA (DescripcionEstadoVenta) values ('Borrado');
 
 /*METODO DE PAGO*/
 /*CREATE TABLE METODOPAGO(

@@ -12,6 +12,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { InventarioGeneralService } from '../../../services/inventario-general.service';
 import { ArticuloInventario } from '../../interfaces/articuloinventario';
+import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { HistorialArticuloDialogComponent } from '../historial-articulo-dialog/historial-articulo-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-listado-inventario-general',
@@ -35,7 +39,11 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private inventarioService: InventarioGeneralService) { }
+  constructor(private inventarioService: InventarioGeneralService,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
     this.cargarInventario();
@@ -50,6 +58,30 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit 
     if (this.sort) {
       this.dataSource.sort = this.sort;
     }
+  }
+
+  public editarArticulo(articulo: ArticuloInventario): void {
+    let rutaBase = '';
+
+    // Determinamos la ruta base según el tipo de artículo
+    switch (articulo.Tipo?.toLowerCase()) {
+      case 'producto':
+        rutaBase = '/home/listado-productos/ver-producto';
+        break;
+      case 'accesorio':
+        rutaBase = '/home/listado-accesorios/ver-accesorio';
+        break;
+      case 'insumo':
+        rutaBase = '/home/listado-insumos/ver-insumo';
+        break;
+      default:
+        // Opcional: manejar un tipo desconocido o mostrar un error
+        console.error(`Tipo de artículo desconocido: ${articulo.Tipo}`);
+        return; // Salimos de la función si el tipo no es válido
+    }
+
+    // Navegamos a la ruta construida
+    this.router.navigate([rutaBase, articulo.Codigo, 'view']);
   }
 
   /**
@@ -154,6 +186,27 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit 
       case 'insumo': return 'tipo-insumo';
       default: return 'tipo-default';
     }
+  }
+
+   abrirDialogoHistorial(articulo: ArticuloInventario): void {
+    this.snackBar.open(`Cargando historial para ${articulo.Codigo}...`, undefined, { duration: 2000 });
+    
+    this.inventarioService.getHistorialArticulo(articulo.Tipo, articulo.Codigo).subscribe({
+      next: (historialData) => {
+        this.dialog.open(HistorialArticuloDialogComponent, {
+          width: '600px',
+          data: {
+            codigo: articulo.Codigo,
+            tipo: articulo.Tipo,
+            historial: historialData
+          }
+        });
+      },
+      error: (err) => {
+        console.error("Error al cargar historial:", err);
+        this.snackBar.open('No se pudo cargar el historial del artículo.', 'Cerrar', { duration: 4000 });
+      }
+    });
   }
 
   public onImageError(event: Event): void {

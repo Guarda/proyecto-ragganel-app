@@ -39,6 +39,7 @@ const salesbaseRouter = require('./routes/sales-base');
 const creditnotesRouter = require('./routes/credit-notes');
 const shoppingCartRouter = require('./routes/shopping-cart'); // Import the shopping cart router
 const inventoryRouter = require('./routes/inventory'); // Import the inventory router
+const dashboardRouter = require('./routes/dashboard'); // Import the dashboard router
 // Middleware
 app.use(express.json());
 
@@ -88,6 +89,7 @@ app.use('/notas-credito', creditnotesRouter); // Ruta para notas de crédito
 app.use('/auth', authRoutes); // Ruta para autenticación
 app.use('/carrito', shoppingCartRouter); // Ruta para el carrito de compras
 app.use('/inventario', inventoryRouter); // Ruta para el inventario
+app.use('/dashboard', dashboardRouter); // Ruta para el dashboard
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {
   res.json({ message: 'Acceso permitido' });

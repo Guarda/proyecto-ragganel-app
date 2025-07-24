@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ArticuloInventario } from '../paginas/interfaces/articuloinventario';
+import { ArticuloGarantia } from '../paginas/interfaces/articulogarantia';
+import { HistorialArticulo } from '../paginas/interfaces/historialarticulo';
 
 /**
  * Interfaz que define la estructura de un artículo en el inventario.
@@ -37,6 +39,25 @@ export class InventarioGeneralService {
       );
   }
 
+  getArticulosEnGarantia(): Observable<ArticuloGarantia[]> {
+    // Hacemos la llamada GET al nuevo endpoint /inventario/garantia/
+    return this.httpClient.get<ArticuloGarantia[]>(`${this.apiURL}/inventario/garantia`)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
+  getHistorialArticulo(tipo: string, codigo: string): Observable<HistorialArticulo[]> {
+    const params = new HttpParams()
+      .set('tipo', tipo)
+      .set('codigo', codigo);
+    
+    return this.httpClient.get<HistorialArticulo[]>(`${this.apiURL}/inventario/historial`, { params })
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
   /**
    * Manejador de errores centralizado para las peticiones HTTP.
    */
@@ -54,3 +75,5 @@ export class InventarioGeneralService {
     return throwError(() => new Error(errorMessage));
   }
 }
+
+export { HistorialArticulo };

@@ -84,10 +84,11 @@
       <ng-container matColumnDef="Action">
         <th mat-header-cell *matHeaderCellDef> Acciones </th>
         <td mat-cell *matCellDef="let item" class="actions-cell">
-          <button mat-icon-button color="primary" matTooltip="Ver / Editar Detalles">
+          
+          <button mat-icon-button color="primary" matTooltip="Ver / Editar Detalles" (click)="editarArticulo(item)">
             <mat-icon>edit</mat-icon>
           </button>
-          <button mat-icon-button color="accent" matTooltip="Ver Historial de Estados">
+          <button mat-icon-button color="accent" (click)="abrirDialogoHistorial(item)" matTooltip="Ver Historial de Estados">
             <mat-icon>history</mat-icon>
           </button>
           <button *ngIf="item.Tipo === 'Insumo'" mat-icon-button color="warn" matTooltip="Ajustar Stock">

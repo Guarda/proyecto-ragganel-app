@@ -1,0 +1,132 @@
+<div class="container">
+  <header class="dashboard-header">
+    <h1>Resumen General</h1>
+    <p>Vista rápida del rendimiento de ventas e inventario.</p>
+  </header>
+  
+  <div *ngIf="isLoading" class="spinner-container">
+    <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
+    <p>Cargando Dashboard...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-stroked-button color="primary" (click)="cargarDashboard()">Reintentar</button>
+  </div>
+
+  <div *ngIf="dashboardData && !isLoading" class="dashboard-grid">
+    <mat-card class="kpi-card">
+      <div class="kpi-content">
+        <div class="kpi-icon-wrapper icon-ventas">
+          <mat-icon>today</mat-icon>
+        </div>
+        <div class="kpi-text">
+          <span class="kpi-value">{{ dashboardData.kpis.VentasHoy | currency:'USD' }}</span>
+          <span class="kpi-label">Ventas de Hoy</span>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <div class="kpi-content">
+        <div class="kpi-icon-wrapper icon-semana">
+          <mat-icon>calendar_view_week</mat-icon>
+        </div>
+        <div class="kpi-text">
+          <span class="kpi-value">{{ dashboardData.kpis.VentasSemana | currency:'USD' }}</span>
+          <span class="kpi-label">Ventas de la Semana</span>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <div class="kpi-content">
+        <div class="kpi-icon-wrapper icon-mes">
+          <mat-icon>calendar_month</mat-icon>
+        </div>
+        <div class="kpi-text">
+          <span class="kpi-value">{{ dashboardData.kpis.VentasMes | currency:'USD' }}</span>
+          <span class="kpi-label">Ventas del Mes</span>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <div class="kpi-content">
+        <div class="kpi-icon-wrapper icon-taller">
+          <mat-icon>build</mat-icon>
+        </div>
+        <div class="kpi-text">
+          <span class="kpi-value">{{ dashboardData.kpis.ArticulosEnGarantia + dashboardData.kpis.ArticulosAReparar }}</span>
+          <span class="kpi-label">Artículos en Taller</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="chart-card large-card">
+      <mat-card-title>Ventas de los Últimos 30 Días</mat-card-title>
+      <mat-card-content>
+        <ngx-charts-bar-vertical
+          [results]="dashboardData.ventas30Dias"
+          [xAxis]="true" [yAxis]="true" [legend]="false"
+          [showXAxisLabel]="true" [showYAxisLabel]="true"
+          xAxisLabel="Día" yAxisLabel="Total Vendido (USD)"
+          [scheme]="colorScheme"
+          [xAxisTickFormatting]="dateTickFormatting">
+        </ngx-charts-bar-vertical>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="chart-card abc-chart-card">
+      <mat-card-title>Valor de Inventario (Análisis ABC)</mat-card-title>
+      <mat-card-content>
+        <ngx-charts-pie-chart
+          [results]="dashboardData.valorInventarioABC"
+          [legend]="true" [labels]="true" [doughnut]="true"
+          [scheme]="colorScheme">
+        </ngx-charts-pie-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="list-card">
+      <mat-card-title>Top 5 Artículos más Vendidos</mat-card-title>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <ul class="dashboard-list">
+          <li *ngFor="let item of dashboardData.topArticulos">
+            <span>{{ item.name }}</span>
+            <strong>{{ item.value | currency:'USD' }}</strong>
+          </li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="list-card">
+      <mat-card-title>Alertas de Stock Bajo</mat-card-title>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <ul class="dashboard-list" *ngIf="dashboardData.stockBajo.length > 0; else noStockBajo">
+          <li *ngFor="let item of dashboardData.stockBajo">
+            <span>{{ item.DescripcionInsumo }}</span>
+            <strong class="stock-alerta">{{ item.Cantidad }} / {{ item.StockMinimo }}</strong>
+          </li>
+        </ul>
+        <ng-template #noStockBajo><p class="no-data">No hay alertas de stock.</p></ng-template>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="list-card large-card">
+      <mat-card-title>Últimas Ventas Realizadas</mat-card-title>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <ul class="dashboard-list">
+           <li *ngFor="let venta of dashboardData.ultimasVentas">
+             <div class="venta-info">
+               <strong>{{ venta.NombreCliente }}</strong>
+               <small>{{ venta.FechaCreacion | date:'short' }} ({{ venta.NombreVendedor }})</small>
+             </div>
+            <strong>{{ venta.TotalVenta | currency:'USD' }}</strong>
+          </li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
