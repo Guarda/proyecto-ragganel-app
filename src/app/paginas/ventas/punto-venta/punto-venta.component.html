@@ -21,8 +21,9 @@
       <div class="productos-lista">
         <app-tabla-articulos-ventas
           #tablaArticulos
-          [margenActual]="margenSeleccionado ?? 0"
-          [idMargenActual]="idMargenSeleccionado"  [clienteSeleccionado]="ClienteSeleccionado"
+          [articulosEnCarrito]="carrito"  [margenActual]="margenSeleccionado ?? 0"
+          [idMargenActual]="idMargenSeleccionado"
+          [clienteSeleccionado]="ClienteSeleccionado"
           [usuario]="usuario">
         </app-tabla-articulos-ventas>
       </div>

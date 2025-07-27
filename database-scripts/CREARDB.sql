@@ -127,6 +127,7 @@ Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Personalizado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Reparado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('A reparar');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Borrado');
+insert into catalogoestadosconsolas (DescripcionEstado) values ('Vendido');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('En garantia');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('Descargado');
 Insert into CatalogoEstadosConsolas (DescripcionEstado) values('En proceso de venta');
@@ -446,7 +447,10 @@ CREATE TABLE InsumosBase (
 );
 
 /*MODIFICACION A LA TABLA InsumosBase 24/02/2025*/
-/**ALTER TABLE InsumosBase 
+/** alters sino estan estos datos en la tabla
+ALTER TABLE InsumosBase 
+ADD COLUMN StockMinimo int unsigned not null;
+ALTER TABLE InsumosBase 
 ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;*/
 
 CREATE TABLE TareasdeInsumos (
