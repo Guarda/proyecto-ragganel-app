@@ -18,12 +18,11 @@
 </div>
 
 <div class="contenedor-grid">
-  <app-tarjeta-de-articulos
+ <app-tarjeta-de-articulos
   *ngFor="let grupo of gruposDeArticulosFiltrados"
   [articulos]="grupo.articulos"
   [imagenUrl]="grupo.imagenUrl"
-  (articuloParaAgregarAlCarrito)="agregarAlCarrito($event)"
+  (articuloParaAgregarAlCarrito)="iniciarProcesoDeAgregarArticulo($event)"
 ></app-tarjeta-de-articulos>
-
 
 </div>

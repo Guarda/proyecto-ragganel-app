@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>Seleccionar Precio para:</h2>
+<mat-dialog-content>
+  <p><strong>Artículo:</strong> {{ data.articulo.Nombre }}</p>
+  <mat-list role="list">
+    <mat-list-item *ngFor="let opcion of opcionesDePrecio" (click)="seleccionarPrecio(opcion)" class="opcion-item" matRipple>
+      <mat-icon matListItemIcon color="primary">attach_money</mat-icon>
+      <div matListItemTitle>{{ opcion.nombreMargen }}</div>
+      <div matListItemLine>
+        <span class="margen-porcentaje" *ngIf="opcion.idMargen !== 6">({{ opcion.porcentaje }}%)</span>
+        <span class="precio-calculado" *ngIf="opcion.idMargen !== 6">{{ opcion.precioFinal | currency:'NIO' }}</span>
+        </div>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+  </mat-list>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+</mat-dialog-actions>

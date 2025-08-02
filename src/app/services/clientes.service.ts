@@ -42,6 +42,17 @@ export class ClientesService {
     );
   } 
 
+  getVentasPorCliente(id: number): Observable<any[]> {
+    if (!id || isNaN(id)) {
+      console.error('El ID de cliente proporcionado es inválido:', id);
+      return throwError(() => new Error('El ID de cliente es inválido'));
+    }
+  
+    return this.httpClient.get<any[]>(`${this.apiURL}/clientes/${id}/ventas`, this.httpOptions).pipe(
+      catchError(this.errorHandler)
+    );
+  }
+
   // Crear un nuevo cliente
   crearCliente(cliente: Cliente): Observable<any> {
     return this.httpClient.post(this.apiURL + '/clientes/crear-cliente/', JSON.stringify(cliente), this.httpOptions)

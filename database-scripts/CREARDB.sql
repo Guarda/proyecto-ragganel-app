@@ -573,6 +573,9 @@ CREATE TABLE Clientes (
     Estado boolean not null default 1
 );
 
+ALTER TABLE CLIENTES
+ADD COLUMN Comentarios varchar(1000);
+
 /**INSERT INTO Clientes (NombreCliente, DNI, RUC, Telefono, CorreoElectronico, Direccion, FechaRegistro, Estado) VALUES
 ('Juan Pérez', '12345678', '100200300400', '987654321', 'juan.perez@email.com', 'Av. Siempre Viva 123', CURDATE(), 1),
 ('María Gómez', '87654321', '400300200100', '912345678', 'maria.gomez@email.com', 'Calle Falsa 456', CURDATE(), 1),
@@ -677,7 +680,15 @@ INSERT INTO MargenesVenta (NombreMargen, Porcentaje, Descripcion) VALUES
 ('Estandar', 35.00, 'Margen normal para venta al público'),
 ('Promocional', 20.00, 'Para ofertas temporales'),
 ('Mayorista', 15.00, 'Clientes con compras al por mayor'),
-('VIP', 25.00, 'Clientes frecuentes');
+('VIP', 25.00, 'Clientes frecuentes'),
+('Precio de Costo', 0, 'Precio al costo sin ganancia'),
+('Precio Personalizado',-1,' Precio personalizado');
+
+/*
+INSERT INTO MargenesVenta (NombreMargen, Porcentaje, Descripcion) VALUES
+('Precio de Costo', 0, 'Precio al costo sin ganancia'),
+('Precio Personalizado',-1,' Precio personalizado'); 
+*/
 
 /*TABLA MetodosDePago CREADA EL 31/05/2025*/
 CREATE TABLE MetodosDePago (

@@ -319,3 +319,14 @@
   box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
 }
 
+.opciones-fiscales {
+  display: flex;
+  justify-content: flex-end; /* Alinea el toggle a la derecha */
+  padding: 10px;
+  margin-top: 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-bottom: none; /* Quitamos el borde de abajo para que se una con la caja de totales */
+  border-radius: 8px 8px 0 0; /* Redondeamos solo las esquinas superiores */
+}
+

@@ -1,0 +1,61 @@
+.container {
+  margin: 24px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: calc(100% - 48px);
+  max-width: 1400px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.header h2 {
+  font-size: 1.2rem;
+  color: #3f51b5;
+  margin: 4px 0 0 0;
+}
+
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  min-height: 300px;
+}
+
+table {
+  width: 100%;
+}
+
+.spinner-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  gap: 16px;
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  color: #fff;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.status-pagado { background-color: #28a745; }
+.status-anulado { background-color: #dc3545; }
+.status-pendiente { background-color: #6c757d; }

@@ -21,9 +21,8 @@
       <div class="productos-lista">
         <app-tabla-articulos-ventas
           #tablaArticulos
-          [articulosEnCarrito]="carrito"  [margenActual]="margenSeleccionado ?? 0"
-          [idMargenActual]="idMargenSeleccionado"
-          [clienteSeleccionado]="ClienteSeleccionado"
+          [articulosEnCarrito]="carrito"
+          [listaDeMargenes]="margenesVenta" [clienteSeleccionado]="ClienteSeleccionado"
           [usuario]="usuario">
         </app-tabla-articulos-ventas>
       </div>
@@ -68,14 +67,7 @@
           <strong>Cliente Seleccionado:</strong> {{ ClienteSeleccionado.nombre }}
         </div>
 
-        <div>
-          <label>Margen de Venta:</label>
-          <mat-select [(ngModel)]="margenSeleccionado" (ngModelChange)="onMargenVentaChange()" required>
-            <mat-option *ngFor="let margen of margenesVenta" [value]="margen.Porcentaje">
-              {{ margen.NombreMargen }} ({{ margen.Porcentaje }}%)
-            </mat-option>
-          </mat-select>
-        </div>
+        
         
         <div>
           <label>Método de Pago:</label>
@@ -107,72 +99,94 @@
       <div *ngIf="carrito.length > 0; else mensajeVacio">
         
         <table class="tabla-carrito">
-          <thead>
-            <tr>
-              <th>Artículo</th>
-              <th>Cantidad</th>
-              <th>P. Unit.</th>
-              <th>Desc. (%)</th>
-              <th>Total</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let art of carrito">
-              <td>{{ art.NombreArticulo }}<br>
-                <div class="etiqueta-margen">
-                {{ getNombreMargen(art.IdMargenFK) }}
-                </div><small class="codigo-articulo">{{ art.Codigo }}</small></td>
-              <td>
-                <div class="control-cantidad">
-                  <button (click)="decrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>remove</mat-icon></button>
-                  <span class="cantidad-valor">{{ art.Cantidad }}</span>
-                  <button (click)="incrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>add</mat-icon></button>
-                </div>
-              </td>
-              <td>{{ (art.PrecioBase ?? 0) | currency:'USD':'symbol':'1.2-2' }}</td>
-              <td>
-                <input type="number"
-                       min="0"
-                       max="100"
-                       class="input-descuento"
-                       [ngModel]="art.DescuentoPorcentaje ?? 0"
-                       (ngModelChange)="actualizarDescuento(art, $event)"
-                       (blur)="formatearDescuento(art)">
-              </td>
-              <td>{{ calcularTotalArticulo(art) | currency:'USD':'symbol':'1.2-2' }}</td>
-              <td>
-                <button (click)="eliminarLineaArticulo(art)" mat-icon-button color="warn" matTooltip="Eliminar artículo">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="totales">
-          <div class="total-row">
-            <span>Subtotal Bruto:</span>
-            <span>{{ subtotal | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="total-row discount">
-            <span>Descuentos:</span>
-            <span>- {{ totalDescuentos | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          <hr class="total-divider">
-          <div class="total-row">
-            <span>Subtotal Neto (sin IVA):</span>
-            <span>{{ subtotalNeto | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="total-row">
-            <span>IVA (15%):</span>
-            <span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="total-row grand-total">
-            <strong>TOTAL A PAGAR:</strong>
-            <strong>{{ total | currency:'USD':'symbol':'1.2-2' }}</strong>
-          </div>
+  <thead>
+    <tr>
+      <th>Artículo</th>
+      <th>Cantidad</th>
+      <th>P. Unitario</th>
+      <th>Desc. (%)</th>
+      <th>Total (sin IVA)</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let art of carrito">
+      <td>
+        {{ art.NombreArticulo }}<br>
+        <div class="etiqueta-margen">
+          {{ getNombreMargen(art.IdMargenFK) }}
         </div>
+        <small class="codigo-articulo">{{ art.Codigo }}</small>
+      </td>
+      <td>
+        <div class="control-cantidad">
+          <button (click)="decrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>remove</mat-icon></button>
+          <span class="cantidad-valor">{{ art.Cantidad }}</span>
+          <button (click)="incrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>add</mat-icon></button>
+        </div>
+      </td>
+      <td>
+        {{ art.PrecioBase | currency:'USD' }}
+      </td>
+      <td>
+        <input 
+          type="number"
+          class="input-descuento"
+          [ngModel]="art.DescuentoPorcentaje"
+          (change)="onDescuentoChange(art, $event)"
+          min="0"
+          max="100"
+          [disabled]="(art.IdMargenFK === 5 || art.IdMargenFK === 6) && art.Tipo !== 'Servicio'"
+          matTooltip="Descuento deshabilitado para precios de costo o personalizados">
+      </td>
+      <td>
+        {{ art ? (calcularPrecioConDescuento(art) * (art?.Cantidad ?? 0) | currency:'USD') : '' }}
+      </td>
+      <td>
+        <button (click)="eliminarLineaArticulo(art)" mat-icon-button color="warn" matTooltip="Eliminar artículo">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+        <div class="opciones-fiscales">
+          <mat-slide-toggle
+            [(ngModel)]="aplicarIVA"
+            color="primary">
+            Aplicar IVA (15%)
+          </mat-slide-toggle>
+        </div>
+        
+        <div class="totales">
+  <div class="total-row">
+    <span>Subtotal Bruto:</span>
+    <span>{{ subtotal | currency:'USD':'symbol':'1.2-2' }}</span>
+  </div>
+
+  <div class="total-row discount">
+    <span>Descuentos:</span>
+    <span>-{{ totalDescuentos | currency:'USD':'symbol':'1.2-2' }}</span>
+  </div>
+  
+  <hr class="total-divider">
+
+  <div class="total-row">
+    <strong>Subtotal Neto (sin IVA):</strong>
+    <strong>{{ subtotalNeto | currency:'USD':'symbol':'1.2-2' }}</strong>
+  </div>
+
+  <div class="total-row">
+    <span>IVA (15%):</span>
+    <span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
+  </div>
+  
+  <div class="total-row grand-total">
+    <strong>TOTAL A PAGAR:</strong>
+    <strong>{{ total | currency:'USD':'symbol':'1.2-2' }}</strong>
+  </div>
+</div>
 
         <div class="acciones">
           <button mat-raised-button color="warn" (click)="limpiarCarrito()">Vaciar Carrito</button>

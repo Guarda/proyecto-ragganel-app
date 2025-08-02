@@ -79,7 +79,7 @@ export const routes: Routes = [
       },
       {
         path: 'inventario-general', component: ListadoInventarioGeneralComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 2,3] } // Corrected
       },
       {
         path: 'inventario-garantia', component: ListadoInventarioGarantiaComponent, canActivate: [AuthGuard, RoleGuard],

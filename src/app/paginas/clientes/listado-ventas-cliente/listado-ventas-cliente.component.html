@@ -1,0 +1,57 @@
+<div class="container mat-elevation-z8">
+  <header class="header">
+    <h1>Historial de Ventas</h1>
+  </header>
+  
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+    </div>
+    <div *ngIf="errorMessage" class="error-container">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
+
+      <ng-container matColumnDef="NumeroDocumento">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> N° Factura </th>
+        <td mat-cell *matCellDef="let venta"> {{venta.NumeroDocumento}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="FechaCreacion">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha </th>
+        <td mat-cell *matCellDef="let venta"> {{venta.FechaCreacion | date:'dd/MM/yyyy h:mm a'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="TotalVenta">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Total </th>
+        <td mat-cell *matCellDef="let venta"> {{venta.TotalVenta | currency:'USD'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="EstadoVenta">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+        <td mat-cell *matCellDef="let venta">
+          <span class="status-badge" [ngClass]="getEstadoClass(venta.EstadoVenta)">
+            {{ venta.EstadoVenta }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="MotivoAnulacion">
+        <th mat-header-cell *matHeaderCellDef> Motivo de Anulación </th>
+        <td mat-cell *matCellDef="let venta"> {{venta.MotivoAnulacion}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          Este cliente no tiene ventas registradas.
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <mat-paginator [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+</div>

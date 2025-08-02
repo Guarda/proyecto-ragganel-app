@@ -52,10 +52,10 @@
       <ng-container matColumnDef="Action">
         <th mat-header-cell *matHeaderCellDef> Acciones </th>
         <td mat-cell *matCellDef="let item" class="actions-cell">
-          <a mat-icon-button color="primary" [routerLink]="['/home/listado-servicios/ver-servicio', item.IdServicioPK, 'view']" matTooltip="Ver / Editar Detalles">
+          <a mat-icon-button color="primary" [routerLink]="['/home/listado-servicios/ver-servicio', item.CodigoServicio, 'view']" matTooltip="Ver / Editar Detalles">
             <mat-icon>visibility</mat-icon>
           </a>
-          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.IdServicioPK)" matTooltip="Eliminar Servicio">
+          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.CodigoServicio)" matTooltip="Eliminar Servicio">
             <mat-icon>delete</mat-icon>
           </button>
         </td>

@@ -40,15 +40,34 @@ router.get('/:id', (req, res) => {
 });
 
 // Endpoint para crear un nuevo cliente
-router.post('/crear-cliente/', async (req, res) => {
-    const { Nombre, DNI, RUC, Telefono, Correo, Direccion } = req.body;
-    try {
-        await db.query('CALL IngresarCliente(?, ?, ?, ?, ?, ?)', [Nombre, DNI, RUC, Telefono, Correo, Direccion]); // Llama al procedimiento almacenado con parámetros
-        res.status(201).json({ message: 'Cliente creado exitosamente' });
-    } catch (error) {
-        console.error('Error al crear el cliente:', error);
-        res.status(500).json({ error: 'Error al crear el cliente' });
-    }
+// Endpoint para crear un nuevo cliente
+router.post('/crear-cliente/', (req, res) => {
+    const { Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios } = req.body;
+    
+    // 1. LLAMADA ÚNICA QUE INSERTA Y DEVUELVE EL ID
+    db.query('CALL IngresarCliente(?, ?, ?, ?, ?, ?, ?)', 
+    [Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios], 
+    (err, result) => {
+        if (err || result.length === 0) {
+            console.error('Error al ejecutar IngresarCliente:', err);
+            return res.status(500).json({ error: 'Error al crear el cliente' });
+        }
+
+        // El ID ahora viene directamente en el resultado de la primera llamada
+        const nuevoClienteId = result[0][0].id;
+
+        // 2. LLAMADA PARA OBTENER EL CLIENTE COMPLETO
+        db.query('CALL ListarClienteXId(?)', [nuevoClienteId], (err, finalResult) => {
+            if (err || finalResult[0].length === 0) {
+                return res.status(500).json({ error: 'No se pudo encontrar el cliente recién creado' });
+            }
+            
+            res.status(201).json({
+                message: 'Cliente creado exitosamente',
+                nuevoCliente: finalResult[0][0]
+            });
+        });
+    });
 });
 
 // Endpoint para actualizar un cliente
@@ -61,7 +80,8 @@ router.put('/actualizar-cliente/:id', (req, res) => {
         RUC, 
         Telefono, 
         Correo: CorreoElectronico, 
-        Direccion, 
+        Direccion,
+        Comentarios, 
         Estado 
     } = req.body;
 
@@ -73,7 +93,7 @@ router.put('/actualizar-cliente/:id', (req, res) => {
     }
 
     // Llamamos al procedimiento almacenado con los parámetros
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCliente` (?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCliente` (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
     db.query(sql, [
         id,  // Asegúrate de que el ID se pase correctamente
@@ -83,7 +103,8 @@ router.put('/actualizar-cliente/:id', (req, res) => {
         Telefono, 
         CorreoElectronico, 
         Direccion, 
-        Estado
+        Estado,
+        Comentarios
     ], (err, result) => {
         if (err) {
             console.error('Error actualizando cliente:', err);
@@ -92,6 +113,25 @@ router.put('/actualizar-cliente/:id', (req, res) => {
 
         // Responder con éxito
         res.json({ message: 'Cliente actualizado con éxito' });
+    });
+});
+
+router.get('/:id/ventas', (req, res) => {
+    const idCliente = req.params.id;
+
+    if (!idCliente || isNaN(idCliente)) {
+        return res.status(400).json({ error: 'ID de cliente inválido o no proporcionado' });
+    }
+
+    const sql = 'CALL sp_ObtenerVentasPorCliente(?)';
+
+    db.query(sql, [idCliente], (err, results) => {
+        if (err) {
+            console.error('Error al obtener ventas del cliente:', err);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        // El resultado del SP está en el primer elemento del array
+        res.json(results[0]);
     });
 });
 

@@ -131,7 +131,7 @@ export class VerFacturaComponent implements OnInit {
           IdMotivoFK: resultadoDialogo.IdMotivoFK,
           Observaciones: resultadoDialogo.Observaciones,
           TotalCredito: resultadoDialogo.TotalCredito,
-          EsDevolucionCompleta: resultadoDialogo.EsDevolucionCompleta,
+          anularFactura: resultadoDialogo.anularFactura,
           Detalles: resultadoDialogo.Detalles
         };
 

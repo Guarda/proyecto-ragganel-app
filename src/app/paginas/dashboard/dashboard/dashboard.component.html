@@ -119,11 +119,14 @@
       <mat-card-content>
         <ul class="dashboard-list">
            <li *ngFor="let venta of dashboardData.ultimasVentas">
-             <div class="venta-info">
-               <strong>{{ venta.NombreCliente }}</strong>
-               <small>{{ venta.FechaCreacion | date:'short' }} ({{ venta.NombreVendedor }})</small>
-             </div>
-            <strong>{{ venta.TotalVenta | currency:'USD' }}</strong>
+            <div class="venta-info">
+              <strong>{{ venta.NombreCliente }}</strong>
+              <small>{{ venta.FechaCreacion | date:'short' }} ({{ venta.NombreVendedor }})</small>
+              <div class="articulos-vendidos">
+                {{ venta.ArticulosVendidos }}
+              </div>
+            </div>
+          <strong>{{ venta.TotalVenta | currency:'USD' }}</strong>
           </li>
         </ul>
       </mat-card-content>

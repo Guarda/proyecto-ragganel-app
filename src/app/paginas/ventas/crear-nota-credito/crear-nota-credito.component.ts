@@ -116,6 +116,7 @@ export class CrearNotaCreditoComponent implements OnInit {
       IdMotivoFK: this.motivoSeleccionado,
       Observaciones: this.observaciones, // Este es el campo 'Motivo' de la tabla
       TotalCredito: this.totalCredito,
+      anularFactura: this.anularFactura,
       Detalles: itemsDevueltos.map(item => ({
         TipoArticulo: item.TipoArticulo,
         CodigoArticulo: item.CodigoArticulo,

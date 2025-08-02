@@ -1,28 +1,39 @@
-DELIMITER $$
 
 -- ===================================================================================
 -- 1. PROCEDIMIENTO PARA LOS INDICADORES CLAVE (KPIs)
 -- Este SP es muy eficiente, ya que obtiene todas las "cifras grandes" en una sola llamada.
 -- ===================================================================================
 
+DELIMITER $$
+
 DROP PROCEDURE IF EXISTS sp_Dashboard_KPIs;
 CREATE PROCEDURE sp_Dashboard_KPIs()
 BEGIN
-    -- Declaramos variables para los estados que nos interesan
-    DECLARE var_estado_garantia INT DEFAULT 8;
-    DECLARE var_estado_reparar INT DEFAULT 6;
+    -- Declaramos variables para los IDs clave y mejorar la legibilidad
+    DECLARE var_tipo_factura INT DEFAULT 3; -- ID para el tipo de documento 'Factura'
+    DECLARE var_estado_pagado INT DEFAULT 2; -- ID para el estado de venta 'Pagado'
+    DECLARE var_estado_garantia INT DEFAULT 9; -- Estado 'En garantia' para inventario
+    DECLARE var_estado_reparar INT DEFAULT 6;  -- Estado 'A reparar' para inventario
 
-    -- La consulta principal une varias subconsultas para obtener todos los KPIs
     SELECT
-        -- Ventas
-        (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE DATE(FechaCreacion) = CURDATE()) AS VentasHoy,
-        (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE YEARWEEK(FechaCreacion, 1) = YEARWEEK(CURDATE(), 1)) AS VentasSemana,
-        (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE MONTH(FechaCreacion) = MONTH(CURDATE()) AND YEAR(FechaCreacion) = YEAR(CURDATE())) AS VentasMes,
+        -- Ventas Corregidas (Facturas Pagadas - Notas de Crédito Activas)
+        (
+            (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE IdTipoDocumentoFK = var_tipo_factura AND IdEstadoVentaFK = var_estado_pagado AND DATE(FechaCreacion) = CURDATE()) -
+            (SELECT IFNULL(SUM(TotalCredito), 0) FROM NotasCredito WHERE Estado = 1 AND DATE(FechaEmision) = CURDATE())
+        ) AS VentasHoy,
+        (
+            (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE IdTipoDocumentoFK = var_tipo_factura AND IdEstadoVentaFK = var_estado_pagado AND YEARWEEK(FechaCreacion, 1) = YEARWEEK(CURDATE(), 1)) -
+            (SELECT IFNULL(SUM(TotalCredito), 0) FROM NotasCredito WHERE Estado = 1 AND YEARWEEK(FechaEmision, 1) = YEARWEEK(CURDATE(), 1))
+        ) AS VentasSemana,
+        (
+            (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE IdTipoDocumentoFK = var_tipo_factura AND IdEstadoVentaFK = var_estado_pagado AND MONTH(FechaCreacion) = MONTH(CURDATE()) AND YEAR(FechaCreacion) = YEAR(CURDATE())) -
+            (SELECT IFNULL(SUM(TotalCredito), 0) FROM NotasCredito WHERE Estado = 1 AND MONTH(FechaEmision) = MONTH(CURDATE()) AND YEAR(FechaEmision) = YEAR(CURDATE()))
+        ) AS VentasMes,
         
-        -- Clientes
+        -- Clientes (sin cambios)
         (SELECT COUNT(IdClientePK) FROM Clientes WHERE MONTH(FechaRegistro) = MONTH(CURDATE()) AND YEAR(FechaRegistro) = YEAR(CURDATE())) AS ClientesNuevosMes,
         
-        -- Inventario con estados especiales
+        -- Inventario con estados especiales (sin cambios)
         (
             (SELECT COUNT(CodigoConsola) FROM ProductosBases WHERE Estado = var_estado_garantia) +
             (SELECT COUNT(CodigoAccesorio) FROM AccesoriosBase WHERE EstadoAccesorio = var_estado_garantia)
@@ -33,6 +44,7 @@ BEGIN
         ) AS ArticulosAReparar;
 END$$
 
+DELIMITER ;
 
 -- ===================================================================================
 -- 2. PROCEDIMIENTO PARA EL GRÁFICO DE VENTAS DE LOS ÚLTIMOS 30 DÍAS
@@ -123,21 +135,75 @@ END$$
 -- 5. PROCEDIMIENTO PARA LA TABLA DE ÚLTIMAS 5 VENTAS
 -- ===================================================================================
 DELIMITER $$
--- DROP PROCEDURE IF EXISTS sp_Dashboard_Ultimas5Ventas;
+
+DROP PROCEDURE IF EXISTS sp_Dashboard_Ultimas5Ventas;
 CREATE PROCEDURE sp_Dashboard_Ultimas5Ventas()
 BEGIN
-    SELECT 
+    SELECT
         vb.NumeroDocumento,
         c.NombreCliente,
         vb.TotalVenta,
         u.Nombre AS NombreVendedor,
-        vb.FechaCreacion
-    FROM VentasBase vb
+        vb.FechaCreacion,
+        GROUP_CONCAT(
+            CONCAT(dv.Cantidad, 'x ',
+                -- Usamos CASE para obtener el nombre completo del artículo
+                CASE dv.TipoArticulo
+                    WHEN 'Producto' THEN (
+                        -- MODIFICADO: Ahora une todas las tablas para construir el nombre completo
+                        SELECT CONCAT_WS(' ', f.NombreFabricante, cp.NombreCategoria, sp.NombreSubcategoria)
+                        FROM ProductosBases pb
+                        JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK
+                        JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
+                        JOIN CategoriasProductos cp ON sp.IdCategoriaFK = cp.IdCategoriaPK
+                        JOIN Fabricantes f ON cp.IdFabricanteFK = f.IdFabricantePK
+                        WHERE pb.CodigoConsola = dv.CodigoArticulo
+                    )
+                    WHEN 'Accesorio' THEN (
+                        -- MODIFICADO: Ahora une todas las tablas para construir el nombre completo
+                        SELECT CONCAT_WS(' ', fa.NombreFabricanteAccesorio, ca.NombreCategoriaAccesorio, sa.NombreSubcategoriaAccesorio)
+                        FROM AccesoriosBase ab
+                        JOIN CatalogoAccesorios cat_a ON ab.ModeloAccesorio = cat_a.IdModeloAccesorioPK
+                        JOIN SubcategoriasAccesorios sa ON cat_a.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+                        JOIN CategoriasAccesorios ca ON sa.IdCategoriaAccesorioFK = ca.IdCategoriaAccesorioPK
+                        JOIN FabricanteAccesorios fa ON ca.IdFabricanteAccesorioFK = fa.IdFabricanteAccesorioPK
+                        WHERE ab.CodigoAccesorio = dv.CodigoArticulo
+                    )
+                    WHEN 'Insumo' THEN (
+                        -- MODIFICADO: Ahora une todas las tablas para construir el nombre completo
+                        SELECT CONCAT_WS(' ', fi.NombreFabricanteInsumos, ci.NombreCategoriaInsumos, si.NombreSubcategoriaInsumos)
+                        FROM InsumosBase ib
+                        JOIN CatalogoInsumos cat_i ON ib.ModeloInsumo = cat_i.IdModeloInsumosPK
+                        JOIN SubcategoriasInsumos si ON cat_i.SubcategoriaInsumos = si.IdSubcategoriaInsumos
+                        JOIN CategoriasInsumos ci ON si.IdCategoriaInsumosFK = ci.IdCategoriaInsumosPK
+                        JOIN FabricanteInsumos fi ON ci.IdFabricanteInsumosFK = fi.IdFabricanteInsumosPK
+                        WHERE ib.CodigoInsumo = dv.CodigoArticulo
+                    )
+                    WHEN 'Servicio' THEN (
+                        -- Sin cambios para servicios
+                        SELECT DescripcionServicio
+                        FROM ServiciosBase
+                        WHERE IdServicioPK = CAST(dv.CodigoArticulo AS UNSIGNED)
+                    )
+                    ELSE 'Artículo Desconocido'
+                END
+            ) SEPARATOR '\n'
+        ) AS ArticulosVendidos
+    FROM
+        VentasBase vb
     JOIN Clientes c ON vb.IdClienteFK = c.IdClientePK
     JOIN Usuarios u ON vb.IdUsuarioFK = u.IdUsuarioPK
-    ORDER BY vb.FechaCreacion DESC
+    LEFT JOIN DetalleVenta dv ON vb.IdVentaPK = dv.IdVentaFK
+    WHERE
+        vb.IdTipoDocumentoFK = 3 -- Aseguramos que solo sean Facturas
+    GROUP BY
+        vb.IdVentaPK
+    ORDER BY
+        vb.FechaCreacion DESC
     LIMIT 5;
 END$$
+
+DELIMITER ;
 
 
 -- ===================================================================================

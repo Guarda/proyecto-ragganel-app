@@ -1,107 +1,79 @@
-/* Contenedor general para centrar la imagen */
-.contenedor-img-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 16px; /* Espaciado opcional debajo de la imagen */
+/* Estilo general del contenedor del diálogo */
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh; /* Evita que el diálogo sea demasiado alto */
 }
 
-/* Contenedor de la imagen (círculo con sombra) */
-.contenedor-img-cliente {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: #f3f3f3;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+/* Encabezado del diálogo */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background-color: #f5f5f5; /* Un fondo suave para el encabezado */
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  margin: -24px -24px 16px -24px; /* Truco para extender el fondo */
 }
 
-/* Tamaño de la imagen */
-.imagen-cliente {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.dialog-header mat-icon {
+  font-size: 28px;
+  height: 28px;
+  width: 28px;
 }
 
-/* Estilo del título */
-span {
-    font-family: Quicksand, sans-serif;
-    font-size: 30px;
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
+/* Contenido del diálogo con el formulario */
+.dialog-content {
+  padding: 8px 24px;
+  overflow-y: auto; /* Permite scroll si el contenido es mucho */
 }
 
-/* Contenedor principal */
-.contenedor-principal {
-    display: flex;
+/* Contenedor de filas para el layout flexible */
+.form-row {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea en pantallas pequeñas */
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+/* Estilo para los mat-form-field */
+mat-form-field {
+  flex: 1 1 200px; /* Flex-grow, flex-shrink, y base width */
+  min-width: 200px; /* Evita que los campos se encojan demasiado */
+}
+
+/* Clase para campos que deben ocupar el ancho completo */
+.full-width {
+  flex-basis: 100%;
+}
+
+/* Iconos dentro de los campos de texto */
+mat-form-field mat-icon[matPrefix] {
+  margin-right: 12px;
+  color: #757575; /* Un color más suave para los iconos */
+}
+
+/* Acciones del diálogo (botones) */
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  margin: 16px -24px -24px -24px; /* Extender el fondo */
+}
+
+.dialog-actions button {
+  padding: 8px 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Media Query para hacer el layout de una sola columna en pantallas pequeñas */
+@media (max-width: 600px) {
+  .form-row {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 20px;
-}
-
-/* Contenedor del formulario */
-.contenedor-form {
-    width: 100%;
-    max-width: 500px; /* Limita el tamaño del formulario */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centra los inputs */
-}
-
-/* Ajuste de ancho de los inputs */
-.input-form-cliente {
-    width: 100%; /* Ocupa todo el ancho del contenedor */
-    max-width: 400px; /* Limita el tamaño máximo de los inputs */
-    margin: 8px auto; /* Agrega separación y centra */
-}
-
-/* Asegurar que el dialog-content no tenga márgenes excesivos */
-mat-dialog-content {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    padding: 0 16px;
-    box-sizing: border-box;
-    align-items: center; /* Asegura que el contenido esté centrado */
-}
-
-/* Botones */
-mat-dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    margin-top: 20px;
-}
-
-button {
-    font-weight: bold;
-    padding: 8px 16px;
-    border-radius: 5px;
-}
-
-/* Botón cancelar */
-button[mat-dialog-close] {
-    background-color: #d32f2f;
-    color: white;
-}
-
-button[mat-dialog-close]:hover {
-    background-color: #b71c1c;
-}
-
-/* Botón guardar */
-button[color="primary"] {
-    background-color: #1976d2;
-    color: white;
-}
-
-button[color="primary"]:hover {
-    background-color: #125ea3;
+    gap: 0;
+  }
 }

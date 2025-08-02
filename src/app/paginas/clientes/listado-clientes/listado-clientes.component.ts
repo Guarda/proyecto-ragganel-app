@@ -120,7 +120,7 @@ export class ListadoClientesComponent implements OnInit, AfterViewInit {
 
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(CrearClienteComponent, {
-      width: '500px',
+      width: '600px',
       disableClose: true,
     });
     dialogRef.afterClosed().subscribe(result => {

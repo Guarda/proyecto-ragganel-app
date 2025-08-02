@@ -15,7 +15,8 @@ router.post('/crear', (req, res) => {
     Observaciones, // Esto se mapeará al parámetro p_Motivo del SP
     TotalCredito,
     Detalles, // Este es el array de artículos    
-    IdMotivoFK
+    IdMotivoFK,
+    anularFactura 
   } = req.body;
 
   // 2. Validación simple para asegurar que los datos principales vienen
@@ -36,11 +37,12 @@ router.post('/crear', (req, res) => {
     Observaciones, // El texto libre va a p_Motivo
     TotalCredito,
     detallesJSON, // El array convertido a string JSON    
-    IdMotivoFK // El ID del motivo del dropdown
+    IdMotivoFK, // El ID del motivo del dropdown,
+    anularFactura 
   ];
 
   // 5. Definimos y ejecutamos la consulta
-  const query = 'CALL sp_CrearNotaCredito(?, ?, ?, ?, ?, ?);';
+  const query = 'CALL sp_CrearNotaCredito(?, ?, ?, ?, ?, ?, ?);';
 
   db.query(query, params, (err, results) => {
     if (err) {
@@ -124,29 +126,28 @@ router.get('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
-    const idNotaCredito = parseInt(req.params.id, 10);
-    // Leemos los nuevos datos del cuerpo de la petición
-    const { motivo, usuarioId } = req.body;
+router.put('/anular/:id', (req, res) => {
+    const idNotaCredito = req.params.id;
+    const { motivo, usuarioId } = req.body; // El cuerpo ahora se leerá correctamente
 
-    if (isNaN(idNotaCredito) || !motivo || !usuarioId) {
+    // Verificación para asegurar que los datos llegan
+    if (!motivo || !usuarioId) {
         return res.status(400).json({ 
             success: false, 
-            mensaje: 'Faltan datos requeridos (ID de nota, motivo o ID de usuario).' 
+            error: 'Faltan datos requeridos. Se necesita "motivo" y "usuarioId".' 
         });
     }
 
-    // Llamamos al SP con los 3 parámetros
-    const query = 'CALL sp_AnularNotaCredito(?, ?, ?);';
+    const sql = 'CALL sp_AnularNotaCredito(?, ?, ?)';
 
-    db.query(query, [idNotaCredito, usuarioId, motivo], (err, results) => {
+    db.query(sql, [idNotaCredito, usuarioId, motivo], (err, result) => {
         if (err) {
-            // ... (tu lógica de manejo de errores no cambia)
+            console.error('Error al anular nota de crédito:', err);
+            return res.status(500).json({ success: false, error: 'Error al ejecutar la consulta en la base de datos.' });
         }
-        res.status(200).json({
-            success: true,
-            mensaje: `Nota de crédito #${idNotaCredito} anulada correctamente.`
-        });
+
+        // Si todo sale bien, devolvemos una respuesta de éxito
+        res.json({ success: true, mensaje: `Nota de crédito #${idNotaCredito} anulada correctamente.` });
     });
 });
 

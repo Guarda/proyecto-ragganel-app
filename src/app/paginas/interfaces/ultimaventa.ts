@@ -4,4 +4,5 @@ export interface UltimaVenta {
   TotalVenta: number;
   NombreVendedor: string;
   FechaCreacion: string | Date;
+  ArticulosVendidos: string; // <-- AÑADIR ESTA LÍNEA
 }

@@ -307,7 +307,7 @@ export class AgregarPedidoComponent {
 
     const pedidoData = {
       ...this.pedidoForm.getRawValue(),
-      articulos: this.listadoArticulos.dataToDisplay, // Aquí agregarías la lista de artículos.
+      articulos: this.listadoArticulos.activeArticulos, // Aquí agregarías la lista de artículos.
     };
 
     // Convierte las fechas en formato ISO 8601 (con hora y zona horaria) a solo fecha

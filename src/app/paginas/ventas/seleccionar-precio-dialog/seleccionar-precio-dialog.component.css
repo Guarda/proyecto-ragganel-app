@@ -1,0 +1,39 @@
+.opcion-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-bottom: 8px; /* Espacio entre las opciones */
+  border-radius: 4px; /* Bordes ligeramente redondeados */
+}
+
+.opcion-item:hover {
+  background-color: #f0f0f0; /* Un gris claro al pasar el ratón */
+}
+
+.precio-calculado {
+  font-size: 1.2em;
+  font-weight: 500; /* Ligeramente menos bold para un look más moderno */
+  color: var(--mdc-theme-primary); /* Usa el color primario del tema Material */
+  margin-left: 10px;
+}
+
+.margen-porcentaje {
+  color: gray;
+  font-size: 0.9em;
+}
+
+
+mat-dialog-content {
+  padding: 16px; /* Más padding para respiración */
+}
+
+mat-list {
+  padding: 0;
+}
+
+mat-list-item {
+  padding: 8px 0;
+}
+
+mat-icon {
+  margin-right: 16px;
+}

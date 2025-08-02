@@ -1,63 +1,79 @@
-<h4 mat-dialog-title>
-    <span>Crear Cliente</span>
-</h4>
+<div class="dialog-container">
+  <h2 mat-dialog-title class="dialog-header">
+    <mat-icon>person_add</mat-icon>
+    <span>Registrar Nuevo Cliente</span>
+  </h2>
 
-<!-- Contenedor para centrar la imagen -->
-<div class="contenedor-img-wrapper">
-    <div class="contenedor-img-cliente">
-        <img [src]="ImagePath || 'assets/img/default-user.png'" alt="Cliente" class="imagen-cliente">
-    </div>  
+  <mat-dialog-content class="dialog-content" [formGroup]="clienteForm">
+    
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre Completo</mat-label>
+        <mat-icon matPrefix>badge</mat-icon>
+        <input matInput formControlName="Nombre" placeholder="Ej: Juan Pérez" required>
+        <mat-error *ngIf="clienteForm.get('Nombre')?.hasError('required')">
+          El nombre es obligatorio.
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>DNI</mat-label>
+        <mat-icon matPrefix>fingerprint</mat-icon>
+        <input matInput formControlName="DNI" placeholder="001-000000-0000A">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>RUC</mat-label>
+        <mat-icon matPrefix>business</mat-icon>
+        <input matInput formControlName="RUC">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono</mat-label>
+        <mat-icon matPrefix>phone</mat-icon>
+        <input matInput formControlName="Telefono" placeholder="+505 8888-8888" required>
+        <mat-error *ngIf="clienteForm.get('Telefono')?.hasError('required')">
+          El teléfono es obligatorio.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Correo Electrónico</mat-label>
+        <mat-icon matPrefix>email</mat-icon>
+        <input matInput formControlName="Correo" placeholder="ejemplo@correo.com">
+        <mat-error *ngIf="clienteForm.get('Correo')?.hasError('email')">
+          Formato de correo no válido.
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Dirección</mat-label>
+        <mat-icon matPrefix>location_on</mat-icon>
+        <textarea matInput formControlName="Direccion" placeholder="Dirección del cliente..."></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Comentarios</mat-label>
+            <mat-icon matPrefix>comment</mat-icon>
+            <textarea matInput formControlName="Comentarios" placeholder="Anotaciones adicionales sobre el cliente..."></textarea>
+        </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button mat-dialog-close>Cancelar</button>
+    <button mat-flat-button color="primary" [disabled]="!clienteForm.valid" (click)="crearCliente()">
+      <mat-icon>save</mat-icon>
+      <span>Guardar Cliente</span>
+    </button>
+  </mat-dialog-actions>
 </div>
-
-<form [formGroup]="clienteForm" (ngSubmit)="onSubmit($event)" class="contenedor-form">
-    <mat-dialog-content class="mat-typography">
-        <!-- Nombre -->
-        <mat-form-field class="input-form-cliente">
-            <mat-label>Nombre</mat-label>
-            <input matInput formControlName="Nombre" name="Nombre" />
-        </mat-form-field>
-
-        <!-- Correo Electrónico -->
-        <mat-form-field class="input-form-cliente">
-            <mat-label>Correo Electrónico</mat-label>
-            <input matInput formControlName="Correo" name="Correo" type="email" />
-        </mat-form-field>
-
-        <!-- DNI -->
-        <mat-form-field class="input-form-cliente">
-            <mat-label>DNI</mat-label>
-            <input matInput formControlName="DNI" name="DNI" />
-        </mat-form-field>
-
-        <!-- RUC -->
-        <mat-form-field class="input-form-cliente">
-            <mat-label>RUC</mat-label>
-            <input matInput formControlName="RUC" name="RUC" />
-        </mat-form-field>
-
-        <!-- Teléfono -->
-        <mat-form-field class="input-form-cliente">
-            <mat-label>Teléfono</mat-label>
-            <input matInput formControlName="Telefono" name="Telefono" type="tel" />
-        </mat-form-field>
-
-        <!-- Dirección -->
-        <mat-form-field class="input-form-cliente">
-            <mat-label>Dirección</mat-label>
-            <textarea matInput formControlName="Direccion" name="Direccion"></textarea>
-        </mat-form-field>
-    </mat-dialog-content>
-
-    <mat-dialog-actions align="end">
-        <button mat-button mat-dialog-close cdkFocusInitial>Cancelar</button>
-        <button
-          mat-button
-          type="submit"
-          [disabled]="!clienteForm.valid"
-          class="btn btn-secundary"
-          color="primary"
-        >
-          Guardar
-        </button>
-      </mat-dialog-actions>
-</form>

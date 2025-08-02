@@ -55,22 +55,12 @@ export class NotasCreditoService {
     );
   }
 
-  anularNotaCredito(id: number, motivo: string, usuarioId: number): Observable<any> {
-        const url = `${this.apiURL}/notas-credito/${id}`;
-        
-        const httpOptions = {
-            headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-            body: {
-                motivo: motivo,
-                usuarioId: usuarioId
-            }
-        };
-
-        return this.httpClient.delete<any>(url, httpOptions)
-            .pipe(
-                catchError(this.errorHandler)
-            );
-    }
+  // Asegúrate de que la URL incluye el prefijo
+anularNotaCredito(idNota: number, motivo: string, usuarioId: number): Observable<any> {
+    const body = { motivo, usuarioId };
+    // La URL debe ser: http://localhost:3000/notas-credito/anular/ID_DE_LA_NOTA
+    return this.httpClient.put(`${this.apiURL}/notas-credito/anular/${idNota}`, body); 
+}
 
   /**
    * Manejador de errores simple para las peticiones HTTP.

@@ -2318,20 +2318,38 @@ DELIMITER ;
 
 DELIMITER $$
 
-DROP PROCEDURE IF EXISTS IngresarCliente; -- Para poder recrearlo sin errores
+DROP PROCEDURE IF EXISTS IngresarCliente; -- Elimina el procedimiento viejo
+
 CREATE PROCEDURE IngresarCliente(
     IN p_NombreCliente VARCHAR(255),
     IN p_DNI VARCHAR(255),
     IN p_RUC VARCHAR(255),
     IN p_Telefono VARCHAR(255),
     IN p_CorreoElectronico VARCHAR(255),
-    IN p_Direccion VARCHAR(255)
+    IN p_Direccion VARCHAR(255),
+    IN p_Comentarios VARCHAR(1000) -- 1. Añadimos el nuevo parámetro
 )
 BEGIN
     INSERT INTO Clientes (
-        NombreCliente, DNI, RUC, Telefono, CorreoElectronico, Direccion, FechaRegistro, Estado
+        NombreCliente, 
+        DNI, 
+        RUC, 
+        Telefono, 
+        CorreoElectronico, 
+        Direccion, 
+        Comentarios, -- 2. Añadimos la columna a la lista
+        FechaRegistro, 
+        Estado
     ) VALUES (
-        p_NombreCliente, p_DNI, p_RUC, p_Telefono, p_CorreoElectronico, p_Direccion, CURDATE(), 1 -- Se pasa el valor 1 explícitamente.
+        p_NombreCliente, 
+        p_DNI, 
+        p_RUC, 
+        p_Telefono, 
+        p_CorreoElectronico, 
+        p_Direccion, 
+        p_Comentarios, -- 3. Añadimos el valor del parámetro
+        CURDATE(), 
+        1
     );
 END $$
 
@@ -2355,6 +2373,7 @@ BEGIN
         CorreoElectronico AS correoElectronico,
         Direccion AS direccion,
          DATE_FORMAT(FechaRegistro, '%d/%m/%Y') as 'fechaRegistro',
+		Comentarios,
         Estado AS estado
     FROM 
         Clientes
@@ -2374,6 +2393,7 @@ CREATE PROCEDURE ActualizarCliente(
     IN p_Telefono VARCHAR(255),
     IN p_CorreoElectronico VARCHAR(255),
     IN p_Direccion VARCHAR(255),
+    IN p_Comentarios VARCHAR(1000),
     IN p_Estado BOOLEAN
 )
 BEGIN
@@ -2385,6 +2405,7 @@ BEGIN
         Telefono = p_Telefono,
         CorreoElectronico = p_CorreoElectronico,
         Direccion = p_Direccion,
+        Comentarios = p_Comentarios,
         Estado = p_Estado
     WHERE 
         IdClientePK = p_IdClientePK;
@@ -4196,7 +4217,7 @@ BEGIN
     END WHILE;
 
     -- 4. Anular factura original si corresponde
-    IF p_IdMotivoFK = 4 THEN -- ID 4 = 'Cancelación de factura completa'
+    IF p_AnularFacturaOriginal = TRUE OR p_IdMotivoFK = 4 THEN -- ID 4 = 'Cancelación de factura completa'
         UPDATE VentasBase SET IdEstadoVentaFK = 3 WHERE IdVentaPK = p_IdVentaFK;
     END IF;
 
@@ -4437,6 +4458,10 @@ BEGIN
 
     -- Cerrar el cursor
     CLOSE cur_detalles;
+    
+    IF v_IdVentaFK IS NOT NULL THEN
+        UPDATE VentasBase SET IdEstadoVentaFK = 2 WHERE IdVentaPK = v_IdVentaFK;
+    END IF;
 
     -- ==================================================================
     -- 4. (NUEVO) Registrar la acción de anulación en el historial
@@ -5027,5 +5052,41 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+delimiter //
+
+CREATE PROCEDURE `sp_Carrito_ActualizarDetalle`(
+    IN p_IdUsuario INT,
+    IN p_IdCliente INT,
+    IN p_CodigoArticulo VARCHAR(25),
+    IN p_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio'),
+    IN p_NuevoDescuento DECIMAL(10,2),
+    IN p_NuevoSubtotalSinIVA DECIMAL(10,2)
+)
+BEGIN
+    DECLARE v_IdCarrito INT;
+
+    -- 1. Buscar el carrito activo para el usuario y cliente especificados.
+    SELECT IdCarritoPK INTO v_IdCarrito
+    FROM CarritoVentas
+    WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente AND EstadoCarrito = 'En curso'
+    LIMIT 1;
+
+    -- 2. Si se encuentra un carrito, proceder a actualizar el detalle.
+    IF v_IdCarrito IS NOT NULL THEN
+        UPDATE DetalleCarritoVentas
+        SET
+            Descuento = p_NuevoDescuento,
+            SubtotalSinIVA = p_NuevoSubtotalSinIVA
+        WHERE
+            IdCarritoFK = v_IdCarrito
+            AND CodigoArticulo = p_CodigoArticulo
+            AND TipoArticulo = p_TipoArticulo;
+    ELSE
+        -- 3. Si no se encuentra un carrito, lanzar un error.
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se encontró un carrito de venta activo para el usuario y cliente especificado.';
+    END IF;
+END
 
 

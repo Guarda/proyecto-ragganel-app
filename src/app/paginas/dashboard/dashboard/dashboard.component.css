@@ -167,3 +167,21 @@ grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 grid-column: span 2; /* Ocupa 2 columnas en tablets */
 }
 }
+
+/* ... al final de dashboard.component.css ... */
+
+.venta-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Permite que ocupe el espacio disponible */
+}
+
+.articulos-vendidos {
+  font-size: 0.85em;          /* Letra un poco más pequeña */
+  color: #555;                 /* Un color de texto más suave */
+  margin-top: 8px;              /* Espacio para separarlo del nombre del cliente */
+  padding: 8px;                 /* Relleno interno */
+  background-color: #f7f7f7;    /* Un fondo sutil para destacarlo */
+  border-radius: 4px;           /* Bordes redondeados */
+  white-space: pre-line;        /* ¡La línea clave! Renderiza los saltos de línea (\n) */
+}

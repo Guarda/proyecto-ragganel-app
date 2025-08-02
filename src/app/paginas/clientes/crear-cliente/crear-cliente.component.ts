@@ -46,7 +46,7 @@ export class CrearClienteComponent {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private dialogRef: MatDialogRef<CrearClienteComponent> // Inyectar MatDialogRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Inicialización del formulario con validadores
@@ -54,9 +54,10 @@ export class CrearClienteComponent {
       Nombre: ['', [Validators.required, Validators.minLength(3)]],
       DNI: [''],
       RUC: [''],
-      Correo: ['', [Validators.required, Validators.email]],
-      Telefono: ['', [Validators.pattern(/^\+?\d{1,4}?\d{8,}$/)]], // Validador opcional para el teléfono
-      Direccion: ['']
+      Correo: ['', [Validators.email]], // (Aquí también está el cambio de la respuesta anterior)
+      Telefono: ['', [Validators.required, Validators.pattern(/^\+?\d{1,4}?\d{8,}$/)]], // (Y aquí)
+      Direccion: [''],
+      Comentarios: [''] // <-- AÑADIR ESTA LÍNEA
     });
 
     // Inicializa la ruta de la imagen
@@ -70,24 +71,21 @@ export class CrearClienteComponent {
   }
 
   // Método para manejar el envío del formulario
-  onSubmit(event: Event): void {
-    event.preventDefault(); // Prevenir el comportamiento predeterminado del formulario
-
+  crearCliente(): void {
     if (this.clienteForm.valid) {
-      console.log('Formulario válido, enviando datos:', this.clienteForm.value); // Debug
       this.clienteService.crearCliente(this.clienteForm.value).subscribe(
         (res: any) => {
-          console.log('Cliente creado con éxito:', res); // Debug
-          this.Agregado.emit(); // Emitir evento de cliente agregado
-          this.dialogRef.close(); // Cerrar el diálogo
-         // this.router.navigateByUrl('home/listado-clientes'); // Redirigir al listado de clientes
+          console.log('Cliente creado con éxito:', res);
+          this.Agregado.emit();
+          // AHORA DEVUELVE EL OBJETO DEL CLIENTE QUE VINO DEL BACKEND
+          this.dialogRef.close(res.nuevoCliente); 
         },
         (error: any) => {
-          console.error('Error al crear el cliente:', error); // Manejo de errores
+          console.error('Error al crear el cliente:', error);
+          // Si hay un error, cerramos sin devolver nada
+          this.dialogRef.close(); 
         }
       );
-    } else {
-      console.warn('Formulario inválido, no se enviaron datos'); // Debug
-    }
+    } 
   }
 }

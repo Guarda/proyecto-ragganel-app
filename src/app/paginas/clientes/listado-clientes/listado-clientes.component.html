@@ -71,10 +71,10 @@
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef> Acciones </th>
         <td mat-cell *matCellDef="let item" class="actions-cell">
-          <a mat-icon-button color="primary" [routerLink]="['/home/listado-clientes/ver-cliente', item.IdClientePK, 'view']" matTooltip="Ver / Editar Detalles">
+          <a mat-icon-button color="primary" [routerLink]="['/home/listado-clientes/ver-cliente', item.id, 'view']" matTooltip="Ver / Editar Detalles">
             <mat-icon>visibility</mat-icon>
           </a>
-          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.IdClientePK)" matTooltip="Desactivar Cliente" [disabled]="!item.Estado">
+          <button mat-icon-button color="warn" (click)="openDialogEliminar(item.id)" matTooltip="Desactivar Cliente" [disabled]="!item.Estado">
             <mat-icon>delete</mat-icon>
           </button>
         </td>

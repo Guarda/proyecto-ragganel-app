@@ -19,13 +19,14 @@ import { ClientesService } from '../../../services/clientes.service';
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 import { EliminarClienteComponent } from '../eliminar-cliente/eliminar-cliente.component';
 import { MatDivider } from '@angular/material/divider';
+import { ListadoVentasClienteComponent } from '../listado-ventas-cliente/listado-ventas-cliente.component';
 
 
 @Component({
   selector: 'app-ver-cliente',
   standalone: true,
   imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, SuccessdialogComponent, MatCardModule, MatDivider],
+    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, SuccessdialogComponent, MatCardModule, MatDivider, ListadoVentasClienteComponent],
   templateUrl: './ver-cliente.component.html',
   styleUrl: './ver-cliente.component.css'
 })
@@ -58,6 +59,7 @@ export class VerClienteComponent {
       Direccion: new FormControl(''),
       FechaRegistro: new FormControl(''),
       Estado: new FormControl(true),
+      Comentarios: new FormControl(''), // <-- AÑADIR ESTA LÍNEA
     });
 
     // Obtén el ID del cliente desde los parámetros de la ruta
@@ -91,6 +93,7 @@ export class VerClienteComponent {
             Direccion: this.cliente.direccion,
             FechaRegistro: this.cliente.fechaRegistro,
             Estado: this.cliente.estado,
+             Comentarios: this.cliente.Comentarios,
           });
         }
       },
@@ -132,7 +135,7 @@ export class VerClienteComponent {
     }
   }
 
-  
+
 
 
 

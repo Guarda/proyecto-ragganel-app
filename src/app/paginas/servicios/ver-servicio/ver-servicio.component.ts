@@ -75,43 +75,53 @@ export class VerServicioComponent {
   }
 
   ngOnInit() {
-    this.id = this.route.snapshot.params['CodigoServicio'];
-    this.serviceId = this.id;
+  // Usamos switchMap para cambiar del observable de la ruta a nuestras llamadas a la API.
+  this.route.paramMap.pipe(
+    switchMap(params => {
+      // Obtenemos el ID de forma segura.
+      const idParam = params.get('CodigoServicio');
+      if (idParam) {
+        this.id = +idParam; // El '+' convierte el string a número.
+        this.serviceId = this.id;
 
-    if (this.id) {
-      this.servicioService.findById(this.id).subscribe(
-        (response: any) => {
-          if (response && response.length > 0) {
-            const servicioData = response[0] as ServicioEditar;
-            this.servicioActual = servicioData;
-            this.servicioForm.patchValue({
-              DescripcionServicio: servicioData.DescripcionServicio || '',
-              PrecioBase: servicioData.PrecioBase || 0,
-              EstadoServicioFK: servicioData.Estado || null,
-              Fecha_Ingreso: servicioData.Fecha_Ingreso || null,
-              Comentario: servicioData.Comentario || ''
-            });
-          }
-        }
-      );
-    }
+        // forkJoin ejecuta ambas llamadas en paralelo y nos da los resultados juntos.
+        return forkJoin({
+          servicio: this.servicioService.findById(this.id),
+          insumos: this.servicioService.listSupplies(this.id).pipe(
+             // Si no hay insumos, la API puede dar error 404. Lo capturamos y devolvemos un array vacío.
+            catchError(error => of([])) 
+          )
+        });
+      }
+      // Si no hay ID, devolvemos un observable vacío para no continuar.
+      return of(null);
+    })
+  ).subscribe(results => {
+    // Solo continuamos si results no es null.
+    if (results) {
+      // --- Llenamos los datos del servicio ---
+      if (results.servicio && results.servicio.length > 0) {
+        const servicioData = results.servicio[0] as ServicioEditar;
+        this.servicioActual = servicioData;
+        this.servicioForm.patchValue({
+          DescripcionServicio: servicioData.DescripcionServicio || '',
+          PrecioBase: servicioData.PrecioBase || 0,
+          EstadoServicioFK: servicioData.Estado || null,
+          Fecha_Ingreso: servicioData.Fecha_Ingreso || null,
+          Comentario: servicioData.Comentario || ''
+        });
+      }
 
-    this.servicioService.listSupplies(this.id).subscribe(
-      (asignaciones: any[]) => {
-        if (asignaciones && asignaciones.length > 0) {
-          this.obtenerInsumosAsignados(asignaciones);
-        } else {
-          this.insumosAsignados = [];
-          this.actualizarDataToDisplay();
-        }
-      },
-      (error) => {
-        console.error('Error al obtener lista de insumos:', error);
+      // --- Llenamos los insumos ---
+      if (results.insumos && results.insumos.length > 0) {
+        this.obtenerInsumosAsignados(results.insumos);
+      } else {
         this.insumosAsignados = [];
         this.actualizarDataToDisplay();
       }
-    );
-  }
+    }
+  });
+}
 
   obtenerInsumosAsignados(asignaciones: any[]) {
     const requests = asignaciones.map(asignacion =>

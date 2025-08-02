@@ -11,4 +11,5 @@ export interface Cliente {
     direccion?: string | null;
     fechaRegistro: Date;
     estado: boolean;
+    Comentarios: string | null; // Añadido para almacenar comentarios del cliente
 }

@@ -31,18 +31,19 @@ import { response } from 'express';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { ConfirmacionReemplazarCarritoDialog } from '../confirmacion-reemplazar-carrito-dialog/confirmacion-reemplazar-carrito-dialog.component';
-
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-punto-venta',
   standalone: true,
   imports: [FormsModule, MatInputModule, MatIconButton, ReactiveFormsModule, TablaArticulosVentasComponent,
     CommonModule, MatIcon, MatButton, CrearClienteComponent, MatFormField, MatOption, MatAutocompleteModule,
-    MatSelect, MatSpinner],
+    MatSelect, MatSpinner, MatSlideToggleModule],
   templateUrl: './punto-venta.component.html',
   styleUrl: './punto-venta.component.css'
 })
 export class PuntoVentaComponent implements OnInit, OnDestroy {
+  public aplicarIVA: boolean = true;
   carrito$: Observable<ArticuloVenta[]> = new Observable();
   carrito: ArticuloVenta[] = [];
 
@@ -83,7 +84,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       startWith(''),
       debounceTime(300),
       distinctUntilChanged(),
-      map(value => typeof value === 'string' ? value : value?.nombre || ''),
+      map(value => typeof value === 'string' ? value : value?.nombre || ''), // Usar .nombre
       map(nombre => nombre ? this._filterClientes(nombre as string) : this.listaClientes.slice())
     );
   }
@@ -139,91 +140,91 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
   // En punto-venta.component.ts
 
-private cargarDatosDeProformaEnCarrito(idProforma: number): void {
-  this.cargandoCarrito = true;
-  this.snackBar.open('Cargando datos de la proforma...', undefined, { duration: 2000 });
+  private cargarDatosDeProformaEnCarrito(idProforma: number): void {
+    this.cargandoCarrito = true;
+    this.snackBar.open('Cargando datos de la proforma...', undefined, { duration: 2000 });
 
-  this.ventasBaseService.getProformaDetails(idProforma).subscribe({
-    next: (response) => {
-      if (response.success) {
-        const { proforma, detalles, itemsNoDisponibles } = response.data;
+    this.ventasBaseService.getProformaDetails(idProforma).subscribe({
+      next: (response) => {
+        if (response.success) {
+          const { proforma, detalles, itemsNoDisponibles } = response.data;
 
-        // 1. Advertir sobre items no disponibles
-        if (itemsNoDisponibles.length > 0) {
-          const nombresItems = itemsNoDisponibles.map(item => item.CodigoArticulo).join(', ');
-          this.snackBar.open(`Atención: Artículos no disponibles: ${nombresItems}`, 'Entendido', { duration: 7000 });
-        }
+          // 1. Advertir sobre items no disponibles
+          if (itemsNoDisponibles.length > 0) {
+            const nombresItems = itemsNoDisponibles.map(item => item.CodigoArticulo).join(', ');
+            this.snackBar.open(`Atención: Artículos no disponibles: ${nombresItems}`, 'Entendido', { duration: 7000 });
+          }
 
-        // 2. Establecer el cliente en la UI
-        const clienteEncontrado = this.listaClientes.find(c => c.id === proforma.IdClienteFK);
-        if (clienteEncontrado) {
-          this.ClienteSeleccionado = clienteEncontrado;
-          this.clienteControl.setValue(clienteEncontrado);
-        }
+          // 2. Establecer el cliente en la UI
+          const clienteEncontrado = this.listaClientes.find(c => c.id === proforma.IdClienteFK);
+          if (clienteEncontrado) {
+            this.ClienteSeleccionado = clienteEncontrado;
+            this.clienteControl.setValue(clienteEncontrado);
+          }
 
-        // 3. Pre-llenar otros campos
-        this.metodoPagoSeleccionado = proforma.IdMetodoDePagoFK;
-        this.observacionesOtros = proforma.Observaciones;
+          // 3. Pre-llenar otros campos
+          this.metodoPagoSeleccionado = proforma.IdMetodoDePagoFK;
+          this.observacionesOtros = proforma.Observaciones;
 
-        // ==============================================================
-        //  4. POBLAR EL CARRITO (LÓGICA CORREGIDA)
-        // ==============================================================
+          // ==============================================================
+          //  4. POBLAR EL CARRITO (LÓGICA CORREGIDA)
+          // ==============================================================
 
-        const detallesDisponibles = detalles.filter(detalle =>
-          !itemsNoDisponibles.some(noDisp => noDisp.CodigoArticulo === detalle.CodigoArticulo)
-        );
+          const detallesDisponibles = detalles.filter(detalle =>
+            !itemsNoDisponibles.some(noDisp => noDisp.CodigoArticulo === detalle.CodigoArticulo)
+          );
 
-        // Se crea un array de Observables para todas las llamadas a la API
-        const llamadasApi = detallesDisponibles.map(item => {
-          // Preparamos el cuerpo de la solicitud con TODOS los datos requeridos
-          const datosArticulo = {
-            IdUsuario: this.usuario.id,
-            IdCliente: this.ClienteSeleccionado!.id,
-            TipoArticulo: item.TipoArticulo,
-            CodigoArticulo: item.CodigoArticulo,
-            Cantidad: item.Cantidad,
-            PrecioVenta: item.PrecioVenta,
-            Descuento: item.Descuento,
-            PrecioBaseOriginal: item.PrecioBaseOriginal ?? 0, // Garantiza que sea number
-            MargenAplicado: item.MargenAplicado ?? 0,         // Garantiza que sea number
-            IdMargenFK: item.IdMargenFK
-          };
-          // Llamamos al servicio correcto que envía todos los datos al backend
-          return this.ventasBaseService.agregarArticuloAlCarrito(datosArticulo);
-        });
-
-        // Si hay artículos para agregar, los ejecutamos y luego refrescamos el carrito
-        if (llamadasApi.length > 0) {
-          // forkJoin(llamadasApi).subscribe({...}) // (Una forma más avanzada)
-          // Por simplicidad, ejecutaremos una por una y al final refrescaremos.
-          // Para este caso, como `agregarArticuloAlCarrito` ya debe manejar la cantidad, no hace falta un bucle.
-          Promise.all(llamadasApi.map(obs => obs.toPromise())).then(() => {
-            this.snackBar.open(`Proforma N° ${proforma.NumeroDocumento} cargada.`, 'OK', { duration: 3000 });
-            // Al final de todas las operaciones, refrescamos el carrito para sincronizar la UI
-            this.carritoService.refrescarCarrito(this.usuario, this.ClienteSeleccionado!).subscribe();
-            this.cargandoCarrito = false;
-          }).catch(error => {
-            console.error("Error al agregar artículos de la proforma", error);
-            this.snackBar.open('Uno o más artículos no se pudieron agregar.', 'Cerrar', { duration: 4000 });
-            this.cargandoCarrito = false;
+          // Se crea un array de Observables para todas las llamadas a la API
+          const llamadasApi = detallesDisponibles.map(item => {
+            // Preparamos el cuerpo de la solicitud con TODOS los datos requeridos
+            const datosArticulo = {
+              IdUsuario: this.usuario.id,
+              IdCliente: this.ClienteSeleccionado!.id,
+              TipoArticulo: item.TipoArticulo,
+              CodigoArticulo: item.CodigoArticulo,
+              Cantidad: item.Cantidad,
+              PrecioVenta: item.PrecioVenta,
+              Descuento: item.Descuento,
+              PrecioBaseOriginal: item.PrecioBaseOriginal ?? 0, // Garantiza que sea number
+              MargenAplicado: item.MargenAplicado ?? 0,         // Garantiza que sea number
+              IdMargenFK: item.IdMargenFK
+            };
+            // Llamamos al servicio correcto que envía todos los datos al backend
+            return this.ventasBaseService.agregarArticuloAlCarrito(datosArticulo);
           });
+
+          // Si hay artículos para agregar, los ejecutamos y luego refrescamos el carrito
+          if (llamadasApi.length > 0) {
+            // forkJoin(llamadasApi).subscribe({...}) // (Una forma más avanzada)
+            // Por simplicidad, ejecutaremos una por una y al final refrescaremos.
+            // Para este caso, como `agregarArticuloAlCarrito` ya debe manejar la cantidad, no hace falta un bucle.
+            Promise.all(llamadasApi.map(obs => obs.toPromise())).then(() => {
+              this.snackBar.open(`Proforma N° ${proforma.NumeroDocumento} cargada.`, 'OK', { duration: 3000 });
+              // Al final de todas las operaciones, refrescamos el carrito para sincronizar la UI
+              this.carritoService.refrescarCarrito(this.usuario, this.ClienteSeleccionado!).subscribe();
+              this.cargandoCarrito = false;
+            }).catch(error => {
+              console.error("Error al agregar artículos de la proforma", error);
+              this.snackBar.open('Uno o más artículos no se pudieron agregar.', 'Cerrar', { duration: 4000 });
+              this.cargandoCarrito = false;
+            });
+          } else {
+            this.snackBar.open('No hay artículos disponibles para cargar de esta proforma.', 'OK', { duration: 4000 });
+            this.cargandoCarrito = false;
+          }
+
         } else {
-          this.snackBar.open('No hay artículos disponibles para cargar de esta proforma.', 'OK', { duration: 4000 });
+          this.snackBar.open(response.error || 'Error al cargar los datos.', 'Cerrar', { duration: 4000 });
           this.cargandoCarrito = false;
         }
-
-      } else {
-        this.snackBar.open(response.error || 'Error al cargar los datos.', 'Cerrar', { duration: 4000 });
+      },
+      error: (err) => {
+        console.error('Error al obtener detalles de la proforma:', err);
+        this.snackBar.open(err.error?.error || 'Error de comunicación al cargar la proforma.', 'Cerrar', { duration: 5000 });
         this.cargandoCarrito = false;
       }
-    },
-    error: (err) => {
-      console.error('Error al obtener detalles de la proforma:', err);
-      this.snackBar.open(err.error?.error || 'Error de comunicación al cargar la proforma.', 'Cerrar', { duration: 5000 });
-      this.cargandoCarrito = false;
-    }
-  });
-}
+    });
+  }
 
   procesarCarritoEntrante(carritoInfo: any): void {
     this.cargandoCarrito = true;
@@ -262,20 +263,24 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
     this.subs.unsubscribe();
   }
 
+  // CORRECCIÓN 1: Ajusta el método que filtra la lista para el autocompletado.
   private _filterClientes(value: string): Cliente[] {
     const filterValue = value.toLowerCase();
-    return this.listaClientes.filter(cliente => cliente.nombre.toLowerCase().includes(filterValue));
+    return this.listaClientes.filter(cliente => cliente.nombre.toLowerCase().includes(filterValue)); // Usar .nombre
   }
 
   displayClienteFn(cliente: Cliente | string): string {
-    return typeof cliente === 'string' ? cliente : cliente?.nombre || '';
+    if (typeof cliente === 'string') {
+      return cliente;
+    }
+    return cliente?.nombre || ''; // Usar .nombre
   }
 
   getClientList(): void {
     this.subs.add(this.clientesService.getAll().subscribe({
       next: (clientes: Cliente[]) => {
-        
-        this.listaClientes = clientes.filter(cliente => cliente.estado);    
+
+        this.listaClientes = clientes.filter(cliente => cliente.estado);
         if (this.carritoACargar) {
           this.procesarCarritoConClientes();
         }
@@ -359,14 +364,37 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
 
   openDialogAgregar(): void {
     const dialogRef = this.dialog.open(CrearClienteComponent, { width: '500px' });
-    this.subs.add(dialogRef.afterClosed().subscribe((nuevoCliente: Cliente) => {
-      if (nuevoCliente) {
-        this.getClientList();
-        this.ClienteSeleccionado = nuevoCliente;
-        this.clienteControl.setValue(nuevoCliente);
-        this.loadCartForSelectedClient();
-      }
-    }));
+
+    this.subs.add(
+      dialogRef.afterClosed().subscribe((nuevoClienteCreado: Cliente) => {
+        if (nuevoClienteCreado) {
+          this.snackBar.open('Refrescando lista de clientes...', undefined, { duration: 2000 });
+
+          this.clientesService.getAll().subscribe({
+            next: (clientesActualizados: Cliente[]) => {
+              this.listaClientes = clientesActualizados.filter(c => c.estado);
+
+              // Usa 'id' para encontrar al cliente
+              const clienteParaSeleccionar = this.listaClientes.find(c => c.id === nuevoClienteCreado.idClientePK);
+              console.log("id cliente creado ", nuevoClienteCreado)
+
+              if (clienteParaSeleccionar) {
+                this.ClienteSeleccionado = clienteParaSeleccionar;
+                this.clienteControl.setValue(clienteParaSeleccionar);
+                this.loadCartForSelectedClient();
+                // Usa 'nombre' para el mensaje
+                this.snackBar.open(`Cliente "${clienteParaSeleccionar.nombre}" seleccionado.`, 'OK', { duration: 3000 });
+              } else {
+                this.snackBar.open('Error: No se pudo preseleccionar el cliente recién creado.', 'Cerrar', { duration: 4000 });
+              }
+            },
+            error: (err) => {
+              this.snackBar.open('Error al refrescar la lista de clientes.', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      })
+    );
   }
 
   seleccionarCliente(cliente: any) {
@@ -575,10 +603,12 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
   }
 
   get subtotal(): number {
+    // Subtotal bruto: Suma del precio de lista (con margen) por la cantidad.
     return this.carrito.reduce((acc, art) => acc + (art.PrecioBase ?? 0) * (art.Cantidad ?? 1), 0);
   }
 
   get totalDescuentos(): number {
+    // Calcula el valor monetario total de todos los descuentos aplicados.
     return this.carrito.reduce((acc, art) => {
       const descuentoValor = (art.PrecioBase ?? 0) * ((art.DescuentoPorcentaje ?? 0) / 100) * (art.Cantidad ?? 1);
       return acc + descuentoValor;
@@ -586,15 +616,54 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
   }
 
   get subtotalNeto(): number {
+    // El subtotal neto es el bruto menos los descuentos.
     return this.subtotal - this.totalDescuentos;
   }
 
   get iva(): number {
-    return this.subtotalNeto * 0.15;
+    return this.aplicarIVA ? this.subtotalNeto * 0.15 : 0;
   }
 
   get total(): number {
     return this.subtotalNeto + this.iva;
+  }
+
+  public onDescuentoChange(articulo: ArticuloVenta, event: Event): void {
+    // 1. Aseguramos a TypeScript que 'event.target' es un input de HTML.
+    const target = event.target as HTMLInputElement;
+
+    // 2. Verificamos que el target exista para evitar errores.
+    if (target) {
+      // 3. Obtenemos el valor como número y llamamos a la función que ya teníamos.
+      this.actualizarDescuento(articulo, target.valueAsNumber);
+    }
+  }
+
+  onPrecioManualChange(articulo: ArticuloVenta, event: any): void {
+    // 1. Obtenemos y convertimos el nuevo precio a número.
+    const nuevoPrecio = parseFloat(event.target.value);
+
+    // 2. Obtenemos el costo original del artículo (precio sin margen).
+    const precioCosto = articulo.PrecioOriginalSinMargen ?? 0;
+
+    // 3. Validación: Si el nuevo precio es inválido o menor que el costo...
+    if (isNaN(nuevoPrecio) || nuevoPrecio < precioCosto) {
+      // Mostramos una alerta al usuario.
+      this.snackBar.open(`El precio no puede ser menor al costo base de $${precioCosto.toFixed(2)}`, 'Cerrar', {
+        duration: 4000,
+        panelClass: ['snackbar-error'] // (Opcional) Clase para un estilo de error
+      });
+      // Revertimos el valor en la UI al precio que tenía antes de la edición.
+      event.target.value = articulo.PrecioBase;
+      return; // Detenemos la ejecución.
+    }
+
+    // 4. Si el precio es válido, lo actualizamos en el objeto del carrito.
+    // Como `PrecioBase` es usado por los getters, toda la UI se actualizará automáticamente.
+    articulo.PrecioBase = nuevoPrecio;
+
+    // Opcional: Podrías llamar aquí a un servicio para persistir este cambio en el backend
+    // si necesitas que el carrito se guarde en tiempo real.
   }
 
   public getNombreMargen(idMargen: number | null): string {
@@ -679,10 +748,15 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
         acc[id] = (acc[id] || 0) + 1;
         return acc;
       }, {} as { [key: number]: number });
-      const idMasFrecuente = parseInt(Object.keys(conteoMargenes).reduce((a, b) => conteoMargenes[a as any] > conteoMargenes[b as any] ? a : b));
-      const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMasFrecuente);
-      if (margenEncontrado) {
-        nombreMargenParaImprimir = margenEncontrado.NombreMargen;
+
+      // --- CORRECCIÓN 1: Se añade una validación para evitar el error de 'reduce' ---
+      const llavesDeMargenes = Object.keys(conteoMargenes);
+      if (llavesDeMargenes.length > 0) {
+        const idMasFrecuente = parseInt(llavesDeMargenes.reduce((a, b) => conteoMargenes[a as any] > conteoMargenes[b as any] ? a : b));
+        const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMasFrecuente);
+        if (margenEncontrado) {
+          nombreMargenParaImprimir = margenEncontrado.NombreMargen;
+        }
       }
     }
 
@@ -779,7 +853,9 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
     doc.text('Esta proforma es válida por 15 días. Precios y disponibilidad sujetos a cambio.', 20, finalY);
 
     // --- GUARDAR EL DOCUMENTO (Sin cambios) ---
-    const nombreArchivo = `Proforma-${codigoProforma}-${this.ClienteSeleccionado?.nombre?.replace(/\s/g, '_') || 'Cliente'}.pdf`;
+    const nombreClienteSanitizado = this.ClienteSeleccionado?.nombre?.replace(/[\s\/\\?%*:|"<>]/g, '_') || 'Cliente';
+    const codigoProformaSanitizado = codigoProforma.replace(/[\s\/\\?%*:|"<>]/g, '-');
+    const nombreArchivo = `Proforma-${codigoProformaSanitizado}-${nombreClienteSanitizado}.pdf`;
     doc.save(nombreArchivo);
   }
 
@@ -794,10 +870,15 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
         acc[id] = (acc[id] || 0) + 1;
         return acc;
       }, {} as { [key: number]: number });
-      const idMasFrecuente = parseInt(Object.keys(conteoMargenes).reduce((a, b) => conteoMargenes[a as any] > conteoMargenes[b as any] ? a : b));
-      const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMasFrecuente);
-      if (margenEncontrado) {
-        nombreMargenParaImprimir = margenEncontrado.NombreMargen;
+
+      // --- CORRECCIÓN 1: Se añade la misma validación aquí ---
+      const llavesDeMargenes = Object.keys(conteoMargenes);
+      if (llavesDeMargenes.length > 0) {
+        const idMasFrecuente = parseInt(llavesDeMargenes.reduce((a, b) => conteoMargenes[a as any] > conteoMargenes[b as any] ? a : b));
+        const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMasFrecuente);
+        if (margenEncontrado) {
+          nombreMargenParaImprimir = margenEncontrado.NombreMargen;
+        }
       }
     }
 
@@ -877,7 +958,9 @@ private cargarDatosDeProformaEnCarrito(idProforma: number): void {
     doc.text(`${this.total.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     doc.setFont('helvetica', 'normal');
 
-    doc.save(`Factura-${this.ClienteSeleccionado?.nombre?.replace(/\s/g, '_') || 'Cliente'}-${numeroFactura}.pdf`);
+    const nombreClienteSanitizado = this.ClienteSeleccionado?.nombre?.replace(/[\s\/\\?%*:|"<>]/g, '_') || 'Cliente';
+    const numeroFacturaSanitizado = numeroFactura.replace(/[\s\/\\?%*:|"<>]/g, '-');
+    doc.save(`Factura-${nombreClienteSanitizado}-${numeroFacturaSanitizado}.pdf`);
   }
 }
 
