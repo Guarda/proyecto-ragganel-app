@@ -1,214 +1,113 @@
-<div class="contenedor-componente-crear-pedido">
-  <div class="header1">
-    <h3 mat-dialog-title class="cabezera">    
-      <span>Detalles del pedido {{OrderId}}</span>
+<div class="contenedor-componente-crear-pedido" *ngIf="!isLoading">
+    <h3 mat-dialog-title>
+        <span>Detalles del Pedido {{ OrderId }}</span>
     </h3>
-    <h3 class="cabezera1">
-        <a mat-raised-button class="button-crear-prod" href="#" [routerLink]="['/home/listado-pedidos']" color="primary" ><mat-icon class="iconos-custom">close</mat-icon></a>                 
-    </h3>
-  </div>
-    
     <form [formGroup]="pedidoForm" (ngSubmit)="onSubmit()">
-
-
         <div class="contenedor-principal">
             <div class="contenedor-secundario">
-                <div class="contenedor-row">               
+                <div class="contenedor-row">
                     <div class="contenedor-img-consola">
                         <img [src]="ImagePath" alt="imagen-consola" class="imagen-consola">
-                    </div>             
+                    </div>
                     <div class="contenedor-fechas">
-                        <mat-label style="font-weight: bold; color: black;">Fechas</mat-label>
-                        <mat-form-field class="input-form-pedido">                            
+                        <mat-label class="seccion-label">Fechas</mat-label>
+                        <mat-form-field class="input-form-pedido">
                             <mat-label>Fecha Creación Pedido</mat-label>
                             <input matInput [matDatepicker]="creationDatePicker" formControlName="FechaCreacionPedido" required />
                             <mat-datepicker-toggle matSuffix [for]="creationDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #creationDatePicker></mat-datepicker>
-                            <mat-error *ngIf="pedidoForm.get('FechaCreacionPedido')?.hasError('required')">
-                              Fecha Creación Pedido es requerida.
-                            </mat-error>
-                          </mat-form-field>
-                          
-                          <mat-form-field class="input-form-pedido">
-                            <mat-label>Fecha Arrivo USA</mat-label>
-                            <input matInput [matDatepicker]="arrivoDatePicker" formControlName="FechaArrivoUSA" required />
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Fecha Arribo USA</mat-label>
+                            <input matInput [matDatepicker]="arrivoDatePicker" formControlName="FechaArriboUSA" required />
                             <mat-datepicker-toggle matSuffix [for]="arrivoDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #arrivoDatePicker [matDatepickerFilter]="dateFilter"></mat-datepicker>
-                            <mat-error *ngIf="pedidoForm.get('FechaArrivoUSA')?.hasError('required')">
-                              Fecha Arrivo USA es requerida.
-                            </mat-error>
-                            <mat-error *ngIf="pedidoForm.hasError('invalidFechaArrivoUSA')">
-                              {{ pedidoForm.errors?.['invalidFechaArrivoUSA'] }}
-                            </mat-error>
-                          </mat-form-field>
-                          
-                          <mat-form-field class="input-form-pedido">
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
                             <mat-label>Fecha Estimada Recepción</mat-label>
                             <input matInput [matDatepicker]="estimadaDatePicker" formControlName="FechaEstimadaRecepcion" required />
                             <mat-datepicker-toggle matSuffix [for]="estimadaDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #estimadaDatePicker [matDatepickerFilter]="dateFilter"></mat-datepicker>
-                            <mat-error *ngIf="pedidoForm.get('FechaEstimadaRecepcion')?.hasError('required')">
-                              Fecha Estimada Recepción es requerida.
-                            </mat-error>
-                            <mat-error *ngIf="pedidoForm.hasError('invalidFechaEstimadaRecepcion')">
-                              {{ pedidoForm.errors?.['invalidFechaEstimadaRecepcion'] }}
-                            </mat-error>
-                          </mat-form-field>           
-                    </div> 
+                        </mat-form-field>
+                    </div>
                     <div class="contenedor-tracking">
-                        <mat-label style="font-weight: bold; color: black;">Tracking</mat-label>
-                            <!-- Número Tracking 1 -->
+                        <mat-label class="seccion-label">Tracking</mat-label>
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Número Tracking 1</mat-label>
-                            <input matInput type="text" formControlName="NumeroTracking1" required />
+                            <input matInput type="text" formControlName="NumeroTracking1" />
                         </mat-form-field>
-                        
-                        <!-- Número Tracking 2 -->
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Número Tracking 2</mat-label>
                             <input matInput type="text" formControlName="NumeroTracking2" />
                         </mat-form-field>
-                        
-                        <!-- Sitio Web -->
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Sitio Web</mat-label>
                             <mat-select formControlName="SitioWeb" required>
-                                <mat-option *ngFor="let est of selectedSitioWeb" [value]="est.CodigoSitioWeb">{{est.DescripcionSitioWeb}} </mat-option>   
+                                <mat-option *ngFor="let est of selectedSitioWeb" [value]="est.CodigoSitioWeb">{{est.DescripcionSitioWeb}}</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
                 </div>
-                    <!-- New container for additional inputs -->
-                    <div class="contenedor-adicional">
-                        <div class="contenedor-detalles">
-                            <mat-label style="font-weight: bold; color: black;">Detalles del pedido</mat-label>
-                          
-                            <!-- Estado -->
-                            <mat-form-field class="input-form-pedido">
-                              <mat-label>Estado</mat-label>
-                              <mat-select formControlName="Estado">
-                                <mat-option *ngFor="let est of selectedEstadoPedido" [disabled]="est.CodigoEstadoPedido"  [value]="est.CodigoEstadoPedido">
-                                  {{ est.DescripcionEstadoPedido }}
-                                </mat-option>
-                              </mat-select>
-                            </mat-form-field>
 
-                          
-                            <!-- PesoPedido -->
-                            <mat-form-field class="input-form-pedido">
-                                <mat-label>Peso del pedido</mat-label>
-                                <input
-                                matInput
-                                type="number"
-                                formControlName="PesoPedido"
-                                step="0.01"
-                                min="0"
-                                (input)="enforceTwoDecimals($event)"
-                                /><span matTextSuffix>.lb</span>
-                            </mat-form-field>
-                          
-                            <!-- Comentarios -->
-                            <mat-form-field class="input-form-pedido grow">
-                                <mat-label>Comentarios</mat-label>
-                                <textarea 
-                                  matInput
-                                  rows="1"  
-                                  class="comentario" 
-                                  formControlName="Comentarios" 
-                                  (input)="adjustTextareaHeight($event)" 
-                                  maxlength="2000">
-                                </textarea>
-                                <mat-hint align="end">{{ pedidoForm.get('Comentarios')?.value?.length || 0 }}/2000</mat-hint>
-                            </mat-form-field>
-                              <!-- <mat-error *ngIf="pedidoForm.get('Comentarios')?.hasError('maxlength')">
-                                Máximo de 2000 caracteres permitidos.
-                              </mat-error> -->
-                        </div>
-                        <div class="contenedor-tarifas">
-                            <mat-label style="font-weight: bold; color: black;">Costos/Tarifas pedido</mat-label>  
-                            <!-- Vía Pedido -->
-                            <mat-form-field class="input-form-pedido">
-                            <mat-label>Vía Pedido</mat-label>
-                            <mat-select formControlName="ViaPedido" required>
-                                <mat-option *ngFor="let est of selectedTipoPedido" [disabled]="est.DescripcionTipoPedido" [value]="est.CodigoTipoPedido">{{est.DescripcionTipoPedido}} </mat-option>   
+                <div class="contenedor-adicional">
+                    <div class="contenedor-detalles">
+                        <mat-label class="seccion-label">Detalles del pedido</mat-label>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Estado</mat-label>
+                            <mat-select formControlName="Estado">
+                                <mat-option *ngFor="let est of selectedEstadoPedido" [value]="est.CodigoEstadoPedido">{{ est.DescripcionEstadoPedido }}</mat-option>
                             </mat-select>
-                            </mat-form-field>
-
-                            <!-- Subtotal Articulos -->
-                            <mat-form-field class="input-form-pedido">
-                              <mat-label>Subtotal de los Artículos</mat-label>
-                              <input
-                                matInput
-                                type="number"
-                                formControlName="SubTotalArticulos"
-                                readonly />
-                            </mat-form-field>
-                            
-
-                            <!-- Impuestos -->
-                            <mat-form-field class="input-form-pedido">
-                              <mat-label>Impuestos</mat-label>
-                              <input
-                                matInput
-                                type="number"
-                                formControlName="Impuestos"
-                                step="0.01"
-                                min="0"
-                                (input)="enforceTwoDecimals($event)" />
-                            </mat-form-field>
-                            
-                            <!-- envio a usa -->
-                            <mat-form-field class="input-form-pedido">
-                              <mat-label>Envio a USA</mat-label>
-                              <input
-                                matInput
-                                type="number"
-                                formControlName="ShippingUSA"
-                                step="0.01"
-                                min="0"
-                                (input)="enforceTwoDecimals($event)" />
-                            </mat-form-field>
-
-                            <!-- envio a nic -->
-                            <mat-form-field class="input-form-pedido">
-                              <mat-label>Envio a NIC</mat-label>
-                              <input
-                                matInput
-                                type="number"
-                                formControlName="ShippingNic"
-                                step="0.01"
-                                min="0"
-                                (input)="enforceTwoDecimals($event)" />
-                            </mat-form-field>
-                            
-
-                            <!-- Total Pedido -->
-                            
-                            <mat-form-field>
-                              <mat-label style="font-weight: bold; color: red;">TOTAL DEL PEDIDO</mat-label>
-                              <input 
-                                matInput 
-                                type="number" 
-                                formControlName="PrecioEstimadoDelPedido" 
-                                readonly 
-                                value="{{ pedidoForm.get('PrecioEstimadoDelPedido')?.value }}"
-                                />
-                            </mat-form-field>
-
-                        </div>
-                    </div>  
-            </div>          
-        </div>        
-
-        <div class="botones">
-          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-            <button mat-button type="submit"  cdkFocusInitial class="btn btn-secundary" color="primary" [disabled]="!pedidoForm.dirty&&!pedidoForm.valid" (Click)="onSubmit()" >Actualizar</button>
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Peso del pedido (lbs)</mat-label>
+                            <input matInput type="text" inputmode="decimal" formControlName="PesoPedido" (input)="enforceTwoDecimals($event)" />
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido grow">
+                            <mat-label>Comentarios</mat-label>
+                            <textarea matInput class="comentario" formControlName="Comentarios" (input)="adjustTextareaHeight($event)" maxlength="2000"></textarea>
+                            <mat-hint align="end">{{ pedidoForm.get('Comentarios')?.value?.length || 0 }}/2000</mat-hint>
+                        </mat-form-field>
+                    </div>
+                    <div class="contenedor-tarifas">
+                        <mat-label class="seccion-label">Costos y Tarifas del Pedido</mat-label>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Vía Pedido</mat-label>
+                            <mat-select formControlName="ViaPedido">
+                                <mat-option *ngFor="let est of selectedTipoPedido" [value]="est.CodigoTipoPedido">{{est.DescripcionTipoPedido}}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Subtotal de Artículos</mat-label>
+                            <input matInput type="text" formControlName="SubTotalArticulos" readonly />
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Impuestos</mat-label>
+                            <input matInput type="text" inputmode="decimal" formControlName="Impuestos" (input)="enforceTwoDecimals($event)" />
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Envío a USA</mat-label>
+                            <input matInput type="text" inputmode="decimal" formControlName="ShippingUSA" (input)="enforceTwoDecimals($event)" />
+                        </mat-form-field>
+                        <mat-form-field class="input-form-pedido">
+                            <mat-label>Envío a NIC</mat-label>
+                            <input matInput type="text" inputmode="decimal" formControlName="ShippingNic" (input)="enforceTwoDecimals($event)" />
+                        </mat-form-field>
+                        <mat-form-field class="total-field">
+                            <mat-label>TOTAL DEL PEDIDO</mat-label>
+                            <input matInput formControlName="PrecioEstimadoDelPedido" readonly />
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
         </div>
-        
+        <div class="botones">
+            <button mat-stroked-button type="button" (click)="onCancel()">Cerrar</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="!pedidoForm.dirty || !pedidoForm.valid">Actualizar Pedido</button>
+        </div>
     </form>
 </div>
 
-<app-index-listado-articulos
-  [dataToDisplay]="articulos"
-  [isEditable]="false">
+<app-index-listado-articulos 
+  [dataToDisplay]="articulos" 
+  (subtotalCambiado)="actualizarSubtotalDesdeHijo($event)">
 </app-index-listado-articulos>

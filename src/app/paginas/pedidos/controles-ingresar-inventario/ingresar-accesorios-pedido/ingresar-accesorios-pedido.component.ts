@@ -37,7 +37,7 @@ import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
   styleUrl: './ingresar-accesorios-pedido.component.css'
 })
 export class IngresarAccesoriosPedidoComponent {
-
+  @Input() stepperIndex: number = 0;
   @Input() form!: FormGroup; // 👈 Asegurar que el componente recibe 'form'
   @Input() articulo!: any; // Recibe el artículo desde el padre
 

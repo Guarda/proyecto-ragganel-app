@@ -1,30 +1,40 @@
-<div class="card">
-  <div class="card-header">
-    <h3>{{ articulo.NombreTipoArticulo }}</h3>
-    <button mat-icon-button color="warn" (click)="onEliminar()">
-      <mat-icon>close</mat-icon>
-    </button>
+<div class="tarjeta">
+  <div class="tarjeta-imagen">
+    <img [src]="articulo.ImagePath" alt="Imagen de {{ articulo.NombreTipoArticulo }}">
   </div>
-  <div class="card-body">
-    <div class="contenedor-img-consola">
-      <img [src]="articulo.ImagePath" class="imagen-consola" alt="Imagen del artículo seleccionado" />
+
+  <div class="tarjeta-contenido">
+    <h3 class="tarjeta-titulo">{{ articulo.NombreFabricante }} - {{ articulo.NombreCategoria }}</h3>
+    <p class="tarjeta-subtitulo">{{ articulo.NombreSubCategoria }}</p>
+    <div class="tarjeta-info-extra" *ngIf="articulo.EnlaceCompra">
+      <a [href]="articulo.EnlaceCompra" target="_blank" mat-button dense color="primary">
+        <mat-icon>link</mat-icon>
+        Ver Enlace de Compra
+      </a>
     </div>
-    <div class="card-content">
-      <div class="categorias">
-        <p><strong></strong> {{ articulo.NombreCategoria }}</p>
-        <p><strong></strong> {{ articulo.NombreSubCategoria }}</p>
-      </div>
-      <p><strong>Fabricante:</strong> {{ articulo.NombreFabricante }}</p>
-      <p><strong>Enlace: </strong> <a [href]="articulo.EnlaceCompra" target="_blank">Ver</a></p>
-      <p><strong>Cantidad:</strong>
-        <button mat-button (click)="decreaseQuantity()">-</button>
-        {{ articulo.Cantidad }}
-        <button mat-button (click)="increaseQuantity()">+</button>
-      </p>
+  </div>
+
+  <div class="tarjeta-numeros">
+    <div class="control-cantidad">
+      <button mat-icon-button (click)="decreaseQuantity()" [disabled]="articulo.Cantidad <= 1">
+        <mat-icon>remove_circle_outline</mat-icon>
+      </button>
+      <span class="cantidad">{{ articulo.Cantidad }}</span>
+      <button mat-icon-button (click)="increaseQuantity()">
+        <mat-icon>add_circle_outline</mat-icon>
+      </button>
     </div>
     <div class="precio">
-      <p><strong>{{ articulo.Precio | currency }}</strong></p>
+      {{ articulo.Precio * articulo.Cantidad | currency:'USD':'symbol':'1.2-2' }}
     </div>
   </div>
-</div>
 
+  <div class="tarjeta-acciones">
+    <button mat-icon-button color="accent" (click)="onEditar()" matTooltip="Editar artículo">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button mat-icon-button color="warn" (click)="onEliminar()" matTooltip="Eliminar artículo">
+      <mat-icon>delete_outline</mat-icon>
+    </button>
+  </div>
+</div>

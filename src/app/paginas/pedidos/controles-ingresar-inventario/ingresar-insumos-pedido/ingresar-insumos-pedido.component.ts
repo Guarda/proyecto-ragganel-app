@@ -36,7 +36,7 @@ import { InsumosBase } from '../../../interfaces/insumosbase';
   styleUrls: ['./ingresar-insumos-pedido.component.css']
 })
 export class IngresarInsumosPedidoComponent {
-
+  @Input() stepperIndex: number = 0;
   @Input() form!: FormGroup; // 👈 Asegurar que el componente recibe 'form'
   @Input() articulo!: any; // Recibe el artículo desde el padre
 

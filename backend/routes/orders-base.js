@@ -102,7 +102,7 @@ router.put('/actualizar-pedido/:id', (req, res) => {
     const {
         CodigoPedido, // Se asume que se envía el ID del pedido
         Comentarios,
-        FechaArrivoUSA,
+        FechaArriboUSA,
         FechaCreacionPedido,
         FechaEstimadaRecepcion,
         Impuestos,
@@ -125,7 +125,7 @@ router.put('/actualizar-pedido/:id', (req, res) => {
     db.query(sql, [
         CodigoPedido,
         FechaCreacionPedido,
-        FechaArrivoUSA,
+        FechaArriboUSA,
         FechaEstimadaRecepcion,
         NumeroTracking1,
         NumeroTracking2,

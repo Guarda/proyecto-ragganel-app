@@ -1,79 +1,63 @@
-h3[mat-dialog-title] {
-  text-align: center; /* Centra el contenido horizontalmente */
+.dialog-title {
+  text-align: center;
+  font-weight: 600;
+  color: #333;
 }
 
-.contenedor-secundario {
+.main-container {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px;
+  gap: 24px;
 }
 
-.contenedor-form {
+.form-column,
+.details-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Ambas columnas toman el mismo espacio */
+}
+
+mat-form-field {
   width: 100%;
-  max-width: 600px;
 }
 
-.input-form-art {
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 16px;
+  margin-bottom: 16px;
+  height: 220px; /* Altura fija para el contenedor de la imagen */
+}
+
+.imagen-articulo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+mat-dialog-actions {
+  padding: 16px 24px;
+}
+
+.price-toggle {
   width: 100%;
   margin-bottom: 16px;
 }
 
-.contenedor-img-consola {
-  flex: 1;
-  max-width: 360px;
+.price-toggle mat-button-toggle {
+  width: 50%;
+}
+
+.calculated-price {
   text-align: center;
-}
-
-.imagen-consola {
-  max-width: 250pxcccccccc;
-  height: 200px;
-  border: 2px solid black;
-  border-radius: 20px;
-  padding: 10px;
-  background-color: white;
-}
-
-mat-dialog-content {
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
-}
-
-.example-container mat-form-field + mat-form-field {
-  margin-left: 8px;
-}
-
-.example-right-align {
-  text-align: right;
-}
-
-input.example-right-align::-webkit-outer-spin-button,
-input.example-right-align::-webkit-inner-spin-button {
-  display: none;
-}
-
-input.example-right-align {
-  -moz-appearance: textfield;
-}
-
-.botonedicion{
-  display: flex;
-  justify-content: space-around;
-  padding-bottom: 5%;
-}
-
-.btn-editar{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white!important;
-  background-color: green!important;
-}
-
-.btn-editar:disabled {
-  background-color: gray !important;
-  color: lightgray !important; /* Adjust text color if needed */
-  cursor: not-allowed; /* Optional: show not-allowed cursor */
+  padding: 8px;
+  background-color: #e3f2fd; /* Un fondo azul claro */
+  border: 1px solid #90caf9;
+  border-radius: 8px;
+  color: #1e88e5;
+  margin-top: -8px; /* Pequeño ajuste para acercarlo al input */
+  margin-bottom: 16px;
 }

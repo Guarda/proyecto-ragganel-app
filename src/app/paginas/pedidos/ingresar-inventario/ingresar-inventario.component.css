@@ -1,21 +1,126 @@
-:host {
+/* --- ESTILOS PRINCIPALES DEL DIÁLOGO --- */
+.dialog-container {
+  width: 65vw;
+  max-width: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: 500%;
-  margin: auto;
+  overflow: hidden; /* Muy importante: evita que el diálogo se desborde */
+  box-sizing: border-box; /* Asegura que el padding no añada tamaño extra */
 }
 
-mat-stepper {
-  width: 100%;
+/* Ocultar encabezado default del stepper */
+:host ::ng-deep .mat-horizontal-stepper-header-container {
+  display: none !important;
 }
 
-.stepper-controls {
+/* En tu archivo ingresar-inventario.component.css */
+
+/* 1. Convierte el header en un contenedor flexible */
+.dialog-header {
   display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
+  justify-content: space-between; /* Empuja el título a la izquierda y el párrafo a la derecha */
+  align-items: baseline;        /* Alinea el texto por su base para un look limpio */
+  padding: 16px 24px;         /* Ajustamos el padding para que se vea bien en una línea */
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-ul {
-  padding-left: 20px;
+/* 2. Quita los márgenes por defecto del h2 y el p para que no ocupen espacio extra */
+.dialog-header h2,
+.dialog-header p {
+  margin: 0;
+}
+
+/* 3. (Opcional) Ajusta el estilo del párrafo para que no se vea como un título */
+.dialog-header p {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #757575;
+}
+
+.cost-summary,
+.custom-stepper-header {
+  flex-shrink: 0;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* --- ESTILOS PARA LA TARJETA DE RESUMEN DE COSTOS COMPACTA --- */
+
+.cost-summary {
+  padding: 0 24px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.cost-summary mat-card {
+  /* Hacemos la tarjeta más delgada */
+  padding: 12px 24px;
+  background-color: #f7f7f7;
+  border: 1px solid #e0e0e0;
+}
+
+.cost-summary mat-card-content {
+  /* La clave: ponemos los elementos en una fila horizontal */
+  display: flex;
+  justify-content: space-around; /* Distribuye el espacio entre los 3 items */
+  align-items: center;
+  padding: 0 !important; /* Quitamos el padding por defecto del content */
+  width: 100%;
+}
+
+.cost-summary .cost-item {
+  /* Cada item (ej. "Total a Distribuir: $50") será una columna */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0; /* Quitamos el margen por defecto de los párrafos */
+  font-size: 0.9em;
+  color: #616161;
+}
+
+.cost-summary .cost-item strong {
+  color: #212121;
+  font-weight: 600;
+  font-size: 1.2em; /* Hacemos el número más grande */
+}
+
+/* Estilo especial para el valor "Restante" */
+.cost-summary .cost-item.remaining strong {
+  color: #d32f2f; /* Rojo para destacar */
+}
+.custom-stepper-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+/* --- ÁREA DE CONTENIDO CON SCROLL --- */
+.stepper-content-container {
+  flex-grow: 1;
+  overflow-y: auto;  /* Permite scroll vertical */
+  overflow-x: hidden; /* Prohíbe scroll horizontal */
+  padding: 0 16px; /* Reducimos padding para dar más espacio al contenido */
+}
+
+/* 🔹 FORZAMOS A LOS ELEMENTOS INTERNOS DEL STEPPER A OBEDECER 🔹 */
+:host ::ng-deep .mat-horizontal-content-container {
+  padding: 0 !important; /* Eliminamos el padding por defecto de Angular Material */
+  overflow: hidden !important;
+}
+
+:host ::ng-deep .mat-horizontal-stepper-content {
+  overflow: initial !important; /* Dejamos que el contenedor padre maneje el overflow */
+}
+
+.dialog-actions {
+  flex-shrink: 0;
+  padding: 8px 24px; /* 🔹 Reducimos el padding vertical de 12px a 8px */
+  /* max-height: 5%; */ /* <-- Eliminamos esta línea */
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  background-color: #fff;
 }

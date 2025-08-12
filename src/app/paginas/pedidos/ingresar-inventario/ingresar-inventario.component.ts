@@ -20,13 +20,14 @@ import { Pedido } from '../../interfaces/pedido';
 import { CostoDistribucionService, CostosPedido } from '../../../services/costo-distribucion.service';
 import { map } from 'rxjs/operators'; // Necesitarás 'map'
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressBar } from '@angular/material/progress-bar';
 
 
 @Component({
   selector: 'app-ingresar-inventario',
   standalone: true,
   imports: [MatStepper, MatButton, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, MatCardModule,
-    IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatStepperPrevious],
+    IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatProgressBar, MatStepperPrevious, MatDialogActions],
   templateUrl: './ingresar-inventario.component.html',
   styleUrl: './ingresar-inventario.component.css'
 })
@@ -213,6 +214,31 @@ export class IngresarInventarioComponent implements OnInit {
   recibirFormulario(form: FormGroup) {
     if (!form.valid) {
       console.log("El formulario no es válido:", form);
+    }
+  }
+
+  get currentArticle(): Articulo | null {
+    if (!this.stepper || !this.stepper.selected) {
+      return null;
+    }
+
+    const currentIndex = this.stepper.selectedIndex;
+    const totalProductos = this.formulariosProductos.length;
+    const totalAccesorios = this.formulariosAccesorios.length;
+
+    if (currentIndex < totalProductos) {
+      // Es un producto
+      const productoIndex = this.getArticuloIndex(currentIndex, 'producto');
+      return this.productos[productoIndex];
+    } else if (currentIndex < totalProductos + totalAccesorios) {
+      // Es un accesorio
+      const accesorioFormIndex = currentIndex - totalProductos;
+      const accesorioIndex = this.getArticuloIndex(accesorioFormIndex, 'accesorio');
+      return this.accesorios[accesorioIndex];
+    } else {
+      // Es un insumo
+      const insumoIndex = currentIndex - totalProductos - totalAccesorios;
+      return this.insumos[insumoIndex];
     }
   }
 

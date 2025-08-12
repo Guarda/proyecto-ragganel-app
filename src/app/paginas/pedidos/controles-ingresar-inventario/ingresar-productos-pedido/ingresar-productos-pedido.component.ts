@@ -30,18 +30,19 @@ import { SubcategoriaProductoService } from '../../../../services/subcategoria-p
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { TiposAccesoriosService } from '../../../../services/tipos-accesorios.service';
 import { Producto } from '../../../interfaces/producto';
+import { MatCardActions, MatCardContent } from '@angular/material/card';
 
 @Component({
   selector: 'app-ingresar-productos-pedido',
   standalone: true,
   imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule
+    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions
   ],
   templateUrl: './ingresar-productos-pedido.component.html',
   styleUrl: './ingresar-productos-pedido.component.css'
 })
 export class IngresarProductosPedidoComponent {
-
+  @Input() stepperIndex: number = 0;
   @Input() form!: FormGroup; // 👈 Asegurar que el componente recibe 'form'
   @Input() articulo!: any; // Recibe el artículo desde el padre
 

@@ -120,8 +120,8 @@ export class ListarPedidosComponent implements OnInit {
 
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarPedidoComponent, {
-      width: '50%',
-      height: '85%',
+      width: '95%',
+      height: '90%',
       disableClose: true,
     });
     dialogRef.afterClosed().subscribe(result => {

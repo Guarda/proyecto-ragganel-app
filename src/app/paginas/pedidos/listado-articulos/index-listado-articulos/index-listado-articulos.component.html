@@ -2,28 +2,22 @@
     <h5>LISTADO DE ARTÍCULOS</h5>
 
     <div class="demo-button-container">
-        <button
-            mat-raised-button
-            (click)="openDialogAgregar()"
-            class="demo-button"
-        >
+        <button mat-raised-button (click)="openDialogAgregar()" class="demo-button">
             Añadir artículo al pedido
         </button>
     </div>
 
-    <div class="tarjetas-container">
-        <div *ngFor="let articulo of activeArticulos">
-            <app-tarjeta-articulo 
-                [articulo]="articulo" 
-                (borrar)="removeArticulo(articulo)"
-                (actualizarCantidad)="actualizarCantidadArticulo($event, articulo)">
-            </app-tarjeta-articulo>
-        </div>
-    
-        <div class="total-container">
-            <p><strong>Total de artículos:</strong> {{ totalArticulos }}</p>
-            <p><strong>Subtotal:</strong> {{ totalPrecio | currency }}</p>
-        </div>
+    <div class="tarjetas-grid-container">
+        <app-tarjeta-articulo
+        *ngFor="let articulo of activeArticulos; let i = index"
+        [articulo]="articulo"
+        (borrar)="removeArticulo(articulo)"
+        (actualizarCantidad)="actualizarCantidadArticulo($event, articulo)"
+        (editar)="openDialogEditar(articulo, i)">  </app-tarjeta-articulo>
     </div>
-    
+
+    <div class="total-container" *ngIf="activeArticulos.length > 0">
+        <p><strong>Total de artículos:</strong> {{ totalArticulos }}</p>
+        <p><strong>Subtotal:</strong> {{ totalPrecio | currency }}</p>
+    </div>
 </div>
