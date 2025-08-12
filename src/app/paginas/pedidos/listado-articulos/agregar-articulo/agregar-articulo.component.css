@@ -61,3 +61,26 @@ mat-dialog-actions {
   margin-top: -8px; /* Pequeño ajuste para acercarlo al input */
   margin-bottom: 16px;
 }
+
+/* En: agregar-articulo.component.css */
+
+/* ... (tu CSS existente) ... */
+
+.readonly-field {
+  padding: 8px 0;
+  margin-bottom: 12px;
+}
+
+.readonly-label {
+  display: block;
+  font-size: 0.75em;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.readonly-value {
+  margin: 0;
+  padding: 4px 0;
+  font-size: 1em;
+  color: rgba(0, 0, 0, 0.87);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}

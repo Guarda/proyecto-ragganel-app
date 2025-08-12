@@ -1,88 +1,79 @@
+<mat-card [formGroup]="form">
+  <mat-card-header class="compact-header">
+    <mat-card-title>{{ articulo.NombreFabricante }} - {{ articulo.NombreSubCategoria }}</mat-card-title>
+    <mat-card-subtitle>Artículo #{{ stepperIndex + 1 }}</mat-card-subtitle>
+  </mat-card-header>
 
-<form [formGroup]="form">
-    <div class="contenedor-principal">
-        <div class="contenedor-secundario">
-            <div class="contenedor-img-consola" *ngIf="articulo && ImagePath">
-                <img [src]="ImagePath" alt="imagen-insumo" class="imagen-consola">
-            </div>
+  <mat-card-content class="card-layout-container">
 
-            <div class="contendor-form">
-                <mat-dialog-content class="mat-typography">
-                    <h3>Ingresa detalles del insumo</h3>
-
-                    <div class="form-grid-container">
-
-                        <mat-form-field>
-                            <mat-label>Fabricante</mat-label>
-                            <mat-select formControlName="FabricanteInsumo">
-                                <mat-option *ngFor="let fab of selectedFabricanteInsumos" [value]="fab.IdFabricanteInsumosPK">{{fab.NombreFabricanteInsumos}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Categoría</mat-label>
-                            <mat-select formControlName="CateInsumo">
-                                <mat-option *ngFor="let cat of selectedCategoriaInsumos" [value]="cat.IdCategoriaInsumosPK">{{cat.NombreCategoriaInsumos}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Modelo</mat-label>
-                            <mat-select formControlName="SubCategoriaInsumo">
-                                <mat-option *ngFor="let sub of selectedSubcategoriaInsumos" [value]="sub.IdSubcategoriaInsumos">{{sub.NombreSubcategoriaInsumos}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Número de Serie</mat-label>
-                            <input matInput formControlName="NumeroSerie">
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Estado</mat-label>
-                            <mat-select formControlName="EstadoInsumo">
-                                <mat-option *ngFor="let est of selectedEstado" [value]="est.CodigoEstado">{{est.DescripcionEstado}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Cantidad</mat-label>
-                            <input matInput type="number" formControlName="Cantidad">
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Precio Base</mat-label>
-                            <input matInput type="number" formControlName="PrecioBase">
-                        </mat-form-field>
-
-                        <mat-form-field>
-                          <mat-label>Stock Mínimo</mat-label>
-                          <input matInput type="number" formControlName="StockMinimo">
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Costo Adicional</mat-label>
-                            <input matInput type="number" formControlName="CostoDistribuido">
-                            <mat-hint>Impuestos/envío asignado</mat-hint>
-                        </mat-form-field>
-
-                        <div class="precio-final grid-span-2">
-                          <h4>
-                            Costo Final de Ingreso (Lote):
-                            <strong>{{ costoFinalIngreso | currency }}</strong>
-                          </h4>
-                        </div>
-                    </div>
-                </mat-dialog-content>
-            </div>
-        </div>
-
-        <div class="contenedor-comentario">
-            <h3>Comentarios</h3>
-            <mat-form-field class="example-full-width">
-                <mat-label>Describe el insumo</mat-label>
-                <textarea matInput formControlName="ComentarioInsumo" placeholder="Detalles adicionales..."></textarea>
-            </mat-form-field>
-        </div>
+    <div class="image-container">
+      <img [src]="ImagePath" alt="Imagen de {{ articulo.NombreSubCategoria }}" class="articulo-imagen">
     </div>
-</form>
+
+    <div class="form-grid">
+
+      <!-- <mat-form-field appearance="fill">
+        <mat-label>Fabricante</mat-label>
+        <mat-select formControlName="FabricanteInsumo">
+          <mat-option *ngFor="let fab of selectedFabricanteInsumos" [value]="fab.IdFabricanteInsumosPK">{{fab.NombreFabricanteInsumos}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="CateInsumo">
+          <mat-option *ngFor="let cat of selectedCategoriaInsumos" [value]="cat.IdCategoriaInsumosPK">{{cat.NombreCategoriaInsumos}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Modelo</mat-label>
+        <mat-select formControlName="SubCategoriaInsumo">
+          <mat-option *ngFor="let sub of selectedSubcategoriaInsumos" [value]="sub.IdSubcategoriaInsumos">{{sub.NombreSubcategoriaInsumos}}</mat-option>
+        </mat-select>
+      </mat-form-field> -->
+
+      <mat-form-field appearance="fill">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="EstadoInsumo">
+          <mat-option *ngFor="let est of selectedEstado" [value]="est.CodigoEstado">{{est.DescripcionEstado}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="fill">
+        <mat-label>Cantidad</mat-label>
+        <input matInput type="number" formControlName="Cantidad">
+      </mat-form-field>
+      
+      <mat-form-field appearance="fill">
+        <mat-label>Stock Mínimo</mat-label>
+        <input matInput type="number" formControlName="StockMinimo">
+      </mat-form-field>
+      
+      <mat-form-field appearance="fill">
+        <mat-label>Precio Base (Lote)</mat-label>
+        <input matInput type="number" formControlName="PrecioBase">
+        <span matTextPrefix>$&nbsp;</span>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="costo-distribuido-field">
+        <mat-label>Costo Adicional (Lote)</mat-label>
+        <input matInput type="number" formControlName="CostoDistribuido">
+        <span matTextPrefix>$&nbsp;</span>
+      </mat-form-field>
+      
+      <mat-form-field appearance="fill" class="full-width-field">
+        <mat-label>Comentarios</mat-label>
+        <textarea matInput formControlName="ComentarioInsumo" placeholder="Detalles adicionales..." cdkTextareaAutosize cdkAutosizeMinRows="1"></textarea>
+      </mat-form-field>
+
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions class="card-footer">
+    <h4>
+      Costo Final de Ingreso (Lote):
+      <strong>{{ costoFinalIngreso | currency }}</strong>
+    </h4>
+  </mat-card-actions>
+</mat-card>

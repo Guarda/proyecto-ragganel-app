@@ -27,12 +27,13 @@ import { SubcategoriaAccesorioService } from '../../../../services/subcategoria-
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
 import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
+import { MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 
 @Component({
   selector: 'app-ingresar-accesorios-pedido',
   standalone: true,
   imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule],
+    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions, MatCardTitle, MatCardSubtitle, MatCardHeader],
   templateUrl: './ingresar-accesorios-pedido.component.html',
   styleUrl: './ingresar-accesorios-pedido.component.css'
 })

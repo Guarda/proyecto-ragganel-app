@@ -52,6 +52,7 @@ import { SubcategoriasInsumos } from '../../../interfaces/subcategoriasinsumos';
 
 import { debounceTime, merge, Subscription } from 'rxjs';
 import { MatButtonToggleModule } from '@angular/material/button-toggle'; // <-- AÑADIR ESTE IMPORT
+import { Articulo } from '../../../interfaces/articulo-pedido';
 
 
 @Component({
@@ -77,6 +78,7 @@ export class AgregarArticuloComponent {
   selectedSubCategoria: any;
   private priceCalculationSubscription!: Subscription;
   private subscriptions = new Subscription();
+  articuloParaEditar: Articulo | null = null;
   // dialogRef: any;
 
   constructor(
@@ -106,6 +108,7 @@ export class AgregarArticuloComponent {
 
     if (data && data.isEditMode) {
       this.isEditMode = true;
+      this.articuloParaEditar = data.articulo; // <-- GUARDA EL ARTÍCULO A EDITAR
     }
 
   }

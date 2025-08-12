@@ -6,34 +6,57 @@
 <form [formGroup]="articulosForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="dialog-content">
     <div class="main-container">
+
       <div class="form-column">
-        <mat-form-field appearance="outline">
-          <mat-label>Tipo Artículo</mat-label>
-          <mat-select formControlName="TipoArticulo">
-            <mat-option *ngFor="let est of selectedTipoArticulo" [value]="est.IdTipoArticuloPK">{{est.DescripcionTipoArticulo}}</mat-option>
-          </mat-select>
-        </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Fabricante</mat-label>
-          <mat-select formControlName="Fabricante">
-            <mat-option *ngFor="let fabricante of selectedFabricante" [value]="fabricante.id">{{ fabricante.nombre }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <ng-container *ngIf="!isEditMode">
+          <mat-form-field appearance="outline">
+            <mat-label>Tipo Artículo</mat-label>
+            <mat-select formControlName="TipoArticulo">
+              <mat-option *ngFor="let est of selectedTipoArticulo" [value]="est.IdTipoArticuloPK">{{est.DescripcionTipoArticulo}}</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Categoría</mat-label>
-          <mat-select formControlName="Cate">
-            <mat-option *ngFor="let categoria of selectedCategoria" [value]="categoria.id">{{ categoria.nombre }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Fabricante</mat-label>
+            <mat-select formControlName="Fabricante">
+              <mat-option *ngFor="let fabricante of selectedFabricante" [value]="fabricante.id">{{ fabricante.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Subcategoría</mat-label>
-          <mat-select formControlName="SubCategoria">
-            <mat-option *ngFor="let subCategoria of selectedSubCategoria" [value]="subCategoria.id">{{ subCategoria.nombre }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="Cate">
+              <mat-option *ngFor="let categoria of selectedCategoria" [value]="categoria.id">{{ categoria.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Subcategoría</mat-label>
+            <mat-select formControlName="SubCategoria">
+              <mat-option *ngFor="let subCategoria of selectedSubCategoria" [value]="subCategoria.id">{{ subCategoria.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+
+        <ng-container *ngIf="isEditMode && articuloParaEditar">
+          <div class="readonly-field">
+            <label class="readonly-label">Tipo Artículo</label>
+            <p class="readonly-value">{{ articuloParaEditar.NombreTipoArticulo }}</p>
+          </div>
+          <div class="readonly-field">
+            <label class="readonly-label">Fabricante</label>
+            <p class="readonly-value">{{ articuloParaEditar.NombreFabricante }}</p>
+          </div>
+          <div class="readonly-field">
+            <label class="readonly-label">Categoría</label>
+            <p class="readonly-value">{{ articuloParaEditar.NombreCategoria }}</p>
+          </div>
+          <div class="readonly-field">
+            <label class="readonly-label">Subcategoría</label>
+            <p class="readonly-value">{{ articuloParaEditar.NombreSubCategoria }}</p>
+          </div>
+        </ng-container>
 
         <mat-form-field appearance="outline">
           <mat-label>Enlace de Compra</mat-label>

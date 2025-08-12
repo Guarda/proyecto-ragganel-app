@@ -62,10 +62,28 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="dialog-actions">
-    <button mat-stroked-button mat-dialog-close>Cerrar</button>
-    
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+  
+  <div>
     <button mat-button (click)="stepper.previous()" *ngIf="stepper.selectedIndex > 0">Atrás</button>
-    <button mat-raised-button color="primary" (click)="stepper.next()" *ngIf="stepper.selectedIndex < totalFormularios - 1">Siguiente</button>
-    <button mat-raised-button color="primary" (click)="enviarInventario()" *ngIf="stepper.selectedIndex === totalFormularios - 1">Finalizar</button>
-  </mat-dialog-actions>
+    
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="stepper.next()" 
+      *ngIf="stepper.selectedIndex < totalFormularios - 1"
+      [disabled]="!stepper.selected?.stepControl?.valid">
+      Siguiente
+    </button>
+    
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="enviarInventario()" 
+      *ngIf="stepper.selectedIndex === totalFormularios - 1"
+      [disabled]="!stepper.selected?.stepControl?.valid">
+      Finalizar
+    </button>
+  </div>
+</mat-dialog-actions>
 </div>
