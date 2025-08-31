@@ -133,7 +133,7 @@ export class AgregarServicioComponent {
           next: (response) => {
             console.log('Servicio creado exitosamente:', response);
             this.Agregado.emit();
-            this.dialogRef.close(); // ← esto cierra el diálogo
+            this.dialogRef.close(true); // ← esto cierra el diálogo
             //this.router.navigate(['/home/listado-servicios']);
           },
           error: (error) => {

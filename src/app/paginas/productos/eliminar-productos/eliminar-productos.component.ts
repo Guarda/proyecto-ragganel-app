@@ -37,7 +37,7 @@ export class EliminarProductosComponent {
   onEliminar(){
     this.productoService.elininar(this.productoForm.value).subscribe((res: any) => {
       this.Borrado.emit();
-      this.router.navigateByUrl('listado-productos');
+      this.router.navigateByUrl('home/listado-productos');
     })
   }
 }

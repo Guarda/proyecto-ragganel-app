@@ -38,7 +38,7 @@ export class EliminarAccesoriosComponent {
   onEliminar(){
     this.accesorioService.eliminar(this.accesorioForm.value).subscribe((res: any) => {
       this.Borrado.emit();
-      this.router.navigateByUrl('listado-accesorios');
+      this.router.navigateByUrl('home/listado-accesorios');
     })
   }
 
