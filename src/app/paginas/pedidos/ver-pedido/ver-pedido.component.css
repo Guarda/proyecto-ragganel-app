@@ -1,186 +1,78 @@
 .contenedor-componente-crear-pedido {
-    margin-left: 5%;
-    margin-right: 5%;
-  
-  }
+  margin: 0 5%;
+}
 
-  
-  .header1 {
-    display: flex;
-    flex-direction: row;
-  }
-  
-  .h3 {
-    display: flex;
-    flex-direction: row;
-  }
-  
-  .cabezera {
-    display: flex;
-    align-items: left;
-    padding: 1%;
-    justify-content: space-around;
-    /* justify-content: flex-end; */
-    width: 100%;
-  }
-  
-  .contenedor-principal {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    height: auto; /* Permite que crezca con el contenido */
-    overflow: visible; /* Asegura que no limite el tamaño */
-  }
-  
-  .contenedor-secundario {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    border: 2px solid black;
-    border-radius: 20px;
-    background-color: white;
-    width: 100%;
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 10px;
-    /* padding-bottom: 5px; */
-    gap: 15px;
-    max-height: auto; /* Define el límite máximo del contenedor */
-    overflow: hidden; /* Asegura que nada salga del contenedor */
-  }
-  
-  .contenedor-row {
-    display: flex;
-    flex-direction: row; /* Alinea los contenedores hijos en una fila */
-    justify-content: space-between; /* Añade espacio entre los contenedores hijos */
-    gap: 15px; /* Añade espacio entre los contenedores */
-  }
-  
-  .contenedor-row > div {
-    width: 32%; /* Los divs ocupan el 32% del ancho, dejando espacio para el gap */
-    min-width: 150px; /* Asegura que los divs no se hagan demasiado pequeños */
-  }
-  
-  .contenedor-img-consola {
-    flex: 0 0 20%; /* El 20% de la anchura del contenedor */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    overflow: hidden; /* Asegura que no se desborde la imagen */
-  }
-  
-  .contenedor-img-consola img {
-    width: 100%; /* La imagen ocupará el 100% del ancho del div contenedor */
-    height: auto; /* Mantiene la proporción de la imagen */
-    object-fit: contain; /* Ajusta la imagen sin distorsionarla, la mantiene proporcional */
-  }
-  .contenedor-fechas, .contenedor-tracking {
-    flex: 1; /* Each takes equal remaining space */
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    padding: 10px;
-    /*box-sizing: border-box; /* Includes padding in width calculation */
-  }
-  
-  .contenedor-adicional {
-    display: flex; /* Aligns child containers side by side */
-    gap: 10px; /* Adds space between the containers */
-    width: 100%;
-    height: 100%; /* Make the container span the available height */
-  }
-  
-  .contenedor-detalles,
-  .contenedor-tarifas {
-    flex: 1; /* Make both containers take equal width */
-    display: flex;
-    flex-direction: column; /* Stack content vertically */
-    gap: 10px;
-    padding: 10px;
-    /* border: 1px solid #ccc; Optional: Add a border for clarity */
-    /* box-sizing: border-box; */
-  }
-  
-  .contenedor-detalles {
-    height: 200px; /* Ajusta según el diseño */
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .input-form-pedido {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
-  
-  
-  .grow {
-    flex-grow: 1; /* Allow the Comentarios field to fill remaining space */
-  }
-  
-  .mat-form-field.ng-invalid .mat-input-element {
-    border-color: red;
-  }
-  
-  /* Ensure the mat-form-field grows properly */
-  .grow {
-    flex-grow: 1; /* Allow it to grow to fill available space */
-    display: flex; /* Ensure flex layout */
-    flex-direction: column; /* Allow vertical growth */
-  }
-  
-  /* Adjust the mat-form-field and internal elements */
-  .mat-form-field {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
-  
-  .mat-form-field-flex {
-    flex: 1; /* Ensure the flex container grows */
-    display: flex;
-    flex-direction: column; /* Stack the elements inside vertically */
-  }
-  
-  .mat-form-field-infix {
-    flex: 1; /* Allow the input area to grow */
-    display: flex;
-    align-items: stretch; /* Stretch input to fill */
-  }
-  
-  /* Ajusta el contenedor del mat-form-field */
-  .mat-form-field.input-form-pedido.grow {
-    display: flex; /* Flex layout para alinear verticalmente */
-    flex-direction: column; /* Permite que los hijos crezcan verticalmente */
-    height: 100%; /* Usa toda la altura disponible */
-  }
-  
-  textarea.comentario {
-    overflow-y: auto; /* Permite que aparezca un scroll si es necesario */
-    resize: none; /* Deshabilita el redimensionamiento manual */
-    box-sizing: border-box;
-    height: auto; /* Permite que el textarea crezca según el contenido */
-    max-height: 200px; /* Limita la altura máxima para evitar que crezca demasiado */
-  }
-  
-  ::ng-deep .mat-form-field.input-form-pedido.grow textarea.comentario {
-    height: 100%;
-  }
-  
-  .mat-hint {
-    margin-top: 5px; /* Asegura que haya espacio entre el textarea y el contador */
-    font-size: 12px;
-    color: gray;
-    text-align: end;
-  }
-  
-  .botones{
-    display: flex;
-    justify-content: flex-end; /* Alinea los botones a la derecha */
-    gap: 10px; /* Opcional: añade espacio entre los botones */
-  }
-  
-  
+h3 {
+  margin-bottom: 20px;
+}
+
+.contenedor-secundario {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background-color: white;
+  padding: 24px;
+  gap: 25px;
+}
+
+.contenedor-row, .contenedor-adicional {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+}
+
+.contenedor-img-consola {
+  flex: 0 0 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagen-consola {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.contenedor-fechas, .contenedor-tracking, .contenedor-detalles, .contenedor-tarifas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.seccion-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: -5px;
+  font-size: 1.05em;
+}
+
+.input-form-pedido {
+  width: 100%;
+}
+
+.input-form-pedido.grow {
+  flex-grow: 1; 
+}
+
+textarea.comentario {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.total-field input {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #d32f2f;
+    text-align: right;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  gap: 10px;
+}

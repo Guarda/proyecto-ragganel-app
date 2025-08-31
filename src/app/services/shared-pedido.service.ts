@@ -1,48 +1,34 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
-
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SharedPedidoService {
 
-  private dataSubjectSubTotalArticulosPedido = new BehaviorSubject<number>(0);
-  
-  SubTotalArticulosPedido$ = this.dataSubjectSubTotalArticulosPedido.asObservable();
+  /**
+   * Este BehaviorSubject es la única fuente de verdad para el subtotal de los artículos.
+   * El componente 'index-listado-articulos' enviará actualizaciones aquí.
+   * El componente 'agregar-pedido' se suscribirá para recibir estas actualizaciones.
+   */
+  private subTotalArticulosSubject = new BehaviorSubject<number>(0);
 
-  subtotalarticulosPedido(newData: number) {
-    this.data.SubTotalArticulos = newData; // Update stored value
-    this.dataSubjectSubTotalArticulosPedido.next(newData);
-    this.calculateTotal(); // Recalculate the total
-  } 
-
-  private data = {
-    SubTotalArticulos: 0,
-    Impuestos: 0,
-    ShippingUSA: 0,
-    ShippingNic: 0,
-  };
-
-  private totalSubject = new BehaviorSubject<number>(0);
-  total$ = this.totalSubject.asObservable().pipe(distinctUntilChanged());
-
-  updateField(field: keyof typeof this.data, value: number) {
-    this.data[field] = value || 0; // Asigna un valor por defecto de 0
-    this.calculateTotal();
-  }
-
-  private calculateTotal() {
-    setTimeout(() => {
-        const { SubTotalArticulos, Impuestos, ShippingUSA, ShippingNic } = this.data;
-    
-        const total = SubTotalArticulos + Impuestos + ShippingUSA + ShippingNic;
-        console.log('servicio', total);
-
-        this.totalSubject.next(total);
-    }, 0); // ⚡️ Retraso mínimo para ejecutar en el siguiente ciclo de cambios
-}
-
+  /**
+   * Exponemos el subtotal como un Observable para que los componentes puedan suscribirse
+   * de forma segura (solo pueden leer, no modificar el valor directamente).
+   */
+  public SubTotalArticulosPedido$ = this.subTotalArticulosSubject.asObservable();
 
   constructor() { }
+
+  /**
+   * Método público que el componente 'index-listado-articulos' usará para
+   * actualizar el valor del subtotal cada vez que se agregue, elimine o
+   * modifique la cantidad de un artículo.
+   *
+   * @param nuevoSubtotal El nuevo valor del subtotal calculado en el listado de artículos.
+   */
+  public subtotalarticulosPedido(nuevoSubtotal: number): void {
+    this.subTotalArticulosSubject.next(nuevoSubtotal || 0);
+  }
 }

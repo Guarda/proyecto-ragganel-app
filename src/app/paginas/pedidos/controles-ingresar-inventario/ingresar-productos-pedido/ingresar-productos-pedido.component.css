@@ -1,122 +1,73 @@
-.contenedor-img-consola {
-    padding-left: 2%;
-    padding-right: 2%;
-  }
-  
-  .contenedor-comentario {
-    margin-left: 2%;
-    margin-right: 2%;
-  }
-  
-  span {
-    font-family: Quicksand;
-    font-size: 30px;
-    display: flex;
-    flex-direction: row;
-    margin-left: 10px;
-    flex-wrap: nowrap;
-  }
-  
-  /* Global styling */
-  .mat-icon {
-    vertical-align: middle;
-  
-  }
-  
-  .contenedor-secundario {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-  }
-  
-  .contenedor-form {
-    width: 500%;
-  }
-  
-  .input-form-prod {
-    width: 100%;
-  }
-  
-  .mat-typography {
-    display: flex;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    width: 150%;
-  }
-  
-  .example-full-width {
-    width: 100%;
-  }
-  
-  .imagen-consola{
-    width: 360px!important;
-  }
-  
-  .example-form-field {
-    width: 100%;
-  }
+:host {
+  display: block;
+}
 
-  /* --- Contenedor Principal del Formulario --- */
-.form-grid-container {
+mat-card {
+  padding: 12px !important;
+  border: 1px solid #e0e0e0;
+  box-shadow: none !important;
+}
+
+.compact-form-grid {
   display: grid;
-  /* Define 2 columnas de tamaño flexible (1fr) */
-  grid-template-columns: repeat(2, 1fr);
-  /* Espacio horizontal de 16px entre columnas */
-  gap: 0 16px;
+  /* Creamos una parrilla de 3 columnas: 1 para la imagen, 2 para los campos */
+  grid-template-columns: 120px 1fr 1fr;
+  gap: 8px 16px; /* Espacio vertical y horizontal */
+  align-items: start; /* Alinea los items al inicio */
 }
 
-/* --- Clase de utilidad para ocupar todo el ancho --- */
-.grid-span-2 {
-  /* Hace que el elemento se expanda para ocupar las 2 columnas */
-  grid-column: span 2;
-}
-
-/* --- Estilos para el Precio Final --- */
-.precio-final {
+/* --- Columna 1: Imagen --- */
+.image-container {
+  grid-column: 1 / 2; /* Ocupa la primera columna */
+  /* Hacemos que la imagen ocupe el espacio de las 2 primeras filas de campos */
+  grid-row: 1 / span 2; 
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* Alinea el contenido a la derecha */
-  padding: 10px 0; /* Añade espacio vertical */
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  height: 120px;
+}
+
+.articulo-imagen {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* --- Campos del Formulario (Columnas 2 y 3) --- */
+/* Los mat-form-field se colocarán automáticamente en las celdas disponibles */
+
+/* Clase para campos que deben ocupar todo el ancho de la parrilla */
+.full-width-field {
+  grid-column: 1 / -1; /* Ocupa desde la primera hasta la última columna */
+}
+
+/* Estilos para que los campos "fill" sean más compactos */
+:host ::ng-deep .mat-mdc-form-field-flex {
+  padding-top: 4px !important;
+}
+:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+.costo-distribuido-field input {
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+/* Pie de la tarjeta */
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 0 0 0 !important;
+  margin-top: 8px;
+  border-top: 1px solid #eee;
+}
+.card-footer h4 {
+  margin: 0;
   font-size: 1.1em;
   font-weight: 500;
 }
-
-.precio-final h4 {
-  margin: 0; /* Quita el margen por defecto del h4 */
-}
-
-/* --- Ajustes generales (opcional) --- */
-.example-full-width {
-    width: 100%;
-}
-
-/* --- Contenedor Principal del Formulario --- */
-.form-grid-container {
-  display: grid;
-  /* Define 2 columnas de tamaño flexible */
-  grid-template-columns: repeat(2, 1fr);
-  /* Espacio horizontal de 16px entre columnas */
-  gap: 0 16px;
-}
-
-/* --- Clase de utilidad para ocupar todo el ancho --- */
-.grid-span-2 {
-  /* Hace que el elemento se expanda para ocupar las 2 columnas */
-  grid-column: span 2;
-}
-
-/* --- Estilos para el Precio Final --- */
-.precio-final {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end; /* Alinea el contenido a la derecha */
-  padding: 10px 0;
-  font-size: 1.1em;
-  font-weight: 500;
-  border-top: 1px solid #e0e0e0; /* Opcional: añade una línea divisoria */
-  margin-top: 8px; /* Opcional: añade un pequeño margen superior */
-}
-
-.precio-final h4 {
-  margin: 0; /* Quita el margen por defecto del h4 */
+.card-footer strong {
+  color: #1565c0; /* Un azul más oscuro */
 }

@@ -26,17 +26,18 @@ import { CategoriasInsumosService } from '../../../../services/categorias-insumo
 import { CategoriasInsumosBase } from '../../../interfaces/categoriasinsumosbase';
 import { MatChipsModule } from '@angular/material/chips';
 import { InsumosBase } from '../../../interfaces/insumosbase';
+import { MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 
 @Component({
   selector: 'app-ingresar-insumos-pedido',
   standalone: true,
   imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule],
+    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions, MatCardTitle, MatCardSubtitle, MatCardHeader],
   templateUrl: './ingresar-insumos-pedido.component.html',
   styleUrls: ['./ingresar-insumos-pedido.component.css']
 })
 export class IngresarInsumosPedidoComponent {
-
+  @Input() stepperIndex: number = 0;
   @Input() form!: FormGroup; // 👈 Asegurar que el componente recibe 'form'
   @Input() articulo!: any; // Recibe el artículo desde el padre
 

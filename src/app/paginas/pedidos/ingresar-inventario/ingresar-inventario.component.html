@@ -1,96 +1,89 @@
-<mat-dialog-content>
-  <h2>Avanzar pedido</h2>
-  <p>Añade los detalles de cada artículo del pedido <strong>{{ OrderId }}</strong> para ingresarlos al inventario</p>
-</mat-dialog-content>
+<div class="dialog-container">
+  <div class="dialog-header">    
+      <h2>Ingresar Pedido a Inventario</h2>
+      <p>Añade los detalles para cada artículo del pedido <strong>{{ OrderId }}</strong>.</p>
+  </div>
 
-<div class="cost-summary" *ngIf="costoService.costosTotales$ | async as costos">
+  <div class="cost-summary" *ngIf="costoService.costosTotales$ | async as costos">
   <mat-card>
-    <mat-card-header>
-      <mat-card-title>Distribución de Costos Adicionales</mat-card-title>
-    </mat-card-header>
     <mat-card-content>
-      <p><strong>Total a Distribuir:</strong> {{ costos.total | currency }}</p>
-      <p><strong>Total Distribuido:</strong> {{ costoService.costosDistribuidos$ | async | currency }}</p>
-      <p><strong>Restante:</strong> {{ (costos.total - ((costoService.costosDistribuidos$ | async) ?? 0)) | currency }}</p>
+      <p class="cost-item">
+        <span>Total a Distribuir:</span>
+        <strong>{{ costos.total | currency }}</strong>
+      </p>
+      <p class="cost-item">
+        <span>Total Distribuido:</span>
+        <strong>{{ costoService.costosDistribuidos$ | async | currency }}</strong>
+      </p>
+      <p class="cost-item remaining">
+        <span>Restante:</span>
+        <strong>{{ (costos.total - ((costoService.costosDistribuidos$ | async) ?? 0)) | currency }}</strong>
+      </p>
     </mat-card-content>
   </mat-card>
 </div>
 
-<ng-container *ngIf="productos.length > 0 || accesorios.length > 0 || insumos.length > 0; else noData">
-  <mat-stepper linear #stepper>
+  <div class="custom-stepper-header" *ngIf="stepper">
+    <div class="progress-info">
+      <h3>Ingresando: {{ currentArticle?.NombreSubCategoria || 'Artículo' }}</h3>
+      <span class="step-counter">Paso {{ stepper.selectedIndex + 1 }} de {{ totalFormularios }}</span>
+    </div>
+    <mat-progress-bar mode="determinate" [value]="((stepper.selectedIndex + 1) / totalFormularios) * 100"></mat-progress-bar>
+  </div>
 
-    <ng-container *ngFor="let form of formulariosProductos; let i = index">
-      <mat-step [stepControl]="form">
-        <app-ingresar-productos-pedido [form]="form" [articulo]="productos[getArticuloIndex(i, 'producto')]"></app-ingresar-productos-pedido>
-        
-        <div class="stepper-controls">
-          <button mat-button mat-dialog-close>Cerrar ventana</button>
-          <button mat-button matStepperPrevious *ngIf="stepper.selectedIndex > 0">Atrás</button>
-
-          <button mat-button matStepperNext 
-                  *ngIf="stepper.selectedIndex < totalFormularios - 1"
-                  (click)="recibirFormulario(form)">
-            Siguiente
-          </button>
-          
-          <button mat-button 
-                  *ngIf="stepper.selectedIndex === totalFormularios - 1" 
-                  (click)="finalizar(form)">
-            Finalizar
-          </button>
-        </div>
+   <mat-dialog-content class="stepper-content-container">
+    <mat-stepper linear #stepper>
+      
+      <mat-step *ngFor="let form of formulariosProductos; let i = index" [stepControl]="form">
+        <app-ingresar-productos-pedido 
+          [form]="form" 
+          [articulo]="productos[getArticuloIndex(i, 'producto')]"
+          [stepperIndex]="i">
+        </app-ingresar-productos-pedido>
       </mat-step>
-    </ng-container>
 
-    <ng-container *ngFor="let form of formulariosAccesorios; let i = index">
-      <mat-step [stepControl]="form">
-        <app-ingresar-accesorios-pedido [form]="form" [articulo]="accesorios[getArticuloIndex(i, 'accesorio')]"></app-ingresar-accesorios-pedido>
-        
-        <div class="stepper-controls">
-          <button mat-button mat-dialog-close>Cerrar ventana</button>
-          <button mat-button matStepperPrevious *ngIf="stepper.selectedIndex > 0">Atrás</button>
-
-          <button mat-button matStepperNext 
-                  *ngIf="stepper.selectedIndex < totalFormularios - 1"
-                  (click)="recibirFormulario(form)">
-            Siguiente
-          </button>
-          
-          <button mat-button 
-                  *ngIf="stepper.selectedIndex === totalFormularios - 1" 
-                  (click)="finalizar(form)">
-            Finalizar
-          </button>
-        </div>
+      <mat-step *ngFor="let form of formulariosAccesorios; let i = index" [stepControl]="form">
+        <app-ingresar-accesorios-pedido 
+          [form]="form" 
+          [articulo]="accesorios[getArticuloIndex(i, 'accesorio')]"
+          [stepperIndex]="formulariosProductos.length + i">
+        </app-ingresar-accesorios-pedido>
       </mat-step>
-    </ng-container>
 
-    <ng-container *ngFor="let form of formulariosInsumos; let i = index">
-      <mat-step [stepControl]="form">
-        <app-ingresar-insumos-pedido [form]="form" [articulo]="insumos[i]"></app-ingresar-insumos-pedido>
-        
-        <div class="stepper-controls">
-          <button mat-button mat-dialog-close>Cerrar ventana</button>
-          <button mat-button matStepperPrevious *ngIf="stepper.selectedIndex > 0">Atrás</button>
-
-          <button mat-button matStepperNext 
-                  *ngIf="stepper.selectedIndex < totalFormularios - 1"
-                  (click)="recibirFormulario(form)">
-            Siguiente
-          </button>
-          
-          <button mat-button 
-                  *ngIf="stepper.selectedIndex === totalFormularios - 1" 
-                  (click)="finalizar(form)">
-            Finalizar
-          </button>
-        </div>
+      <mat-step *ngFor="let form of formulariosInsumos; let i = index" [stepControl]="form">
+        <app-ingresar-insumos-pedido 
+          [form]="form" 
+          [articulo]="insumos[i]"
+          [stepperIndex]="formulariosProductos.length + formulariosAccesorios.length + i">
+        </app-ingresar-insumos-pedido>
       </mat-step>
-    </ng-container>
 
-  </mat-stepper>
-</ng-container>
+    </mat-stepper>
+  </mat-dialog-content>
 
-<ng-template #noData>
-  <p>No hay artículos disponibles para procesar en este pedido.</p>
-</ng-template>
+  <mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+  
+  <div>
+    <button mat-button (click)="stepper.previous()" *ngIf="stepper.selectedIndex > 0">Atrás</button>
+    
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="stepper.next()" 
+      *ngIf="stepper.selectedIndex < totalFormularios - 1"
+      [disabled]="!stepper.selected?.stepControl?.valid">
+      Siguiente
+    </button>
+    
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="enviarInventario()" 
+      *ngIf="stepper.selectedIndex === totalFormularios - 1"
+      [disabled]="!stepper.selected?.stepControl?.valid">
+      Finalizar
+    </button>
+  </div>
+</mat-dialog-actions>
+</div>

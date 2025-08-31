@@ -36,7 +36,7 @@ export class AvanzarPedidoComponent implements OnInit {
     if (this.data.codigoEstado === 4) {
       // Si el estado es 4, abrir el diálogo de `IngresarInventarioComponent`
       const dialogRef = this.dialog.open(IngresarInventarioComponent, {
-        height: '100%',
+        height: '150%',
         width: '50%',
         disableClose: true,
         data: { idPedido: this.data.value }

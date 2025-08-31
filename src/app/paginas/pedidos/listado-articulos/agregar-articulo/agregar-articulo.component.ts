@@ -1,8 +1,8 @@
 import { CommonModule, NgFor } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatOption, MatOptionModule } from '@angular/material/core';
-import { MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -50,16 +50,21 @@ import { CategoriasInsumosBase } from '../../../interfaces/categoriasinsumosbase
 import { FabricanteInsumos } from '../../../interfaces/fabricantesinsumos';
 import { SubcategoriasInsumos } from '../../../interfaces/subcategoriasinsumos';
 
+import { debounceTime, merge, Subscription } from 'rxjs';
+import { MatButtonToggleModule } from '@angular/material/button-toggle'; // <-- AÑADIR ESTE IMPORT
+import { Articulo } from '../../../interfaces/articulo-pedido';
+
+
 @Component({
   selector: 'app-agregar-articulo',
   standalone: true,
   imports: [MatDialogActions, MatDialogClose, FormsModule, ReactiveFormsModule, MatDialogContent, MatFormField, MatLabel, MatOption, MatOptionModule,
-    MatSelectModule, CommonModule, MatFormFieldModule, MatInputModule],
+    MatSelectModule, CommonModule, MatFormFieldModule, MatInputModule, MatButtonToggleModule],
   templateUrl: './agregar-articulo.component.html',
   styleUrl: './agregar-articulo.component.css'
 })
 export class AgregarArticuloComponent {
-
+  isEditMode = false; // <-- Nueva propiedad
   Agregado = new EventEmitter();
 
   articulosForm!: FormGroup;
@@ -71,6 +76,9 @@ export class AgregarArticuloComponent {
   selectedFabricante: any;
   selectedCategoria: any;
   selectedSubCategoria: any;
+  private priceCalculationSubscription!: Subscription;
+  private subscriptions = new Subscription();
+  articuloParaEditar: Articulo | null = null;
   // dialogRef: any;
 
   constructor(
@@ -91,214 +99,239 @@ export class AgregarArticuloComponent {
     public subcategoriaproductoService: SubcategoriaProductoService,
     public subcategoriaaccesorioService: SubcategoriaAccesorioService,
     public subcategoriaInsumoService: SubcategoriaInsumoService,
+
     //  
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef, private router: Router,
-    private dialogRef: MatDialogRef<AgregarArticuloComponent>) {
+    private dialogRef: MatDialogRef<AgregarArticuloComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any) {
+
+    if (data && data.isEditMode) {
+      this.isEditMode = true;
+      this.articuloParaEditar = data.articulo; // <-- GUARDA EL ARTÍCULO A EDITAR
+    }
 
   }
-
   ngOnInit(): void {
+    // 1. Crea la estructura del formulario con todos los campos.
+    this.initializeForm();
 
-    this.ImagePath = this.getImagePath('', 1);
+    // 2. Comprueba si el diálogo está en modo "Editar" o "Agregar".
+    if (this.isEditMode) {
+      // Si es modo "Editar", llena el formulario con los datos existentes.
+      this.populateFormForEdit();
+    } else {
+      // Si es modo "Agregar", carga los datos iniciales y configura los menús desplegables.
+      this.loadInitialData();
+      this.setupCascadingDropdowns();
+    }
+
+    // 3. Activa la lógica para el cálculo automático de precios (funciona en ambos modos).
+    this.setupPriceCalculationListeners();
+  }
+
+  // MÉTODO 1: INICIALIZA EL FORMULARIO
+  initializeForm(): void {
     this.articulosForm = this.fb.group({
       TipoArticulo: new FormControl('', Validators.required),
       Fabricante: new FormControl('', Validators.required),
       Cate: new FormControl('', Validators.required),
       SubCategoria: new FormControl('', Validators.required),
       EnlaceCompra: new FormControl(''),
-      Cantidad: new FormControl('', Validators.required),
-      Precio: new FormControl('', Validators.required),
       IdModeloPK: new FormControl('', Validators.required),
-      Activo: new FormControl(1) // Valor por defecto asignado como 1
+      Activo: new FormControl(1),
+      Cantidad: new FormControl('1', [Validators.required, Validators.min(1)]),
+      priceMode: new FormControl(this.isEditMode ? 'unit' : 'lot'), // En edición, empieza en 'unit'
+      Precio: new FormControl('', Validators.required),
+      PrecioLote: new FormControl(''),
+    });
+  }
+
+  // MÉTODO 2: LLENA EL FORMULARIO PARA EDICIÓN
+  populateFormForEdit(): void {
+    const articulo = this.data.articulo;
+    this.articulosForm.patchValue({
+      ...articulo,
+      priceMode: 'unit' // En modo edición, siempre mostramos el precio unitario.
     });
 
+    // Carga la imagen del artículo que se está editando
+    this.ImagePath = articulo.ImagePath;
+
+    // Deshabilitamos los campos que no deben cambiarse en una edición.
+    this.articulosForm.get('TipoArticulo')?.disable();
+    this.articulosForm.get('Fabricante')?.disable();
+    this.articulosForm.get('Cate')?.disable();
+    this.articulosForm.get('SubCategoria')?.disable();
+    this.articulosForm.get('priceMode')?.disable(); // El modo de precio tampoco se puede cambiar.
+  }
+
+  // MÉTODO 3: CARGA DATOS INICIALES PARA MODO "AGREGAR"
+  loadInitialData(): void {
+    this.ImagePath = this.getImagePath('', null);
     this.tipoarticulo.getAll().subscribe((data: TipoArticulo[]) => {
-      //console.log(data);
       this.selectedTipoArticulo = data;
     });
+  }
 
-    /* PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE */
-    this.articulosForm.get('TipoArticulo')?.valueChanges.subscribe(selectedId => {
-      switch (selectedId) {
-        case 1: // Producto
-          // console.log("Producto selected");
-          this.updateCategoriesForProducto();
-          break;
-        case 2: // Accesorio
-          // console.log("Accesorio selected");
-          this.updateCategoriesForAccesorio();
-          break;
-        case 3: // Insumo
-          // console.log("Insumo selected");
-          this.updateCategoriesForInsumo();
-          break;
-        default:
-          console.error("Unknown TipoArticulo selected");
-      }
+  // CORRECCIÓN 2: Implementar la lógica de los menús desplegables
+  setupCascadingDropdowns(): void {
+    const tipoArticuloControl = this.articulosForm.get('TipoArticulo')!;
+    const fabricanteControl = this.articulosForm.get('Fabricante')!;
+    const categoriaControl = this.articulosForm.get('Cate')!;
+    const subCategoriaControl = this.articulosForm.get('SubCategoria')!;
 
-      // Resetear el campo de fabricante
-      this.articulosForm.get('Fabricante')?.reset();
-      this.articulosForm.get('SubCategoria')?.reset();
-    });
-
-    this.articulosForm.get('Fabricante')?.valueChanges.subscribe(fabricanteId => {
-      const tipoArticulo = this.articulosForm.get('TipoArticulo')?.value;
-
-      if (!fabricanteId || !tipoArticulo) {
+    // 1. Cuando cambia el TIPO DE ARTÍCULO
+    this.subscriptions.add(
+      tipoArticuloControl.valueChanges.subscribe(tipoId => {
+        fabricanteControl.reset();
+        this.selectedFabricante = [];
+        categoriaControl.reset();
         this.selectedCategoria = [];
-        return;
-      }
-
-      switch (tipoArticulo) {
-        case 1: // Producto
-          this.fetchCategoriasForProducto(fabricanteId);
-          break;
-        case 2: // Accesorio
-          this.fetchCategoriasForAccesorio(fabricanteId);
-          break;
-        case 3: // Insumo
-          this.fetchCategoriasForInsumo(fabricanteId);
-          break;
-        default:
-          console.error('Tipo de artículo desconocido');
-          this.selectedCategoria = [];
-      }
-      this.articulosForm.get('Cate')?.reset();
-    });
-
-    this.articulosForm.get('Cate')?.valueChanges.subscribe(categoriaId => {
-      const tipoArticulo = this.articulosForm.get('TipoArticulo')?.value;
-
-      if (!categoriaId || !tipoArticulo) {
+        subCategoriaControl.reset();
         this.selectedSubCategoria = [];
-        return;
-      }
-
-      switch (tipoArticulo) {
-        case 1: // Producto
-          this.fetchSubCategoriasForProducto(categoriaId);
-          break;
-        case 2: // Accesorio
-          this.fetchSubCategoriasForAccesorio(categoriaId);
-          break;
-        case 3: // Insumo
-          this.fetchSubCategoriasForInsumo(categoriaId);
-          break;
-        default:
-          console.error('Tipo de artículo desconocido');
-          this.selectedSubCategoria = [];
-      }
-      this.articulosForm.get('SubCategoria')?.reset();
-    });
-
-
-    this.articulosForm.get('SubCategoria')?.valueChanges.subscribe(selectedSubCategoriaId => {
-      const fabricanteId = this.articulosForm.get('Fabricante')?.value;
-      const categoriaId = this.articulosForm.get('Cate')?.value;
-      const tipoArticulo = this.articulosForm.get('TipoArticulo')?.value;
-
-      if (fabricanteId && categoriaId && selectedSubCategoriaId && tipoArticulo) {
-        // Llama al servicio adecuado según el tipo de artículo
-        let categoriasService;
-
-        switch (tipoArticulo) {
-          case 1: // Producto
-            categoriasService = this.categoriasProductos;
-            break;
-          case 2: // Accesorio
-            categoriasService = this.categoriasAccesorios;
-            break;
-          case 3: // Insumo
-             categoriasService = this.categoriasInsumo;
-            break;
-          default:
-            console.error("Tipo de artículo desconocido");
-            return;
+        switch (tipoId) {
+          case 1: this.updateCategoriesForProducto(); break;
+          case 2: this.updateCategoriesForAccesorio(); break;
+          case 3: this.updateCategoriesForInsumo(); break;
         }
+      })
+    );
 
-        // Llama al servicio con los tres valores
-        categoriasService?.getbymanufacturer(fabricanteId, categoriaId, selectedSubCategoriaId)
-          .subscribe((data: any[]) => {
-            // console.log(fabricanteId, categoriaId, selectedSubCategoriaId);
+    // 2. Cuando cambia el FABRICANTE
+    this.subscriptions.add(
+      fabricanteControl.valueChanges.subscribe(fabricanteId => {
+        categoriaControl.reset();
+        this.selectedCategoria = [];
+        subCategoriaControl.reset();
+        this.selectedSubCategoria = [];
+        if (fabricanteId) {
+          switch (tipoArticuloControl.value) {
+            case 1: this.fetchCategoriasForProducto(fabricanteId); break;
+            case 2: this.fetchCategoriasForAccesorio(fabricanteId); break;
+            case 3: this.fetchCategoriasForInsumo(fabricanteId); break;
+          }
+        }
+      })
+    );
 
-            switch (tipoArticulo) {
-              case 1: // Producto
-                if (data.length > 0) {
-                  const modelo = data[0]; // Asumimos que el backend devuelve el modelo correcto
-                  this.idModelo = modelo.IdModeloConsolaPK; // ID del modelo
-                  // console.log(this.idModelo)
-                  this.categoriasProductos.find(this.idModelo).subscribe((data) => {
-                    // console.log(data)
-                    this.ImagePath = this.getImagePath(data[0].LinkImagen, tipoArticulo);
-                    this.cdr.detectChanges();
-                  });
+    // 3. Cuando cambia la CATEGORÍA
+    this.subscriptions.add(
+      categoriaControl.valueChanges.subscribe(categoriaId => {
+        subCategoriaControl.reset();
+        this.selectedSubCategoria = [];
+        if (categoriaId) {
+          switch (tipoArticuloControl.value) {
+            case 1: this.fetchSubCategoriasForProducto(categoriaId); break;
+            case 2: this.fetchSubCategoriasForAccesorio(categoriaId); break;
+            case 3: this.fetchSubCategoriasForInsumo(categoriaId); break;
+          }
+        }
+      })
+    );
 
-                  // Opcional: Actualiza un control del formulario
-                   this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
-                } else {
-                  // Si no hay datos, muestra una imagen por defecto
-                  this.ImagePath = this.getImagePath(null, tipoArticulo);
-                }
-                break;
-              case 2: // Accesorio
-                if (data.length > 0) {
-                  const modelo = data[0]; // Asumimos que el backend devuelve el modelo correcto
-                  this.idModelo = modelo.IdModeloAccesorioPK; // ID del modelo
-                  // console.log(this.idModelo)
-                  this.categoriasAccesorios.find(this.idModelo).subscribe((data) => {
-                    // console.log(data)
-                    this.ImagePath = this.getImagePath(data[0].LinkImagen, tipoArticulo);
-                    this.cdr.detectChanges();
-                  });
+    // 4. Cuando cambia la SUBCATEGORÍA (AQUÍ RESTAURAMOS LA LÓGICA ANTIGUA Y FUNCIONAL)
+    this.subscriptions.add(
+      subCategoriaControl.valueChanges.subscribe(selectedSubCategoriaId => {
+        const fabricanteId = fabricanteControl.value;
+        const categoriaId = categoriaControl.value;
+        const tipoArticulo = tipoArticuloControl.value;
 
-                  // Opcional: Actualiza un control del formulario
-                  this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
-                } else {
-                  // Si no hay datos, muestra una imagen por defecto
-                  this.ImagePath = this.getImagePath(null, tipoArticulo);
-                }
-                break;
-              case 3: // Insumo
-              if (data.length > 0) {
-                const modelo = data[0]; // Asumimos que el backend devuelve el modelo correcto
-                this.idModelo = modelo.IdModeloInsumosPK; // ID del modelo
-                 console.log(this.idModelo)
-                this.categoriasInsumo.find(this.idModelo).subscribe((data) => {
-                   console.log(data)
-                  this.ImagePath = this.getImagePath(data[0].LinkImagen, tipoArticulo);
-                  this.cdr.detectChanges();
-                });
+        if (fabricanteId && categoriaId && selectedSubCategoriaId && tipoArticulo) {
+          let categoriasService: any; // Servicio para el primer paso
+          let findService: any;       // Servicio para el segundo paso (find)
+          let idModeloKey = '';       // La llave del ID del modelo (ej: 'IdModeloConsolaPK')
 
-                // Opcional: Actualiza un control del formulario
+          switch (tipoArticulo) {
+            case 1:
+              categoriasService = this.categoriasProductos;
+              findService = this.categoriasProductos;
+              idModeloKey = 'IdModeloConsolaPK';
+              break;
+            case 2:
+              categoriasService = this.categoriasAccesorios;
+              findService = this.categoriasAccesorios;
+              idModeloKey = 'IdModeloAccesorioPK';
+              break;
+            case 3:
+              categoriasService = this.categoriasInsumo;
+              findService = this.categoriasInsumo;
+              idModeloKey = 'IdModeloInsumosPK';
+              break;
+            default: return;
+          }
+
+          // PASO 1: Obtener el ID del modelo con getbymanufacturer
+          categoriasService.getbymanufacturer(fabricanteId, categoriaId, selectedSubCategoriaId)
+            .subscribe((modelData: any[]) => {
+              if (modelData && modelData.length > 0) {
+                const modelo = modelData[0];
+                this.idModelo = modelo[idModeloKey];
                 this.articulosForm.get('IdModeloPK')?.setValue(this.idModelo);
+
+                // PASO 2: Usar el idModelo para buscar la imagen con find()
+                findService.find(this.idModelo).subscribe((imageData: any) => {
+                  if (imageData && imageData.length > 0) {
+                    this.ImagePath = this.getImagePath(imageData[0].LinkImagen, tipoArticulo);
+                    this.cdr.detectChanges();
+                  } else {
+                    this.ImagePath = this.getImagePath(null, tipoArticulo);
+                  }
+                });
               } else {
-                // Si no hay datos, muestra una imagen por defecto
                 this.ImagePath = this.getImagePath(null, tipoArticulo);
               }
-              break;
-              default:
-                console.error("Tipo de artículo desconocido");
-                return;
-            }
-          });
-      } else {
-        // Si faltan datos, muestra una imagen por defecto
-        this.ImagePath = this.getImagePath(null, tipoArticulo);
-      }
-    });
-
+            });
+        }
+      })
+    );
   }
 
+  // MÉTODO 5: CONFIGURA LA LÓGICA DE CÁLCULO DE PRECIO
+  // ===== MÉTODO CORREGIDO =====
+  setupPriceCalculationListeners(): void {
+    const priceMode$ = this.articulosForm.get('priceMode')!.valueChanges;
+    const cantidad$ = this.articulosForm.get('Cantidad')!.valueChanges;
+    const precioLote$ = this.articulosForm.get('PrecioLote')!.valueChanges;
 
+    this.subscriptions.add(
+      merge(priceMode$, cantidad$, precioLote$)
+        .pipe(debounceTime(300)) // Opcional: añade un pequeño retardo
+        .subscribe(() => {
+          if (this.articulosForm.get('priceMode')?.value === 'lot') {
+            this.calculateUnitPrice();
+          }
+        })
+    );
+  }
+
+  calculateUnitPrice(): void {
+    const cantidadNum = parseFloat(this.articulosForm.get('Cantidad')?.value);
+    const precioLoteNum = parseFloat(this.articulosForm.get('PrecioLote')?.value);
+
+    if (cantidadNum > 0 && precioLoteNum >= 0) {
+      const unitPrice = precioLoteNum / cantidadNum;
+      this.articulosForm.get('Precio')?.setValue(unitPrice.toFixed(4), { emitEvent: false });
+    } else {
+      this.articulosForm.get('Precio')?.setValue('', { emitEvent: false });
+    }
+  }
+
+  // Tu función para validar decimales
   enforceTwoDecimals(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const value = input.value;
-  
-    // Remove leading zeros and limit to 2 decimal places
-    const sanitizedValue = value.replace(/^0+(?!\.)/, '').match(/^\d*(\.\d{0,2})?/);
-    input.value = sanitizedValue ? sanitizedValue[0] : '';
+    let value = input.value;
+    value = value.replace(/[^0-9.]/g, '');
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    if (parts[1] && parts[1].length > 2) {
+      value = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    input.value = value;
   }
+
   //metodos para fabricantes
   updateCategoriesForProducto() {
     this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteProducto[]) => {
@@ -394,8 +427,8 @@ export class AgregarArticuloComponent {
 
   // Función para construir la ruta de la imagen
   getImagePath(link: string | null, tipoArticulo: number | null) {
-     console.log(link)
-     console.log(tipoArticulo)
+    console.log(link)
+    console.log(tipoArticulo)
     const baseUrl = 'http://localhost:3000';
     let folder = '';
 
@@ -416,14 +449,38 @@ export class AgregarArticuloComponent {
     return link ? `${baseUrl}/${folder}/${link}` : `${baseUrl}/${folder}/2ds.jpg`;
   }
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    if (this.articulosForm.valid) {
-      // console.log(this.articulosForm.value);
-      // this.Agregado.emit(this.articulosForm.value); // Emitir datos
-      this.dialogRef.close(this.articulosForm.value); // Cerrar el diálogo con los datos
-    } else {
-      console.log('Formulario no válido');
+  // NUEVO: Método auxiliar para el submit
+  calculateFinalUnitPrice() {
+    const cantidadNum = parseFloat(this.articulosForm.get('Cantidad')?.value);
+    const precioLoteNum = parseFloat(this.articulosForm.get('PrecioLote')?.value);
+
+    if (cantidadNum > 0 && precioLoteNum >= 0) {
+      const unitPrice = precioLoteNum / cantidadNum;
+      this.articulosForm.get('Precio')?.setValue(unitPrice.toFixed(4));
     }
   }
 
+  onSubmit(): void {
+    if (this.articulosForm.get('priceMode')?.value === 'lot') {
+      const cantidadNum = parseFloat(this.articulosForm.get('Cantidad')?.value);
+      const precioLoteNum = parseFloat(this.articulosForm.get('PrecioLote')?.value);
+      if (cantidadNum > 0 && precioLoteNum >= 0) {
+        const unitPrice = precioLoteNum / cantidadNum;
+        this.articulosForm.get('Precio')?.setValue(unitPrice.toFixed(4));
+      }
+    }
+
+    if (this.articulosForm.valid) {
+      this.dialogRef.close(this.articulosForm.getRawValue());
+    } else {
+      console.log('Formulario no válido');
+      this.articulosForm.markAllAsTouched(); // Muestra errores de validación
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.priceCalculationSubscription) {
+      this.priceCalculationSubscription.unsubscribe();
+    }
+  }
 }

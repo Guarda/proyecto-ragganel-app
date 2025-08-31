@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { DataSource } from '@angular/cdk/collections';
-import { Observable, ReplaySubject } from 'rxjs';
+import { catchError, forkJoin, Observable, of, ReplaySubject } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { SharedPedidoService } from '../../../../services/shared-pedido.service';
@@ -80,6 +80,7 @@ export class IndexListadoArticulosComponent {
   selectedSubcategoria: any;
 
   dataSource = new ExampleDataSource(this.dataToDisplay);
+  @Output() subtotalCambiado = new EventEmitter<number>();
 
   constructor(private dialog: MatDialog,
     public sharedPedidoService: SharedPedidoService,
@@ -107,10 +108,11 @@ export class IndexListadoArticulosComponent {
   }
 
 
+  // En index-listado-articulos.component.ts
+
   get totalArticulos(): number {
-    return this.dataToDisplay
-      .filter(articulo => articulo.Activo === 1) // Filtra solo los artículos activos
-      .reduce((total, articulo) => total + (articulo.Cantidad || 0), 0);
+    // Simplemente cuenta cuántos artículos activos hay en la lista
+    return this.activeArticulos.length;
   }
 
   get totalPrecio(): number {
@@ -118,6 +120,8 @@ export class IndexListadoArticulosComponent {
       .filter(articulo => articulo.Activo === 1) // Filtra solo los artículos activos
       .reduce((total, articulo) => total + (articulo.Precio * articulo.Cantidad || 0), 0);
   }
+
+
 
   // removeArticulo(articulo: Articulo) {
   //   this.dataToDisplay = this.dataToDisplay.filter(item => item !== articulo);
@@ -134,10 +138,10 @@ export class IndexListadoArticulosComponent {
       this.dataToDisplay[index].Activo = 0; // Cambia el campo Activo a false
       console.log(this.dataToDisplay[index])
     }
-  
+
     // Actualiza la fuente de datos
     this.dataSource.setData(this.dataToDisplay);
-  
+
     // Actualiza el total compartido
     this.updateSharedTotal();
   }
@@ -149,12 +153,14 @@ export class IndexListadoArticulosComponent {
   }
   private updateSharedTotal() {
     const total = this.totalPrecio;
+
+    // ====== ACCIÓN 1: ACTUALIZAR EL SERVICIO ======
+    // Esto asegura que 'agregar-pedido' siga recibiendo el subtotal.
     this.sharedPedidoService.subtotalarticulosPedido(total);
 
-    // Suscríbete al servicio para obtener el subtotal
-    this.sharedPedidoService.SubTotalArticulosPedido$.subscribe((total) => {
-      console.log(total);
-    });
+    // ====== ACCIÓN 2: EMITIR EL EVENTO ======
+    // Esto asegura que 'ver-pedido' reciba el subtotal.
+    this.subtotalCambiado.emit(total);
   }
 
   // Método para escuchar el evento de actualización de la cantidad
@@ -169,200 +175,179 @@ export class IndexListadoArticulosComponent {
     this.updateSharedTotal();
   }
 
-  public openDialogAgregar() {
-    const dialogRef = this.dialog.open(AgregarArticuloComponent, {
-      disableClose: true,
-      height: '85%',
-      width: '40%',
-    });
+  public openDialogAgregar(): void {
+    const dialogRef = this.dialog.open(AgregarArticuloComponent, { /* ... tus opciones ... */ });
     dialogRef.afterClosed().subscribe((newArticulo: Articulo) => {
       if (newArticulo) {
-        // this.addData(newArticulo);
+        // La lógica principal se mueve a los métodos getNamesFor...
         switch (newArticulo.TipoArticulo) {
-          case 1: // Producto
-            // console.log("Producto selected");
-            this.getNamesForProducto(newArticulo);
-            break;
-          case 2: // Accesorio
-            // console.log("Accesorio selected");
-            this.getNamesForAccesorio(newArticulo);
-            break;
-          case 3: // Insumo
-            this.getNamesForInsumo(newArticulo);
-            // console.log("Insumo selected");
-            // this.updateCategoriesForInsumo();
-            break;
-          default:
-            console.error("Unknown TipoArticulo selected");
+          case 1: this.getNamesForProducto(newArticulo); break;
+          case 2: this.getNamesForAccesorio(newArticulo); break; // Implementar con forkJoin
+          case 3: this.getNamesForInsumo(newArticulo); break;    // Implementar con forkJoin
         }
       }
     });
   }
 
-  getNamesForProducto(newArticulo: Articulo) {
-    // Fetch the article type name
-    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) => {
-      const fabricante = data.find(item => item.IdTipoArticuloPK === newArticulo.TipoArticulo);
-      if (fabricante) {
-        // Assign the Fabricante Name to the newArticulo object
-        newArticulo.NombreTipoArticulo = fabricante.DescripcionTipoArticulo;
+  getNamesForProducto(newArticulo: Articulo): void {
+    // 1. Preparamos todas las llamadas a los servicios que necesitamos
+    const calls = {
+      tipo: this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()),
+      fabricante: this.fabricanteproductoService.find(newArticulo.Fabricante.toString()),
+      categoria: this.categoriaproductoService.findById(newArticulo.Cate.toString()),
+      subcategoria: this.subcategoriaproductoService.findById(newArticulo.SubCategoria.toString()),
+      modelo: this.cateproductoService.find(newArticulo.IdModeloPK.toString()).pipe(
+        // Usamos catchError para que si esta llamada falla, no cancele las demás.
+        catchError(() => of([])) // Devuelve un arreglo vacío en caso de error
+      )
+    };
+
+    // 2. Ejecutamos todas las llamadas en paralelo y esperamos a que terminen
+    forkJoin(calls).subscribe(results => {
+      // 3. Asignamos los nombres y la imagen de forma segura
+      // El resultado de cada llamada está en 'results' con la clave que le dimos
+      if (results.tipo && results.tipo.length > 0) {
+        newArticulo.NombreTipoArticulo = results.tipo[0].DescripcionTipoArticulo;
       }
-    });
-
-    // Fetch Fabricante Name
-    this.fabricanteproductoService.find(newArticulo.Fabricante.toString()).subscribe((data: FabricanteProducto[]) => {
-      const fabricante = data.find(item => item.IdFabricantePK === newArticulo.Fabricante);
-      if (fabricante) {
-        // Assign the Fabricante Name to the newArticulo object
-        newArticulo.NombreFabricante = fabricante.NombreFabricante;
+      if (results.fabricante && results.fabricante.length > 0) {
+        newArticulo.NombreFabricante = results.fabricante[0].NombreFabricante;
       }
-    });
-
-    // Fetch Categoria Name
-    this.categoriaproductoService.findById(newArticulo.Cate.toString()).subscribe((data: categoriasProductos[]) => {
-      const categoria = data.find(item => item.IdCategoriaPK === newArticulo.Cate);
-      if (categoria) {
-        // Assign the Categoria Name to the newArticulo object
-        newArticulo.NombreCategoria = categoria.NombreCategoria;
+      if (results.categoria && results.categoria.length > 0) {
+        newArticulo.NombreCategoria = results.categoria[0].NombreCategoria;
       }
-    });
-
-    // Fetch SubCategoria Name
-    this.subcategoriaproductoService.findById(newArticulo.SubCategoria.toString()).subscribe((data: SubcategoriasProductos[]) => {
-      console.log('subcategoria' + data[0])
-      const subcategoria = data.find(item => item.IdSubcategoria === newArticulo.SubCategoria);
-      if (subcategoria) {
-        console.log(subcategoria)
-        // Assign the SubCategoria Name to the newArticulo object
-        newArticulo.NombreSubCategoria = subcategoria.NombreSubCategoria;
+      if (results.subcategoria && results.subcategoria.length > 0) {
+        newArticulo.NombreSubCategoria = results.subcategoria[0].NombreSubCategoria;
       }
+
+      // Verificación de seguridad para la imagen
+      if (results.modelo && results.modelo.length > 0) {
+        newArticulo.ImagePath = this.getImagePath(results.modelo[0].LinkImagen, newArticulo.TipoArticulo);
+      } else {
+        newArticulo.ImagePath = this.getImagePath(null, newArticulo.TipoArticulo);
+      }
+
+      // 4. SOLO AHORA, con todos los datos listos, agregamos el artículo a la lista
+      this.addData(newArticulo);
+      this.cdr.detectChanges(); // Forzamos la detección de cambios por si acaso
     });
-
-    this.cateproductoService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
-      // console.log(data)
-      this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
-      newArticulo.ImagePath = this.ImagePath;
-      this.cdr.detectChanges();
-    });
-
-
-    // After the data is fetched and updated, you can add the articulo to the display list
-    this.addData(newArticulo);
   }
 
-  getNamesForAccesorio(newArticulo: Articulo) {
+  getNamesForAccesorio(newArticulo: Articulo): void {
+    // 1. Preparamos todas las llamadas a los servicios de accesorios
+    const calls = {
+      tipo: this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()),
+      fabricante: this.fabricanteaccesorioService.find(newArticulo.Fabricante.toString()),
+      categoria: this.categoriaaccesorioService.findById(newArticulo.Cate.toString()),
+      subcategoria: this.subcategoriaaccesorioService.findById(newArticulo.SubCategoria.toString()),
+      modelo: this.cateaccesorioService.find(newArticulo.IdModeloPK.toString()).pipe(
+        // En caso de que no se encuentre una imagen, devolvemos un arreglo vacío
+        catchError(() => of([]))
+      )
+    };
 
-    // Fetch the article type name
-    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) => {
-      const fabricante = data.find(item => item.IdTipoArticuloPK === newArticulo.TipoArticulo);
-      if (fabricante) {
-        // Assign the Fabricante Name to the newArticulo object
-        newArticulo.NombreTipoArticulo = fabricante.DescripcionTipoArticulo;
+    // 2. Ejecutamos todas las llamadas en paralelo
+    forkJoin(calls).subscribe(results => {
+      // 3. Asignamos los nombres y la imagen de forma segura
+      if (results.tipo && results.tipo.length > 0) {
+        newArticulo.NombreTipoArticulo = results.tipo[0].DescripcionTipoArticulo;
       }
-    });
-
-    // Fetch Fabricante Name
-    this.fabricanteaccesorioService.find(newArticulo.Fabricante.toString()).subscribe((data: FabricanteAccesorio[]) => {
-      const fabricante = data.find(item => item.IdFabricanteAccesorioPK === newArticulo.Fabricante);
-      if (fabricante) {
-        // Assign the Fabricante Name to the newArticulo object
-        newArticulo.NombreFabricante = fabricante.NombreFabricanteAccesorio;
+      if (results.fabricante && results.fabricante.length > 0) {
+        newArticulo.NombreFabricante = results.fabricante[0].NombreFabricanteAccesorio;
       }
-    });
-
-    // Fetch Categoria Name
-    this.categoriaaccesorioService.findById(newArticulo.Cate.toString()).subscribe((data: categoriasAccesorios[]) => {
-      const categoria = data.find(item => item.IdCategoriaAccesorioPK === newArticulo.Cate);
-      if (categoria) {
-        // Assign the Categoria Name to the newArticulo object
-        newArticulo.NombreCategoria = categoria.NombreCategoriaAccesorio;
+      if (results.categoria && results.categoria.length > 0) {
+        newArticulo.NombreCategoria = results.categoria[0].NombreCategoriaAccesorio;
       }
-    });
-
-    // Fetch SubCategoria Name
-    this.subcategoriaaccesorioService.findById(newArticulo.SubCategoria.toString()).subscribe((data: SubcategoriasAccesorios[]) => {
-      console.log('subcategoria' + data[0])
-      const subcategoria = data.find(item => item.IdSubcategoriaAccesorio === newArticulo.SubCategoria);
-      if (subcategoria) {
-        console.log(subcategoria)
-        // Assign the SubCategoria Name to the newArticulo object
-        newArticulo.NombreSubCategoria = subcategoria.NombreSubcategoriaAccesorio;
+      if (results.subcategoria && results.subcategoria.length > 0) {
+        newArticulo.NombreSubCategoria = results.subcategoria[0].NombreSubcategoriaAccesorio;
       }
-    });
 
-    this.cateaccesorioService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
-      // console.log(data)
-      this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
-      newArticulo.ImagePath = this.ImagePath;
+      // Verificación de seguridad para la imagen
+      if (results.modelo && results.modelo.length > 0) {
+        newArticulo.ImagePath = this.getImagePath(results.modelo[0].LinkImagen, newArticulo.TipoArticulo);
+      } else {
+        newArticulo.ImagePath = this.getImagePath(null, newArticulo.TipoArticulo);
+      }
+
+      // 4. Agregamos el artículo a la lista, ahora con toda su información
+      this.addData(newArticulo);
       this.cdr.detectChanges();
     });
-
-    // After the data is fetched and updated, you can add the articulo to the display list
-    this.addData(newArticulo);
   }
 
-  getNamesForInsumo(newArticulo: Articulo) {
+  getNamesForInsumo(newArticulo: Articulo): void {
+    // 1. Preparamos todas las llamadas a los servicios de insumos
+    const calls = {
+      tipo: this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()),
+      fabricante: this.fabricanteinsumoService.find(newArticulo.Fabricante.toString()),
+      categoria: this.categoriainsumoService.findById(newArticulo.Cate.toString()),
+      subcategoria: this.subcategoriainsumoService.findById(newArticulo.SubCategoria.toString()),
+      modelo: this.cateinsumoService.find(newArticulo.IdModeloPK.toString()).pipe(
+        // En caso de que no se encuentre una imagen, devolvemos un arreglo vacío
+        catchError(() => of([]))
+      )
+    };
 
-    // Fetch the article type name
-    this.tipoarticuloService.findById(newArticulo.TipoArticulo.toString()).subscribe((data: TipoArticulo[]) => {
-      const fabricante = data.find(item => item.IdTipoArticuloPK === newArticulo.TipoArticulo);
-      if (fabricante) {
-        // Assign the Fabricante Name to the newArticulo object
-        newArticulo.NombreTipoArticulo = fabricante.DescripcionTipoArticulo;
+    // 2. Ejecutamos todas las llamadas en paralelo
+    forkJoin(calls).subscribe(results => {
+      // 3. Asignamos los nombres y la imagen de forma segura
+      if (results.tipo && results.tipo.length > 0) {
+        newArticulo.NombreTipoArticulo = results.tipo[0].DescripcionTipoArticulo;
       }
-    });
-
-    // Fetch Fabricante Name
-    this.fabricanteinsumoService.find(newArticulo.Fabricante.toString()).subscribe((data: FabricanteInsumos[]) => {
-      const fabricante = data.find(item => item.IdFabricanteInsumosPK === newArticulo.Fabricante);
-      if (fabricante) {
-        // Assign the Fabricante Name to the newArticulo object
-        newArticulo.NombreFabricante = fabricante.NombreFabricanteInsumos;
+      if (results.fabricante && results.fabricante.length > 0) {
+        newArticulo.NombreFabricante = results.fabricante[0].NombreFabricanteInsumos;
       }
-    });
-
-    // Fetch Categoria Name
-    this.categoriainsumoService.findById(newArticulo.Cate.toString()).subscribe((data: categoriasInsumos[]) => {
-      const categoria = data.find(item => item.IdCategoriaInsumosPK === newArticulo.Cate);
-      if (categoria) {
-        // Assign the Categoria Name to the newArticulo object
-        newArticulo.NombreCategoria = categoria.NombreCategoriaInsumos;
+      if (results.categoria && results.categoria.length > 0) {
+        newArticulo.NombreCategoria = results.categoria[0].NombreCategoriaInsumos;
       }
-    });
-
-    // Fetch SubCategoria Name
-    this.subcategoriainsumoService.findById(newArticulo.SubCategoria.toString()).subscribe((data: SubcategoriasInsumos[]) => {
-      console.log('subcategoria' + data[0])
-      const subcategoria = data.find(item => item.IdCategoriaInsumosFK === newArticulo.SubCategoria);
-      if (subcategoria) {
-        console.log(subcategoria)
-        // Assign the SubCategoria Name to the newArticulo object
-        newArticulo.NombreSubCategoria = subcategoria.NombreSubcategoriaInsumos;
+      if (results.subcategoria && results.subcategoria.length > 0) {
+        newArticulo.NombreSubCategoria = results.subcategoria[0].NombreSubcategoriaInsumos;
       }
-    });
 
-    this.cateinsumoService.find(newArticulo.IdModeloPK.toString()).subscribe((data) => {
-      // console.log(data)
-      this.ImagePath = this.getImagePath(data[0].LinkImagen, newArticulo.TipoArticulo);
-      newArticulo.ImagePath = this.ImagePath;
+      // Verificación de seguridad para la imagen
+      if (results.modelo && results.modelo.length > 0) {
+        newArticulo.ImagePath = this.getImagePath(results.modelo[0].LinkImagen, newArticulo.TipoArticulo);
+      } else {
+        newArticulo.ImagePath = this.getImagePath(null, newArticulo.TipoArticulo);
+      }
+
+      // 4. Agregamos el artículo a la lista, ahora con toda su información
+      this.addData(newArticulo);
       this.cdr.detectChanges();
     });
-
-    // After the data is fetched and updated, you can add the articulo to the display list
-    this.addData(newArticulo);
   }
 
-
-  addData(newArticulo: Articulo) {
+  addData(newArticulo: Articulo): void {
     this.dataToDisplay = [...this.dataToDisplay, newArticulo];
     this.dataSource.setData(this.dataToDisplay);
-    this.updateSharedTotal(); // Actualiza el total compartido
+    this.updateSharedTotal();
   }
 
   removeData() {
     this.dataToDisplay = this.dataToDisplay.slice(0, -1);
     this.dataSource.setData(this.dataToDisplay);
     this.updateSharedTotal(); // Actualiza el total compartido
+  }
+
+  public openDialogEditar(articuloAEditar: Articulo, index: number) {
+    const dialogRef = this.dialog.open(AgregarArticuloComponent, {
+      disableClose: true,
+      height: '85%',
+      width: '40%',
+      data: {
+        articulo: articuloAEditar,
+        isEditMode: true // <-- Bandera para indicar que es modo edición
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((articuloEditado: Articulo) => {
+      if (articuloEditado) {
+        // En lugar de agregar, actualizamos el artículo existente en el arreglo
+        // Usamos el 'index' para mayor seguridad
+        this.dataToDisplay[index] = { ...this.dataToDisplay[index], ...articuloEditado };
+        this.dataSource.setData(this.dataToDisplay);
+        this.updateSharedTotal();
+      }
+    });
   }
 
 
