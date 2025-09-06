@@ -2,7 +2,7 @@
 create database base_datos_inventario_taller;
 use base_datos_inventario_taller;
 
-CREATE TABLE TipoArticulo 
+CREATE TABLE TipoArticulo  /*ingresado*/
 (
 	IdTipoArticuloPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     DescripcionTipoArticulo varchar(100) not null,
@@ -14,7 +14,7 @@ INSERT INTO TipoArticulo (DescripcionTipoArticulo) values ('Accesorio');
 INSERT INTO TipoArticulo (DescripcionTipoArticulo) values ('Insumo');
 
 /*TABLAS CREADAS EL 10/09/24 TiposAccesorios, TiposProductos y CatalogoTiposAccesoriosXProducto*/
-CREATE TABLE TiposAccesorios (
+CREATE TABLE TiposAccesorios ( /*ingresado*/
 	IdTipoAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     CodigoAccesorio varchar(25),
     DescripcionAccesorio varchar(100),
@@ -22,13 +22,13 @@ CREATE TABLE TiposAccesorios (
 );
 
 
-CREATE TABLE TiposProductos (
+CREATE TABLE TiposProductos ( /*ingresado*/
 	IdTipoProductoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     DescripcionTipoProducto varchar(100),
     Activo boolean not null default 1
 );
 
-CREATE TABLE CatalogoTiposAccesoriosXProducto (
+CREATE TABLE CatalogoTiposAccesoriosXProducto ( /*ingresado*/
 	IdCatalogoAccesorioXProductoPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     IdTipoAccesorioFK int,
     IdTipoProductoFK int,
@@ -39,7 +39,7 @@ CREATE TABLE CatalogoTiposAccesoriosXProducto (
 
 /*TABLA FABRICANTES CREADO 14/09/24*/
 
-CREATE TABLE FABRICANTES (
+CREATE TABLE FABRICANTES ( /*ingresado*/ 
 	IdFabricantePK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     NombreFabricante varchar(100),
     Activo boolean not null default 1
@@ -52,7 +52,7 @@ INSERT INTO FABRICANTES (NombreFabricante) values ('Microsoft');
 
 /* TABLA CATEGORIAS CREADO 14/09/24*/
 
-CREATE TABLE CategoriasProductos (
+CREATE TABLE CategoriasProductos ( /*ingresado*/ 
 	IdCategoriaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     NombreCategoria varchar(100),
     IdFabricanteFK int,
@@ -69,7 +69,7 @@ INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Xbox 
 INSERT INTO CategoriasProductos (NombreCategoria, IdFabricanteFK) values ('Xbox 360 S',3);
 /* TABLA SUBCATEGORIAS CREADO 14/09/24*/
 
-CREATE TABLE SubcategoriasProductos (
+CREATE TABLE SubcategoriasProductos ( /*ingresado*/ 
 	IdSubcategoria int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     NombreSubcategoria varchar(100),
     IdCategoriaFK int,
@@ -98,7 +98,7 @@ INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('
 INSERT INTO SubcategoriasProductos (NombreSubcategoria, IdCategoriaFK) values ('SCPH-900xx (2007-2013)',5);
 
 
-CREATE TABLE CatalogoConsolas (
+CREATE TABLE CatalogoConsolas ( /*ingresado*/ 
 	IdModeloConsolaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     Fabricante int,
     Categoria int,
@@ -115,7 +115,7 @@ CREATE TABLE CatalogoConsolas (
 
 /*TABLA ESTADOS*/
 
-CREATE TABLE IF NOT EXISTS CatalogoEstadosConsolas(
+CREATE TABLE IF NOT EXISTS CatalogoEstadosConsolas( /*ingresado*/ 
 	CodigoEstado int not null AUTO_INCREMENT,
     DescripcionEstado varchar(100) not null,
     PRIMARY KEY (CodigoEstado)
@@ -136,7 +136,7 @@ select * from CatalogoEstadosConsolas;
 select * from catalogoconsolas;
 /* TABLA PRODUCTOSBASES*/
 
-CREATE TABLE ProductosBases (
+CREATE TABLE ProductosBases ( -- ingresado
 	CodigoConsola varchar(25) primary key not null,
     Modelo int not null,
     Color varchar(100) not null,
@@ -166,7 +166,7 @@ CREATE TABLE AccesoriosdeProductos (
     FOREIGN KEY (IdCodigoConsolaFK) REFERENCES ProductosBases (CodigoConsola)
 );*/
 
-CREATE TABLE TareasdeProductos (
+CREATE TABLE TareasdeProductos ( -- ingresado
 /*TABLA TareasdeProductos CREADA 23/09/2024 */
 	IdTareaPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     DescripcionTarea varchar(100),
@@ -178,7 +178,7 @@ CREATE TABLE TareasdeProductos (
 
 /*CREAR TABLAS DE ACCESORIOS */
 
-CREATE TABLE FabricanteAccesorios
+CREATE TABLE FabricanteAccesorios -- ingresado
 (
 	/*TABLA FABRICANTE ACCESORIOS CREADA 9/11/24*/
 	IdFabricanteAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -187,7 +187,7 @@ CREATE TABLE FabricanteAccesorios
 );
 
 CREATE TABLE CategoriasAccesorios 
-(
+( -- ingresado
 	/*TABLA Categoria ACCESORIOS CREADA 9/11/24*/
 	IdCategoriaAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     NombreCategoriaAccesorio varchar(100),
@@ -196,7 +196,7 @@ CREATE TABLE CategoriasAccesorios
     FOREIGN KEY (IdFabricanteAccesorioFK) REFERENCES FabricanteAccesorios (IdFabricanteAccesorioPK)
 );
 
-CREATE TABLE SubcategoriasAccesorios 
+CREATE TABLE SubcategoriasAccesorios  -- ingresado
 (
 	/*TABLA SUBCATEGORIA ACCESORIOS CREADA 9/11/24*/
 	IdSubcategoriaAccesorio int AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE SubcategoriasAccesorios
     FOREIGN KEY (IdCategoriaAccesorioFK) REFERENCES CategoriasAccesorios (IdCategoriaAccesorioPK)
 );
 
-CREATE TABLE CatalogoAccesorios (
+CREATE TABLE CatalogoAccesorios (  -- ingresado
 /*TABLA CATALOGOACCESORIOS CREADA 9/11/24*/
 	IdModeloAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     FabricanteAccesorio int,
@@ -220,7 +220,7 @@ CREATE TABLE CatalogoAccesorios (
     FOREIGN KEY (SubcategoriaAccesorio) REFERENCES SubcategoriasAccesorios (IdSubcategoriaAccesorio)
 );
 
-CREATE TABLE AccesoriosBase (
+CREATE TABLE AccesoriosBase (  -- ingresado
 /*TABLA AccesoriosBase CREADA 9/11/24*/
 	CodigoAccesorio varchar(25) primary key not null,
     ModeloAccesorio int not null,
@@ -239,7 +239,7 @@ CREATE TABLE AccesoriosBase (
 ALTER TABLE AccesoriosBase 
 ADD COLUMN IdIngreso INT AUTO_INCREMENT UNIQUE;
 
-CREATE TABLE TareasdeAccesorios (
+CREATE TABLE TareasdeAccesorios (  -- ingresado
 /*TABLA TareasdeAccesorios CREADA 9/11/24 */
 	IdTareaAccesorioPK int AUTO_INCREMENT PRIMARY KEY NOT NULL,
     DescripcionTarea varchar(100),
@@ -303,7 +303,7 @@ CREATE TABLE PedidoBase
     SitioWebFK int not null,
     ViaPedidoFK int not null,
     EstadoPedidoFK int not null,    
-    PrecioEstimado Decimal(6,2),
+    TotalPedido Decimal(6,2),
     Comentarios varchar(2000),
     Peso DECIMAL(6,2),
 	SubtotalArticulos DECIMAL(6,2),
