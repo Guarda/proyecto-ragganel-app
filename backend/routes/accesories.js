@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+// 1. Importamos la configuración centralizada
+const { Basedatos, dbConfig } = require('../config/db');
 
 // Get by specific type of product
 router.get('/accesorio/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarAccesoriosXIdTipoProducto` (?)';
-    db.query(sql, id, (err, result) => {
+    // 2. Hacemos la consulta dinámica usando la configuración
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarAccesoriosXIdTipoProducto\`(?)`;
+    
+    // 3. Usamos 'Basedatos.query' en lugar de 'db.query'
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;

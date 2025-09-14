@@ -178,14 +178,26 @@ export class VerInsumoComponent {
 
   }
 
-  formatNumber(value: number | null) {
-    if (value == null) {
-      return 0;
+  // En tu archivo ver-producto.component.ts
+
+  private formatNumber(value: number | string | null): string {
+    // Si el valor es nulo o una cadena vacía, devuelve '0.00'
+    if (value === null || value === '') {
+      return '0.00';
     }
-    else {
-      return value.toFixed(2); // Formats the number to 2 decimal places
+
+    // Convierte el valor a string y luego a número flotante
+    const num = parseFloat(String(value));
+
+    // Si la conversión falla (resulta en NaN), devuelve '0.00'
+    if (isNaN(num)) {
+      return '0.00';
     }
+
+    // Si todo está bien, formatea el número a 2 decimales
+    return num.toFixed(2);
   }
+
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port

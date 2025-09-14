@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 router.post('/limpiar-carrito', (req, res) => {
   const { IdUsuario, IdCliente } = req.body;
@@ -15,10 +15,10 @@ router.post('/limpiar-carrito', (req, res) => {
     });
   }
 
-  const query = 'CALL sp_Carrito_LimpiarPorUsuarioCliente(?, ?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_LimpiarPorUsuarioCliente\`(?, ?);`;
   const params = [IdUsuario, IdCliente];
 
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al ejecutar sp_Carrito_LimpiarPorUsuarioCliente:', err);
       return res.status(500).json({ success: false, error: err });
@@ -32,7 +32,7 @@ router.post('/limpiar-carrito', (req, res) => {
 
 // List all sales margins types
 router.get('/margenes-venta', (req, res) => {
-  db.query('CALL `base_datos_inventario_taller`.`ListarPreciosVenta`();', (err, results) => {
+  Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarPreciosVenta\`();`, (err, results) => {
     if (err) {
       res.status(500).send('Error margins types');
       console.log(err);
@@ -44,7 +44,7 @@ router.get('/margenes-venta', (req, res) => {
 
 // List all payment methods
 router.get('/metodos-de-pago', (req, res) => {
-  db.query('CALL `base_datos_inventario_taller`.`ListarMetodosDePago`();', (err, results) => {
+  Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarMetodosDePago\`();`, (err, results) => {
     if (err) {
       res.status(500).send('Error payment methods');
       console.log(err);
@@ -67,7 +67,7 @@ router.post('/ingresar-venta', (req, res) => {
 
   // 2. La consulta ahora tiene un '?' menos.
   const query = `
-    CALL InsertarVentaProforma(
+    CALL \`${dbConfig.database}\`.\`InsertarVentaProforma\`(
       ?, @codigoGenerado, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     );
     SELECT @codigoGenerado AS CodigoProforma;
@@ -89,7 +89,7 @@ router.post('/ingresar-venta', (req, res) => {
     detallesJSON
   ];
 
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al ejecutar InsertarVentaProforma:', err);
       return res.status(500).json({ success: false, error: err });
@@ -116,7 +116,7 @@ router.post('/agregar-al-carrito', (req, res) => {
   } = req.body;
   console.log('payload recibido:', req.body);
   // 2. La consulta ahora debe esperar 10 parámetros
-  const query = `CALL sp_Carrito_AgregarArticulo(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`; 
+  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_AgregarArticulo\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`; 
   
   // 3. Los parámetros deben incluir el nuevo campo en el orden correcto
   const params = [
@@ -132,7 +132,7 @@ router.post('/agregar-al-carrito', (req, res) => {
     IdMargenFK // <-- SE AÑADE EL PARÁMETRO AL ARRAY
   ];
 
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al agregar artículo al carrito:', err);
       return res.status(500).json({ 
@@ -166,10 +166,10 @@ router.delete('/eliminar-del-carrito', (req, res) => {
   }
 
   // La lógica de la base de datos no cambia.
-  const query = 'CALL base_datos_inventario_taller.sp_Carrito_DisminuirArticulo(?, ?, ?, ?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_DisminuirArticulo\`(?, ?, ?, ?);`;
   const params = [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo];
 
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al disminuir/eliminar artículo del carrito:', err);
       return res.status(500).json({
@@ -202,10 +202,10 @@ router.post('/eliminar-linea-del-carrito', (req, res) => {
   }
 
   // Query para ejecutar el procedimiento almacenado
-  const query = 'CALL sp_Carrito_EliminarLineaCompleta(?, ?, ?, ?)';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_EliminarLineaCompleta\`(?, ?, ?, ?)`;
   const params = [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo];
 
-  db.query(query, params, (error, results) => {
+  Basedatos.query(query, params, (error, results) => {
     if (error) {
       console.error('Error al ejecutar sp_Carrito_EliminarLineaCompleta:', error);
       return res.status(500).json({
@@ -263,9 +263,9 @@ router.post('/finalizar', (req, res) => {
         detallesJSON
     ];
     
-    const sql = 'CALL RealizarVentaYDescargarInventario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`RealizarVentaYDescargarInventario\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, args, (err, results) => {
+    Basedatos.query(sql, args, (err, results) => {
         if (err) {
             console.error('Error al ejecutar el SP RealizarVentaYDescargarInventario:', err);
             return res.status(500).json({ success: false, error: err.message, sqlState: err.sqlState });
@@ -310,10 +310,10 @@ router.post('/carrito/actualizar-detalle', (req, res) => {
     ];
 
     // 3. Definir la consulta para llamar al SP
-    const sql = 'CALL sp_Carrito_ActualizarDetalle(?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`sp_Carrito_ActualizarDetalle\`(?, ?, ?, ?, ?, ?)`;
 
     // 4. Ejecutar el procedimiento almacenado
-    db.query(sql, args, (err, results) => {
+    Basedatos.query(sql, args, (err, results) => {
         if (err) {
             // Si el SP lanza un error (ej: carrito no encontrado), se captura aquí
             console.error('Error al ejecutar sp_Carrito_ActualizarDetalle:', err);
@@ -329,8 +329,8 @@ router.post('/carrito/actualizar-detalle', (req, res) => {
 //get ssales by user id
 router.get('/listado-ventas/:id', (req, res) => {
   const id = req.params.id;
-  const sql = 'CALL `base_datos_inventario_taller`.`ListarVentasPorUsuario` (?)';
-  db.query(sql, id, (err, result) => {
+  const sql = `CALL \`${dbConfig.database}\`.\`ListarVentasPorUsuario\` (?)`;
+  Basedatos.query(sql, id, (err, result) => {
     if (err) {
       res.status(500).send('Error al buscar las ventas por usuario');
       return;
@@ -351,8 +351,8 @@ router.get('/listar-carrito-en-curso-cliente-usuario', (req, res) => {
     return res.status(400).send('Faltan parámetros IdUsuario o IdCliente');
   }
 
-  db.query(
-    'CALL `base_datos_inventario_taller`.`ListarCarritoUsuarioxClienteEnCurso`(?, ?);',
+  Basedatos.query(
+    `CALL \`${dbConfig.database}\`.\`ListarCarritoUsuarioxClienteEnCurso\`(?, ?);`,
     [IdUsuario, IdCliente],
     (err, results) => {
       if (err) {
@@ -373,10 +373,10 @@ router.get('/venta-completa/:idVenta', (req, res) => {
     return res.status(400).json({ success: false, error: 'ID de venta no proporcionado.' });
   }
 
-  const query = 'CALL sp_ObtenerDetalleVentaCompleta(?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_ObtenerDetalleVentaCompleta\`(?);`;
 
   // Ejecuta el procedimiento almacenado pasando el ID como parámetro.
-  db.query(query, [idVenta], (err, results) => {
+  Basedatos.query(query, [idVenta], (err, results) => {
     if (err) {
       console.error('Error al ejecutar sp_ObtenerDetalleVentaCompleta:', err);
       return res.status(500).json({ success: false, error: 'Error en la base de datos.', details: err });
@@ -415,10 +415,10 @@ router.get('/proforma/:idProforma', (req, res) => {
   }
 
   // 3. La consulta para llamar al procedimiento almacenado.
-  const query = 'CALL sp_GetProformaDetailsYValidarStock(?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_GetProformaDetailsYValidarStock\`(?);`;
 
   // 4. Ejecutar la consulta en la base de datos.
-  db.query(query, [idProforma], (err, results) => {
+  Basedatos.query(query, [idProforma], (err, results) => {
     // Manejo de errores de conexión o sintaxis SQL.
     if (err) {
       console.error('Error al ejecutar sp_GetProformaDetailsYValidarStock:', err);
@@ -468,11 +468,11 @@ router.delete('/proforma/:id', (req, res) => {
   }
 
   // 3. Preparar la llamada al procedimiento almacenado.
-  const query = 'CALL sp_EliminarProforma(?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_EliminarProforma\`(?);`;
   const params = [id];
 
   // 4. Ejecutar la consulta en la base de datos.
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     // Manejo de errores de la base de datos.
     if (err) {
       console.error('Error al ejecutar sp_EliminarProforma:', err);
@@ -504,10 +504,10 @@ router.delete('/proforma/:id', (req, res) => {
 
 router.get('/motivos-nota-credito', (req, res) => {
   // 1. Preparamos la llamada al procedimiento almacenado.
-  const query = 'CALL sp_ListarMotivosNotaCredito();';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_ListarMotivosNotaCredito\`();`;
 
   // 2. Ejecutamos la consulta en la base de datos.
-  db.query(query, (err, results) => {
+  Basedatos.query(query, (err, results) => {
     // 3. Manejo de errores.
     if (err) {
       console.error('Error al obtener los motivos de nota de crédito:', err);

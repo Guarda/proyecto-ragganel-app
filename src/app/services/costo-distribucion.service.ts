@@ -39,6 +39,10 @@ export class CostoDistribucionService {
     this.costosDistribuidosSource.next(totalDistribuido);
   }
 
+  getCostosAdicionalesTotales(): number {
+    return this.costosTotalesSource.getValue().total;
+  }
+
   // ✅ PASO 1: AÑADIR ESTE MÉTODO
   /**
    * Resetea los observables a su estado inicial.

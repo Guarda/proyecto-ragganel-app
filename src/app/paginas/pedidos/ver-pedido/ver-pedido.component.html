@@ -102,6 +102,12 @@
         </div>
         <div class="botones">
             <button mat-stroked-button type="button" (click)="onCancel()">Cerrar</button>
+            <button mat-stroked-button color="accent" type="button" 
+                    *ngIf="pedidoForm.get('Estado')?.value === 5" 
+                    (click)="descargarReporte()">
+                <mat-icon>download</mat-icon>
+                Descargar Reporte
+            </button>
             <button mat-raised-button color="primary" type="submit" [disabled]="!pedidoForm.dirty || !pedidoForm.valid">Actualizar Pedido</button>
         </div>
     </form>

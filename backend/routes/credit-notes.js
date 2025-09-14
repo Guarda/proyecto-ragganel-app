@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 /**
  * @route   POST /notas-credito/crear
@@ -42,9 +42,9 @@ router.post('/crear', (req, res) => {
   ];
 
   // 5. Definimos y ejecutamos la consulta
-  const query = 'CALL sp_CrearNotaCredito(?, ?, ?, ?, ?, ?, ?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_CrearNotaCredito\`(?, ?, ?, ?, ?, ?, ?);`;
 
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al ejecutar sp_CrearNotaCredito:', err);
       return res.status(500).json({
@@ -65,9 +65,9 @@ router.post('/crear', (req, res) => {
 });
 
 router.get('/listar', (req, res) => {
-    const query = 'CALL sp_ListarNotasCredito();';
+    const query = `CALL \`${dbConfig.database}\`.\`sp_ListarNotasCredito\`();`;
 
-    db.query(query, (err, results) => {
+    Basedatos.query(query, (err, results) => {
         if (err) {
             console.error('Error al ejecutar sp_ListarNotasCredito:', err);
             return res.status(500).json({
@@ -95,9 +95,9 @@ router.get('/:id', (req, res) => {
         return res.status(400).json({ success: false, mensaje: 'El ID proporcionado no es un número válido.' });
     }
 
-    const query = 'CALL sp_ObtenerNotaCreditoPorId(?);';
+    const query = `CALL \`${dbConfig.database}\`.\`sp_ObtenerNotaCreditoPorId\`(?);`;
 
-    db.query(query, [idNotaCredito], (err, results) => {
+    Basedatos.query(query, [idNotaCredito], (err, results) => {
         if (err) {
             console.error('Error al ejecutar sp_ObtenerNotaCreditoPorId:', err);
             return res.status(500).json({
@@ -138,9 +138,9 @@ router.put('/anular/:id', (req, res) => {
         });
     }
 
-    const sql = 'CALL sp_AnularNotaCredito(?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`sp_AnularNotaCredito\`(?, ?, ?)`;
 
-    db.query(sql, [idNotaCredito, usuarioId, motivo], (err, result) => {
+    Basedatos.query(sql, [idNotaCredito, usuarioId, motivo], (err, result) => {
         if (err) {
             console.error('Error al anular nota de crédito:', err);
             return res.status(500).json({ success: false, error: 'Error al ejecutar la consulta en la base de datos.' });

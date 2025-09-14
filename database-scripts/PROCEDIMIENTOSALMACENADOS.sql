@@ -1428,43 +1428,43 @@ DELIMITER $$
 
 CREATE PROCEDURE ActualizarDatosGeneralesPedido(
 /*procedimiento almacenado ListarArticulosXIdPedido 28/01/2025 seguir trabajando*/
-    IN IdPedido Varchar(25),  -- ID del pedido a actualizar
-    IN FechaCreacionPedido DATE,  -- Fecha de creación del pedido
-    IN FechaArrivoUSA DATE,
-    IN FechaEstimadaRecepcion DATE,
-    IN NumeroTracking1 VARCHAR(100),
-    IN NumeroTracking2 VARCHAR(100),
-    IN SitioWeb INT,
-    IN ViaPedido INT,
-    IN Peso DECIMAL(6,2),
-    IN Comentarios VARCHAR(2000),
-    IN Impuestos DECIMAL(6,2),
-    IN ShippingUSA DECIMAL(6,2),
-    IN ShippingNic DECIMAL(6,2),
-    IN SubTotalArticulos DECIMAL(6,2),
-    IN PrecioEstimadoDelPedido DECIMAL(6,2),
-    IN EstadoPedido INT
+    IN p_IdPedido Varchar(25),
+    IN p_FechaCreacionPedido DATE,
+    IN p_FechaArrivoUSA DATE,
+    IN p_FechaEstimadaRecepcion DATE,
+    IN p_NumeroTracking1 VARCHAR(100),
+    IN p_NumeroTracking2 VARCHAR(100),
+    IN p_SitioWeb INT,
+    IN p_ViaPedido INT,
+    IN p_Peso DECIMAL(6,2),
+    IN p_Comentarios VARCHAR(2000),
+    IN p_Impuestos DECIMAL(6,2),
+    IN p_ShippingUSA DECIMAL(6,2),
+    IN p_ShippingNic DECIMAL(6,2),
+    IN p_SubTotalArticulos DECIMAL(6,2),
+    IN p_PrecioEstimadoDelPedido DECIMAL(6,2),
+    IN p_EstadoPedido INT
 )
 BEGIN
     -- Actualizar los datos sin comprobación de cambios
     UPDATE PedidoBase
     SET 
-        FechaCreacionPedido = FechaCreacionPedido,
-        FechaArriboEstadosUnidos = FechaArrivoUSA,
-        FechaIngreso = FechaEstimadaRecepcion,
-        NumeroTracking1 = NumeroTracking1,
-        NumeroTracking2 = NumeroTracking2,
-        SitioWebFK = SitioWeb,
-        ViaPedidoFK = ViaPedido,
-        Peso = Peso,
-        Comentarios = Comentarios,
-        Impuestos = Impuestos,
-        EnvioUSA = ShippingUSA,
-        EnvioNIC = ShippingNic,
-        SubtotalArticulos = SubTotalArticulos,
-        TotalPedido = PrecioEstimadoDelPedido,
-        EstadoPedidoFK = EstadoPedido
-    WHERE CodigoPedido = IdPedido;
+        FechaCreacionPedido = p_FechaCreacionPedido,
+        FechaArriboEstadosUnidos = p_FechaArrivoUSA,
+        FechaIngreso = p_FechaEstimadaRecepcion,
+        NumeroTracking1 = p_NumeroTracking1,
+        NumeroTracking2 = p_NumeroTracking2,
+        SitioWebFK = p_SitioWeb,
+        ViaPedidoFK = p_ViaPedido,
+        Peso = p_Peso,
+        Comentarios = p_Comentarios,
+        Impuestos = p_Impuestos,
+        EnvioUSA = p_ShippingUSA,
+        EnvioNIC = p_ShippingNic,
+        SubtotalArticulos = p_SubTotalArticulos,
+        TotalPedido = p_PrecioEstimadoDelPedido,
+        EstadoPedidoFK = p_EstadoPedido
+    WHERE CodigoPedido = p_IdPedido;
 
     -- Retornar un mensaje
     SELECT 'Datos del pedido actualizados correctamente' AS mensaje;
@@ -1891,10 +1891,9 @@ BEGIN
         );
 
         -- Obtener el código actual del insumo
-        SELECT CodigoInsumo
-        -- INTO v_CodigoInsumo
+        SELECT CodigoInsumo INTO v_CodigoInsumo
         FROM InsumosBase
-       -- WHERE ModeloInsumo = v_modeloI
+        WHERE ModeloInsumo = v_modeloI
         ORDER BY IdIngreso DESC
         LIMIT 1;
 
@@ -2615,12 +2614,12 @@ DELIMITER ;
 
 DELIMITER //
 /*PROCEDIMIENTO IngresarCategoriaProductoV2 Creado 16/09/24 */
-	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoInsumo varchar(25), NombreArchivoImagen varchar(100), TipoProductoI int)
+	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoInsumo varchar(25), NombreArchivoImagen varchar(100))
     BEGIN
 		DECLARE cantidad varchar(24);
         select count(IdModeloInsumosPK)+1 from catalogoinsumos into cantidad;        
 		INSERT INTO catalogoinsumos(FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen) 
-        values (FabricanteP, CategoriaP, SubcategoriaP,concat(PrefijoProducto,cantidad), NombreArchivoImagen);
+        values (FabricanteI, CategoriaI, SubcategoriaI,concat(PrefijoInsumo,cantidad), NombreArchivoImagen);
     END //
 DELIMITER ;
 
@@ -2790,54 +2789,53 @@ END //
 
 DELIMITER ;*/
 DELIMITER //
-
-CREATE PROCEDURE IngresarInsumoATablaInsumosBase (
-    IN IdModeloInsumosPK INT,
-    IN EstadoInsumo INT,
-    IN ComentarioInsumo VARCHAR(2000),
-    IN PrecioBase DECIMAL(6,2),
-    IN Cantidad INT UNSIGNED,
-    IN NumeroSerie VARCHAR(100),
-    IN StockMinimo INT UNSIGNED
+CREATE PROCEDURE IngresarInsumoATablaInsumosBase(
+    IN p_IdModeloInsumosPK INT,
+    IN p_EstadoInsumo INT,
+    IN p_ComentarioInsumo VARCHAR(2000),
+    IN p_PrecioBase DECIMAL(6,2),
+    IN p_Cantidad INT UNSIGNED,
+    IN p_NumeroSerie VARCHAR(100),
+    IN p_StockMinimo INT UNSIGNED
 )
 BEGIN
-    DECLARE CodigoGenerado VARCHAR(50);
-    DECLARE CodigoModelo VARCHAR(25);
-    DECLARE CantidadExistente INT;
-    DECLARE StockMinimoExistente INT;
-    DECLARE PrecioBaseExistente DECIMAL(6,2);
-    DECLARE Existe INT;
+    DECLARE v_CodigoGenerado VARCHAR(50);
+    DECLARE v_CodigoModelo VARCHAR(25);
+    DECLARE v_CantidadExistente INT;
+    DECLARE v_StockMinimoExistente INT;
+    DECLARE v_PrecioBaseExistente DECIMAL(6,2);
+    DECLARE v_Existe INT;
 
     -- Verifica si ya existe un insumo para ese modelo
-    SELECT COUNT(*) INTO Existe
+    SELECT COUNT(*) INTO v_Existe
     FROM InsumosBase
-    WHERE ModeloInsumo = IdModeloInsumosPK;
+    WHERE ModeloInsumo = p_IdModeloInsumosPK;
 
-    IF Existe > 0 THEN
+    IF v_Existe > 0 THEN
         -- Ya existe: obtener datos actuales
-        SELECT Cantidad, StockMinimo, PrecioBase INTO CantidadExistente, StockMinimoExistente, PrecioBaseExistente
+        SELECT Cantidad, StockMinimo, PrecioBase INTO v_CantidadExistente, v_StockMinimoExistente, v_PrecioBaseExistente
         FROM InsumosBase
-        WHERE ModeloInsumo = IdModeloInsumosPK
+        WHERE ModeloInsumo = p_IdModeloInsumosPK
         LIMIT 1;
 
         -- Actualizar campos necesarios
         UPDATE InsumosBase
         SET 
-            Cantidad = CantidadExistente + Cantidad,
-            StockMinimo = IF(StockMinimoExistente != StockMinimo, StockMinimo, StockMinimoExistente),
-            PrecioBase = IF(PrecioBase > PrecioBaseExistente, PrecioBase, PrecioBaseExistente)
-        WHERE ModeloInsumo = IdModeloInsumosPK;
+            Cantidad = v_CantidadExistente + p_Cantidad,
+            StockMinimo = IF(v_StockMinimoExistente != p_StockMinimo, p_StockMinimo, v_StockMinimoExistente),
+            PrecioBase = IF(p_PrecioBase > v_PrecioBaseExistente, p_PrecioBase, v_PrecioBaseExistente)
+        WHERE ModeloInsumo = p_IdModeloInsumosPK;
 
     ELSE
         -- No existe: obtener código del modelo desde el catálogo
         -- CAMBIO: Agregado LIMIT 1 para asegurar un solo resultado
-        SELECT CodigoModeloInsumos INTO CodigoModelo
+        SELECT CodigoModeloInsumos INTO v_CodigoModelo
         FROM CatalogoInsumos
-        WHERE IdModeloInsumosPK = IdModeloInsumosPK
+        WHERE IdModeloInsumosPK = p_IdModeloInsumosPK
         LIMIT 1;
 
         -- Generar código único
-        SET CodigoGenerado = CONCAT(CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
+        SET v_CodigoGenerado = CONCAT(v_CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
 
         -- Insertar nuevo registro
         INSERT INTO InsumosBase (
@@ -2845,8 +2843,8 @@ BEGIN
             PrecioBase, NumeroSerie, Cantidad, StockMinimo
         )
         VALUES (
-            CodigoGenerado, IdModeloInsumosPK, EstadoInsumo, CURDATE(), ComentarioInsumo,
-            PrecioBase, NumeroSerie, Cantidad, StockMinimo
+            v_CodigoGenerado, p_IdModeloInsumosPK, p_EstadoInsumo, CURDATE(), p_ComentarioInsumo,
+            p_PrecioBase, p_NumeroSerie, p_Cantidad, p_StockMinimo
         );
     END IF;
 END //
@@ -5088,5 +5086,3 @@ BEGIN
             SET MESSAGE_TEXT = 'No se encontró un carrito de venta activo para el usuario y cliente especificado.';
     END IF;
 END
-
-

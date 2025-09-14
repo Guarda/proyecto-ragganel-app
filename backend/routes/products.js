@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // List all products
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTablaProductosBases`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaProductosBases\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
 
 // List all categories
 router.get('/listar-categorias', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasConsolasBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasConsolasBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching categorias');
             return;
@@ -27,7 +27,7 @@ router.get('/listar-categorias', (req, res) => {
 
 // List all console states
 router.get('/listar-estados', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarEstadosConsolas`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarEstadosConsolas\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching estados');
             return;
@@ -38,7 +38,7 @@ router.get('/listar-estados', (req, res) => {
 
 // List all product types
 router.get('/listar-tipos-productos', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTiposProductos`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTiposProductos\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching tipos de productos');
             return;
@@ -58,8 +58,8 @@ router.post('/crear-producto', (req, res) => {
     const AccesoriosString = Accesorios.join(',');
     const TodoListString = TodoList.join(',');
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarProductoATablaProductoBaseV4` (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString, TodoListString], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarProductoATablaProductoBaseV4\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    Basedatos.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString, TodoListString], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -70,8 +70,8 @@ router.post('/crear-producto', (req, res) => {
 // Get a specific product
 router.get('/producto/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaProductosBasesXIdV2` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaProductosBasesXIdV2\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar producto');
             return;
@@ -89,9 +89,9 @@ router.put('/producto/:id', (req, res) => {
     const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola, PrecioBase, NumeroSerie, Accesorios } = req.body;
 
     const AccesoriosString = Accesorios.join(',');
-    const sql = 'CALL `base_datos_inventario_taller`.`Actualizarproductobasev2` (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`Actualizarproductobasev2\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [id, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString], err => {
+    Basedatos.query(sql, [id, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString], err => {
         if (err) {
             res.status(500).send('Error actualizando producto');
             return;
@@ -105,8 +105,8 @@ router.put('/producto/:id', (req, res) => {
 router.put('/producto-eliminar/:id', (req, res) => {
     const id = req.params.id;
     const { CodigoConsola } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`BorrarProducto` (?)';
-    db.query(sql, [CodigoConsola], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarProducto\` (?)`;
+    Basedatos.query(sql, [CodigoConsola], err => {
         if (err) {
             res.status(500).send('Error al eliminar producto');
             return;
@@ -118,8 +118,8 @@ router.put('/producto-eliminar/:id', (req, res) => {
 // Get Order article list 
 router.get('/historial-producto/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarHistorialEstadoProductoXId` (?)';
-    db.query(sql, [id], (err, results) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarHistorialEstadoProductoXId\` (?)`;
+    Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error("Error al obtener historial:", err);
             return res.status(500).json({ error: "Error en el servidor" });

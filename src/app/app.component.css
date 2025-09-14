@@ -1,0 +1,19 @@
+.environment-indicator {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: monospace;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.environment-indicator.development {
+  background-color: #ffc107; /* Amarillo */
+  color: #000;
+}
+.environment-indicator.production {
+  background-color: #c82333; /* Rojo oscuro */
+  color: #fff;
+}

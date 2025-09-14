@@ -39,6 +39,7 @@ import { ListadoCarritosComponent } from './paginas/ventas/listado-carritos/list
 import { ListadoInventarioGeneralComponent } from './paginas/inventario/listado-inventario-general/listado-inventario-general.component';
 import { ListadoInventarioGarantiaComponent } from './paginas/inventario/listado-inventario-garantia/listado-inventario-garantia.component';
 import { DashboardComponent } from './paginas/dashboard/dashboard/dashboard.component';
+import { IngresarInventarioComponent } from './paginas/pedidos/ingresar-inventario/ingresar-inventario.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -50,7 +51,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1] } // Corrected
+        data: { expectedRoles: [1] } 
       },
       { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
       {
@@ -60,10 +61,10 @@ export const routes: Routes = [
       {
         path: 'listado-ventas', component: ListadoVentasComponent, canActivate: [AuthGuard, RoleGuard],
         data: { expectedRoles: [1, 2] }
-      }, // Corrected
+      }, 
       {
         path: 'listado-notas-credito', component: ListarNotasCreditoComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 2] } // Corrected
+        data: { expectedRoles: [1, 2] } 
       },
       {
         path: 'listado-notas-credito/ver-nota-credito/:id/view', component: VerNotaCreditoComponent, canActivate: [AuthGuard, RoleGuard],
@@ -71,25 +72,25 @@ export const routes: Routes = [
       },
       {
         path: 'listado-carritos', component: ListadoCarritosComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 2] } // Corrected
+        data: { expectedRoles: [1, 2] } 
       },
       {
         path: 'listado-ventas/ver-factura/:CodigoVenta/view', component: VerFacturaComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 2] } // Corrected
+        data: { expectedRoles: [1, 2] } 
       },
       {
         path: 'inventario-general', component: ListadoInventarioGeneralComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 2,3] } // Corrected
+        data: { expectedRoles: [1, 2, 3] } 
       },
       {
         path: 'inventario-garantia', component: ListadoInventarioGarantiaComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-productos',
         component: ListarProductosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'agregar-productos',
@@ -105,7 +106,7 @@ export const routes: Routes = [
         path: 'listado-categorias',
         component: ListarCategoriasComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-productos/ver-producto/:CodigoConsola/view',
@@ -121,7 +122,7 @@ export const routes: Routes = [
         path: 'listado-accesorios',
         component: ListarAccesoriosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-accesorios/ver-accesorio/:CodigoAccesorio/view',
@@ -132,7 +133,7 @@ export const routes: Routes = [
         path: 'listado-categorias-accesorios',
         component: ListarCategoriasAccesoriosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'preferencias/index-categorias-accesorios',
@@ -143,42 +144,49 @@ export const routes: Routes = [
         path: 'listado-insumos',
         component: ListarInsumosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-insumos/ver-insumo/:CodigoInsumo/view',
         component: VerInsumoComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-categorias-insumos',
         component: ListarCategoriasInsumosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'preferencias/index-categorias-insumos',
         component: IndexEdicioncategoriasInsumosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-servicios',
         component: ListadoServiciosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-servicios/ver-servicio/:CodigoServicio/view',
         component: VerServicioComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 3] } // Corrected
+        data: { expectedRoles: [1, 3] } 
       },
       {
         path: 'listado-pedidos',
         component: ListarPedidosComponent,
-        canActivate: [AuthGuard]
+        canActivate: [AuthGuard],
+        data: { expectedRoles: [1, 3] } 
+      },
+      {
+        path: 'ingresar-inventario/:CodigoPedido',
+        component: IngresarInventarioComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1, 3] }
       },
       {
         path: 'crear-pedido',
@@ -209,19 +217,19 @@ export const routes: Routes = [
         path: 'administracion/listado-usuarios',
         component: ListarUsuariosComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1] } // Corrected
+        data: { expectedRoles: [1] } 
       },
       {
         path: 'listado-clientes',
         component: ListadoClientesComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 2] } // Corrected
+        data: { expectedRoles: [1, 2] } 
       },
       {
         path: 'listado-clientes/ver-cliente/:id/view',
         component: VerClienteComponent,
         canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1, 2] } // Corrected
+        data: { expectedRoles: [1, 2] } 
       },
     ]
   }

@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // List all accessories
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTablaAccesoriosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaAccesoriosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
 
 // List all accesories categories
 router.get('/listar-categorias-accesorios', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasAccesoriosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasAccesoriosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching categorias');
             return;
@@ -28,8 +28,8 @@ router.get('/listar-categorias-accesorios', (req, res) => {
 // Get a specific active category
 router.get('/categoria/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoaccesoriosXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablacatalogoaccesoriosXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -56,8 +56,8 @@ router.get('/categoria', (req, res) => {
     }
 
     // Call the stored procedure with three parameters
-    const sql = 'CALL `base_datos_inventario_taller`.`BuscarIdCategoriaAccesorioCatalogo` (?, ?, ?)';
-    db.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BuscarIdCategoriaAccesorioCatalogo\` (?, ?, ?)`;
+    Basedatos.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
         if (err) {
             console.error('Error executing stored procedure:', err);
             return res.status(500).send('Error al buscar categoria');
@@ -78,8 +78,8 @@ router.post('/crear-accesorio', (req, res) => {
     const CompatibleProductsString = ProductosCompatibles.join(',');
     const TodoListString = TodoList.join(',');
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarAccesorioATablaAccesoriosBaseV2` (?, ?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString, TodoListString], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarAccesorioATablaAccesoriosBaseV2\` (?, ?, ?, ?, ?, ?, ?, ?)`;
+    Basedatos.query(sql, [IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString, TodoListString], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -90,8 +90,8 @@ router.post('/crear-accesorio', (req, res) => {
 // Get a specific accessorie
 router.get('/accesorio/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaAccesoriosBasesXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaAccesoriosBasesXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar accesorio');
             return;
@@ -112,10 +112,10 @@ router.put('/accesorio/:id', (req, res) => {
     // Convert arrays to comma-separated strings
     const CompatibleProductsString = ProductosCompatibles.join(',');
     // Adjust the SQL query to call the new stored procedure
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarAccesorioBase` (?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarAccesorioBase\` (?, ?, ?, ?, ?, ?, ?, ?)`;
 
     // Call the new stored procedure with the updated parameters
-    db.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString], err => {
+    Basedatos.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString], err => {
          if (err) {
             res.status(500).send('Error actualizando producto');
             return;
@@ -130,8 +130,8 @@ router.put('/accesorio/:id', (req, res) => {
 router.put('/accesorio-eliminar/:id', (req, res) => {
     const id = req.params.id;
     const { CodigoAccesorio } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`BorrarAccesorio` (?)';
-    db.query(sql, [CodigoAccesorio], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarAccesorio\` (?)`;
+    Basedatos.query(sql, [CodigoAccesorio], err => {
         if (err) {
             res.status(500).send('Error al eliminar accesorio');
             return;
@@ -143,8 +143,8 @@ router.put('/accesorio-eliminar/:id', (req, res) => {
 // Get Order article list 
 router.get('/historial-accesorio/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarHistorialEstadoAccesorioXId` (?)';
-    db.query(sql, [id], (err, results) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarHistorialEstadoAccesorioXId\` (?)`;
+    Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error("Error al obtener historial:", err);
             return res.status(500).json({ error: "Error en el servidor" });

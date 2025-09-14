@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // List all active cate
 router.get('/listar-cate', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasProductos`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasProductos\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -16,7 +16,7 @@ router.get('/listar-cate', (req, res) => {
 
 // List all cate
 router.get('/listar-cate-b', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasProductosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasProductosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -29,8 +29,8 @@ router.get('/listar-cate-b', (req, res) => {
 // List all cate by manufacturer
 router.get('/listar-cate/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarCategoriasProductosxFabricante` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarCategoriasProductosxFabricante\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -46,8 +46,8 @@ router.get('/listar-cate/:id', (req, res) => {
 // List all cate with an active model
 router.get('/listar-cate-b/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarCategoriasProductosxModeloActivo` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarCategoriasProductosxModeloActivo\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -63,8 +63,8 @@ router.get('/listar-cate-b/:id', (req, res) => {
 // List cate info by id
 router.get('/informacion-categoria/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionCategoriaxId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInformacionCategoriaxId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -81,7 +81,7 @@ router.get('/informacion-categoria/:id', (req, res) => {
 
 // List all active subcate
 router.get('/listar-subcate', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductos`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarSubCategoriasProductos\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -95,8 +95,8 @@ router.get('/listar-subcate', (req, res) => {
 // List all subcate by cate
 router.get('/listar-subcate/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductosxCategoria` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarSubCategoriasProductosxCategoria\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -112,8 +112,8 @@ router.get('/listar-subcate/:id', (req, res) => {
 // List all subcate by cate
 router.get('/listar-subcate-b/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductosxCategoriaBase` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarSubCategoriasProductosxCategoriaBase\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -129,8 +129,8 @@ router.get('/listar-subcate-b/:id', (req, res) => {
 // List all subcate with an active model
 router.get('/listar-subcate-c/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasProductosxModeloActivo` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarSubCategoriasProductosxModeloActivo\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -147,8 +147,8 @@ router.get('/listar-subcate-c/:id', (req, res) => {
 router.get('/informacion-subcategoria/:id', (req, res) => {
     const id = req.params.id;
     // console.log(id);
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionSubCategoriaxId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInformacionSubCategoriaxId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -164,8 +164,8 @@ router.get('/informacion-subcategoria/:id', (req, res) => {
 // Delete a category
 router.put('/categoria-eliminar/:id', (req, res) => {
     const id = req.params.id;    
-    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteCategoria` (?)';
-    db.query(sql, [id], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`SofDeleteCategoria\` (?)`;
+    Basedatos.query(sql, [id], err => {
         if (err) {
             res.status(500).send('Error al eliminar Categoria');
             return;
@@ -181,8 +181,8 @@ router.post('/ingresar-categoria', (req, res) => {
     const NombreCategoria = req.query.NombreCategoria; 
     //console.log(req.body);
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoria` (?, ?)';
-    db.query(sql, [NombreCategoria, IdFabricante ], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarCategoria\` (?, ?)`;
+    Basedatos.query(sql, [NombreCategoria, IdFabricante ], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -197,8 +197,8 @@ router.post('/ingresar-subcategoria', (req, res) => {
     const NombreSubCategoria = req.query.NombreSubCategoria; 
     //console.log(req.body);
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarSubcategoria` (?, ?)';
-    db.query(sql, [NombreSubCategoria, IdCategoria ], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarSubcategoria\` (?, ?)`;
+    Basedatos.query(sql, [NombreSubCategoria, IdCategoria ], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -209,8 +209,8 @@ router.post('/ingresar-subcategoria', (req, res) => {
 // Delete a category
 router.put('/subcategoria-eliminar/:id', (req, res) => {
     const id = req.params.id;    
-    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteSubCategoria` (?)';
-    db.query(sql, [id], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`SofDeleteSubCategoria\` (?)`;
+    Basedatos.query(sql, [id], err => {
         if (err) {
             res.status(500).send('Error al eliminar Subcategoria');
             return;

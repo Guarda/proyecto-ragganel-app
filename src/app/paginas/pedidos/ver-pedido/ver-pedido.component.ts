@@ -17,6 +17,7 @@ import { debounceTime } from 'rxjs/operators';
 
 // --- Componentes y Servicios ---
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
+import { DescargarExcelDialogComponent } from '../../../utiles/reportes/descargar-excel-dialog/descargar-excel-dialog.component';
 import { IndexListadoArticulosComponent } from '../listado-articulos/index-listado-articulos/index-listado-articulos.component';
 import { PedidoService } from '../../../services/pedido.service';
 import { TipoPedidoService } from '../../../services/tipo-pedido.service';
@@ -36,8 +37,8 @@ import { SitioWeb } from '../../interfaces/sitioweb';
   standalone: true,
   imports: [
     CommonModule, RouterModule, ReactiveFormsModule, FormsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIcon, MatChipsModule, MatDatepickerModule, MatNativeDateModule,
-    IndexListadoArticulosComponent, SuccessdialogComponent, MatDialogModule
+    MatSelectModule, MatButtonModule, MatIcon, MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatDialogModule,
+    IndexListadoArticulosComponent, SuccessdialogComponent, DescargarExcelDialogComponent
   ],
   templateUrl: './ver-pedido.component.html',
   styleUrl: './ver-pedido.component.css',
@@ -191,6 +192,9 @@ export class VerPedidoComponent implements OnInit {
     
     // 2. Llama a la función que calcula el total general del pedido
     this.calcularTotalPedido();
+
+    // 3. Se marca el formulario como 'dirty' manualmente para habilitar el botón de guardar.
+    this.pedidoForm.markAsDirty();
   }
 
   // Este método que ya tenías ahora no es llamado directamente desde el HTML, sino por el de arriba
@@ -285,6 +289,44 @@ export class VerPedidoComponent implements OnInit {
         console.error('Error en la actualización del pedido:', err);
         alert('Ocurrió un error al actualizar el pedido.');
       }
+    });
+  }
+
+  descargarReporte(): void {
+    // Asumimos que tienes un método en tu servicio para llamar al nuevo endpoint.
+    // Si no, deberías añadirlo: getReporteIngreso(id: string): Observable<any>
+    this.pedidoService.getReporteIngreso(this.OrderId).subscribe({
+        next: (response) => {
+            console.log("Respuesta del reporte:", response);
+            if (response && response.length > 0 && response[0].Resultado) {
+                let resultadoData;
+                try {
+                    resultadoData = JSON.parse(response[0].Resultado);
+                } catch (e) {
+                    console.error("Error al parsear JSON del reporte", e);
+                    resultadoData = response[0].Resultado; // Fallback
+                }
+
+                if (resultadoData && resultadoData.codigosIngresados) {
+                    this.dialog.open(DescargarExcelDialogComponent, {
+                        width: '450px',
+                        data: {
+                            codigosGenerados: resultadoData.codigosIngresados,
+                            cantidades: resultadoData.cantidades,
+                            orderId: this.OrderId
+                        }
+                    });
+                } else {
+                    alert('No se encontraron datos de códigos para generar el reporte.');
+                }
+            } else {
+                alert('No se pudo generar el reporte para este pedido.');
+            }
+        },
+        error: (err) => {
+            console.error("Error al descargar el reporte:", err);
+            alert('Ocurrió un error al intentar generar el reporte.');
+        }
     });
   }
 

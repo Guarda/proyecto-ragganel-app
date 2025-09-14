@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // List all active manufacturers
 router.get('/listar-fabricantes-accesorios', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesAccesorios`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarFabricantesAccesorios\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -16,7 +16,7 @@ router.get('/listar-fabricantes-accesorios', (req, res) => {
 
 // List all manufacturers on any state
 router.get('/listar-fabricantes-accesorios-b', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesAccesoriosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarFabricantesAccesoriosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -28,7 +28,7 @@ router.get('/listar-fabricantes-accesorios-b', (req, res) => {
 
 // List all manufacturers on any state
 router.get('/listar-fabricantes-accesorios-c', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesAccesoriosModelo`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarFabricantesAccesoriosModelo\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -41,8 +41,8 @@ router.get('/listar-fabricantes-accesorios-c', (req, res) => {
 // Get a specific active category
 router.get('/info-farbicante/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionFabricanteAccesorioxId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInformacionFabricanteAccesorioxId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -61,8 +61,8 @@ router.post('/ingresar-fabricante-accesorios', (req, res) => {
     // console.log(NombreFabricanteAccesorio );
     // console.log(req.body);
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarFabricanteAccesorio` (?)';
-    db.query(sql, [NombreFabricanteAccesorio ], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarFabricanteAccesorio\` (?)`;
+    Basedatos.query(sql, [NombreFabricanteAccesorio ], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -74,8 +74,8 @@ router.post('/ingresar-fabricante-accesorios', (req, res) => {
 // Delete a category
 router.put('/fabricante-eliminar-accesorios/:id', (req, res) => {
     const id = req.params.id;    
-    const sql = 'CALL `base_datos_inventario_taller`.`SoftDeleteFabricanteAccesorio` (?)';
-    db.query(sql, [id], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`SoftDeleteFabricanteAccesorio\` (?)`;
+    Basedatos.query(sql, [id], err => {
         if (err) {
             res.status(500).send('Error al eliminar Fabricante');
             return;

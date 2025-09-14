@@ -102,10 +102,13 @@ export class IngresarAccesoriosPedidoComponent {
       console.error('⚠️ Componente "IngresarAccesoriosPedido" no recibió un formulario o artículo válido.');
       return;
     }
-    
-    this.cargarDatosParaSelects();
-    this.establecerValoresIniciales();
-    this.cargarDatosDinamicosDelArticulo();
+    // Solución para ExpressionChangedAfterItHasBeenCheckedError:
+    // Se difiere la inicialización para el siguiente ciclo de detección de cambios.
+    setTimeout(() => {
+      this.cargarDatosParaSelects();
+      this.establecerValoresIniciales();
+      this.cargarDatosDinamicosDelArticulo();
+    });
   }
 
   private cargarDatosParaSelects(): void {
@@ -117,18 +120,15 @@ export class IngresarAccesoriosPedidoComponent {
   }
 
   private establecerValoresIniciales(): void {
-    // ✅ Se usa 'this.form' para establecer los valores
+    // Se establecen los valores que vienen del pedido original (categorías).
+    // Los datos del formulario (Color, Estado, etc.) ya fueron cargados por el componente padre
+    // desde el borrador guardado o con valores por defecto.
     this.form.patchValue({
       FabricanteAccesorio: this.articulo.FabricanteArticulo,
       CateAccesorio: this.articulo.CategoriaArticulo,
       SubCategoriaAccesorio: this.articulo.SubcategoriaArticulo,
-      PrecioBase: this.formatNumber(this.articulo.Precio),
-      NumeroSerie: this.articulo.NumeroSerie || '',
-      ColorAccesorio: this.articulo.ColorAccesorio || '',
-      EstadoAccesorio: this.articulo.EstadoAccesorio || '',
-      ComentarioAccesorio: this.articulo.Comentario || '',
       IdPedido: this.articulo.IdCodigoPedidoFK
-    });
+    }, { emitEvent: false }); // <-- CRÍTICO: Evita disparar el autoguardado al inicializar.
 
     const initialTodos = this.form.get('TodoList')?.value;
     this.todolistKeywords.set(Array.isArray(initialTodos) && initialTodos.length > 0 ? initialTodos : ['Limpiar']);
@@ -148,28 +148,28 @@ export class IngresarAccesoriosPedidoComponent {
     });
   }
 
-  removeKeyword(keyword: string) {
-    this.keywords.update(keywords => {
-      const index = keywords.indexOf(keyword);
-      if (index < 0) {
-        return keywords;
-      }
-
-      keywords.splice(index, 1);
-      this.announcer.announce(`removed ${keyword}`);
-      return [...keywords];
-    });
-  }
-
-  formatNumber(value: number | null) {
-    if (value == null) {
-      return 0;
-    }
-    else {
-      return value.toFixed(2); // Formats the number to 2 decimal places
+  getimagePath(l: string | null) {
+    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    console.log("kkkkkk",l);
+    if (l == null || l === '') {
+      return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
+    } else {
+      return `${baseUrl}/img-accesorios/${l}`;
     }
   }
 
+  // Solución para TypeError:
+  // La función ahora acepta strings y los convierte a número antes de usar toFixed.
+  formatNumber(value: number | string | null): string {
+    if (value === null || value === '') {
+      return '0.00';
+    }
+    const num = parseFloat(String(value));
+    if (isNaN(num)) {
+      return '0.00';
+    }
+    return num.toFixed(2);
+  }
 
   // Métodos para Chips de "Productos Compatibles"
   addCompatibleProduct(event: MatChipInputEvent): void {
@@ -221,15 +221,6 @@ export class IngresarAccesoriosPedidoComponent {
       return [...keywords];
     });
   }
-  getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-    console.log("kkkkkk",l);
-    if (l == null || l === '') {
-      return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
-    } else {
-      return `${baseUrl}/img-accesorios/${l}`;
-    }
-  }
 
   ngAfterViewInit() {
     this.form.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId => {
@@ -260,4 +251,3 @@ export class IngresarAccesoriosPedidoComponent {
   // }
 
 }
-

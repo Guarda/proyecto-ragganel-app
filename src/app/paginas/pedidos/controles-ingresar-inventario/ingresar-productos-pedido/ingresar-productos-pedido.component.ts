@@ -50,10 +50,6 @@ export class IngresarProductosPedidoComponent {
   keywords = signal(['']);
   todolistKeywords = signal(['Limpiar']);
   announcer = inject(LiveAnnouncer);
-
-  Agregado = new EventEmitter();
-
-  productoForm!: FormGroup;
   producto!: Producto;
 
   categoriasconsolas: CategoriasConsolas[] = [];
@@ -67,30 +63,7 @@ export class IngresarProductosPedidoComponent {
   selectedCategoriaProducto: categoriasProductos[] = [];
   selectedSubCategoriaProducto: SubcategoriasProductos[] = [];
 
-  // estadoconsolas: EstadosConsolas[] = [];
   selectedEstado: EstadosConsolas[] = [];
-
-  IdModeloPK: any;
-  IdTipoProd: any;
-  Fabricante: any;
-  Categoria: any;
-  Subcategoria: any;
-
-  public ConsoleId: any;
-  public consoleCode: any;
-  public consoleColor: any;
-  public consoleState: any;
-  public consoleHack: any;
-  public consoleComment: any;
-  public consolePrice: any;
-  public consoleManufacturer: any;
-  public consoleCate: any;
-  public consoleSubCate: any;
-  public consoleSerialCode: any;
-  public consoleAccesories: any;
-  // public consoleCurrency: any;
-
-
 
   public ImagePath: any;
 
@@ -134,25 +107,39 @@ export class IngresarProductosPedidoComponent {
   }
 
   private establecerValoresIniciales(): void {
+    console.log(`%c--- COMPONENTE HIJO (Índice ${this.stepperIndex}) ---`, 'color: purple; font-weight: bold;');
+    console.log('%c5. VALORES RECIBIDOS POR EL HIJO (ANTES DE SU LÓGICA):', 'color: purple;', {
+      accesorios: this.form.get('Accesorios')?.value,
+      todoList: this.form.get('TodoList')?.value
+    });
+
     this.form.patchValue({
       Fabricante: this.articulo.FabricanteArticulo,
       Cate: this.articulo.CategoriaArticulo,
       SubCategoria: this.articulo.SubcategoriaArticulo,
-      PrecioBase: this.formatNumber(this.articulo.Precio),
-      NumeroSerie: this.articulo.NumeroSerie || '',
-      ColorConsola: this.articulo.ColorConsola || '',
-      EstadoConsola: this.articulo.EstadoConsola || '',
-      HackConsola: this.articulo.HackConsola || '0', // Valor por defecto
-      ComentarioConsola: this.articulo.Comentario || '',
       IdPedido: this.articulo.IdCodigoPedidoFK
-    });
+    }, { emitEvent: false }); // No disparar valueChanges
 
-    // Inicializa los "chips" de tareas y accesorios desde el formulario
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Inicializa los "chips" de tareas y accesorios desde el formulario.
+    // Si el valor ya es un array, significa que fue cargado desde un borrador.
+    // Si no, es un formulario nuevo y podemos establecer valores por defecto.
+
     const initialTodos = this.form.get('TodoList')?.value;
-    this.todolistKeywords.set(Array.isArray(initialTodos) && initialTodos.length > 0 ? initialTodos : ['Limpiar']);
+    if (Array.isArray(initialTodos)) {
+      // Valor cargado de un borrador (puede ser un array vacío).
+      this.todolistKeywords.set(initialTodos);
+    } else {
+      // Formulario nuevo, establecer valor por defecto.
+      const defaultTodos = ['Limpiar'];
+      this.todolistKeywords.set(defaultTodos);
+      this.form.get('TodoList')?.setValue(defaultTodos, { emitEvent: false });
+    }
 
     const initialAccessories = this.form.get('Accesorios')?.value;
-    this.keywords.set(Array.isArray(initialAccessories) ? initialAccessories : []);
+    // Si el valor es un array (de un borrador) lo usamos, si es null (nuevo) inicializamos con array vacío.
+    this.keywords.set(initialAccessories || []);
+    // --- FIN DE LA CORRECCIÓN ---
 
     this.cdr.detectChanges();
   }
@@ -163,30 +150,24 @@ export class IngresarProductosPedidoComponent {
         const categoria = data[0];
         this.ImagePath = this.getimagePath(categoria.LinkImagen);
 
-        // Carga los accesorios sugeridos para este tipo de producto
         this.accesoriosService.find(categoria.TipoProducto).subscribe((accesorios: any[]) => {
-          const nombresAccesorios = accesorios.map((a: any) => a.DescripcionAccesorio);
-          this.keywords.set(nombresAccesorios); // Actualiza los chips de accesorios
-          this.form.get('Accesorios')?.setValue(nombresAccesorios); // Actualiza el valor en el formulario
-          this.cdr.detectChanges();
+          // --- INICIO DE LA CORRECCIÓN ---
+          // Solo establece los accesorios por defecto si el valor inicial del control es null.
+          // Si ya es un array (incluso vacío), significa que se cargó desde un borrador y no se debe sobreescribir.
+          const accesoriosActuales = this.form.get('Accesorios')?.value;
+          if (accesoriosActuales === null) {
+            const nombresAccesorios = accesorios.map((a: any) => a.DescripcionAccesorio);
+            this.keywords.set(nombresAccesorios); // Actualiza la UI de chips
+            this.form.get('Accesorios')?.setValue(nombresAccesorios, { emitEvent: false }); // No disparar valueChanges
+          }
+          // --- FIN DE LA CORRECCIÓN ---
         });
       }
     });
   }
 
 
-  trackByAccessory(index: number, accessory: string): string {
-    return accessory; // or index, depending on your unique identifiers
-  }
-
-  formatNumber(value: number | null) {
-    if (value == null) {
-      return 0;
-    }
-    else {
-      return value.toFixed(2); // Formats the number to 2 decimal places
-    }
-  }
+  
 
   removeKeyword(keyword: string) {
     this.keywords.update(keywords => {
@@ -196,51 +177,25 @@ export class IngresarProductosPedidoComponent {
       }
 
       keywords.splice(index, 1);
+      // Actualizamos el valor en el formulario para que se guarde el cambio
+      this.form.get('Accesorios')?.setValue([...keywords]);
       this.announcer.announce(`removed ${keyword}`);
       return [...keywords];
     });
   }
-
+  
   add(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
 
     // Add our keyword
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
-      this.productoForm.get('Accesorios')?.setValue(this.keywords()); // Update the form control
+      // Actualizamos el valor en el formulario para que se guarde el cambio
+      this.form.get('Accesorios')?.setValue(this.keywords());
     }
 
     // Clear the input value
     event.chipInput!.clear();
-  }
-
-  addt(valor: String): void {
-    const value = (valor || '').trim();
-
-    // Add our keyword
-    if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
-      console.log(this.keywords());
-
-      this.productoForm.get('Accesorios')?.setValue(this.keywords());
-      this.productoForm.get('Accesorios')?.markAsDirty();
-      // Force change detection
-      this.cdr.detectChanges();
-    }
-
-    // Clear the input value
-    //
-
-  }
-
-  ngAfterViewInit() {
-    // Se debe usar 'this.form' en lugar de 'this.productoForm'
-    // Se añade una comprobación para asegurar que el control existe antes de suscribirse
-    if (this.form?.get('SubCategoria')) {
-      this.form.get('SubCategoria')?.valueChanges.subscribe(selectedId => {
-        console.log('ID de Subcategoría seleccionado:', selectedId);
-      });
-    }
   }
 
   // Add this method inside your IngresarProductosPedidoComponent class
@@ -250,23 +205,6 @@ get precioFinalIngreso(): number {
   const costoDistribuido = parseFloat(this.form?.value?.CostoDistribuido || '0');
   return precioBase + costoDistribuido;
 }
-
-
-  get f() {
-
-    return this.productoForm.controls;
-
-  }
-
-  // getimagePath(l: string | null) {
-  //   if (l == null || l == '') {
-  //     //console.log(l);
-  //     return '/img-consolas/' + 'nestoploader.jpg';
-  //   }
-  //   else {
-  //     return '/img-consolas/' + l;
-  //   }
-  // }
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
@@ -286,31 +224,22 @@ get precioFinalIngreso(): number {
       }
 
       keywords.splice(index, 1);
+      this.form.get('TodoList')?.setValue([...keywords]);
       this.announcer.announce(`removed ${keyword} from reactive form`);
       return [...keywords];
     });
   }
-
   addReactiveKeyword(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
 
     // Add our keyword
     if (value) {
       this.todolistKeywords.update(keywords => [...keywords, value]);
-      this.productoForm.get('TodoList')?.setValue(this.keywords());
+      this.form.get('TodoList')?.setValue(this.todolistKeywords());
       this.announcer.announce(`added ${value} to reactive form`);
     }
 
     // Clear the input value
     event.chipInput!.clear();
   }
-
-  // Helper method to return the current keywords array
-  nkeywords(): string[] {
-    return this.todolistKeywords();
-  }
-
-
-
 }
-

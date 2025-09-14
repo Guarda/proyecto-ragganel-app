@@ -125,7 +125,14 @@ export class PedidoService {
       );
   }
   
-
+  getReporteIngreso(id: string): Observable<any> {
+    // ✅ CORREGIDO: Se arregló el typo en la URL ("ingreso" en lugar de "ignreso")
+    // y se eliminó el responseType: 'blob' para que espere JSON.
+    return this.httpClient.get(this.apiURL + '/pedidos/reporte-ingreso/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
 
 
   errorHandler(error: any) {

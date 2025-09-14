@@ -228,7 +228,7 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
         this.dialog.open(ResultadoPedidoDialogComponent, {
           data: { success: true, message: res.message || 'Pedido creado con éxito.' }
         });
-        this.router.navigate(['listado-pedidos']); // Redirigir después del éxito
+        this.router.navigate(['home/listado-pedidos']); // Redirigir después del éxito
       },
       error: (err: any) => {
         this.dialog.open(ResultadoPedidoDialogComponent, {

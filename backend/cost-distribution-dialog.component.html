@@ -1,0 +1,51 @@
+<h2 mat-dialog-title>Distribución Inteligente de Costos</h2>
+<mat-dialog-content>
+  <p>Asigna un porcentaje de los costos adicionales (Total: <strong>{{ totalCostosAdicionales | currency }}</strong>) a cada modelo de artículo en el pedido.</p>
+  <form [formGroup]="distribucionForm">
+    <div formArrayName="modelosArray">
+      <table class="distribution-table">
+        <thead>
+          <tr>
+            <th>Modelo del Artículo</th>
+            <th class="center-text">Cantidad</th>
+            <th class="center-text">% Asignado</th>
+            <th class="center-text">Costo Asignado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let modeloGroup of modelosArray.controls; let i = index" [formGroupName]="i">
+            <td>{{ modeloGroup.get('NombreModelo')?.value }}</td>
+            <td class="center-text">{{ modeloGroup.get('CantidadEnPedido')?.value }}</td>
+            <td>
+              <mat-form-field appearance="outline" class="percentage-input">
+                <input matInput type="number" formControlName="PorcentajeAsignado">
+                <span matSuffix>%</span>
+              </mat-form-field>
+            </td>
+            <td class="center-text">
+              {{ (totalCostosAdicionales * (modeloGroup.get('PorcentajeAsignado')?.value / 100)) | currency }}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"><strong>Total</strong></td>
+            <td class="center-text" [class.invalid-total]="distribucionForm.get('modelosArray')?.hasError('totalInvalido')">
+              <strong>{{ totalPorcentaje | number:'1.2-2' }}%</strong>
+            </td>
+            <td class="center-text">
+              <strong>{{ totalCostosAdicionales | currency }}</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <mat-error *ngIf="distribucionForm.get('modelosArray')?.hasError('totalInvalido') && distribucionForm.get('modelosArray')?.touched">
+        El total de porcentajes debe ser 100%.
+      </mat-error>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="distribucionForm.invalid">Guardar y Distribuir</button>
+</mat-dialog-actions>

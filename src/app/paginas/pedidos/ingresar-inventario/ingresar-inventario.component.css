@@ -1,12 +1,19 @@
 /* --- ESTILOS PRINCIPALES DEL DIÁLOGO --- */
 .dialog-container {
-  width: 65vw;
-  max-width: 100%;
-  height: 100vh;
+  position: relative; /* Clave para posicionar los botones de acción */
+  /* Hacemos que el contenedor sea más flexible y ocupe más espacio */
+  width: auto; /* Dejamos que el margin defina el ancho */
+  margin: 2rem 4rem; /* Margen de 2rem arriba/abajo y 4rem a los lados para más amplitud */
+  /* Aumentamos el padding inferior para dejar espacio a los botones fijos */
+  padding: 2rem 2rem 80px 2rem; 
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Muy importante: evita que el diálogo se desborde */
-  box-sizing: border-box; /* Asegura que el padding no añada tamaño extra */
+  overflow: hidden; 
+  box-sizing: border-box;
+  background-color: #fff; /* Fondo blanco para que se sienta como una página */
+  border-radius: 8px; /* Bordes redondeados para un look moderno */
+  box-shadow: 0 3px 15px rgba(0,0,0,0.08); /* Sombra sutil para darle profundidad */
+  min-height: calc(100vh - 4rem); /* Ocupa casi toda la altura de la pantalla */
 }
 
 /* Ocultar encabezado default del stepper */
@@ -115,12 +122,29 @@
 }
 
 .dialog-actions {
-  flex-shrink: 0;
-  padding: 8px 24px; /* 🔹 Reducimos el padding vertical de 12px a 8px */
-  /* max-height: 5%; */ /* <-- Eliminamos esta línea */
+  /* Posicionamos la barra de acciones de forma fija en la parte inferior */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 16px 24px; /* Aumentamos el padding para más espacio visual */
   border-top: 1px solid #e0e0e0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Separa el botón 'Cerrar' de los otros */
+  align-items: center; /* Centra verticalmente los botones */
   gap: 8px;
   background-color: #fff;
+  border-bottom-left-radius: 8px; /* Redondeamos las esquinas inferiores */
+  border-bottom-right-radius: 8px;
+  box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
+}
+
+/* --- ESTILOS RESPONSIVE --- */
+@media (max-width: 1200px) {
+  .dialog-container {
+    margin: 1.5rem; /* Reducimos el margen en pantallas más pequeñas */
+    padding: 1.5rem;
+    min-height: calc(100vh - 3rem);
+  }
 }

@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 const bcrypt = require('bcryptjs'); // Agrega bcrypt
 const saltRounds = 10; // Número de rondas de encriptación
 
 // List all users
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarUsuarios`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarUsuarios\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching users');
             console.log(err);
@@ -33,8 +33,8 @@ router.post('/crear-usuario', (req, res) => {
         }
 
         // Usar la contraseña encriptada para el procedimiento almacenado
-        const sql = 'CALL InsertarUsuario(?, ?, ?, CURDATE(), ?, ?)';
-        db.query(sql, [Nombre, Correo, hashedPassword, IdEstadoFK, IdRol], (err, result) => {
+        const sql = `CALL \`${dbConfig.database}\`.\`InsertarUsuario\`(?, ?, ?, CURDATE(), ?, ?)`;
+        Basedatos.query(sql, [Nombre, Correo, hashedPassword, IdEstadoFK, IdRol], (err, result) => {
             if (err) {
                 return res.status(500).json({ error: 'Error al insertar usuario', details: err });
             }
@@ -47,9 +47,9 @@ router.post('/crear-usuario', (req, res) => {
 router.get('/listar-usuario/:id', (req, res) => {
     const { id } = req.params;
 
-    const sql = 'CALL ListarUsuarioPorId(?)'; // Llamando al procedimiento almacenado
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarUsuarioPorId\`(?)`; // Llamando al procedimiento almacenado
 
-    db.query(sql, [id], (err, results) => {
+    Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error('Error al obtener usuario:', err);
             return res.status(500).json({ error: 'Error interno del servidor' });
@@ -82,10 +82,8 @@ router.put('/actualizar-usuario/:id', (req, res) => {
             updatedPassword = hashedPassword;
 
             // Llamar a la función para actualizar los datos del usuario
-            const sql = `
-                CALL ActualizarUsuario(?, ?, ?, ?, ?, ?)
-            `;
-            db.query(sql, [id, NombreUsuario, CorreoUsuario, updatedPassword, IdEstadoUsuario, IdRolUsuario], (err, result) => {
+            const sql = `CALL \`${dbConfig.database}\`.\`ActualizarUsuario\`(?, ?, ?, ?, ?, ?)`;
+            Basedatos.query(sql, [id, NombreUsuario, CorreoUsuario, updatedPassword, IdEstadoUsuario, IdRolUsuario], (err, result) => {
                 if (err) {
                     return res.status(500).json({ error: 'Error al actualizar usuario', details: err });
                 }
@@ -94,10 +92,8 @@ router.put('/actualizar-usuario/:id', (req, res) => {
         });
     } else {
         // Si no se proporciona una nueva contraseña, actualizamos sin modificarla
-        const sql = `
-            CALL ActualizarUsuario(?, ?, ?, ?, ?, ?)
-        `;
-        db.query(sql, [id, NombreUsuario, CorreoUsuario, null, IdEstadoUsuario, IdRolUsuario], (err, result) => {
+        const sql = `CALL \`${dbConfig.database}\`.\`ActualizarUsuario\`(?, ?, ?, ?, ?, ?)`;
+        Basedatos.query(sql, [id, NombreUsuario, CorreoUsuario, null, IdEstadoUsuario, IdRolUsuario], (err, result) => {
             if (err) {
                 return res.status(500).json({ error: 'Error al actualizar usuario', details: err });
             }
@@ -113,8 +109,8 @@ router.put('/cambiar-password/:id', (req, res) => {
     console.log('user' + id)
     console.log(req.body)
     // 1. Llamar al procedimiento almacenado para obtener la contraseña actual
-    const sql = 'CALL GetUserPassword(?)';
-    db.query(sql, [id], (err, results) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`GetUserPassword\`(?)`;
+    Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error('Error al obtener la contraseña del usuario:', err);
             return res.status(500).json({ error: 'Error interno del servidor' });
@@ -134,8 +130,8 @@ router.put('/cambiar-password/:id', (req, res) => {
             }
 
             // 2. Llamar al procedimiento almacenado para actualizar la contraseña
-            const updateSql = 'CALL CambiarPassword(?, ?)';
-            db.query(updateSql, [id, hashedPassword], (err) => {
+            const updateSql = `CALL \`${dbConfig.database}\`.\`CambiarPassword\`(?, ?)`;
+            Basedatos.query(updateSql, [id, hashedPassword], (err) => {
                 if (err) {
                     console.error('Error al actualizar la contraseña:', err);
                     return res.status(500).json({ error: 'Error al actualizar la contraseña' });
@@ -148,25 +144,24 @@ router.put('/cambiar-password/:id', (req, res) => {
     });
 });
 
-router.put('/desactivar-usuario/:id', async (req, res) => {
+router.put('/desactivar-usuario/:id', (req, res) => {
     const { id } = req.params;
     const { IdEstadoUsuario } = req.body; // Nuevo estado (Ejemplo: 2 = Inactivo)
 
     if (!IdEstadoUsuario) {
-        return res.status(400).json({ error: "IdEstadoFK es obligatorio" });
+        return res.status(400).json({ error: "IdEstadoUsuario es obligatorio" });
     }
 
-    try {
-        const query = `CALL DesactivarUsuario(?, ?)`;
-        const values = [id, IdEstadoUsuario];
+    const query = `CALL \`${dbConfig.database}\`.\`DesactivarUsuario\`(?, ?)`;
+    const values = [id, IdEstadoUsuario];
 
-        await db.query(query, values);
+    Basedatos.query(query, values, (error, results) => {
+        if (error) {
+            console.error("Error al desactivar usuario:", error);
+            return res.status(500).json({ error: "Error al desactivar usuario" });
+        }
         res.json({ message: "Usuario desactivado correctamente" });
-
-    } catch (error) {
-        console.error("Error al desactivar usuario:", error);
-        res.status(500).json({ error: "Error al desactivar usuario" });
-    }
+    });
 });
 
 

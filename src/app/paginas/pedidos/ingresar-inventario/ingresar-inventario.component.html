@@ -31,7 +31,7 @@
     <mat-progress-bar mode="determinate" [value]="((stepper.selectedIndex + 1) / totalFormularios) * 100"></mat-progress-bar>
   </div>
 
-   <mat-dialog-content class="stepper-content-container">
+   <div class="stepper-content-container">
     <mat-stepper linear #stepper>
       
       <mat-step *ngFor="let form of formulariosProductos; let i = index" [stepControl]="form">
@@ -59,10 +59,10 @@
       </mat-step>
 
     </mat-stepper>
-  </mat-dialog-content>
+  </div>
 
-  <mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-stroked-button mat-dialog-close>Cerrar</button>
+  <div class="dialog-actions">
+  <button mat-stroked-button (click)="cancelar()">Cerrar</button>
   
   <div>
     <button mat-button (click)="stepper.previous()" *ngIf="stepper.selectedIndex > 0">Atrás</button>
@@ -85,5 +85,5 @@
       Finalizar
     </button>
   </div>
-</mat-dialog-actions>
+</div>
 </div>

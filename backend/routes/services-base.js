@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // Example endpoint: Health check
 router.get('/health', (req, res) => {
@@ -9,7 +9,7 @@ router.get('/health', (req, res) => {
 
 // List all products
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTablaServiciosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaServiciosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -28,9 +28,9 @@ router.post('/crear-servicio', (req, res) => {
 
     const { DescripcionServicio, PrecioBase, Comentario } = servicio;
 
-    const sql = 'CALL IngresarServicioConInsumos(?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarServicioConInsumos\`(?, ?, ?, ?)`;
 
-    db.query(sql, [
+    Basedatos.query(sql, [
         DescripcionServicio,
         PrecioBase,
         Comentario,
@@ -48,8 +48,8 @@ router.post('/crear-servicio', (req, res) => {
 // Get a specific active service
 router.get('/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaServiciosBaseXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaServiciosBaseXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar el servicio');
             return;
@@ -65,8 +65,8 @@ router.get('/:id', (req, res) => {
 //get supplies by service id
 router.get('/insumos/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInsumosxServicio` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInsumosxServicio\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar los insumos del servicio');
             return;
@@ -90,8 +90,8 @@ router.put('/actualizar-servicio', (req, res) => {
   } = req.body;
   console.log(req.body);
   // 1. Llamar al primer procedimiento
-  db.query(
-    'CALL ActualizarServicioConInsumos(?, ?, ?, ?, ?)',
+  Basedatos.query(
+    `CALL \`${dbConfig.database}\`.\`ActualizarServicioConInsumos\`(?, ?, ?, ?, ?)`,
     [
       CodigoServicio,
       DescripcionServicio,
@@ -120,8 +120,8 @@ function insertarInsumosRecursivo(index, insumos, CodigoServicio, res) {
 
   const insumo = insumos[index];
 
-  db.query(
-    'CALL InsertarOActualizarInsumoXServicio(?, ?, ?)',
+  Basedatos.query(
+    `CALL \`${dbConfig.database}\`.\`InsertarOActualizarInsumoXServicio\`(?, ?, ?)`,
     [CodigoServicio, insumo.Codigo, insumo.Cantidad],
     (err) => {
       if (err) {
@@ -139,7 +139,7 @@ function insertarInsumosRecursivo(index, insumos, CodigoServicio, res) {
 router.delete('/eliminar-servicio/:id', (req, res) => {
     const idServicio = req.params.id;
 
-    db.query('CALL EliminarServicioEInsumos(?)', [idServicio], (error, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`EliminarServicioEInsumos\`(?)`, [idServicio], (error, results) => {
         if (error) {
             console.error('Error al eliminar el servicio:', error);
             return res.status(500).json({ message: 'Error al eliminar el servicio.' });

@@ -104,7 +104,7 @@ export class VerAccesorioComponent {
 
     this.id = this.route.snapshot.params['CodigoAccesorio'];
     this.accessorieId = this.id;
-    console.log('codigo accesirio es: ',this.id);
+    console.log('codigo accesirio es: ', this.id);
 
     this.accesorioService.find(this.id).subscribe((data) => {
       this.accesorio = data[0];
@@ -158,11 +158,11 @@ export class VerAccesorioComponent {
 
       //ACCESORIOS
       console.log(this.accessorieCompatibleProducts);
-      this.keywords.update(() => []);        
-      for (var val of this.accessorieCompatibleProducts) {             
+      this.keywords.update(() => []);
+      for (var val of this.accessorieCompatibleProducts) {
         this.addt(this.trackByComaptibleProduct(val.index, val)); // prints values: 10, 20, 30, 40
         console.log(val)
-       }       
+      }
 
 
       // console.log(this.consoleHack);      
@@ -220,7 +220,7 @@ export class VerAccesorioComponent {
 
     // Add our keyword
     if (value) {
-      this.keywords.update(keywords => [...keywords, value]);      
+      this.keywords.update(keywords => [...keywords, value]);
       this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update the form control
     }
 
@@ -229,17 +229,17 @@ export class VerAccesorioComponent {
   }
 
   addt(valor: String): void {
-    const value = (valor || '').trim();    
+    const value = (valor || '').trim();
 
     // Add our keyword
     console.log(value);
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
       console.log(this.keywords());
-      
+
       this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords());
-      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty(); 
-       // Force change detection
+      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
+      // Force change detection
       this.cdr.detectChanges();
     }
 
@@ -268,24 +268,36 @@ export class VerAccesorioComponent {
     // Llamamos al service para actualizar la tarea
     // Convert to number (1 for true, 0 for false)
     const realizadoValue = task.Realizado ? 1 : 0;
-    this.tareasaccesorioService.update(task.IdTareaAccesorioPK,realizadoValue).subscribe((res: any) => {
-      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);      
-    }) 
-    
+    this.tareasaccesorioService.update(task.IdTareaAccesorioPK, realizadoValue).subscribe((res: any) => {
+      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);
+    })
+
   }
 
-  formatNumber(value: number | null) {
-    if(value == null){
-      return 0;
+  // En tu archivo ver-producto.component.ts
+
+  private formatNumber(value: number | string | null): string {
+    // Si el valor es nulo o una cadena vacía, devuelve '0.00'
+    if (value === null || value === '') {
+      return '0.00';
     }
-    else{
-      return value.toFixed(2); // Formats the number to 2 decimal places
-    }    
+
+    // Convierte el valor a string y luego a número flotante
+    const num = parseFloat(String(value));
+
+    // Si la conversión falla (resulta en NaN), devuelve '0.00'
+    if (isNaN(num)) {
+      return '0.00';
+    }
+
+    // Si todo está bien, formatea el número a 2 decimales
+    return num.toFixed(2);
   }
+
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-  
+
     if (l == null || l === '') {
       return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
     } else {
@@ -297,10 +309,10 @@ export class VerAccesorioComponent {
     return compatibleproduct; // or index, depending on your unique identifiers
   }
 
-  public openDialogEliminar(cons: string){
-    const dialogRef = this.dialog.open(EliminarAccesoriosComponent, {  
-      disableClose: true,   
-      data: { value: cons }      
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarAccesoriosComponent, {
+      disableClose: true,
+      data: { value: cons }
     });
     dialogRef.componentInstance.Borrado.subscribe(() => {
       this.router.navigateByUrl('listado-accesorios');
@@ -314,10 +326,10 @@ export class VerAccesorioComponent {
     //console.log(this.productoForm.value);
     if (!this.accesorioForm.dirty) {
       return; // Exit if the form has not been modified
-    } 
+    }
     this.accesorioForm.value.CodigoAccesorio = this.id;
     console.log(this.accesorioForm.value);
-    this.accesorioService.update(this.accesorioForm.value).subscribe((res: any) => {      
+    this.accesorioService.update(this.accesorioForm.value).subscribe((res: any) => {
       this.ngOnInit();
     })
 

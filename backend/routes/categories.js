@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // Create a new category
 router.post('/crear-categoria-producto', (req, res) => {
     const { Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaProducto` (?, ?, ?, ?, ?, ?)';
-    db.query(sql, [Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarCategoriaProducto\` (?, ?, ?, ?, ?, ?)`;
+    Basedatos.query(sql, [Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -17,8 +17,8 @@ router.post('/crear-categoria-producto', (req, res) => {
 // Get a specific active category
 router.get('/categoria/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablacatalogoconsolasXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -45,8 +45,8 @@ router.get('/categoria', (req, res) => {
     }
 
     // Call the stored procedure with three parameters
-    const sql = 'CALL `base_datos_inventario_taller`.`BuscarIdCategoriaCatalogo` (?, ?, ?)';
-    db.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BuscarIdCategoriaCatalogo\` (?, ?, ?)`;
+    Basedatos.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
         if (err) {
             console.error('Error executing stored procedure:', err);
             return res.status(500).send('Error al buscar categoria');
@@ -62,14 +62,14 @@ router.get('/categoria', (req, res) => {
 router.put('/categoria/:id', (req, res) => {
     const id = req.params.id;
     const { IdModeloConsolaPK, Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCategoria` (?, ?, ?, ?, ?, ?, ?)';
-    const sql2 = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoconsolasXId` (?)';
-    db.query(sql, [IdModeloConsolaPK, Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto ], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarCategoria\` (?, ?, ?, ?, ?, ?, ?)`;
+    const sql2 = `CALL \`${dbConfig.database}\`.\`ListarTablacatalogoconsolasXId\` (?)`;
+    Basedatos.query(sql, [IdModeloConsolaPK, Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto ], err => {
         if (err) {
             res.status(500).send('Error actualizando categoria');
             return;
         }
-        db.query(sql2, id, (err, result) => {
+        Basedatos.query(sql2, id, (err, result) => {
             if (err) {
                 res.status(500).send('Error al buscar categoria actualizada');
                 return;
@@ -83,8 +83,8 @@ router.put('/categoria/:id', (req, res) => {
 router.put('/categoria-eliminar/:id', (req, res) => {
     const id = req.params.id;
     const { IdModeloConsolaPK } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`BorrarCategoria` (?)';
-    db.query(sql, [IdModeloConsolaPK], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarCategoria\` (?)`;
+    Basedatos.query(sql, [IdModeloConsolaPK], err => {
         if (err) {
             res.status(500).send('Error al eliminar categoria');
             return;

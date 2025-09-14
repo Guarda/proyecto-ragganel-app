@@ -38,8 +38,8 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 @Component({
   selector: 'app-ver-producto',
   standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor,NgIf, MatOption, MatInputModule, MatOptionModule
-     ,MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule,  MatChipsModule, QRCodeModule, MatCheckboxModule
+  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
+    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule
   ],
   templateUrl: './ver-producto.component.html',
   styleUrl: './ver-producto.component.css'
@@ -47,7 +47,7 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 export class VerProductoComponent {
   keywords = signal(['']);
   announcer = inject(LiveAnnouncer);
-  
+
   productoForm!: FormGroup;
   tareasForm!: FormGroup;
 
@@ -100,9 +100,9 @@ export class VerProductoComponent {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private fb: FormBuilder,
-    private dialog: MatDialog   
+    private dialog: MatDialog
   ) {
-    
+
   }
 
   ngOnInit(): void {
@@ -125,15 +125,15 @@ export class VerProductoComponent {
       this.consoleSubCate = this.producto.Subcategoria;
       this.consoleSerialCode = this.producto.NumeroSerie;
       this.consoleAccesories = this.producto.Accesorios.split(',');
-      
-      
+
+
       this.categorias.find(this.consoleCode).subscribe((data) => {
         this.categoria = data[0];
         this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
         this.consoleManufacturer = this.categoria.Fabricante;
         console.log(this.consoleManufacturer)
-      });      
-  
+      });
+
       this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
         // console.log(data);
         this.selectedEstado = data;
@@ -157,20 +157,20 @@ export class VerProductoComponent {
       //   this.selectedSubCategoriaProducto = data;
       // })
 
-      this.subcategoriaproductoService.findBase(this.consoleCate).subscribe((data: SubcategoriasProductos[]) => {        
+      this.subcategoriaproductoService.findBase(this.consoleCate).subscribe((data: SubcategoriasProductos[]) => {
         this.selectedSubCategoriaProducto = data;
-      }) 
+      })
 
       //ACCESORIOS
       console.log(this.consoleAccesories);
-      this.keywords.update(() => []);        
-      for (var val of this.consoleAccesories) {             
+      this.keywords.update(() => []);
+      for (var val of this.consoleAccesories) {
         this.addt(this.trackByAccessory(val.index, val)); // prints values: 10, 20, 30, 40
         console.log(val)
-       }       
+      }
 
       // console.log(this.consoleHack);      
-      
+
       //Initialize the form with the product data
       this.productoForm = this.fb.group({
         Fabricante: [this.consoleManufacturer],
@@ -187,39 +187,39 @@ export class VerProductoComponent {
         Accesorios: [this.consoleAccesories] // Add the parsed array here
       });
 
-      
-    this.cdr.detectChanges(); // Ensure view updates
+
+      this.cdr.detectChanges(); // Ensure view updates
 
       // this.productoForm.patchValue({
       //   HackC: this.consoleHack,
       //   SubCategoria: this.consoleSubCate
       // });
     });
-    
+
     this.tareasproductoService.find(this.id).subscribe((data: TareasProducto[]) => {
       // Map each task to include RealizadoNumber
       this.tasks = data.map(task => ({
-      ...task,
-      RealizadoNumber: task.Realizado ? 1 : 0 // Set RealizadoNumber based on Realizado
+        ...task,
+        RealizadoNumber: task.Realizado ? 1 : 0 // Set RealizadoNumber based on Realizado
       }));
       console.log('Tareas Form:', this.tasks);
-    }) 
+    })
 
     this.productoForm = new FormGroup({
-      Fabricante: new FormControl('',Validators.required),
-      Cate: new FormControl('',Validators.required),
-      SubCategoria: new FormControl('',Validators.required),
-      IdModeloConsolaPK: new FormControl('',Validators.required),
+      Fabricante: new FormControl('', Validators.required),
+      Cate: new FormControl('', Validators.required),
+      SubCategoria: new FormControl('', Validators.required),
+      IdModeloConsolaPK: new FormControl('', Validators.required),
       ColorConsola: new FormControl(''),
-      PrecioBase: new FormControl('',Validators.required),
-      EstadoConsola: new FormControl('',Validators.required),
-      HackConsola: new FormControl('',Validators.required),
+      PrecioBase: new FormControl('', Validators.required),
+      EstadoConsola: new FormControl('', Validators.required),
+      HackConsola: new FormControl('', Validators.required),
       ComentarioConsola: new FormControl(''),
       Accesorios: new FormControl(''),
-      NumeroSerie: new FormControl('')      
+      NumeroSerie: new FormControl('')
     });
 
-    
+
   }
 
   onCheckboxChange(task: TareasProducto) {
@@ -231,10 +231,10 @@ export class VerProductoComponent {
     // Llamamos al service para actualizar la tarea
     // Convert to number (1 for true, 0 for false)
     const realizadoValue = task.Realizado ? 1 : 0;
-    this.tareasproductoService.update(task.IdTareaPK,realizadoValue).subscribe((res: any) => {
-      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);      
-    }) 
-    
+    this.tareasproductoService.update(task.IdTareaPK, realizadoValue).subscribe((res: any) => {
+      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);
+    })
+
   }
 
   removeKeyword(keyword: string) {
@@ -255,7 +255,7 @@ export class VerProductoComponent {
 
     // Add our keyword
     if (value) {
-      this.keywords.update(keywords => [...keywords, value]);      
+      this.keywords.update(keywords => [...keywords, value]);
       this.productoForm.get('Accesorios')?.setValue(this.keywords()); // Update the form control
     }
 
@@ -264,17 +264,17 @@ export class VerProductoComponent {
   }
 
   addt(valor: String): void {
-    const value = (valor || '').trim();    
+    const value = (valor || '').trim();
 
     // Add our keyword
     console.log(value);
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
       console.log(this.keywords());
-      
+
       this.productoForm.get('Accesorios')?.setValue(this.keywords());
-      this.productoForm.get('Accesorios')?.markAsDirty(); 
-       // Force change detection
+      this.productoForm.get('Accesorios')?.markAsDirty();
+      // Force change detection
       this.cdr.detectChanges();
     }
 
@@ -288,7 +288,7 @@ export class VerProductoComponent {
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-  
+
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;
     } else {
@@ -296,19 +296,31 @@ export class VerProductoComponent {
     }
   }
 
-  formatNumber(value: number | null) {
-    if(value == null){
-      return 0;
+  // En tu archivo ver-producto.component.ts
+
+  private formatNumber(value: number | string | null): string {
+    // Si el valor es nulo o una cadena vacía, devuelve '0.00'
+    if (value === null || value === '') {
+      return '0.00';
     }
-    else{
-      return value.toFixed(2); // Formats the number to 2 decimal places
-    }    
+
+    // Convierte el valor a string y luego a número flotante
+    const num = parseFloat(String(value));
+
+    // Si la conversión falla (resulta en NaN), devuelve '0.00'
+    if (isNaN(num)) {
+      return '0.00';
+    }
+
+    // Si todo está bien, formatea el número a 2 decimales
+    return num.toFixed(2);
   }
 
-  public openDialogEliminar(cons: string){
-    const dialogRef = this.dialog.open(EliminarProductosComponent, {  
-      disableClose: true,   
-      data: { value: cons }      
+
+  public openDialogEliminar(cons: string) {
+    const dialogRef = this.dialog.open(EliminarProductosComponent, {
+      disableClose: true,
+      data: { value: cons }
     });
     dialogRef.componentInstance.Borrado.subscribe(() => {
       this.router.navigateByUrl('listado-productos');
@@ -318,16 +330,16 @@ export class VerProductoComponent {
     });
   }
 
-  
+
 
   onSubmit() {    // TODO: Use EventEmitter with form value 
     //console.log(this.productoForm.value);
     if (!this.productoForm.dirty) {
       return; // Exit if the form has not been modified
-    } 
+    }
     this.productoForm.value.CodigoConsola = this.id;
     console.log(this.productoForm.value);
-    this.productoService.update(this.productoForm.value).subscribe((res: any) => {      
+    this.productoService.update(this.productoForm.value).subscribe((res: any) => {
       this.ngOnInit();
       this.dialog.open(SuccessdialogComponent); // Show success dialog
     })

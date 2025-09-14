@@ -1122,3 +1122,24 @@ database-scripts/DIAGRAMA BETA DE VENTAS.png
 public/img-consolas/04549650XLWB03_l-1753760473316.jpg
 public/img-insumos/4349_3117-1754086487541.jpg
 public/img-insumos/4349_3117-1754086512688.jpg
+public/img-insumos/pend-1757806753965.webp
+public/img-insumos/8142MXZW8ZL-1757809349705.jpg
+
+# Archivos SQL de trabajo y duplicados
+database-scripts/1.sql
+database-scripts/bdtest.sql
+database-scripts/consultas_ventas.sql
+database-scripts/creacion de tablas 12- 09- 2025.sql
+database-scripts/CREARDB.sql
+database-scripts/dashboard.sql
+database-scripts/DB BETA.sql
+database-scripts/DISPARADORES.sql
+database-scripts/INSERTARINVENTARIO.sql
+database-scripts/no.sql
+database-scripts/procedimientos 12-09-2025.sql
+database-scripts/procedimientos beta.sql
+database-scripts/procedimientos corregidos 01-08-25.sql
+database-scripts/procedimientos2.sql
+database-scripts/PROCEDIMIENTOSALMACENADOS.sql
+database-scripts/ss.sql
+database-scripts/VISTAS.sql

@@ -1,6 +1,7 @@
 import { CommonModule, NgFor } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, inject, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, NgModel, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router'; // Importar ActivatedRoute y Router
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatStep, MatStepper, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
@@ -8,26 +9,32 @@ import { MatStep, MatStepper, MatStepperNext, MatStepperPrevious } from '@angula
 import { IngresarAccesoriosPedidoComponent } from '../controles-ingresar-inventario/ingresar-accesorios-pedido/ingresar-accesorios-pedido.component';
 import { IngresarInsumosPedidoComponent } from '../controles-ingresar-inventario/ingresar-insumos-pedido/ingresar-insumos-pedido.component';
 import { IngresarProductosPedidoComponent } from '../controles-ingresar-inventario/ingresar-productos-pedido/ingresar-productos-pedido.component';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { DescargarExcelDialogComponent } from '../../../utiles/reportes/descargar-excel-dialog/descargar-excel-dialog.component';
 
 import { PedidoService } from '../../../services/pedido.service';
 import { Articulo } from '../../interfaces/articulo-pedido';
 import { ExcelService } from '../../../services/excel.service';
-import { MatButton } from '@angular/material/button';
-import { Pedido } from '../../interfaces/pedido';
+import { MatButtonModule } from '@angular/material/button';
 
 import { CostoDistribucionService, CostosPedido } from '../../../services/costo-distribucion.service';
-import { map } from 'rxjs/operators'; // Necesitarás 'map'
+import { debounceTime, distinctUntilChanged, switchMap, take } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBar } from '@angular/material/progress-bar';
-
+import { PreIngresoService } from '../../../services/pre-ingreso.service';
+import { AuthService } from '../../../UI/session/auth.service';
+import { PreIngresoProducto } from '../../interfaces/pre-ingreso-producto';
+import { PreIngresoAccesorio } from '../../interfaces/pre-ingreso-accesorio';
+import { PreIngresoInsumo } from '../../interfaces/pre-ingreso-insumo';
+import { forkJoin } from 'rxjs';
+import { DistributionChoiceDialogComponent } from '../../../../../backend/distribution-choice-dialog.component';
+import { CostDistributionDialogComponent } from '../../../../../backend/cost-distribution-dialog.component';
 
 @Component({
   selector: 'app-ingresar-inventario',
   standalone: true,
-  imports: [MatStepper, MatButton, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, MatCardModule,
-    IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatDialogContent, MatDialogClose, MatStepperNext, MatProgressBar, MatStepperPrevious, MatDialogActions],
+  imports: [MatStepper, MatButtonModule, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, MatCardModule,
+    IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatStepperNext, MatProgressBar, MatStepperPrevious, CommonModule],
   templateUrl: './ingresar-inventario.component.html',
   styleUrl: './ingresar-inventario.component.css'
 })
@@ -44,6 +51,7 @@ export class IngresarInventarioComponent implements OnInit {
   formulariosInsumos: FormGroup[] = [];
 
   OrderId: any;
+  usuarioId!: number; // Para guardar el ID del usuario logueado
   @ViewChild(MatStepper) stepper!: MatStepper;
 
   constructor(
@@ -53,67 +61,89 @@ export class IngresarInventarioComponent implements OnInit {
     private excelService: ExcelService,
     private dialog: MatDialog,
     public costoService: CostoDistribucionService,
-    private dialogRef: MatDialogRef<IngresarInventarioComponent>, // Agregar esto
-    @Inject(MAT_DIALOG_DATA) public data: { idPedido: string }
+    private route: ActivatedRoute,
+    private router: Router,
+    private preIngresoService: PreIngresoService, // <-- INYECTAR NUEVO SERVICIO
+    private authService: AuthService // <-- INYECTAR SERVICIO DE AUTH
   ) { }
 
   ngOnInit(): void {
-    this.OrderId = this.data.idPedido;
+    // Obtenemos el ID del pedido desde los parámetros de la URL
+    const idFromRoute = this.route.snapshot.paramMap.get('CodigoPedido');
+    if (!idFromRoute) {
+      console.error("No se encontró el código del pedido en la URL.");
+      this.router.navigate(['/home/listado-pedidos']); // Redirigir si no hay ID
+      return;
+    }
+    this.OrderId = idFromRoute;
 
-    // Archivo: ingresar-inventario.component.ts
+    // Obtenemos el ID del usuario logueado primero
+    this.authService.getUser().pipe(take(1)).subscribe(user => {
+      if (!user) {
+        console.error("No se pudo obtener el usuario. Redirigiendo al login.");
+        this.router.navigate(['/login']);
+        return;
+      }
+      this.usuarioId = user.id;
 
+      // Una vez que tenemos OrderId y usuarioId, cargamos todos los datos iniciales.
+      this.cargarDatosIniciales();
+    });
+  }
+
+  cargarDatosIniciales(): void {
+    // Cargar detalles del pedido para el servicio de costos
     this.pedidoService.find(this.OrderId).subscribe((respuesta: any) => {
-      // 1. Verifica que la respuesta sea un array y que no esté vacío
       if (respuesta && respuesta.length > 0) {
-
-        // 2. Extrae el primer objeto (el pedido) del array
         const pedido = respuesta[0];
-
-        console.log('Objeto del Pedido a usar:', pedido); // Log para confirmar
-
-        // 3. Pasa los valores al servicio usando el objeto 'pedido' y los nombres correctos
-        this.costoService.setCostosIniciales(
-          pedido.Impuestos || 0,
-          pedido.ShippingUSA || 0, // Corregido de EnvioUSA a ShippingUSA
-          pedido.ShippingNIC || 0  // Corregido de EnvioNIC a ShippingNIC
-        );
-
+        // ✅ CORREGIDO: Se convierten los costos a número para evitar errores de concatenación.
+        const impuestos = parseFloat(pedido.Impuestos || '0');
+        const shippingUSA = parseFloat(pedido.ShippingUSA || '0');
+        const shippingNIC = parseFloat(pedido.ShippingNIC || '0');
+        this.costoService.setCostosIniciales(impuestos, shippingUSA, shippingNIC);
+        // Una vez cargados los costos, preguntamos al usuario cómo distribuirlos
+        this.abrirDialogoDeEleccion();
       } else {
-        console.error("Error: No se encontraron datos para el pedido o la respuesta está vacía.");
-        // Opcional: inicializar costos en 0 si no hay datos
+        console.error("Error: No se encontraron datos para el pedido.");
         this.costoService.setCostosIniciales(0, 0, 0);
       }
     });
 
-    // Tu lógica existente para obtener los artículos
-    this.pedidoService.getArticlesbyOrderId(this.OrderId).subscribe((data: Articulo[]) => {
-      this.productos = data.filter(articulo => articulo.TipoArticuloFK === 1);
-      this.accesorios = data.filter(articulo => articulo.TipoArticuloFK === 2);
-      this.insumos = data.filter(articulo => articulo.TipoArticuloFK === 3);
+    // Cargar el progreso guardado y luego los artículos del pedido
+    this.preIngresoService.loadAllPreIngresoData(this.OrderId, this.usuarioId).subscribe(([productosRes, accesoriosRes, insumosRes]) => {
+      const preIngresadosProductos: PreIngresoProducto[] = productosRes.data || [];
+      const preIngresadosAccesorios: PreIngresoAccesorio[] = accesoriosRes.data || [];
+      const preIngresadosInsumos: PreIngresoInsumo[] = insumosRes.data || [];
 
-      this.formulariosProductos = [];
-      this.formulariosAccesorios = [];
-      this.formulariosInsumos = [];
+      this.pedidoService.getArticlesbyOrderId(this.OrderId).subscribe((data: Articulo[]) => {
+        this.productos = data.filter(a => a.TipoArticuloFK === 1);
+        this.accesorios = data.filter(a => a.TipoArticuloFK === 2);
+        this.insumos = data.filter(a => a.TipoArticuloFK === 3);
 
-      // Generar formularios (ahora con el campo CostoDistribuido)
-      this.generarFormularioProductos(this.productos, this.formulariosProductos);
-      this.generarFormularioAccesorios(this.accesorios, this.formulariosAccesorios);
-      this.generarFormularioInsumos(this.insumos, this.formulariosInsumos);
+        // Limpiar arrays de formularios antes de regenerarlos
+        this.formulariosProductos = [];
+        this.formulariosAccesorios = [];
+        this.formulariosInsumos = [];
 
-      // ✅ 4. Suscribirse a los cambios de cada formulario para actualizar el total distribuido
-      const todosLosFormularios = [
-        ...this.formulariosProductos,
-        ...this.formulariosAccesorios,
-        ...this.formulariosInsumos
-      ];
+        // Generar formularios pasando los datos de pre-ingreso correspondientes
+        this.generarFormularioProductos(this.productos, this.formulariosProductos, preIngresadosProductos);
+        this.generarFormularioAccesorios(this.accesorios, this.formulariosAccesorios, preIngresadosAccesorios);
+        this.generarFormularioInsumos(this.insumos, this.formulariosInsumos, preIngresadosInsumos);
 
-      todosLosFormularios.forEach(form => {
-        form.get('CostoDistribuido')?.valueChanges.subscribe(() => {
-          this.costoService.actualizarDistribucion(todosLosFormularios);
+        const todosLosFormularios = [
+          ...this.formulariosProductos,
+          ...this.formulariosAccesorios,
+          ...this.formulariosInsumos
+        ];
+
+        todosLosFormularios.forEach(form => {
+          form.get('CostoDistribuido')?.valueChanges.subscribe(() => {
+            this.costoService.actualizarDistribucion(todosLosFormularios);
+          });
         });
-      });
 
-      this.cdr.detectChanges();
+        this.cdr.detectChanges();
+      });
     });
   }
 
@@ -121,77 +151,250 @@ export class IngresarInventarioComponent implements OnInit {
     this.costoService.reset();
   }
 
+  abrirDialogoDeEleccion(): void {
+    const costosAdicionales = this.costoService.getCostosAdicionalesTotales();
+    // Si no hay costos adicionales, no mostramos el diálogo.
+    if (costosAdicionales <= 0) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(DistributionChoiceDialogComponent, {
+      width: '400px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(choice => {
+      if (choice === 'inteligente') {
+        this.abrirDialogoDistribucionInteligente(costosAdicionales);
+      }
+      // Si es 'manual', no hacemos nada y el usuario lo hará a mano.
+    });
+  }
+
+  abrirDialogoDistribucionInteligente(costosAdicionales: number): void {
+    const dialogRef = this.dialog.open(CostDistributionDialogComponent, {
+      width: '600px',
+      disableClose: true,
+      data: {
+        idPedido: this.OrderId,
+        costosTotales: costosAdicionales
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(distribuciones => {
+      if (distribuciones) {
+        this.aplicarCostosDistribuidos(distribuciones, costosAdicionales);
+      }
+    });
+  }
+
+  aplicarCostosDistribuidos(distribuciones: any[], costosTotales: number): void {
+    const todosLosFormularios = [...this.formulariosProductos, ...this.formulariosAccesorios, ...this.formulariosInsumos];
+  
+    distribuciones.forEach(dist => {
+      const costoPorModelo = costosTotales * (dist.PorcentajeAsignado / 100);
+      
+      const formulariosCoincidentes = todosLosFormularios
+        .filter(form => 
+            form.get('articuloId')?.value === dist.IdModeloFK &&
+            form.get('tipoId')?.value === dist.TipoArticuloFK);
+
+      if (formulariosCoincidentes.length > 0) {
+        // Si es un Insumo (Tipo 3), se aplica el costo total del modelo al único formulario.
+        if (dist.TipoArticuloFK === 3) {
+          formulariosCoincidentes[0].get('CostoDistribuido')?.patchValue(costoPorModelo.toFixed(2));
+        } else {
+          // Para Productos y Accesorios, se calcula el costo por unidad y se aplica a cada formulario.
+          const costoPorUnidad = costoPorModelo / dist.CantidadEnPedido;
+          formulariosCoincidentes.forEach(form => {
+            form.get('CostoDistribuido')?.patchValue(costoPorUnidad.toFixed(2));
+          });
+        }
+      }
+    });
+  }
+
   // ✅ 5. Añade el campo 'CostoDistribuido' a cada método que genera formularios
-  private generarFormularioProductos(productos: Articulo[], formularioArray: FormGroup[]) {
+  private generarFormularioProductos(productos: Articulo[], formularioArray: FormGroup[], preIngresados: PreIngresoProducto[]) {
     productos.forEach(producto => {
       for (let i = 0; i < producto.Cantidad; i++) {
-        formularioArray.push(this.fb.group({
+        const formIndex = formularioArray.length;
+        const form = this.fb.group({
           articuloId: [producto.IdModeloPK],
           nombre: [producto.NombreCategoria],
+          tipoId: [producto.TipoArticuloFK], // ✅ AÑADIDO: Campo para el ID numérico del tipo.
           tipo: [producto.TipoArticulo],
           cantidad: [1, [Validators.required, Validators.min(1)]],
           NumeroSerie: [''],
           ColorConsola: [''],
-          EstadoConsola: ['', Validators.required],
-          PrecioBase: ['', Validators.required],
+          EstadoConsola: [null as number | null, Validators.required],
+          PrecioBase: [null as number | null, Validators.required],
           CostoDistribuido: [0, [Validators.required, Validators.min(0)]], // <-- AÑADIDO
-          HackConsola: ['', Validators.required],
-          Accesorios: [''],
+          HackConsola: ['0', Validators.required], // Valor por defecto
+          Accesorios: this.fb.control<string[] | null>(null),
           ComentarioConsola: [''],
-          TodoList: [''],
-          Fabricante: ['', Validators.required],
-          Cate: ['', Validators.required],
-          SubCategoria: ['', Validators.required],
-          ProductosCompatibles: [''],
+          TodoList: this.fb.control<string[] | null>(null),
+          Fabricante: [null, Validators.required],
+          Cate: [null, Validators.required],
+          SubCategoria: [null, Validators.required],
+          ProductosCompatibles: this.fb.control<string[] | null>(null),
           IdPedido: [this.OrderId]
-        }));
+        });
+
+        // Cargar datos pre-guardados si existen para este índice
+        const dataGuardada: PreIngresoProducto | undefined = preIngresados.find(p => p.FormIndex === formIndex); // <-- TIPADO FUERTE
+        console.log('Datos guardados encontrados para el formulario', formIndex, ':', dataGuardada);
+        if (dataGuardada && dataGuardada.IdPreIngresoProductoPK) {
+          // Convertimos los strings de vuelta a arrays para los chips.
+          // Si el string está vacío o es nulo, creamos un array vacío.
+          const accesoriosArray = dataGuardada.Accesorios ? dataGuardada.Accesorios.split(',') : [];
+          const todoListArray = dataGuardada.TareasPendientes ? dataGuardada.TareasPendientes.split(',') : [];
+          // Si hay un borrador guardado, lo cargamos.
+          // Si hay un borrador guardado, lo cargamos.
+          form.patchValue({
+            ColorConsola: dataGuardada.Color, // <-- CORRECCIÓN
+            EstadoConsola: dataGuardada.Estado, // El valor del mat-option es numérico
+            HackConsola: dataGuardada.Hackeado.toString(), // <-- CORRECCIÓN
+            PrecioBase: dataGuardada.PrecioBase, // El input es de tipo 'number'
+            ComentarioConsola: dataGuardada.Comentario, // <-- CORRECCIÓN
+            NumeroSerie: dataGuardada.NumeroSerie || '',
+            Accesorios: accesoriosArray,
+            TodoList: todoListArray, // <-- CORRECCIÓN
+            CostoDistribuido: dataGuardada.CostoDistribuido
+          }, { emitEvent: false }); // No disparar valueChanges al cargar datos
+        } else {
+          // Si no hay borrador, establecemos valores por defecto del artículo original del pedido.
+          form.patchValue({
+            PrecioBase: producto.Precio || 0, // Precio original del pedido, asegurando que no sea nulo.
+            HackConsola: '0' // Valor por defecto
+          }, { emitEvent: false }); // No disparar valueChanges para valores por defecto
+        }
+
+        // Lógica de autoguardado
+        form.valueChanges.pipe(
+          debounceTime(1500), // Espera 1.5s después de que el usuario deja de escribir
+          distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+          switchMap(formValue => {
+            const payload = { ...formValue, idPedido: this.OrderId, usuarioId: this.usuarioId, formIndex };
+            return this.preIngresoService.saveProduct(payload);
+          })
+        ).subscribe({
+          next: () => console.log(`Formulario ${formIndex} guardado.`),
+          error: (err) => console.error(`Error al guardar formulario ${formIndex}:`, err)
+        });
+
+        formularioArray.push(form);
       }
     });
   }
 
-  private generarFormularioAccesorios(accesorios: Articulo[], formularioArray: FormGroup[]) {
+  private generarFormularioAccesorios(accesorios: Articulo[], formularioArray: FormGroup[], preIngresados: PreIngresoAccesorio[]) {
     accesorios.forEach(accesorio => {
       for (let i = 0; i < accesorio.Cantidad; i++) {
-        formularioArray.push(this.fb.group({
+        const formIndex = formularioArray.length;
+        const form = this.fb.group({
           articuloId: [accesorio.IdModeloPK],
           nombre: [accesorio.NombreCategoria],
+          tipoId: [accesorio.TipoArticuloFK], // ✅ AÑADIDO: Campo para el ID numérico del tipo.
           tipo: [accesorio.TipoArticulo],
           cantidad: [1, [Validators.required, Validators.min(1)]],
           NumeroSerie: [''],
           ColorAccesorio: [''],
-          EstadoAccesorio: ['', Validators.required],
-          PrecioBase: [accesorio.Precio, Validators.required],
+          EstadoAccesorio: [null as number | null, Validators.required],
+          PrecioBase: [accesorio.Precio || null, Validators.required],
           CostoDistribuido: [0, [Validators.required, Validators.min(0)]], // <-- AÑADIDO
-          FabricanteAccesorio: ['', Validators.required],
-          CateAccesorio: ['', Validators.required],
-          SubCategoriaAccesorio: ['', Validators.required],
-          TodoList: [''],
+          FabricanteAccesorio: [null, Validators.required],
+          CateAccesorio: [null, Validators.required],
+          SubCategoriaAccesorio: [null, Validators.required],
+          TodoList: this.fb.control<string[] | null>(null),
           ComentarioAccesorio: [''],
-          ProductosCompatibles: [''],
+          ProductosCompatibles: this.fb.control<string[] | null>(null),
           IdPedido: [this.OrderId]
-        }));
+        });
+
+        const dataGuardada: PreIngresoAccesorio | undefined = preIngresados.find(p => p.FormIndex === formIndex);
+        if (dataGuardada && dataGuardada.IdPreIngresoAccesorioPK) {
+          console.log('Datos guardados encontrados para el formulario de accesorio', formIndex, ':', dataGuardada);
+          const compatiblesArray = dataGuardada.ProductosCompatibles ? dataGuardada.ProductosCompatibles.split(',') : [];
+          const todoListArray = dataGuardada.TareasPendientes ? dataGuardada.TareasPendientes.split(',') : [];
+
+          form.patchValue({
+            ColorAccesorio: dataGuardada.ColorAccesorio,
+            EstadoAccesorio: dataGuardada.EstadoAccesorio,
+            PrecioBase: dataGuardada.PrecioBase,
+            CostoDistribuido: dataGuardada.CostoDistribuido,
+            ComentarioAccesorio: dataGuardada.Comentario,
+            NumeroSerie: dataGuardada.NumeroSerie,
+            ProductosCompatibles: compatiblesArray,
+            TodoList: todoListArray
+          }, { emitEvent: false });
+        }
+
+        form.valueChanges.pipe(
+          debounceTime(1500),
+          distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+          switchMap(formValue => {
+            const payload = { ...formValue, idPedido: this.OrderId, usuarioId: this.usuarioId, formIndex };
+            return this.preIngresoService.saveAccessory(payload);
+          })
+        ).subscribe({
+          next: () => console.log(`Formulario de accesorio ${formIndex} guardado.`),
+          error: (err) => console.error(`Error al guardar formulario de accesorio ${formIndex}:`, err)
+        });
+
+        formularioArray.push(form);
       }
     });
   }
 
-  private generarFormularioInsumos(insumos: Articulo[], formularioArray: FormGroup[]) {
+  private generarFormularioInsumos(insumos: Articulo[], formularioArray: FormGroup[], preIngresados: PreIngresoInsumo[]) {
     insumos.forEach(insumo => {
-      formularioArray.push(this.fb.group({
+      // Para insumos, no iteramos por cantidad, es un solo formulario por tipo de insumo.
+      const formIndex = formularioArray.length;
+      const form = this.fb.group({
         articuloId: [insumo.IdModeloPK],
         nombre: [insumo.NombreCategoria],
-        NumeroSerie: [''],
+        tipoId: [insumo.TipoArticuloFK], // ✅ AÑADIDO: Campo para el ID numérico del tipo.
+        NumeroSerie: [''], // ✅ CORREGIDO: Se añade el validador requerido.
         tipo: [insumo.TipoArticulo],
         Cantidad: [insumo.Cantidad, [Validators.required, Validators.min(1)]],
-        EstadoInsumo: ['', Validators.required],
-        StockMinimo: ['', Validators.required],
-        PrecioBase: [insumo.Precio, Validators.required],
+        EstadoInsumo: [null as number | null, Validators.required],
+        StockMinimo: [null as number | null, Validators.required],
+        PrecioBase: [insumo.Precio || null, Validators.required],
         CostoDistribuido: [0, [Validators.required, Validators.min(0)]], // <-- AÑADIDO
-        FabricanteInsumo: ['', Validators.required],
-        CateInsumo: ['', Validators.required],
-        SubCategoriaInsumo: ['', Validators.required],
+        FabricanteInsumo: [null, Validators.required],
+        CateInsumo: [null, Validators.required],
+        SubCategoriaInsumo: [null, Validators.required],
         ComentarioInsumo: [''],
         IdPedido: [this.OrderId]
-      }));
+      });
+
+      const dataGuardada: PreIngresoInsumo | undefined = preIngresados.find(p => p.FormIndex === formIndex);
+      if (dataGuardada && dataGuardada.IdPreIngresoInsumoPK) {
+        form.patchValue({
+          EstadoInsumo: dataGuardada.EstadoInsumo,
+          StockMinimo: dataGuardada.StockMinimo,
+          PrecioBase: dataGuardada.PrecioBase,
+          CostoDistribuido: dataGuardada.CostoDistribuido,
+          ComentarioInsumo: dataGuardada.Comentario,
+          NumeroSerie: dataGuardada.NumeroSerie,
+          Cantidad: dataGuardada.Cantidad
+        }, { emitEvent: false });
+      }
+
+      form.valueChanges.pipe(
+        debounceTime(1500),
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+        switchMap(formValue => {
+          const payload = { ...formValue, idPedido: this.OrderId, usuarioId: this.usuarioId, formIndex };
+          return this.preIngresoService.saveSupply(payload);
+        })
+      ).subscribe({
+        next: () => console.log(`Formulario de insumo ${formIndex} guardado.`),
+        error: (err) => console.error(`Error al guardar formulario de insumo ${formIndex}:`, err)
+      });
+
+      formularioArray.push(form);
     });
   }
 
@@ -320,21 +523,26 @@ export class IngresarInventarioComponent implements OnInit {
                 orderId: this.OrderId
               }
             });
+            // Limpiar datos temporales después de finalizar
+            this.preIngresoService.deletePreIngresoData(this.OrderId, this.usuarioId).subscribe({
+              next: () => console.log('Datos de pre-ingreso eliminados.'),
+              error: (err) => console.error('Error al eliminar datos de pre-ingreso:', err)
+            });
             excelDialogRef.afterClosed().subscribe(() => {
-              this.dialogRef.close(true);
+              this.router.navigate(['/home/listado-pedidos']); // Navegar de vuelta
             });
           } else {
             console.log("No se encontraron códigos generados. Cerrando.");
-            this.dialogRef.close(true);
+            this.router.navigate(['/home/listado-pedidos']); // Navegar de vuelta
           }
         } else {
           console.log("La respuesta del servidor no tiene el formato esperado. Cerrando.");
-          this.dialogRef.close(true);
+          this.router.navigate(['/home/listado-pedidos']); // Navegar de vuelta
         }
       },
       error => {
         console.error("Error al enviar el inventario", error);
-        this.dialogRef.close(false);
+        this.router.navigate(['/home/listado-pedidos']); // Navegar de vuelta incluso con error
       }
     );
   }
@@ -342,5 +550,10 @@ export class IngresarInventarioComponent implements OnInit {
   goBack() {
     this.stepper.previous();
     this.cdr.detectChanges();
+  }
+
+  cancelar() {
+    // Navega de vuelta a la lista de pedidos
+    this.router.navigate(['/home/listado-pedidos']);
   }
 }

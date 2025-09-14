@@ -64,9 +64,7 @@
               "buildTarget": "proyecto-ragganel-app:build:production"
             },
             "development": {
-              "buildTarget": "proyecto-ragganel-app:build:development"
-            },
-            "options": {
+              "buildTarget": "proyecto-ragganel-app:build:development",
               "proxyConfig": "proxy.conf.json"
             }
           },

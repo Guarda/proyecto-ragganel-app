@@ -74,7 +74,10 @@ export class TablaPedidosComponent implements OnInit {
   tableDataSource!: MatTableDataSource<Pedido>;  // Asegúrate de que sea MatTableDataSource<Pedido>
   private _filterValue: string = '';
 
-  constructor(public dialog: MatDialog) {
+  constructor(
+    public dialog: MatDialog,
+    private router: Router // Inyectamos el Router
+  ) {
   }
 
   ngOnInit(): void { }
@@ -115,11 +118,18 @@ export class TablaPedidosComponent implements OnInit {
   }
 
   public openDialogAvanzar(cons: string, est: number) {
+    // Si el estado es 4, significa que el siguiente paso es 5 (Recibido), 
+    // que es cuando se ingresa el inventario.
+    if (est === 4) {
+      // Navegamos a la nueva pantalla en lugar de abrir un diálogo.
+      this.router.navigate(['/home/ingresar-inventario', cons]);
+      return; // Salimos de la función para no abrir el diálogo.
+    }
+
     const dialogRef = this.dialog.open(AvanzarPedidoComponent, {
       disableClose: true,
       data: { value: cons, codigoEstado: est }
     });
-    console.log(est)
     dialogRef.componentInstance.Avanzar.subscribe(() => {
       this.actualizarPedidos.emit(); // Notifica al padre para recargar la información
       this.tableDataSource.paginator = this.paginator;

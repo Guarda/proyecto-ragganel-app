@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db'); // Asegúrate que la ruta al archivo de conexión de BD sea correcta
+const { Basedatos, dbConfig } = require('../config/db'); // Asegúrate que la ruta al archivo de conexión de BD sea correcta
 
 /**
  * @route   GET /api/inventory/
@@ -9,10 +9,10 @@ const db = require('../config/db'); // Asegúrate que la ruta al archivo de cone
  */
 router.get('/', (req, res) => {
   // 1. Preparamos la consulta a la vista que creamos.
-  const query = 'CALL `base_datos_inventario_taller`.`ListarVistaInventarioGeneral`();';
+  const query = `CALL \`${dbConfig.database}\`.\`ListarVistaInventarioGeneral\`();`;
 
   // 2. Ejecutamos la consulta en la base de datos.
-  db.query(query, (err, results) => {
+  Basedatos.query(query, (err, results) => {
     // 3. Manejo de errores.
     // Si ocurre un error en la BD, se notifica al cliente con un código 500.
     if (err) {
@@ -31,10 +31,10 @@ router.get('/', (req, res) => {
 
 router.get('/garantia', (req, res) => {
   // 1. Preparamos la llamada al nuevo procedimiento almacenado.
-  const query = 'CALL sp_ListarArticulosEnGarantia();';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_ListarArticulosEnGarantia\`();`;
 
   // 2. Ejecutamos la consulta.
-  db.query(query, (err, results) => {
+  Basedatos.query(query, (err, results) => {
     // 3. Manejo de errores (igual que el otro endpoint).
     if (err) {
       console.error('Error al obtener artículos en garantía:', err);
@@ -62,11 +62,11 @@ router.post('/cambiar-estado', (req, res) => {
   }
 
   // 3. Preparamos la llamada al nuevo procedimiento almacenado
-  const query = 'CALL sp_ActualizarEstadoArticulo(?, ?, ?);';
+  const query = `CALL \`${dbConfig.database}\`.\`sp_ActualizarEstadoArticulo\`(?, ?, ?);`;
   const params = [tipoArticulo, codigoArticulo, nuevoEstadoId];
 
   // 4. Ejecutamos la consulta
-  db.query(query, params, (err, results) => {
+  Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al cambiar el estado del artículo:', err);
       return res.status(500).json({
@@ -90,8 +90,8 @@ router.get('/historial', (req, res) => {
     return res.status(400).json({ success: false, mensaje: 'Faltan parámetros tipo o codigo.' });
   }
 
-  const query = 'CALL sp_ObtenerHistorialArticulo(?, ?);';
-  db.query(query, [tipo, codigo], (err, results) => {
+  const query = `CALL \`${dbConfig.database}\`.\`sp_ObtenerHistorialArticulo\`(?, ?);`;
+  Basedatos.query(query, [tipo, codigo], (err, results) => {
     if (err) {
       console.error('Error al obtener el historial del artículo:', err);
       return res.status(500).json({ success: false, mensaje: 'Error en el servidor.' });

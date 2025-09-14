@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // Get the list of tasks by a specific product
 router.get('/tareas/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTareasxProducto` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTareasxProducto\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar producto');
             return;
@@ -32,13 +32,13 @@ router.put('/tareas', (req, res) => {
 
     console.log('Updating task with:', { IdTareaPK, RealizadoValue }); // Debugging log
 
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarTareaRealizado` (?, ?)';
-    db.query(sql, [IdTareaPK, RealizadoValue], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarTareaRealizado\` (?, ?)`;
+    Basedatos.query(sql, [IdTareaPK, RealizadoValue], (err, result) => {
         if (err) {
             console.error('Error updating task:', err); // Log any error for debugging
             return res.status(500).send('Error actualizando tarea');
         }
-        res.json(result); // Send back the result
+        res.json({ message: 'Tarea actualizada correctamente' });
     });
 });
 

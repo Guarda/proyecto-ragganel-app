@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // Endpoint para obtener todos los clientes
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTodosLosClientes`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTodosLosClientes\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             // console.log(err); // Comentado
@@ -22,9 +22,9 @@ router.get('/:id', (req, res) => {
         return res.status(400).json({ error: 'ID inválido o no proporcionado' });
     }
 
-    const sql = 'CALL ListarClienteXId(?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarClienteXId\`(?)`;
 
-    db.query(sql, [id], (err, result) => {
+    Basedatos.query(sql, [id], (err, result) => {
         if (err) {
             console.error('Error al obtener el cliente:', err);
             return res.status(500).json({ error: 'Error al buscar cliente' });
@@ -45,7 +45,7 @@ router.post('/crear-cliente/', (req, res) => {
     const { Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios } = req.body;
     
     // 1. LLAMADA ÚNICA QUE INSERTA Y DEVUELVE EL ID
-    db.query('CALL IngresarCliente(?, ?, ?, ?, ?, ?, ?)', 
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`IngresarCliente\`(?, ?, ?, ?, ?, ?, ?)`, 
     [Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios], 
     (err, result) => {
         if (err || result.length === 0) {
@@ -57,7 +57,7 @@ router.post('/crear-cliente/', (req, res) => {
         const nuevoClienteId = result[0][0].id;
 
         // 2. LLAMADA PARA OBTENER EL CLIENTE COMPLETO
-        db.query('CALL ListarClienteXId(?)', [nuevoClienteId], (err, finalResult) => {
+        Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarClienteXId\`(?)`, [nuevoClienteId], (err, finalResult) => {
             if (err || finalResult[0].length === 0) {
                 return res.status(500).json({ error: 'No se pudo encontrar el cliente recién creado' });
             }
@@ -93,9 +93,9 @@ router.put('/actualizar-cliente/:id', (req, res) => {
     }
 
     // Llamamos al procedimiento almacenado con los parámetros
-    const sql = 'CALL `base_datos_inventario_taller`.`ActualizarCliente` (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarCliente\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [
+    Basedatos.query(sql, [
         id,  // Asegúrate de que el ID se pase correctamente
         NombreCliente, 
         DNI, 
@@ -123,9 +123,9 @@ router.get('/:id/ventas', (req, res) => {
         return res.status(400).json({ error: 'ID de cliente inválido o no proporcionado' });
     }
 
-    const sql = 'CALL sp_ObtenerVentasPorCliente(?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`sp_ObtenerVentasPorCliente\`(?)`;
 
-    db.query(sql, [idCliente], (err, results) => {
+    Basedatos.query(sql, [idCliente], (err, results) => {
         if (err) {
             console.error('Error al obtener ventas del cliente:', err);
             return res.status(500).json({ error: 'Error interno del servidor' });
@@ -141,9 +141,9 @@ router.put('/eliminar-cliente/:id', (req, res) => {
     const id = req.params.id;  // Captura el ID desde la ruta
 
     // Llamamos al procedimiento almacenado para cambiar el estado del cliente a 0 (inactivo)
-    const sql = 'CALL `base_datos_inventario_taller`.`EliminarCliente` (?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`EliminarCliente\` (?)`;
 
-    db.query(sql, [id], (err, result) => {
+    Basedatos.query(sql, [id], (err, result) => {
         if (err) {
             console.error('Error al cambiar el estado del cliente:', err);
             return res.status(500).send('Error al eliminar el cliente');

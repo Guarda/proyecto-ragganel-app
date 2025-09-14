@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 //create a new order
 router.post('/crear-pedido', (req, res) => {
@@ -25,9 +25,9 @@ router.post('/crear-pedido', (req, res) => {
     console.log(req.body)
 
     // Asegúrate de que los valores enviados sean los correctos
-    const sql = 'CALL IngresarPedidoATablaPedidos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarPedidoATablaPedidos\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [
+    Basedatos.query(sql, [
         FechaCreacionPedido,
         FechaArrivoUSA,
         FechaEstimadaRecepcion,  // Asegúrate de que se pase correctamente
@@ -54,7 +54,7 @@ router.post('/crear-pedido', (req, res) => {
 
 // List all products
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTablaPedidosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaPedidosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -67,8 +67,8 @@ router.get('/', (req, res) => {
 // Get a specific product
 router.get('/listar/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaPedidosBasesXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaPedidosBasesXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar pedido');
             return;
@@ -84,8 +84,8 @@ router.get('/listar/:id', (req, res) => {
 // Get Order article list 
 router.get('/listar-articulos/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarArticulosXIdPedido` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarArticulosXIdPedido\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar pedido');
             return;
@@ -95,6 +95,26 @@ router.get('/listar-articulos/:id', (req, res) => {
             return;
         }
         res.json(result[0]);
+    });
+});
+
+/**
+ * @route   GET /pedidos/reporte-ingreso/:id
+ * @desc    Obtiene los datos de los códigos generados para un pedido ya ingresado.
+ * @access  Private
+ */
+router.get('/reporte-ingreso/:id', (req, res) => {
+    const idPedido = req.params.id;
+    const sql = `CALL \`${dbConfig.database}\`.\`sp_ObtenerCodigosDePedido\`(?)`;
+
+    Basedatos.query(sql, [idPedido], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar sp_ObtenerCodigosDePedido:', err);
+            return res.status(500).json({ error: 'Error al generar el reporte del pedido.' });
+        }
+        // El SP devuelve una estructura que el frontend ya sabe cómo manejar.
+        // results[0] contendrá el array con el objeto: [ { Resultado: '...' } ]
+        res.status(200).json(results[0]);
     });
 });
 
@@ -115,14 +135,16 @@ router.put('/actualizar-pedido/:id', (req, res) => {
         SitioWeb,
         SubTotalArticulos,
         ViaPedido,
-        Estado
+        Estado,
+        // Se añade la variable para los artículos
+        articulos 
     } = req.body;
 
     // console.log(req.body)
     // Llamar al procedimiento almacenado para actualizar los datos generales del pedido
-    const sql = 'CALL ActualizarDatosGeneralesPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarDatosGeneralesPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [
+    Basedatos.query(sql, [
         CodigoPedido,
         FechaCreacionPedido,
         FechaArriboUSA,
@@ -144,7 +166,77 @@ router.put('/actualizar-pedido/:id', (req, res) => {
             console.error(err);
             return res.status(500).send('Error al actualizar el pedido');
         }
-        res.send({ message: 'Datos del pedido actualizados correctamente' });
+
+        // Si no hay artículos, la operación termina aquí con éxito.
+        if (!articulos || !Array.isArray(articulos) || articulos.length === 0) {
+            return res.status(200).json({ message: 'Datos del pedido actualizados, no se procesaron artículos.' });
+        }
+
+        // Lógica para procesar los artículos
+        const articulosParaActualizar = [];
+        const articulosParaAgregar = [];
+
+        articulos.forEach(articulo => {
+            articulo.IdCodigoPedidoFK = articulo.IdCodigoPedidoFK || CodigoPedido;
+            if (articulo.IdPedidoDetallePK) {
+                articulosParaActualizar.push(articulo);
+            } else {
+                articulosParaAgregar.push(articulo);
+            }
+        });
+
+        const updatePromises = articulosParaActualizar.map(articulo => {
+            return new Promise((resolve, reject) => {
+                const updateQuery = `CALL \`${dbConfig.database}\`.\`ActualizarArticuloPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                Basedatos.query(updateQuery, [
+                    articulo.IdPedidoDetallePK,
+                    articulo.IdCodigoPedidoFK,
+                    articulo.TipoArticuloFK,
+                    articulo.FabricanteArticulo,
+                    articulo.CategoriaArticulo,
+                    articulo.SubcategoriaArticulo,
+                    articulo.Cantidad,
+                    articulo.EnlaceCompra,
+                    articulo.Precio,
+                    articulo.IdModeloPK,
+                    articulo.EstadoArticuloPedido,
+                    articulo.Activo
+                ], (err, result) => {
+                    if (err) return reject(err);
+                    resolve(result);
+                });
+            });
+        });
+
+        const insertPromises = articulosParaAgregar.map(articulo => {
+            return new Promise((resolve, reject) => {
+                const insertQuery = `CALL \`${dbConfig.database}\`.\`InsertarArticuloPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                Basedatos.query(insertQuery, [
+                    articulo.IdCodigoPedidoFK || CodigoPedido,
+                    articulo.TipoArticulo,
+                    articulo.Fabricante,
+                    articulo.Cate,
+                    articulo.SubCategoria,
+                    articulo.Cantidad,
+                    articulo.EnlaceCompra,
+                    articulo.Precio,
+                    articulo.IdModeloPK,
+                    articulo.Activo
+                ], (err, result) => {
+                    if (err) return reject(err);
+                    resolve(result);
+                });
+            });
+        });
+
+        Promise.all([...updatePromises, ...insertPromises])
+            .then(() => {
+                res.status(200).json({ message: 'Datos del pedido y artículos actualizados correctamente' });
+            })
+            .catch(err => {
+                console.error("Error al procesar artículos:", err);
+                res.status(500).json({ error: 'Error al procesar los artículos', detalles: err.message });
+            });
     });
 });
 
@@ -183,8 +275,8 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 
     const updatePromises = articulosParaActualizar.map(articulo => {
         return new Promise((resolve, reject) => {
-            const updateQuery = `CALL ActualizarArticuloPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            db.query(updateQuery, [
+            const updateQuery = `CALL \`${dbConfig.database}\`.\`ActualizarArticuloPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            Basedatos.query(updateQuery, [
                 articulo.IdPedidoDetallePK,
                 articulo.IdCodigoPedidoFK,
                 articulo.TipoArticuloFK,
@@ -206,9 +298,9 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 
     const insertPromises = articulosParaAgregar.map(articulo => {
         return new Promise((resolve, reject) => {
-            const insertQuery = `CALL InsertarArticuloPedido(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const insertQuery = `CALL \`${dbConfig.database}\`.\`InsertarArticuloPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            db.query(insertQuery, [
+            Basedatos.query(insertQuery, [
                 articulo.IdCodigoPedidoFK,
                 articulo.TipoArticulo,
                 articulo.Fabricante,
@@ -277,26 +369,22 @@ router.post('/ingresar-inventario/', (req, res) => {
     const { idPedido, productos, accesorios, insumos } = req.body;
     console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
 
-    // (Aquí va tu lógica forEach para procesar los arrays, eso está bien)
-    accesorios.forEach((accesorio) => {
-        if (!accesorio.CodigoConsola) { accesorio.CodigoConsola = 'Sin código'; }
-        if (Array.isArray(accesorio.TodoList)) { accesorio.TodoList = accesorio.TodoList.join(','); }
-        if (Array.isArray(accesorio.ProductosCompatibles)) { accesorio.ProductosCompatibles = accesorio.ProductosCompatibles.join(','); }
-    });
+    // Se procesan los arrays para convertir sub-arrays (como listas de tareas) en strings.
     productos.forEach((producto) => {
-        if (!producto.CodigoConsola) { producto.CodigoConsola = 'Sin código'; }
         if (Array.isArray(producto.TodoList)) { producto.TodoList = producto.TodoList.join(','); }
         if (Array.isArray(producto.Accesorios)) { producto.Accesorios = producto.Accesorios.join(','); }
     });
-    insumos.forEach((insumo) => {
-        if (!insumo.CodigoConsola) { insumo.CodigoConsola = 'Sin código'; }
+    accesorios.forEach((accesorio) => {
+        if (Array.isArray(accesorio.TodoList)) { accesorio.TodoList = accesorio.TodoList.join(','); }
+        if (Array.isArray(accesorio.ProductosCompatibles)) { accesorio.ProductosCompatibles = accesorio.ProductosCompatibles.join(','); }
     });
+    // Los insumos no tienen arrays que necesiten ser convertidos.
 
     // Llamada al procedimiento almacenado
-    const query = 'CALL IngresarArticulosPedidov3(?, ?, ?, ?)';
+    const query = `CALL \`${dbConfig.database}\`.\`IngresarArticulosPedidov3\`(?, ?, ?, ?)`;
 
     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
-    db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios), JSON.stringify(insumos)], (err, results) => {
+    Basedatos.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios), JSON.stringify(insumos)], (err, results) => {
         if (err) {
             console.error('Error al ejecutar el procedimiento: ', err);
             return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
@@ -313,9 +401,9 @@ router.post('/ingresar-inventario/', (req, res) => {
 router.put('/cancelar-pedido/:id', (req, res) => {
     const idpedido = req.params.id;
 
-    const sql = 'CALL CancelarPedido(?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`CancelarPedido\`(?)`;
 
-    db.query(sql, [idpedido], (err, results) => {
+    Basedatos.query(sql, [idpedido], (err, results) => {
         if (err) {
             console.error('Error al cancelar el pedido:', err);
             return res.status(500).json({ mensaje: 'Error al cancelar el pedido' });
@@ -328,9 +416,9 @@ router.put('/cancelar-pedido/:id', (req, res) => {
 router.put('/eliminar-pedido/:id', (req, res) => {
     const idpedido = req.params.id;
 
-    const sql = 'CALL EliminarPedido(?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`EliminarPedido\`(?)`;
 
-    db.query(sql, [idpedido], (err, results) => {
+    Basedatos.query(sql, [idpedido], (err, results) => {
         if (err) {
             console.error('Error al eliminar el pedido:', err);
             return res.status(500).json({ mensaje: 'Error al eliminar el pedido' });
@@ -343,9 +431,9 @@ router.put('/eliminar-pedido/:id', (req, res) => {
 router.put('/avanzar-pedido/:id', (req, res) => {
     const idpedido = req.params.id;
 
-    const sql = 'CALL AvanzarEstadoPedido(?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`AvanzarEstadoPedido\`(?)`;
 
-    db.query(sql, [idpedido], (err, results) => {
+    Basedatos.query(sql, [idpedido], (err, results) => {
         if (err) {
             console.error('Error al avanzar el pedido:', err);
             return res.status(500).json({ mensaje: 'Error al avanzar el pedido' });
@@ -358,8 +446,8 @@ router.put('/avanzar-pedido/:id', (req, res) => {
 // Get Order article list 
 router.get('/historial-pedido/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarHistorialEstadoPedidoXId` (?)';
-    db.query(sql, [id], (err, results) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarHistorialEstadoPedidoXId\` (?)`;
+    Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error("Error al obtener historial:", err);
             return res.status(500).json({ error: "Error en el servidor" });

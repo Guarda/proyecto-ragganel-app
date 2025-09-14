@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 // List all accessories
 router.get('/', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarTablaInsumosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaInsumosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
             console.log(err);
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
 
 // List all accesories categories
 router.get('/listar-categorias-insumos', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasInsumosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasInsumosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching categorias');
             return;
@@ -28,8 +28,8 @@ router.get('/listar-categorias-insumos', (req, res) => {
 // Get a specific active category
 router.get('/categoria/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaCatalogoInsumosXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaCatalogoInsumosXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -45,8 +45,8 @@ router.get('/categoria/:id', (req, res) => {
 // Get a specific active category
 router.get('/categoria-b/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablacatalogoainsumosXIdB` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablacatalogoainsumosXIdB\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar la categoria');
             return;
@@ -74,8 +74,8 @@ router.get('/categoria', (req, res) => {
     }
 
     // Call the stored procedure with three parameters
-    const sql = 'CALL `base_datos_inventario_taller`.`BuscarIdCategoriaInsumoCatalogo` (?, ?, ?)';
-    db.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BuscarIdCategoriaInsumoCatalogo\` (?, ?, ?)`;
+    Basedatos.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
         if (err) {
             console.error('Error executing stored procedure:', err);
             return res.status(500).send('Error al buscar categoria');
@@ -101,8 +101,8 @@ router.get('/categoria-b', (req, res) => {
     }
 
     // Call the stored procedure with three parameters
-    const sql = 'CALL `base_datos_inventario_taller`.`BuscarIdCategoriaInsumoCatalogob` (?, ?, ?)';
-    db.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BuscarIdCategoriaInsumoCatalogob\` (?, ?, ?)`;
+    Basedatos.query(sql, [fabricante, categoria, subcategoria], (err, result) => {
         if (err) {
             console.error('Error executing stored procedure:', err);
             return res.status(500).send('Error al buscar categoria');
@@ -123,8 +123,8 @@ router.post('/crear-insumo', (req, res) => {
     // const CompatibleProductsString = ProductosCompatibles.join(',');
     // const TodoListString = TodoList.join(',');
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarInsumoATablaInsumosBase` (?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [IdModeloInsumosPK, EstadoInsumo, ComentarioInsumo, PrecioBase, Cantidad, NumeroSerie, StockMinimo], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarInsumoATablaInsumosBase\` (?, ?, ?, ?, ?, ?, ?)`;
+    Basedatos.query(sql, [IdModeloInsumosPK, EstadoInsumo, ComentarioInsumo, PrecioBase, Cantidad, NumeroSerie, StockMinimo], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -135,8 +135,8 @@ router.post('/crear-insumo', (req, res) => {
 // Get a specific accessorie
 router.get('/insumo/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarTablaInsumosBasesXId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaInsumosBasesXId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error al buscar accesorio');
             return;
@@ -162,9 +162,9 @@ router.put('/insumo/:id', (req, res) => {
         StockMinimo
     } = req.body;
 
-    const sql = 'CALL base_datos_inventario_taller.ActualizarInsumoBase(?, ?, ?, ?, ?, ?, ?, ?)';
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarInsumoBase\`(?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(
+    Basedatos.query(
         sql,
         [
             CodigoInsumo,
@@ -190,8 +190,8 @@ router.put('/insumo/:id', (req, res) => {
 router.put('/insumo-eliminar/:id', (req, res) => {
     const id = req.params.id;
     const { CodigoInsumo } = req.body;
-    const sql = 'CALL `base_datos_inventario_taller`.`BorrarInsumo` (?)';
-    db.query(sql, [CodigoInsumo], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarInsumo\` (?)`;
+    Basedatos.query(sql, [CodigoInsumo], err => {
         if (err) {
             res.status(500).send('Error al eliminar accesorio');
             return;
@@ -203,8 +203,8 @@ router.put('/insumo-eliminar/:id', (req, res) => {
 // Get Order article list 
 router.get('/historial-insumo/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarHistorialEstadoInsumoXId` (?)';
-    db.query(sql, [id], (err, results) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarHistorialEstadoInsumoXId\` (?)`;
+    Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error("Error al obtener historial:", err);
             return res.status(500).json({ error: "Error en el servidor" });

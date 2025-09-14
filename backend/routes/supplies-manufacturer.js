@@ -1,11 +1,11 @@
 const express = require('express');
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 const router = express.Router();
 
 // List all active supplies manufacturers
 router.get('/listar-fabricantes-insumos', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesInsumos`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarFabricantesInsumos\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching manufacturers');
             console.log(err);
@@ -17,7 +17,7 @@ router.get('/listar-fabricantes-insumos', (req, res) => {
 
 // List all supplies manufacturers on any state
 router.get('/listar-fabricantes-insumos-b', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesInsumosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarFabricantesInsumosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching manufacturers');
             console.log(err);
@@ -29,7 +29,7 @@ router.get('/listar-fabricantes-insumos-b', (req, res) => {
 
 // List all supplies manufacturers on any state
 router.get('/listar-fabricantes-insumos-c', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarFabricantesInsumosModelo`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarFabricantesInsumosModelo\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching manufacturers');
             console.log(err);
@@ -42,8 +42,8 @@ router.get('/listar-fabricantes-insumos-c', (req, res) => {
 // Get a specific active supply manufacturer
 router.get('/info-fabricante/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionFabricanteInsumoxId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInformacionFabricanteInsumoxId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching manufacturer information');
             return;
@@ -60,8 +60,8 @@ router.get('/info-fabricante/:id', (req, res) => {
 router.post('/ingresar-fabricante-insumos', (req, res) => {
     const { NombreFabricanteInsumo } = req.body;
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarFabricanteInsumo` (?)';
-    db.query(sql, [NombreFabricanteInsumo], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarFabricanteInsumo\` (?)`;
+    Basedatos.query(sql, [NombreFabricanteInsumo], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -72,8 +72,8 @@ router.post('/ingresar-fabricante-insumos', (req, res) => {
 // Delete a supply manufacturer
 router.put('/fabricante-eliminar-insumos/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`SoftDeleteFabricanteInsumo` (?)';
-    db.query(sql, [id], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`SoftDeleteFabricanteInsumo\` (?)`;
+    Basedatos.query(sql, [id], err => {
         if (err) {
             res.status(500).send('Error deleting manufacturer');
             return;

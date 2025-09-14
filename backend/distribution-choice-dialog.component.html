@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Distribuir Costos Adicionales</h2>
+<mat-dialog-content>
+  <p>¿Cómo deseas distribuir los costos adicionales (impuestos, envío, etc.) entre los artículos del pedido?</p>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button mat-stroked-button (click)="onChoice('manual')">
+    <mat-icon>edit</mat-icon>
+    Manualmente
+  </button>
+  <button mat-raised-button color="primary" (click)="onChoice('inteligente')">
+    <mat-icon>auto_awesome</mat-icon>
+    De forma Inteligente
+  </button>
+</mat-dialog-actions>

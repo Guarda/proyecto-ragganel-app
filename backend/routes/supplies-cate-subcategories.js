@@ -1,11 +1,11 @@
 const express = require('express');
-const db = require('../config/db');
+const { Basedatos, dbConfig } = require('../config/db');
 
 const router = express.Router();
 
 // List all active supplies categories
 router.get('/listar-cate-insumos', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasInsumos`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasInsumos\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching categories');
             console.log(err);
@@ -17,7 +17,7 @@ router.get('/listar-cate-insumos', (req, res) => {
 
 // List all supplies categories
 router.get('/listar-cate-insumos-b', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarCategoriasInsumosBase`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarCategoriasInsumosBase\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching categories');
             console.log(err);
@@ -29,7 +29,7 @@ router.get('/listar-cate-insumos-b', (req, res) => {
 
 // List all active supplies subcategories
 router.get('/listar-subcate-insumos', (req, res) => {
-    db.query('CALL `base_datos_inventario_taller`.`ListarSubCategoriasInsumos`();', (err, results) => {
+    Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarSubCategoriasInsumos\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching subcategories');
             console.log(err);
@@ -42,8 +42,8 @@ router.get('/listar-subcate-insumos', (req, res) => {
 // List all supplies categories by manufacturer
 router.get('/listar-cate-insumos/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarCategoriasInsumosxFabricante` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarCategoriasInsumosxFabricante\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching category');
             return;
@@ -59,8 +59,8 @@ router.get('/listar-cate-insumos/:id', (req, res) => {
 // List all supplies categories by active model
 router.get('/listar-cate-insumos-b/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarCategoriasInsumosxModeloActivo` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarCategoriasInsumosxModeloActivo\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching category');
             return;
@@ -76,8 +76,8 @@ router.get('/listar-cate-insumos-b/:id', (req, res) => {
 // List supplies category info by id
 router.get('/informacion-categoria/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionCategoriaInsumoxId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInformacionCategoriaInsumosxId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching category');
             return;
@@ -93,8 +93,8 @@ router.get('/informacion-categoria/:id', (req, res) => {
 // List all supplies subcategories by category
 router.get('/listar-subcate-insumos/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasInsumosxCategoria` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarSubCategoriasInsumosxCategoria\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching subcategory');
             return;
@@ -110,8 +110,8 @@ router.get('/listar-subcate-insumos/:id', (req, res) => {
 // List all supplies subcategories with an active model
 router.get('/listar-subcate-insumos-c/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarSubCategoriasInsumosxModeloActivo` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarSubCategoriasInsumosxModeloActivo\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching subcategory');
             return;
@@ -130,8 +130,8 @@ router.post('/ingresar-categoria-insumos', (req, res) => {
     const NombreCategoria = req.query.NombreCategoriaInsumo; 
     console.log('prueba cate');
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarCategoriaInsumoB` (?, ?)';
-    db.query(sql, [NombreCategoria, IdFabricante], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarCategoriaInsumoB\` (?, ?)`;
+    Basedatos.query(sql, [NombreCategoria, IdFabricante], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -142,8 +142,8 @@ router.post('/ingresar-categoria-insumos', (req, res) => {
 // List supplies subcategory info by id
 router.get('/informacion-subcategoria/:id', (req, res) => {
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`ListarInformacionSubCategoriaInsumoxId` (?)';
-    db.query(sql, id, (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`ListarInformacionSubCategoriaInsumoxId\` (?)`;
+    Basedatos.query(sql, id, (err, result) => {
         if (err) {
             res.status(500).send('Error fetching subcategory');
             return;
@@ -159,8 +159,8 @@ router.get('/informacion-subcategoria/:id', (req, res) => {
 // Delete a supplies category
 router.put('/categoria-eliminar-insumos/:id', (req, res) => {
     const id = req.params.id;    
-    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteCategoriaInsumo` (?)';
-    db.query(sql, [id], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`SofDeleteCategoriaInsumo\` (?)`;
+    Basedatos.query(sql, [id], err => {
         if (err) {
             res.status(500).send('Error deleting category');
             return;
@@ -174,8 +174,8 @@ router.post('/ingresar-subcategoria-insumos', (req, res) => {
     const IdCategoria = req.query.IdCategoriaInsumo;
     const NombreSubCategoria = req.query.NombreSubCategoriaInsumo; 
 
-    const sql = 'CALL `base_datos_inventario_taller`.`IngresarSubcategoriaInsumos` (?, ?)';
-    db.query(sql, [NombreSubCategoria, IdCategoria], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarSubcategoriaInsumos\` (?, ?)`;
+    Basedatos.query(sql, [NombreSubCategoria, IdCategoria], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -186,8 +186,8 @@ router.post('/ingresar-subcategoria-insumos', (req, res) => {
 // Delete a supplies subcategory
 router.put('/subcategoria-eliminar-insumos/:id', (req, res) => {    
     const id = req.params.id;
-    const sql = 'CALL `base_datos_inventario_taller`.`SofDeleteSubCategoriaInsumo` (?)';
-    db.query(sql, [id], err => {
+    const sql = `CALL \`${dbConfig.database}\`.\`SofDeleteSubCategoriaInsumo\` (?)`;
+    Basedatos.query(sql, [id], err => {
         if (err) {
             res.status(500).send('Error deleting subcategory');
             return;

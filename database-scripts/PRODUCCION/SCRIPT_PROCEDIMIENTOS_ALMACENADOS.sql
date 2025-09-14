@@ -324,6 +324,64 @@ END $$
 DELIMITER ;
 
 /*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_UpsertCostoDistribucion
+-- AUTOR: Gemini
+-- FECHA DE CREACIÓN: 2025-09-13
+-- DESCRIPCIÓN: Inserta o actualiza el porcentaje de distribución de costos
+-- para un modelo de artículo específico.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_UpsertCostoDistribucion(
+    IN p_IdModeloFK INT,
+    IN p_TipoArticuloFK INT,
+    IN p_PorcentajeAsignado DECIMAL(5, 2)
+)
+BEGIN
+    INSERT INTO CostosDistribucionPorModelo (IdModeloFK, TipoArticuloFK, PorcentajeAsignado)
+    VALUES (p_IdModeloFK, p_TipoArticuloFK, p_PorcentajeAsignado)
+    ON DUPLICATE KEY UPDATE PorcentajeAsignado = VALUES(PorcentajeAsignado);
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_GetModelosUnicosDePedido
+-- AUTOR: Gemini
+-- FECHA DE CREACIÓN: 2025-09-13
+-- DESCRIPCIÓN: Obtiene los modelos únicos de un pedido, la cantidad de cada
+-- uno y el porcentaje de distribución de costos preconfigurado.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_GetModelosUnicosDePedido(IN p_IdPedido VARCHAR(25))
+BEGIN
+    SELECT
+        pd.IdModeloPK,
+        pd.TipoArticuloFK,
+        ta.DescripcionTipoArticulo,
+        -- Obtiene el nombre completo del modelo desde la tabla de catálogo correcta
+        CASE
+            WHEN pd.TipoArticuloFK = 1 THEN (SELECT CONCAT(f.NombreFabricante, ' ', cp.NombreCategoria, ' ', sp.NombreSubcategoria) FROM CatalogoConsolas cc JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria WHERE cc.IdModeloConsolaPK = pd.IdModeloPK)
+            WHEN pd.TipoArticuloFK = 2 THEN (SELECT CONCAT(fa.NombreFabricanteAccesorio, ' ', ca.NombreCategoriaAccesorio, ' ', sa.NombreSubcategoriaAccesorio) FROM CatalogoAccesorios caa JOIN FabricanteAccesorios fa ON caa.FabricanteAccesorio = fa.IdFabricanteAccesorioPK JOIN CategoriasAccesorios ca ON caa.CategoriaAccesorio = ca.IdCategoriaAccesorioPK JOIN SubcategoriasAccesorios sa ON caa.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio WHERE caa.IdModeloAccesorioPK = pd.IdModeloPK)
+            WHEN pd.TipoArticuloFK = 3 THEN (SELECT CONCAT(fi.NombreFabricanteInsumos, ' ', ci.NombreCategoriaInsumos, ' ', si.NombreSubcategoriaInsumos) FROM CatalogoInsumos cain JOIN FabricanteInsumos fi ON cain.FabricanteInsumos = fi.IdFabricanteInsumosPK JOIN CategoriasInsumos ci ON cain.CategoriaInsumos = ci.IdCategoriaInsumosPK JOIN SubcategoriasInsumos si ON cain.SubcategoriaInsumos = si.IdSubcategoriaInsumos WHERE cain.IdModeloInsumosPK = pd.IdModeloPK)
+        END AS NombreModelo,
+        SUM(pd.CantidadArticulo) AS CantidadEnPedido,
+        -- Obtiene el porcentaje preconfigurado, o 0 si no existe
+        COALESCE(cdm.PorcentajeAsignado, 0.00) AS PorcentajeConfigurado
+    FROM
+        PedidoDetalles pd
+    JOIN
+        TipoArticulo ta ON pd.TipoArticuloFK = ta.IdTipoArticuloPK
+    LEFT JOIN
+        CostosDistribucionPorModelo cdm ON pd.IdModeloPK = cdm.IdModeloFK AND pd.TipoArticuloFK = cdm.TipoArticuloFK
+    WHERE
+        pd.IdCodigoPedidoFK = p_IdPedido AND pd.Activo = 1
+    GROUP BY
+        pd.IdModeloPK, pd.TipoArticuloFK, ta.DescripcionTipoArticulo, NombreModelo
+    ORDER BY
+        pd.TipoArticuloFK, NombreModelo;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
 -- PROCEDIMIENTO: ListarHistorialEstadoInsumoXId
 -- AUTOR: Rommel Maltez
 -- FECHA DE CREACIÓN: 2024-04-25
@@ -822,6 +880,25 @@ BEGIN
         END IF;
     END WHILE;
 
+END //
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: ListarTablaProductosBasesXIdV2
+-- AUTOR: Rommel Maltez
+-- FECHA DE CREACIÓN: 2024-10-02
+-- DESCRIPCIÓN: Lista informacion completa del producto.
+------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE PROCEDURE ListarTablaProductosBasesXIdV2(IdCodigoConsola varchar(100))
+BEGIN
+	SELECT 
+		A.CodigoConsola, A.Modelo, A.Color, A.Estado, A.Hackeado as 'Hack', A.FechaIngreso, A.Comentario, A.PrecioBase, A.NumeroSerie, A.Accesorios,
+        B.Fabricante, B.Categoria, B.Subcategoria
+    FROM ProductosBases A
+    JOIN CatalogoConsolas B
+    ON A.Modelo = B.IdModeloConsolaPK 
+    WHERE A.CodigoConsola = IdCodigoConsola;
 END //
 DELIMITER ;
 
@@ -1397,12 +1474,12 @@ END$$
 -- DESCRIPCIÓN: Crea una supercategoria de insumo.
 ------------------------------------------------------------------------------*/
 DELIMITER //
-	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoInsumo varchar(25), NombreArchivoImagen varchar(100), TipoProductoI int)
+	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoInsumo varchar(25), NombreArchivoImagen varchar(100))
     BEGIN
 		DECLARE cantidad varchar(24);
         select count(IdModeloInsumosPK)+1 from catalogoinsumos into cantidad;        
 		INSERT INTO catalogoinsumos(FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen) 
-        values (FabricanteP, CategoriaP, SubcategoriaP,concat(PrefijoProducto,cantidad), NombreArchivoImagen);
+        values (FabricanteI, CategoriaI, SubcategoriaI,concat(PrefijoInsumo,cantidad), NombreArchivoImagen);
     END //
 DELIMITER ;
 
@@ -1425,57 +1502,57 @@ END$$
 -- DESCRIPCIÓN: Ingresa un insumo y sus detalles.
 ------------------------------------------------------------------------------*/
 DELIMITER //
-CREATE PROCEDURE IngresarInsumoATablaInsumosBase (
-    IN IdModeloInsumosPK INT,
-    IN EstadoInsumo INT,
-    IN ComentarioInsumo VARCHAR(2000),
-    IN PrecioBase DECIMAL(6,2),
-    IN Cantidad INT UNSIGNED,
-    IN NumeroSerie VARCHAR(100),
-    IN StockMinimo INT UNSIGNED
+CREATE PROCEDURE IngresarInsumoATablaInsumosBase(
+    IN p_IdModeloInsumosPK INT,
+    IN p_EstadoInsumo INT,
+    IN p_ComentarioInsumo VARCHAR(2000),
+    IN p_PrecioBase DECIMAL(6,2),
+    IN p_Cantidad INT UNSIGNED,
+    IN p_NumeroSerie VARCHAR(100),
+    IN p_StockMinimo INT UNSIGNED
 )
 BEGIN
-    DECLARE CodigoGenerado VARCHAR(50);
-    DECLARE CodigoModelo VARCHAR(25);
-    DECLARE CantidadExistente INT;
-    DECLARE StockMinimoExistente INT;
-    DECLARE PrecioBaseExistente DECIMAL(6,2);
-    DECLARE Existe INT;
+    DECLARE v_CodigoGenerado VARCHAR(50);
+    DECLARE v_CodigoModelo VARCHAR(25);
+    DECLARE v_CantidadExistente INT;
+    DECLARE v_StockMinimoExistente INT;
+    DECLARE v_PrecioBaseExistente DECIMAL(6,2);
+    DECLARE v_Existe INT;
 
-    SELECT COUNT(*) INTO Existe
+    SELECT COUNT(*) INTO v_Existe
     FROM InsumosBase
-    WHERE ModeloInsumo = IdModeloInsumosPK;
+    WHERE ModeloInsumo = p_IdModeloInsumosPK;
 
-    IF Existe > 0 THEN
-    
-        SELECT Cantidad, StockMinimo, PrecioBase INTO CantidadExistente, StockMinimoExistente, PrecioBaseExistente
+    IF v_Existe > 0 THEN
+        -- El insumo ya existe, se actualiza el stock y el precio si es mayor.
+        SELECT Cantidad, StockMinimo, PrecioBase INTO v_CantidadExistente, v_StockMinimoExistente, v_PrecioBaseExistente
         FROM InsumosBase
-        WHERE ModeloInsumo = IdModeloInsumosPK
+        WHERE ModeloInsumo = p_IdModeloInsumosPK
         LIMIT 1;
 
         UPDATE InsumosBase
         SET 
-            Cantidad = CantidadExistente + Cantidad,
-            StockMinimo = IF(StockMinimoExistente != StockMinimo, StockMinimo, StockMinimoExistente),
-            PrecioBase = IF(PrecioBase > PrecioBaseExistente, PrecioBase, PrecioBaseExistente)
-        WHERE ModeloInsumo = IdModeloInsumosPK;
+            Cantidad = v_CantidadExistente + p_Cantidad,
+            StockMinimo = IF(v_StockMinimoExistente != p_StockMinimo, p_StockMinimo, v_StockMinimoExistente),
+            PrecioBase = IF(p_PrecioBase > v_PrecioBaseExistente, p_PrecioBase, v_PrecioBaseExistente)
+        WHERE ModeloInsumo = p_IdModeloInsumosPK;
 
     ELSE
-        
-        SELECT CodigoModeloInsumos INTO CodigoModelo
+        -- El insumo es nuevo, se inserta un nuevo registro.
+        SELECT CodigoModeloInsumos INTO v_CodigoModelo
         FROM CatalogoInsumos
-        WHERE IdModeloInsumosPK = IdModeloInsumosPK
+        WHERE IdModeloInsumosPK = p_IdModeloInsumosPK
         LIMIT 1;
 
-        SET CodigoGenerado = CONCAT(CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
+        SET v_CodigoGenerado = CONCAT(v_CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
 
         INSERT INTO InsumosBase (
             CodigoInsumo, ModeloInsumo, EstadoInsumo, FechaIngreso, Comentario,
             PrecioBase, NumeroSerie, Cantidad, StockMinimo
         )
         VALUES (
-            CodigoGenerado, IdModeloInsumosPK, EstadoInsumo, CURDATE(), ComentarioInsumo,
-            PrecioBase, NumeroSerie, Cantidad, StockMinimo
+            v_CodigoGenerado, p_IdModeloInsumosPK, p_EstadoInsumo, CURDATE(), p_ComentarioInsumo,
+            p_PrecioBase, p_NumeroSerie, p_Cantidad, p_StockMinimo
         );
     END IF;
 END //
@@ -1640,7 +1717,7 @@ DELIMITER //
 CREATE PROCEDURE ListarInformacionSubCategoriaInsumoxId(IdSubcategoriaInsumo int)
 	BEGIN
 		SELECT IdSubcategoriaInsumos, NombreSubcategoriaInsumos as NombreSubCategoria, IdCategoriaInsumosFK, Activo FROM subcategoriasinsumos
-        WHERE IdSubcategoriainsumos = IdSubcategoriaInsumo;
+        WHERE IdSubcategoriaInsumos = IdSubcategoriaInsumo;
     END //
 DELIMITER ;
 
@@ -2635,49 +2712,108 @@ DELIMITER ;
 -- DESCRIPCIÓN: PROCEDIMIENTO PARA ACTUALIZAR DATOS GENERALES DE UN PEDIDO.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
-CREATE PROCEDURE ActualizarDatosGeneralesPedido(
-    IN IdPedido Varchar(25),  -- ID del pedido a actualizar
-    IN FechaCreacionPedido DATE,  -- Fecha de creación del pedido
-    IN FechaArrivoUSA DATE,
-    IN FechaEstimadaRecepcion DATE,
-    IN NumeroTracking1 VARCHAR(100),
-    IN NumeroTracking2 VARCHAR(100),
-    IN SitioWeb INT,
-    IN ViaPedido INT,
-    IN Peso DECIMAL(6,2),
-    IN Comentarios VARCHAR(2000),
-    IN Impuestos DECIMAL(6,2),
-    IN ShippingUSA DECIMAL(6,2),
-    IN ShippingNic DECIMAL(6,2),
-    IN SubTotalArticulos DECIMAL(6,2),
-    IN PrecioEstimadoDelPedido DECIMAL(6,2),
-    IN EstadoPedido INT
+CREATE PROCEDURE ActualizarDatosGeneralesPedido(    
+    IN p_IdPedido Varchar(25),
+    IN p_FechaCreacionPedido DATE,
+    IN p_FechaArrivoUSA DATE,
+    IN p_FechaEstimadaRecepcion DATE,
+    IN p_NumeroTracking1 VARCHAR(100),
+    IN p_NumeroTracking2 VARCHAR(100),
+    IN p_SitioWeb INT,
+    IN p_ViaPedido INT,
+    IN p_Peso DECIMAL(6,2),
+    IN p_Comentarios VARCHAR(2000),
+    IN p_Impuestos DECIMAL(6,2),
+    IN p_ShippingUSA DECIMAL(6,2),
+    IN p_ShippingNic DECIMAL(6,2),
+    IN p_SubTotalArticulos DECIMAL(6,2),
+    IN p_PrecioEstimadoDelPedido DECIMAL(6,2),
+    IN p_EstadoPedido INT
 )
 BEGIN
     -- Actualizar los datos sin comprobación de cambios
     UPDATE PedidoBase
     SET 
-        FechaCreacionPedido = FechaCreacionPedido,
-        FechaArriboEstadosUnidos = FechaArrivoUSA,
-        FechaIngreso = FechaEstimadaRecepcion,
-        NumeroTracking1 = NumeroTracking1,
-        NumeroTracking2 = NumeroTracking2,
-        SitioWebFK = SitioWeb,
-        ViaPedidoFK = ViaPedido,
-        Peso = Peso,
-        Comentarios = Comentarios,
-        Impuestos = Impuestos,
-        EnvioUSA = ShippingUSA,
-        EnvioNIC = ShippingNic,
-        SubtotalArticulos = SubTotalArticulos,
-        TotalPedido = PrecioEstimadoDelPedido,
-        EstadoPedidoFK = EstadoPedido
-    WHERE CodigoPedido = IdPedido;
+        FechaCreacionPedido = p_FechaCreacionPedido,
+        FechaArriboEstadosUnidos = p_FechaArrivoUSA,
+        FechaIngreso = p_FechaEstimadaRecepcion,
+        NumeroTracking1 = p_NumeroTracking1,
+        NumeroTracking2 = p_NumeroTracking2,
+        SitioWebFK = p_SitioWeb,
+        ViaPedidoFK = p_ViaPedido,
+        Peso = p_Peso,
+        Comentarios = p_Comentarios,
+        Impuestos = p_Impuestos,
+        EnvioUSA = p_ShippingUSA,
+        EnvioNIC = p_ShippingNic,
+        SubtotalArticulos = p_SubTotalArticulos,
+        TotalPedido = p_PrecioEstimadoDelPedido,
+        EstadoPedidoFK = p_EstadoPedido
+    WHERE CodigoPedido = p_IdPedido;
 
     -- Retornar un mensaje
     SELECT 'Datos del pedido actualizados correctamente' AS mensaje;
 END$$
 
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_ObtenerCodigosDePedido
+-- AUTOR: Gemini
+-- FECHA DE CREACIÓN: 2025-09-13
+-- DESCRIPCIÓN: Obtiene los códigos de inventario generados para un pedido
+-- que ya ha sido ingresado, para poder regenerar el reporte de Excel.
+------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE PROCEDURE sp_ObtenerCodigosDePedido(IN p_IdPedido VARCHAR(25))
+BEGIN
+    DECLARE v_CodigosGenerados TEXT DEFAULT '';
+    DECLARE v_ProductosCount INT DEFAULT 0;
+    DECLARE v_AccesoriosCount INT DEFAULT 0;
+    DECLARE v_InsumosCantidadTotal INT DEFAULT 0;
+    DECLARE v_JsonResultado JSON;
+
+    -- Construir la cadena de códigos para productos
+    SELECT IFNULL(GROUP_CONCAT(CONCAT('Producto:', IdProductoBaseFK) SEPARATOR ';'), '')
+    INTO @product_codes
+    FROM DetalleProductoPedido
+    WHERE IdCodigoPedidoFK = p_IdPedido;
+
+    -- Construir la cadena de códigos para accesorios
+    SELECT IFNULL(GROUP_CONCAT(CONCAT('Accesorio:', IdAccesorioBaseFK) SEPARATOR ';'), '')
+    INTO @accessory_codes
+    FROM DetalleAccesorioPedido
+    WHERE IdCodigoPedidoFK = p_IdPedido;
+
+    -- Construir la cadena de códigos para insumos con su cantidad
+    SELECT IFNULL(GROUP_CONCAT(CONCAT('Insumo:', dip.IdInsumoBaseFK, ' (', pd.CantidadArticulo, ')') SEPARATOR ';'), '')
+    INTO @supply_codes
+    FROM 
+        DetalleInsumoPedido dip
+    -- ✅ CORREGIDO: La unión con PedidoDetalles debe ser más precisa para obtener la cantidad correcta.
+    -- Se une por el IdModeloPK y el IdCodigoPedidoFK para encontrar la línea de detalle original.
+    JOIN 
+        PedidoDetalles pd ON dip.IdCodigoPedidoFK = pd.IdCodigoPedidoFK AND pd.IdModeloPK = (
+            SELECT ModeloInsumo FROM InsumosBase WHERE CodigoInsumo = dip.IdInsumoBaseFK
+        )
+    WHERE 
+        dip.IdCodigoPedidoFK = p_IdPedido AND pd.TipoArticuloFK = 3;
+
+    -- Combinar todas las cadenas de códigos
+    SET v_CodigosGenerados = CONCAT_WS(';', NULLIF(@product_codes, ''), NULLIF(@accessory_codes, ''), NULLIF(@supply_codes, ''));
+    IF LENGTH(v_CodigosGenerados) > 0 THEN
+        SET v_CodigosGenerados = CONCAT(v_CodigosGenerados, ';');
+    END IF;
+
+    -- Contar las cantidades
+    SELECT COUNT(*) INTO v_ProductosCount FROM DetalleProductoPedido WHERE IdCodigoPedidoFK = p_IdPedido;
+    SELECT COUNT(*) INTO v_AccesoriosCount FROM DetalleAccesorioPedido WHERE IdCodigoPedidoFK = p_IdPedido;
+    SELECT IFNULL(SUM(pd.CantidadArticulo), 0) INTO v_InsumosCantidadTotal FROM DetalleInsumoPedido dip JOIN PedidoDetalles pd ON dip.IdCodigoPedidoFK = pd.IdCodigoPedidoFK AND pd.IdModeloPK = (SELECT ModeloInsumo FROM InsumosBase WHERE CodigoInsumo = dip.IdInsumoBaseFK) WHERE dip.IdCodigoPedidoFK = p_IdPedido AND pd.TipoArticuloFK = 3;
+
+    -- Crear el JSON de resultado
+    SET v_JsonResultado = JSON_OBJECT('codigosIngresados', v_CodigosGenerados, 'cantidades', JSON_OBJECT('productos', v_ProductosCount, 'accesorios', v_AccesoriosCount, 'insumos', v_InsumosCantidadTotal));
+    SELECT v_JsonResultado AS Resultado;
+END //
 DELIMITER ;
 
 /*------------------------------------------------------------------------------
@@ -2702,11 +2838,8 @@ BEGIN
     IF estado_actual BETWEEN 1 AND 4 THEN
         UPDATE Pedidobase
         SET EstadoPedidoFK = estado_actual + 1
-        WHERE CodigoPedido = IdPedido;
-        
-        SELECT 'Estado del pedido actualizado correctamente' AS mensaje;
-    ELSE
-        SELECT 'El estado del pedido no permite actualización' AS mensaje;
+        WHERE CodigoPedido = IdPedido;        
+        -- Se elimina el SELECT para que no devuelva un resultset y no interfiera con el SP que lo llama.
     END IF;    
 END$$
 DELIMITER ;
@@ -2806,6 +2939,7 @@ BEGIN
     DECLARE v_comentarioI VARCHAR(2000);
     DECLARE v_precioBaseI DECIMAL(6,2);
     DECLARE v_cantidadI INT UNSIGNED;
+    DECLARE v_numeroSerieI VARCHAR(100);
     DECLARE v_stockMinimoI INT UNSIGNED;
 
     -- Contadores
@@ -2874,16 +3008,13 @@ BEGIN
         SET v_comentarioI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].ComentarioInsumo')));
         SET v_precioBaseI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].PrecioBase')));
         SET v_cantidadI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].Cantidad')));
+        SET v_numeroSerieI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].NumeroSerie')));
         SET v_stockMinimoI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].StockMinimo')));
 
-        -- Actualizar stock del insumo existente
-        UPDATE InsumosBase
-        SET EstadoInsumo = v_estadoI,
-            Comentario = v_comentarioI,
-            PrecioBase = v_precioBaseI,
-            StockMinimo = v_stockMinimoI,
-            Cantidad = Cantidad + v_cantidadI
-        WHERE ModeloInsumo = v_modeloI;
+        -- Llama al procedimiento que maneja la lógica de inserción o actualización del stock.
+        CALL IngresarInsumoATablaInsumosBase(
+            v_modeloI, v_estadoI, v_comentarioI, v_precioBaseI, v_cantidadI, v_numeroSerieI, v_stockMinimoI
+        );
 
         -- Obtener código
         SELECT CodigoInsumo INTO v_CodigoInsumo
@@ -2906,6 +3037,11 @@ BEGIN
         SET v_InsumosCantidadTotal = v_InsumosCantidadTotal + v_cantidadI;
         SET v_Indice = v_Indice + 1;
     END WHILE;
+
+    -- ================================
+    -- Avanzar el estado del pedido
+    -- ================================
+    CALL AvanzarEstadoPedido(p_IdPedido);
 
     -- ================================
     -- Resultado final en JSON
@@ -3093,7 +3229,7 @@ BEGIN
         SELECT 'Artículo agregado correctamente' AS mensaje;
     END IF;
 END$$
-DELIMITER $$
+DELIMITER ;
 
 /*------------------------------------------------------------------------------
 -- PROCEDIMIENTO: IngresarPedidoATablaPedidos
@@ -5682,6 +5818,217 @@ BEGIN
 END$$
 DELIMITER ;
 
+/*
+================================================================================
+-- VIII. SECCIÓN DE PRE-INGRESO DE PEDIDOS
+-- DESCRIPCIÓN: Procedimientos para guardar, cargar y limpiar el progreso
+-- del ingreso de artículos de un pedido.
+================================================================================
+*/
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_UpsertPreIngresoProducto
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-13
+-- DESCRIPCIÓN: Inserta o actualiza un registro en la tabla PreIngresoProductos.
+-- NOTA: Requiere un índice único en la tabla: UNIQUE KEY `idx_pedido_usuario_form` (`IdCodigoPedidoFK`, `IdUsuarioFK`, `FormIndex`).
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_UpsertPreIngresoProducto(
+    IN p_IdCodigoPedidoFK VARCHAR(25),
+    IN p_IdUsuarioFK INT,
+    IN p_FormIndex INT,
+    IN p_Modelo INT,
+    IN p_Color VARCHAR(100),
+    IN p_Estado INT,
+    IN p_Hackeado BOOLEAN,
+    IN p_Comentario VARCHAR(255),
+    IN p_PrecioBase DECIMAL(10,2),
+    IN p_NumeroSerie VARCHAR(100),
+    IN p_Accesorios VARCHAR(500),
+    IN p_TareasPendientes VARCHAR(1000),
+    IN p_CostoDistribuido DECIMAL(10,2)
+)
+BEGIN
+    INSERT INTO PreIngresoProductos (
+        IdCodigoPedidoFK, IdUsuarioFK, FormIndex, Modelo, Color, Estado, Hackeado,
+        Comentario, PrecioBase, NumeroSerie, Accesorios, TareasPendientes, CostoDistribuido
+    )
+    VALUES (
+        p_IdCodigoPedidoFK, p_IdUsuarioFK, p_FormIndex, p_Modelo, p_Color, p_Estado, p_Hackeado,
+        p_Comentario, p_PrecioBase, p_NumeroSerie, p_Accesorios, p_TareasPendientes, p_CostoDistribuido
+    )
+    ON DUPLICATE KEY UPDATE
+        Modelo = VALUES(Modelo),
+        Color = VALUES(Color),
+        Estado = VALUES(Estado),
+        Hackeado = VALUES(Hackeado),
+        Comentario = VALUES(Comentario),
+        PrecioBase = VALUES(PrecioBase),
+        NumeroSerie = VALUES(NumeroSerie),
+        Accesorios = VALUES(Accesorios),
+        TareasPendientes = VALUES(TareasPendientes),
+        CostoDistribuido = VALUES(CostoDistribuido);
+END$$
+DELIMITER ;
 
 
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_GetPreIngresoProductos
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-13
+-- DESCRIPCIÓN: Obtiene todos los productos pre-ingresados para un pedido y usuario.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_GetPreIngresoProductos(
+    IN p_IdCodigoPedidoFK VARCHAR(25),
+    IN p_IdUsuarioFK INT
+)
+BEGIN
+    SELECT *
+    FROM PreIngresoProductos
+    WHERE IdCodigoPedidoFK = p_IdCodigoPedidoFK AND IdUsuarioFK = p_IdUsuarioFK
+    ORDER BY FormIndex ASC;
+END$$
+DELIMITER ;
 
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_DeletePreIngresoPorPedido
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-13
+-- DESCRIPCIÓN: Elimina todos los datos de pre-ingreso para un pedido y usuario.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_DeletePreIngresoPorPedido(
+    IN p_IdCodigoPedidoFK VARCHAR(25),
+    IN p_IdUsuarioFK INT
+)
+BEGIN
+    DELETE FROM PreIngresoProductos WHERE IdCodigoPedidoFK = p_IdCodigoPedidoFK AND IdUsuarioFK = p_IdUsuarioFK;
+    DELETE FROM PreIngresoAccesorios WHERE IdCodigoPedidoFK = p_IdCodigoPedidoFK AND IdUsuarioFK = p_IdUsuarioFK;
+    DELETE FROM PreIngresoInsumos WHERE IdCodigoPedidoFK = p_IdCodigoPedidoFK AND IdUsuarioFK = p_IdUsuarioFK;
+END$$
+DELIMITER ;
+
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_UpsertPreIngresoAccesorio
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-14
+-- DESCRIPCIÓN: Inserta o actualiza un borrador para un accesorio.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_UpsertPreIngresoAccesorio(
+    IN p_IdPedido VARCHAR(25),
+    IN p_IdUsuario INT,
+    IN p_FormIndex INT,
+    IN p_Modelo INT,
+    IN p_Color VARCHAR(100),
+    IN p_Estado INT,
+    IN p_Comentario VARCHAR(2000),
+    IN p_PrecioBase DECIMAL(6,2),
+    IN p_CostoDistribuido DECIMAL(10,2),
+    IN p_NumeroSerie VARCHAR(100),
+    IN p_ProductosCompatibles VARCHAR(500),
+    IN p_TareasPendientes VARCHAR(1000)
+)
+BEGIN
+    INSERT INTO PreIngresoAccesorios (
+        IdCodigoPedidoFK, IdUsuarioFK, FormIndex, ModeloAccesorio, ColorAccesorio,
+        EstadoAccesorio, Comentario, PrecioBase, CostoDistribuido, NumeroSerie,
+        ProductosCompatibles, TareasPendientes
+    )
+    VALUES (
+        p_IdPedido, p_IdUsuario, p_FormIndex, p_Modelo, p_Color,
+        p_Estado, p_Comentario, p_PrecioBase, p_CostoDistribuido, p_NumeroSerie,
+        p_ProductosCompatibles, p_TareasPendientes
+    )
+    ON DUPLICATE KEY UPDATE
+        ModeloAccesorio = VALUES(ModeloAccesorio),
+        ColorAccesorio = VALUES(ColorAccesorio),
+        EstadoAccesorio = VALUES(EstadoAccesorio),
+        Comentario = VALUES(Comentario),
+        PrecioBase = VALUES(PrecioBase),
+        CostoDistribuido = VALUES(CostoDistribuido),
+        NumeroSerie = VALUES(NumeroSerie),
+        ProductosCompatibles = VALUES(ProductosCompatibles),
+        TareasPendientes = VALUES(TareasPendientes);
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_GetPreIngresoAccesorios
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-14
+-- DESCRIPCIÓN: Obtiene los borradores de accesorios para un pedido y usuario.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_GetPreIngresoAccesorios(
+    IN p_IdPedido VARCHAR(25),
+    IN p_IdUsuario INT
+)
+BEGIN
+    SELECT *
+    FROM PreIngresoAccesorios
+    WHERE IdCodigoPedidoFK = p_IdPedido AND IdUsuarioFK = p_IdUsuario;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_UpsertPreIngresoInsumo
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-14
+-- DESCRIPCIÓN: Inserta o actualiza un borrador para un insumo.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_UpsertPreIngresoInsumo(
+    IN p_IdPedido VARCHAR(25),
+    IN p_IdUsuario INT,
+    IN p_FormIndex INT,
+    IN p_Modelo INT,
+    IN p_Estado INT,
+    IN p_Comentario VARCHAR(2000),
+    IN p_PrecioBase DECIMAL(6,2),
+    IN p_CostoDistribuido DECIMAL(10,2),
+    IN p_NumeroSerie VARCHAR(100),
+    IN p_Cantidad INT,
+    IN p_StockMinimo INT
+)
+BEGIN
+    INSERT INTO PreIngresoInsumos (
+        IdCodigoPedidoFK, IdUsuarioFK, FormIndex, ModeloInsumo, EstadoInsumo,
+        Comentario, PrecioBase, CostoDistribuido, NumeroSerie, Cantidad, StockMinimo
+    )
+    VALUES (
+        p_IdPedido, p_IdUsuario, p_FormIndex, p_Modelo, p_Estado,
+        p_Comentario, p_PrecioBase, p_CostoDistribuido, p_NumeroSerie, p_Cantidad, p_StockMinimo
+    )
+    ON DUPLICATE KEY UPDATE
+        ModeloInsumo = VALUES(ModeloInsumo),
+        EstadoInsumo = VALUES(EstadoInsumo),
+        Comentario = VALUES(Comentario),
+        PrecioBase = VALUES(PrecioBase),
+        CostoDistribuido = VALUES(CostoDistribuido),
+        NumeroSerie = VALUES(NumeroSerie),
+        Cantidad = VALUES(Cantidad),
+        StockMinimo = VALUES(StockMinimo);
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_GetPreIngresoInsumos
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-14
+-- DESCRIPCIÓN: Obtiene los borradores de insumos para un pedido y usuario.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_GetPreIngresoInsumos(
+    IN p_IdPedido VARCHAR(25),
+    IN p_IdUsuario INT
+)
+BEGIN
+    SELECT *
+    FROM PreIngresoInsumos
+    WHERE IdCodigoPedidoFK = p_IdPedido AND IdUsuarioFK = p_IdUsuario;
+END$$
+DELIMITER ;

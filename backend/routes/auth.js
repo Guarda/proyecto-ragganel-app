@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+// Importas 'Basedatos' pero usabas 'db', aquí está la corrección
+const { Basedatos } = require('../config/db'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('../config/keys');
@@ -13,7 +14,8 @@ router.post('/login', (req, res) => {
     }
 
     const sql = 'CALL VerificarUsuarioPorCorreo(?)';
-    db.query(sql, [Correo], (err, results) => {
+    // Cambiamos db.query por Basedatos.query
+    Basedatos.query(sql, [Correo], (err, results) => {
         if (err) {
             console.error('Error en la base de datos:', err);
             return res.status(500).json({ error: 'Error en la base de datos' });

@@ -96,9 +96,12 @@ export class IngresarInsumosPedidoComponent {
       return;
     }
 
-    this.cargarDatosParaSelects();
-    this.establecerValoresIniciales();
-    this.cargarDatosDinamicosDelArticulo();
+    // Solución para ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+      this.cargarDatosParaSelects();
+      this.establecerValoresIniciales();
+      this.cargarDatosDinamicosDelArticulo();
+    });
   }
 
   private cargarDatosParaSelects(): void {
@@ -109,19 +112,15 @@ export class IngresarInsumosPedidoComponent {
   }
 
   private establecerValoresIniciales(): void {
-    // ✅ Se usa 'this.form' para establecer los valores
+    // Se establecen solo los valores que vienen del pedido original (categorías).
+    // Los datos del formulario (Estado, Precio, etc.) ya fueron cargados por el componente padre
+    // desde el borrador guardado o con valores por defecto.
     this.form.patchValue({
       FabricanteInsumo: this.articulo.FabricanteArticulo,
       CateInsumo: this.articulo.CategoriaArticulo,
       SubCategoriaInsumo: this.articulo.SubcategoriaArticulo,
-      EstadoInsumo: this.articulo.EstadoInsumo || '',
-      PrecioBase: this.formatNumber(this.articulo.Precio),
-      Cantidad: this.articulo.Cantidad,
-      StockMinimo: this.articulo.StockMinimo || 1, // Valor por defecto
-      ComentarioInsumo: this.articulo.ComentarioInsumo || '',
-      NumeroSerie: this.articulo.NumeroSerie || '',
       IdPedido: this.articulo.IdCodigoPedidoFK
-    });
+    }, { emitEvent: false }); // Se usa emitEvent: false para no disparar el autoguardado al inicializar.
 
     this.cdr.detectChanges();
   }
@@ -136,8 +135,16 @@ export class IngresarInsumosPedidoComponent {
   }
 
 
-  private formatNumber(value: number | null): string {
-    return (value ?? 0).toFixed(2);
+  // ✅ CORREGIDO: Función robusta para manejar strings y nulos
+  private formatNumber(value: number | string | null): string {
+    if (value === null || value === '') {
+      return '0.00';
+    }
+    const num = parseFloat(String(value));
+    if (isNaN(num)) {
+      return '0.00';
+    }
+    return num.toFixed(2);
   }
 
   private getImagePath(imageName: string | null): string {
@@ -160,5 +167,3 @@ export class IngresarInsumosPedidoComponent {
 
 
 }
-
-
