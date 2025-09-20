@@ -219,7 +219,7 @@ CREATE TABLE ProductosBases (
     Estado int not null,
     Hackeado boolean not null default 0,
     FechaIngreso date,
-    Comentario varchar(255),
+    Comentario varchar(5000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),    
     Accesorios varchar(500),
@@ -321,7 +321,7 @@ CREATE TABLE AccesoriosBase (
     ColorAccesorio varchar(100) not null,
     EstadoAccesorio int not null,
     FechaIngreso date,
-    Comentario varchar(2000),
+    Comentario varchar(5000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),
     ProductosCompatibles varchar(500),
@@ -422,7 +422,7 @@ CREATE TABLE InsumosBase (
     ModeloInsumo int not null,
     EstadoInsumo int not null,
     FechaIngreso date,
-    Comentario varchar(2000),
+    Comentario varchar(5000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),
     ServiciosCompatibles varchar(500),
@@ -533,7 +533,7 @@ CREATE TABLE DetalleProductoPedido
     IdProductoBaseFK varchar(25) not null,
     IdCodigoPedidoFK varchar(25) not null,
     EnlaceArticulo varchar(1000), /*Se agrega para que cada producto pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
-    Comentario varchar(2000),
+    Comentario varchar(5000),
     FOREIGN KEY (IdProductoBaseFK) REFERENCES productosbases (CodigoConsola),
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );
@@ -549,7 +549,7 @@ CREATE TABLE DetalleAccesorioPedido
     IdAccesorioBaseFK varchar(25) not null,
     IdCodigoPedidoFK varchar(25) not null,
     EnlaceArticulo varchar(1000), /*Se agrega para que cada accesorios pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
-    Comentario varchar(2000),
+    Comentario varchar(5000),
     FOREIGN KEY (IdAccesorioBaseFK) REFERENCES accesoriosbase (CodigoAccesorio),
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );  
@@ -565,7 +565,7 @@ CREATE TABLE DetalleInsumoPedido
     IdInsumoBaseFK varchar(25) not null,
     IdCodigoPedidoFK varchar(25) not null,
     EnlaceArticulo varchar(1000), /*Se agrega para que cada insumo pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
-    Comentario varchar(2000),
+    Comentario varchar(5000),
     FOREIGN KEY (IdInsumoBaseFK) REFERENCES insumosbase (CodigoInsumo),
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );
