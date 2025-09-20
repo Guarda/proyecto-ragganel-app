@@ -18,15 +18,14 @@ import { CrearClienteComponent } from '../crear-cliente/crear-cliente.component'
 import { EliminarClienteComponent } from '../eliminar-cliente/eliminar-cliente.component';
 
 @Component({
-  selector: 'app-listado-clientes',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listado-clientes.component.html',
-  styleUrls: ['./listado-clientes.component.css']
+    selector: 'app-listado-clientes',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listado-clientes.component.html',
+    styleUrls: ['./listado-clientes.component.css']
 })
 export class ListadoClientesComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['NombreCliente', 'DNI', 'RUC', 'Telefono', 'CorreoElectronico', 'FechaRegistro', 'Estado', 'acciones'];

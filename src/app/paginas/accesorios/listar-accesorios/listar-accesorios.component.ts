@@ -19,15 +19,14 @@ import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-acc
 import { HistorialAccesorioComponent } from '../historial-accesorio/historial-accesorio.component';
 
 @Component({
-  selector: 'app-listar-accesorios',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listar-accesorios.component.html',
-  styleUrls: ['./listar-accesorios.component.css']
+    selector: 'app-listar-accesorios',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listar-accesorios.component.html',
+    styleUrls: ['./listar-accesorios.component.css']
 })
 export class ListarAccesoriosComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['CodigoAccesorio', 'DescripcionAccesorio', 'ColorAccesorio', 'EstadoAccesorio', 'FechaIngreso', 'PrecioBase', 'Action'];

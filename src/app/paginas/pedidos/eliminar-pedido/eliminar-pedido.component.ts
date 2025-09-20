@@ -5,11 +5,10 @@ import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } f
 import { PedidoService } from '../../../services/pedido.service';
 
 @Component({
-  selector: 'app-eliminar-pedido',
-  standalone: true,
-  imports: [MatDialogContent, MatDialogClose, MatDialogActions],
-  templateUrl: './eliminar-pedido.component.html',
-  styleUrl: './eliminar-pedido.component.css'
+    selector: 'app-eliminar-pedido',
+    imports: [MatDialogContent, MatDialogClose, MatDialogActions],
+    templateUrl: './eliminar-pedido.component.html',
+    styleUrl: './eliminar-pedido.component.css'
 })
 export class EliminarPedidoComponent {
 

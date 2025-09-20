@@ -10,11 +10,10 @@ import { CategoriaInsumoService } from '../../../../services/categoria-insumo.se
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-agregar-categorias-insumos-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-  templateUrl: './agregar-categorias-insumos-dialog.component.html',
-  styleUrl: './agregar-categorias-insumos-dialog.component.css'
+    selector: 'app-agregar-categorias-insumos-dialog',
+    imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
+    templateUrl: './agregar-categorias-insumos-dialog.component.html',
+    styleUrl: './agregar-categorias-insumos-dialog.component.css'
 })
 export class AgregarCategoriasInsumosDialogComponent {
 

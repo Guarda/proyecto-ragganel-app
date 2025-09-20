@@ -19,15 +19,14 @@ import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.c
 import { HistorialInsumoComponent } from '../historial-insumo/historial-insumo.component';
 
 @Component({
-  selector: 'app-listar-insumos',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listar-insumos.component.html',
-  styleUrls: ['./listar-insumos.component.css']
+    selector: 'app-listar-insumos',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listar-insumos.component.html',
+    styleUrls: ['./listar-insumos.component.css']
 })
 export class ListarInsumosComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['CodigoInsumo', 'DescripcionInsumo', 'Estado', 'Cantidad', 'StockMinimo', 'Fecha_Ingreso', 'PrecioBase', 'Action'];

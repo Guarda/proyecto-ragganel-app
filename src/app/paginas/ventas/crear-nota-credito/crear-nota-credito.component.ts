@@ -19,15 +19,14 @@ import { MotivoNotaCredito } from '../../interfaces/motivonotacredito';
 import { ItemDevolucion } from '../../interfaces/itemdevolucion';
 
 @Component({
-  selector: 'app-crear-nota-credito',
-  standalone: true,
-  imports: [
-    CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule,
-    MatSelectModule, MatInputModule, MatTableModule, MatIconModule, MatDividerModule,
-    MatCheckboxModule, MatTooltipModule
-  ],
-  templateUrl: './crear-nota-credito.component.html',
-  styleUrls: ['./crear-nota-credito.component.css']
+    selector: 'app-crear-nota-credito',
+    imports: [
+        CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule,
+        MatSelectModule, MatInputModule, MatTableModule, MatIconModule, MatDividerModule,
+        MatCheckboxModule, MatTooltipModule
+    ],
+    templateUrl: './crear-nota-credito.component.html',
+    styleUrls: ['./crear-nota-credito.component.css']
 })
 export class CrearNotaCreditoComponent implements OnInit {
 

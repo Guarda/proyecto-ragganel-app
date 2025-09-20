@@ -29,21 +29,20 @@ declare module 'jspdf' {
 }
 
 @Component({
-  selector: 'app-ver-nota-credito',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatListModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule
-  ],
-  templateUrl: './ver-nota-credito.component.html',
-  styleUrls: ['./ver-nota-credito.component.css'] // No olvides crear este archivo
+    selector: 'app-ver-nota-credito',
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatListModule,
+        MatDividerModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule
+    ],
+    templateUrl: './ver-nota-credito.component.html',
+    styleUrls: ['./ver-nota-credito.component.css'] // No olvides crear este archivo
 })
 export class VerNotaCreditoComponent implements OnInit {
 

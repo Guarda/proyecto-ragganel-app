@@ -21,23 +21,22 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmarLiberacionDialogComponent } from '../confirmar-liberacion-dialog/confirmar-liberacion-dialog.component';
 
 @Component({
-  selector: 'app-listado-carritos',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatListModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    // --- MÓDULOS AÑADIDOS ---
-    MatTableModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatDialogModule
-  ],
-  templateUrl: './listado-carritos.component.html',
-  styleUrls: ['./listado-carritos.component.css']
+    selector: 'app-listado-carritos',
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatListModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSnackBarModule,
+        // --- MÓDULOS AÑADIDOS ---
+        MatTableModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatDialogModule
+    ],
+    templateUrl: './listado-carritos.component.html',
+    styleUrls: ['./listado-carritos.component.css']
 })
 export class ListadoCarritosComponent implements OnInit {
 

@@ -28,12 +28,11 @@ import { MatChipsModule } from '@angular/material/chips';
 
 
 @Component({
-  selector: 'app-agregar-insumos',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-      MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
-  templateUrl: './agregar-insumos.component.html',
-  styleUrl: './agregar-insumos.component.css'
+    selector: 'app-agregar-insumos',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
+    templateUrl: './agregar-insumos.component.html',
+    styleUrl: './agregar-insumos.component.css'
 })
 export class AgregarInsumosComponent {
 

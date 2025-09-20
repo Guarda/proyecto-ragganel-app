@@ -46,11 +46,10 @@ const NAMES: string[] = [
 ];
 
 @Component({
-  selector: 'app-prueba',
-  standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatTableModule, MatSortModule, MatPaginatorModule],
-  templateUrl: './prueba.component.html',
-  styleUrl: './prueba.component.css'
+    selector: 'app-prueba',
+    imports: [MatFormFieldModule, MatInputModule, MatTableModule, MatSortModule, MatPaginatorModule],
+    templateUrl: './prueba.component.html',
+    styleUrl: './prueba.component.css'
 })
 export class PruebaComponent {
   displayedColumns: string[] = ['id', 'name', 'progress', 'fruit'];

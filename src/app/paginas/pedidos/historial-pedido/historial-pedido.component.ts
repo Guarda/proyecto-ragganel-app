@@ -4,12 +4,11 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-historial-pedido',
-  standalone: true,
-  imports: [CommonModule, MatDialogContent, MatDialogClose
-  ],
-  templateUrl: './historial-pedido.component.html',
-  styleUrl: './historial-pedido.component.css'
+    selector: 'app-historial-pedido',
+    imports: [CommonModule, MatDialogContent, MatDialogClose
+    ],
+    templateUrl: './historial-pedido.component.html',
+    styleUrl: './historial-pedido.component.css'
 })
 export class HistorialPedidoComponent implements OnInit {
   @Input() codigoPedido!: string; // Código del pedido que se recibe como input

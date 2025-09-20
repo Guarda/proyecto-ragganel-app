@@ -5,11 +5,10 @@ import { ServiciosService } from '../../../services/servicios.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
-  selector: 'app-eliminar-servicio',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogModule],
-  templateUrl: './eliminar-servicio.component.html',
-  styleUrl: './eliminar-servicio.component.css'
+    selector: 'app-eliminar-servicio',
+    imports: [MatDialogActions, MatDialogModule],
+    templateUrl: './eliminar-servicio.component.html',
+    styleUrl: './eliminar-servicio.component.css'
 })
 export class EliminarServicioComponent {
   Borrado = new EventEmitter();

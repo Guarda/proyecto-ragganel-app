@@ -9,11 +9,10 @@ import { FabricanteInsumoService } from '../../../../services/fabricante-insumo.
 import { FabricanteInsumos } from '../../../interfaces/fabricantesinsumos';
 
 @Component({
-  selector: 'app-eliminar-fabricantes-insumos-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions,MatButton, MatButtonModule],
-  templateUrl: './eliminar-fabricantes-insumos-dialog.component.html',
-  styleUrl: './eliminar-fabricantes-insumos-dialog.component.css'
+    selector: 'app-eliminar-fabricantes-insumos-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
+    templateUrl: './eliminar-fabricantes-insumos-dialog.component.html',
+    styleUrl: './eliminar-fabricantes-insumos-dialog.component.css'
 })
 export class EliminarFabricantesInsumosDialogComponent {
   Borrado = new EventEmitter();

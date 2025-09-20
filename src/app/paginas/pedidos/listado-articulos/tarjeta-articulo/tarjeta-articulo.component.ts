@@ -6,17 +6,16 @@ import { MatButton, MatButtonModule, MatIconButton } from '@angular/material/but
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-tarjeta-articulo',
-  standalone: true,
-  imports: [
-    CommonModule,
-    CurrencyPipe,
-    MatIcon,
-    MatButtonModule,
-    MatTooltipModule
-  ],
-  templateUrl: './tarjeta-articulo.component.html',
-  styleUrls: ['./tarjeta-articulo.component.css']
+    selector: 'app-tarjeta-articulo',
+    imports: [
+        CommonModule,
+        CurrencyPipe,
+        MatIcon,
+        MatButtonModule,
+        MatTooltipModule
+    ],
+    templateUrl: './tarjeta-articulo.component.html',
+    styleUrls: ['./tarjeta-articulo.component.css']
 })
 export class TarjetaArticuloComponent {
   @Input() articulo!: Articulo;

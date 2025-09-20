@@ -6,11 +6,10 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { UsuariosService } from '../../../services/usuarios.service';
 
 @Component({
-  selector: 'app-desactivar-usuario',
-  standalone: true,
-  imports: [MatDialogContent, MatDialogActions, MatDialogClose],
-  templateUrl: './desactivar-usuario.component.html',
-  styleUrl: './desactivar-usuario.component.css'
+    selector: 'app-desactivar-usuario',
+    imports: [MatDialogContent, MatDialogActions, MatDialogClose],
+    templateUrl: './desactivar-usuario.component.html',
+    styleUrl: './desactivar-usuario.component.css'
 })
 export class DesactivarUsuarioComponent {
   Borrado = new EventEmitter();

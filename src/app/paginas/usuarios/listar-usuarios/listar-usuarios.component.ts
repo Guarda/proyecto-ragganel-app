@@ -20,15 +20,14 @@ import { DesactivarUsuarioComponent } from '../desactivar-usuario/desactivar-usu
 // import { EliminarUsuarioComponent } from '../eliminar-usuario/eliminar-usuario.component';
 
 @Component({
-  selector: 'app-listar-usuarios',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listar-usuarios.component.html',
-  styleUrls: ['./listar-usuarios.component.css']
+    selector: 'app-listar-usuarios',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listar-usuarios.component.html',
+    styleUrls: ['./listar-usuarios.component.css']
 })
 export class ListarUsuariosComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['IdUsuarioPK', 'Nombre', 'Correo', 'DescripcionEstado', 'FechaIngresoUsuario', 'NombreRol', 'Action'];

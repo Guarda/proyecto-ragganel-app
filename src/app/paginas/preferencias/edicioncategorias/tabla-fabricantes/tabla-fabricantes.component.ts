@@ -12,11 +12,10 @@ import { AgregarFabricantesDialogComponent } from '../agregar-fabricantes-dialog
 import { EliminarFabricanteDialogComponent } from '../eliminar-fabricante-dialog/eliminar-fabricante-dialog.component';
 
 @Component({
-  selector: 'app-tabla-fabricantes',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesDialogComponent],
-  templateUrl: './tabla-fabricantes.component.html',
-  styleUrl: './tabla-fabricantes.component.css'
+    selector: 'app-tabla-fabricantes',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesDialogComponent],
+    templateUrl: './tabla-fabricantes.component.html',
+    styleUrl: './tabla-fabricantes.component.css'
 })
 export class TablaFabricantesComponent {
   displayedColumns: string[] = ['IdFabricante', 'NombreFabricante', 'delete'];

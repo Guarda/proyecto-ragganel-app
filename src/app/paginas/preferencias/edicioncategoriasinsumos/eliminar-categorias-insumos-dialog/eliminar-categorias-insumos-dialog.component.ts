@@ -7,11 +7,10 @@ import { categoriasInsumos } from '../../../interfaces/categoriasinsumos';
 import { CategoriaInsumoService } from '../../../../services/categoria-insumo.service';
 
 @Component({
-  selector: 'app-eliminar-categorias-insumos-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
-  templateUrl: './eliminar-categorias-insumos-dialog.component.html',
-  styleUrls: ['./eliminar-categorias-insumos-dialog.component.css']
+    selector: 'app-eliminar-categorias-insumos-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
+    templateUrl: './eliminar-categorias-insumos-dialog.component.html',
+    styleUrls: ['./eliminar-categorias-insumos-dialog.component.css']
 })
 export class EliminarCategoriasInsumosDialogComponent {
 

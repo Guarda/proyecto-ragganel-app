@@ -12,11 +12,10 @@ import { AgregarCategoriasInsumosDialogComponent } from '../agregar-categorias-i
 import { EliminarCategoriasInsumosDialogComponent } from '../eliminar-categorias-insumos-dialog/eliminar-categorias-insumos-dialog.component';
 
 @Component({
-  selector: 'app-tabla-categorias-insumos',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
-  templateUrl: './tabla-categorias-insumos.component.html',
-  styleUrls: ['./tabla-categorias-insumos.component.css']
+    selector: 'app-tabla-categorias-insumos',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+    templateUrl: './tabla-categorias-insumos.component.html',
+    styleUrls: ['./tabla-categorias-insumos.component.css']
 })
 export class TablaCategoriasInsumosComponent {
 

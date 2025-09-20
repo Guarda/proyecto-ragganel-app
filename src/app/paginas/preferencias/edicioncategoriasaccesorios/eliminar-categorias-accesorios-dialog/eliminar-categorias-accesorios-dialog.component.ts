@@ -9,11 +9,10 @@ import { CategoriaAccesorioService } from '../../../../services/categoria-acceso
 
 
 @Component({
-  selector: 'app-eliminar-categorias-accesorios-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
-  templateUrl: './eliminar-categorias-accesorios-dialog.component.html',
-  styleUrl: './eliminar-categorias-accesorios-dialog.component.css'
+    selector: 'app-eliminar-categorias-accesorios-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
+    templateUrl: './eliminar-categorias-accesorios-dialog.component.html',
+    styleUrl: './eliminar-categorias-accesorios-dialog.component.css'
 })
 export class EliminarCategoriasAccesoriosDialogComponent {
 

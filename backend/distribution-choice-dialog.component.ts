@@ -4,11 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-distribution-choice-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatIconModule],
-  templateUrl: './distribution-choice-dialog.component.html',
-  styleUrls: ['./distribution-choice-dialog.component.css']
+    selector: 'app-distribution-choice-dialog',
+    imports: [MatDialogModule, MatButtonModule, MatIconModule],
+    templateUrl: './distribution-choice-dialog.component.html',
+    styleUrls: ['./distribution-choice-dialog.component.css']
 })
 export class DistributionChoiceDialogComponent {
   constructor(

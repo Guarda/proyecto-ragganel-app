@@ -4,11 +4,10 @@ import { TablaCategoriasInsumosComponent } from '../tabla-categorias-insumos/tab
 import { TablaSubcategoriasInsumosComponent } from '../tabla-subcategorias-insumos/tabla-subcategorias-insumos.component';
 
 @Component({
-  selector: 'app-index-edicioncategorias-insumos',
-  standalone: true,
-  imports: [TablaFabricantesInsumosComponent, TablaCategoriasInsumosComponent, TablaSubcategoriasInsumosComponent],
-  templateUrl: './index-edicioncategorias-insumos.component.html',
-  styleUrl: './index-edicioncategorias-insumos.component.css'
+    selector: 'app-index-edicioncategorias-insumos',
+    imports: [TablaFabricantesInsumosComponent, TablaCategoriasInsumosComponent, TablaSubcategoriasInsumosComponent],
+    templateUrl: './index-edicioncategorias-insumos.component.html',
+    styleUrl: './index-edicioncategorias-insumos.component.css'
 })
 export class IndexEdicioncategoriasInsumosComponent {
 

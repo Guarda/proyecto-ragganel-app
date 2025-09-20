@@ -19,11 +19,10 @@ interface Estado {
 }
 
 @Component({
-  selector: 'app-cambiar-estado-dialog',
-  standalone: true,
-  imports: [ CommonModule, FormsModule, MatDialogModule, MatFormFieldModule, MatSelectModule, MatButtonModule ],
-  templateUrl: './cambiar-estado-dialog.component.html',
-  styleUrls: ['./cambiar-estado-dialog.component.css']
+    selector: 'app-cambiar-estado-dialog',
+    imports: [CommonModule, FormsModule, MatDialogModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
+    templateUrl: './cambiar-estado-dialog.component.html',
+    styleUrls: ['./cambiar-estado-dialog.component.css']
 })
 export class CambiarEstadoDialogComponent implements OnInit {
 

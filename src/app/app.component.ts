@@ -9,16 +9,15 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, MenuSidebarComponent, MatNativeDateModule, LoginComponent, CommonModule],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-  providers: [
-    { provide: DateAdapter, useClass: CustomDateAdapter },
-    { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS },
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' } // Optional: Set locale to British English for DD/MM/YYYY
-  ]
+    selector: 'app-root',
+    imports: [RouterOutlet, MenuSidebarComponent, MatNativeDateModule, LoginComponent, CommonModule],
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    providers: [
+        { provide: DateAdapter, useClass: CustomDateAdapter },
+        { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS },
+        { provide: MAT_DATE_LOCALE, useValue: 'en-GB' } // Optional: Set locale to British English for DD/MM/YYYY
+    ]
 })
 export class AppComponent implements OnInit {
 

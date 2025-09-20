@@ -20,15 +20,14 @@ import { PedidoService } from '../../../services/pedido.service';
 import { Pedido } from '../../interfaces/pedido';
 
 @Component({
-  selector: 'app-listar-pedidos',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
-    MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
-    MatTabsModule, TablaPedidosComponent, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listar-pedidos.component.html',
-  styleUrls: ['./listar-pedidos.component.css']
+    selector: 'app-listar-pedidos',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
+        MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
+        MatTabsModule, TablaPedidosComponent, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listar-pedidos.component.html',
+    styleUrls: ['./listar-pedidos.component.css']
 })
 export class ListarPedidosComponent implements OnInit {
 

@@ -15,11 +15,10 @@ import { EliminarSubcategoriasAccesoriosDialogComponent } from '../eliminar-subc
 
 
 @Component({
-  selector: 'app-tabla-subcategorias-accesorios',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
-  templateUrl: './tabla-subcategorias-accesorios.component.html',
-  styleUrl: './tabla-subcategorias-accesorios.component.css'
+    selector: 'app-tabla-subcategorias-accesorios',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+    templateUrl: './tabla-subcategorias-accesorios.component.html',
+    styleUrl: './tabla-subcategorias-accesorios.component.css'
 })
 export class TablaSubcategoriasAccesoriosComponent {
   displayedColumns: string[] = ['IdSubCategoria', 'NombreSubCategoria', 'delete'];

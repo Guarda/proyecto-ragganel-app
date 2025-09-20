@@ -19,15 +19,14 @@ import { EliminarServicioComponent } from '../eliminar-servicio/eliminar-servici
 import { ServicioListado } from '../../interfaces/serviciolistado';
 
 @Component({
-  selector: 'app-listado-servicios',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listado-servicios.component.html',
-  styleUrls: ['./listado-servicios.component.css']
+    selector: 'app-listado-servicios',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listado-servicios.component.html',
+    styleUrls: ['./listado-servicios.component.css']
 })
 export class ListadoServiciosComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['IdServicioPK', 'DescripcionServicio', 'FechaIngreso', 'PrecioBase', 'Action'];

@@ -3,11 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef } fro
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-resultado-pedido-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogContent],
-  templateUrl: './resultado-pedido-dialog.component.html',
-  styleUrl: './resultado-pedido-dialog.component.css'
+    selector: 'app-resultado-pedido-dialog',
+    imports: [MatDialogActions, MatDialogContent],
+    templateUrl: './resultado-pedido-dialog.component.html',
+    styleUrl: './resultado-pedido-dialog.component.css'
 })
 export class ResultadoPedidoDialogComponent {
   constructor(

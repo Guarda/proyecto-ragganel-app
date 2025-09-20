@@ -8,19 +8,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-dialog-ingresar-precio-articulo',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule
-  ],
-  templateUrl: './dialog-ingresar-precio-articulo.component.html',
-  styleUrls: ['./dialog-ingresar-precio-articulo.component.css']
+    selector: 'app-dialog-ingresar-precio-articulo',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule
+    ],
+    templateUrl: './dialog-ingresar-precio-articulo.component.html',
+    styleUrls: ['./dialog-ingresar-precio-articulo.component.css']
 })
 export class DialogIngresarPrecioArticuloComponent {
   precioIngresado: number | null = null;

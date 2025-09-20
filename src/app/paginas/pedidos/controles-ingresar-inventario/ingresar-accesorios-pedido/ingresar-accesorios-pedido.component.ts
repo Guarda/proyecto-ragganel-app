@@ -30,12 +30,11 @@ import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
 import { MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 
 @Component({
-  selector: 'app-ingresar-accesorios-pedido',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions, MatCardTitle, MatCardSubtitle, MatCardHeader],
-  templateUrl: './ingresar-accesorios-pedido.component.html',
-  styleUrl: './ingresar-accesorios-pedido.component.css'
+    selector: 'app-ingresar-accesorios-pedido',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions, MatCardTitle, MatCardSubtitle, MatCardHeader],
+    templateUrl: './ingresar-accesorios-pedido.component.html',
+    styleUrl: './ingresar-accesorios-pedido.component.css'
 })
 export class IngresarAccesoriosPedidoComponent {
   @Input() stepperIndex: number = 0;

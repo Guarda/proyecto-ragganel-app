@@ -31,12 +31,11 @@ import { DistributionChoiceDialogComponent } from '../../../../../backend/distri
 import { CostDistributionDialogComponent } from '../../../../../backend/cost-distribution-dialog.component';
 
 @Component({
-  selector: 'app-ingresar-inventario',
-  standalone: true,
-  imports: [MatStepper, MatButtonModule, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, MatCardModule,
-    IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatStepperNext, MatProgressBar, MatStepperPrevious, CommonModule],
-  templateUrl: './ingresar-inventario.component.html',
-  styleUrl: './ingresar-inventario.component.css'
+    selector: 'app-ingresar-inventario',
+    imports: [MatStepper, MatButtonModule, MatFormField, MatLabel, NgFor, MatStep, ReactiveFormsModule, CommonModule, MatInput, MatCardModule,
+        IngresarProductosPedidoComponent, IngresarInsumosPedidoComponent, IngresarAccesoriosPedidoComponent, MatStepperNext, MatProgressBar, MatStepperPrevious, CommonModule],
+    templateUrl: './ingresar-inventario.component.html',
+    styleUrl: './ingresar-inventario.component.css'
 })
 export class IngresarInventarioComponent implements OnInit {
   // articulos: Articulo[] = [];

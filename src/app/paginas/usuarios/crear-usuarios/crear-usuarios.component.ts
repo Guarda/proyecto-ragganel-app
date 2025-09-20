@@ -22,13 +22,12 @@ import { RolesUsuariosService } from '../../../services/roles-usuarios.service';
 import { DialogRef } from '@angular/cdk/dialog';
 
 @Component({
-  selector: 'app-crear-usuarios',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, 
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatIconModule ],
-  templateUrl: './crear-usuarios.component.html',
-  styleUrl: './crear-usuarios.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-crear-usuarios',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatIconModule],
+    templateUrl: './crear-usuarios.component.html',
+    styleUrl: './crear-usuarios.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CrearUsuariosComponent {
 

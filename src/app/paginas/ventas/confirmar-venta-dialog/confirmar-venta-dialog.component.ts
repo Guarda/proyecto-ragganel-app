@@ -5,11 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { DialogData } from '../../interfaces/dialogdata';
 @Component({
-  selector: 'app-confirmar-venta-dialog',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDialogModule],
-  templateUrl: './confirmar-venta-dialog.component.html',
-  styleUrl: './confirmar-venta-dialog.component.css'
+    selector: 'app-confirmar-venta-dialog',
+    imports: [CommonModule, MatButtonModule, MatDialogModule],
+    templateUrl: './confirmar-venta-dialog.component.html',
+    styleUrl: './confirmar-venta-dialog.component.css'
 })
 export class ConfirmarVentaDialogComponent {
 

@@ -5,11 +5,10 @@ import { TablaSubcategoriasComponent } from '../tabla-subcategorias/tabla-subcat
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-index-edicioncategorias',
-  standalone: true,
-  imports: [TablaFabricantesComponent, TablaCategoriasComponent, TablaSubcategoriasComponent, MatButtonModule],
-  templateUrl: './index-edicioncategorias.component.html',
-  styleUrl: './index-edicioncategorias.component.css'
+    selector: 'app-index-edicioncategorias',
+    imports: [TablaFabricantesComponent, TablaCategoriasComponent, TablaSubcategoriasComponent, MatButtonModule],
+    templateUrl: './index-edicioncategorias.component.html',
+    styleUrl: './index-edicioncategorias.component.css'
 })
 export class IndexEdicioncategoriasComponent {
 

@@ -33,12 +33,11 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.component';
 
 @Component({
-  selector: 'app-ver-insumo',
-  standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule],
-  templateUrl: './ver-insumo.component.html',
-  styleUrl: './ver-insumo.component.css'
+    selector: 'app-ver-insumo',
+    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule],
+    templateUrl: './ver-insumo.component.html',
+    styleUrl: './ver-insumo.component.css'
 })
 export class VerInsumoComponent {
 

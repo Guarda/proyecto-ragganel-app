@@ -23,12 +23,11 @@ import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosb
 import { CategoriasAccesoriosService } from '../../../services/categorias-accesorios.service';
 
 @Component({
-  selector: 'app-editar-categorias-accesorios',
-  standalone: true,
-  imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
-  templateUrl: './editar-categorias-accesorios.component.html',
-  styleUrl: './editar-categorias-accesorios.component.css'
+    selector: 'app-editar-categorias-accesorios',
+    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
+    templateUrl: './editar-categorias-accesorios.component.html',
+    styleUrl: './editar-categorias-accesorios.component.css'
 })
 export class EditarCategoriasAccesoriosComponent {
 

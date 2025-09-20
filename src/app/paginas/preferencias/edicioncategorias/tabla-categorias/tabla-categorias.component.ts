@@ -13,11 +13,10 @@ import { AgregarCategoriasDialogComponent } from '../agregar-categorias-dialog/a
 import { EliminarCategoriaDialogComponent } from '../eliminar-categoria-dialog/eliminar-categoria-dialog.component';
 
 @Component({
-  selector: 'app-tabla-categorias',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
-  templateUrl: './tabla-categorias.component.html',
-  styleUrl: './tabla-categorias.component.css'
+    selector: 'app-tabla-categorias',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+    templateUrl: './tabla-categorias.component.html',
+    styleUrl: './tabla-categorias.component.css'
 })
 export class TablaCategoriasComponent {
   displayedColumns: string[] = ['IdCategoria', 'NombreCategoria', 'delete'];

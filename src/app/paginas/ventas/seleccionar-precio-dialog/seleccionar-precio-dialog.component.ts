@@ -13,11 +13,10 @@ import { PrecioOpcion } from '../../interfaces/precioopcion';
 
 
 @Component({
-  selector: 'app-seleccionar-precio-dialog',
-  standalone: true,
-  imports: [CommonModule, MatListModule, MatButtonModule, MatIconModule, MatDividerModule, MatDialogContent, MatDialogActions, MatDialogClose],
-  templateUrl: './seleccionar-precio-dialog.component.html',
-  styleUrls: ['./seleccionar-precio-dialog.component.css']
+    selector: 'app-seleccionar-precio-dialog',
+    imports: [CommonModule, MatListModule, MatButtonModule, MatIconModule, MatDividerModule, MatDialogContent, MatDialogActions, MatDialogClose],
+    templateUrl: './seleccionar-precio-dialog.component.html',
+    styleUrls: ['./seleccionar-precio-dialog.component.css']
 })
 export class SeleccionarPrecioDialogComponent implements OnInit {
   opcionesDePrecio: PrecioOpcion[] = [];

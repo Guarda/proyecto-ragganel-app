@@ -33,16 +33,15 @@ import { SitioWeb } from '../../interfaces/sitioweb';
 
 
 @Component({
-  selector: 'app-ver-pedido',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, ReactiveFormsModule, FormsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIcon, MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatDialogModule,
-    IndexListadoArticulosComponent, SuccessdialogComponent, DescargarExcelDialogComponent
-  ],
-  templateUrl: './ver-pedido.component.html',
-  styleUrl: './ver-pedido.component.css',
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    selector: 'app-ver-pedido',
+    imports: [
+        CommonModule, RouterModule, ReactiveFormsModule, FormsModule, MatFormFieldModule, MatInputModule,
+        MatSelectModule, MatButtonModule, MatIcon, MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatDialogModule,
+        IndexListadoArticulosComponent, SuccessdialogComponent, DescargarExcelDialogComponent
+    ],
+    templateUrl: './ver-pedido.component.html',
+    styleUrl: './ver-pedido.component.css',
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class VerPedidoComponent implements OnInit {
   @ViewChild(IndexListadoArticulosComponent) listadoArticulos!: IndexListadoArticulosComponent;

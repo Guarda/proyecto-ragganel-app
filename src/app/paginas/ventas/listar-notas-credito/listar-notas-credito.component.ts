@@ -16,22 +16,21 @@ import { NotaCredito } from '../../interfaces/notacredito';
 import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 @Component({
-  selector: 'app-listar-notas-credito',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    RouterModule
-  ],
-  templateUrl: './listar-notas-credito.component.html',
-  styleUrls: ['./listar-notas-credito.component.css'] // No olvides crear este archivo
+    selector: 'app-listar-notas-credito',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatIconModule,
+        MatButtonModule,
+        RouterModule
+    ],
+    templateUrl: './listar-notas-credito.component.html',
+    styleUrls: ['./listar-notas-credito.component.css'] // No olvides crear este archivo
 })
 export class ListarNotasCreditoComponent implements OnInit, AfterViewInit {
 

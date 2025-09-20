@@ -29,12 +29,11 @@ import { CategoriasInsumosService } from '../../../services/categorias-insumos.s
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 
 @Component({
-  selector: 'app-ver-servicio',
-  standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-    MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, IndexListadoInsumosEditarComponent],
-  templateUrl: './ver-servicio.component.html',
-  styleUrl: './ver-servicio.component.css'
+    selector: 'app-ver-servicio',
+    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, IndexListadoInsumosEditarComponent],
+    templateUrl: './ver-servicio.component.html',
+    styleUrl: './ver-servicio.component.css'
 })
 export class VerServicioComponent {
   insumo: InsumosBase[] = [];

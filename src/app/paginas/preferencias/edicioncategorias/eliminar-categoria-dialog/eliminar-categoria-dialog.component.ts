@@ -8,11 +8,10 @@ import { CategoriaProductoService } from '../../../../services/categoria-product
 import { MatButton, MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-eliminar-categoria-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
-  templateUrl: './eliminar-categoria-dialog.component.html',
-  styleUrl: './eliminar-categoria-dialog.component.css'
+    selector: 'app-eliminar-categoria-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
+    templateUrl: './eliminar-categoria-dialog.component.html',
+    styleUrl: './eliminar-categoria-dialog.component.css'
 })
 export class EliminarCategoriaDialogComponent {
 

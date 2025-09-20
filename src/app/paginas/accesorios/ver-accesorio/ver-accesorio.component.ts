@@ -35,12 +35,11 @@ import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-acc
 
 
 @Component({
-  selector: 'app-ver-accesorio',
-  standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule],
-  templateUrl: './ver-accesorio.component.html',
-  styleUrl: './ver-accesorio.component.css'
+    selector: 'app-ver-accesorio',
+    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule],
+    templateUrl: './ver-accesorio.component.html',
+    styleUrl: './ver-accesorio.component.css'
 })
 export class VerAccesorioComponent {
   keywords = signal(['']);

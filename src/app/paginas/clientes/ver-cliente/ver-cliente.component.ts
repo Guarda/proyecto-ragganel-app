@@ -23,12 +23,11 @@ import { ListadoVentasClienteComponent } from '../listado-ventas-cliente/listado
 
 
 @Component({
-  selector: 'app-ver-cliente',
-  standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, SuccessdialogComponent, MatCardModule, MatDivider, ListadoVentasClienteComponent],
-  templateUrl: './ver-cliente.component.html',
-  styleUrl: './ver-cliente.component.css'
+    selector: 'app-ver-cliente',
+    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, SuccessdialogComponent, MatCardModule, MatDivider, ListadoVentasClienteComponent],
+    templateUrl: './ver-cliente.component.html',
+    styleUrl: './ver-cliente.component.css'
 })
 export class VerClienteComponent {
 

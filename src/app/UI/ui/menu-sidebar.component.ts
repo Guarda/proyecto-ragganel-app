@@ -15,24 +15,23 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { AuthService } from '../session/auth.service';
 
 @Component({
-  selector: 'app-menu-sidebar',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatExpansionModule,
-    MatButtonModule,
-    RouterOutlet,
-    RouterLink,
-    MatToolbarModule,
-    MatIconModule,
-    MatSidenavModule,
-    MatListModule,
-    MatMenuModule,
-    MatBadgeModule,
-    MatDividerModule
-  ],
-  templateUrl: './menu-sidebar.component.html',
-  styleUrls: ['./menu-sidebar.component.css']
+    selector: 'app-menu-sidebar',
+    imports: [
+        CommonModule,
+        MatExpansionModule,
+        MatButtonModule,
+        RouterOutlet,
+        RouterLink,
+        MatToolbarModule,
+        MatIconModule,
+        MatSidenavModule,
+        MatListModule,
+        MatMenuModule,
+        MatBadgeModule,
+        MatDividerModule
+    ],
+    templateUrl: './menu-sidebar.component.html',
+    styleUrls: ['./menu-sidebar.component.css']
 })
 export class MenuSidebarComponent implements OnInit, OnDestroy {
   user: User | null = null;

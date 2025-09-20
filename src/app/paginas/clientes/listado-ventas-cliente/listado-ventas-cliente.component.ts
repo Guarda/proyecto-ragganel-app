@@ -14,19 +14,18 @@ import { ClientesService } from '../../../services/clientes.service';
 import { VentaCliente } from '../../interfaces/ventacliente';
 
 @Component({
-  selector: 'app-listado-ventas-cliente',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatTableModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    MatButtonModule
-  ],
-  templateUrl: './listado-ventas-cliente.component.html',
-  styleUrls: ['./listado-ventas-cliente.component.css']
+    selector: 'app-listado-ventas-cliente',
+    imports: [
+        CommonModule,
+        MatTableModule,
+        MatSortModule,
+        MatPaginatorModule,
+        MatProgressSpinnerModule,
+        MatIconModule,
+        MatButtonModule
+    ],
+    templateUrl: './listado-ventas-cliente.component.html',
+    styleUrls: ['./listado-ventas-cliente.component.css']
 })
 export class ListadoVentasClienteComponent implements OnChanges, AfterViewInit {
   

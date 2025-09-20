@@ -11,11 +11,10 @@ import { Router } from '@angular/router';
 import { SubcategoriaInsumoService } from '../../../../services/subcategoria-insumo.service';
 
 @Component({
-  standalone: true,
-  selector: 'app-agregar-subcategorias-insumos',
-  templateUrl: './agregar-subcategorias-insumos.component.html',
-  imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-  styleUrls: ['./agregar-subcategorias-insumos.component.scss']
+    selector: 'app-agregar-subcategorias-insumos',
+    templateUrl: './agregar-subcategorias-insumos.component.html',
+    imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
+    styleUrls: ['./agregar-subcategorias-insumos.component.scss']
 })
 export class AgregarSubcategoriasInsumosComponent  {
   SubCategoriaForm!: FormGroup;

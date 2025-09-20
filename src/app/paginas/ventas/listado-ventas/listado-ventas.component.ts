@@ -31,16 +31,15 @@ import { Router } from '@angular/router';
 import { DialogoConfirmacionComponent } from '../dialogo-confirmacion/dialogo-confirmacion.component';
 
 @Component({
-  selector: 'app-listado-ventas',
-  standalone: true,
-  imports: [
-    CommonModule, FormsModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
-    MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatDatepickerModule,
-    MatNativeDateModule, MatTooltipModule
-  ],
-  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
-  templateUrl: './listado-ventas.component.html',
-  styleUrls: ['./listado-ventas.component.css']
+    selector: 'app-listado-ventas',
+    imports: [
+        CommonModule, FormsModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
+        MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatDatepickerModule,
+        MatNativeDateModule, MatTooltipModule
+    ],
+    providers: [{ provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
+    templateUrl: './listado-ventas.component.html',
+    styleUrls: ['./listado-ventas.component.css']
 })
 export class ListadoVentasComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['IdVentaPK', 'FechaCreacion', 'TipoDocumento', 'NumeroDocumento', 'Cliente', 'TotalVenta', 'EstadoVenta', 'Action'];

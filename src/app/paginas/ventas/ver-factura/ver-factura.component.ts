@@ -26,14 +26,13 @@ import { Subscription } from 'rxjs';
 
 
 @Component({
-  selector: 'app-ver-factura',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatCardModule, MatButtonModule,
-    MatIconModule, MatListModule, MatDividerModule, MatProgressSpinnerModule
-  ],
-  templateUrl: './ver-factura.component.html',
-  styleUrls: ['./ver-factura.component.css']
+    selector: 'app-ver-factura',
+    imports: [
+        CommonModule, RouterModule, MatCardModule, MatButtonModule,
+        MatIconModule, MatListModule, MatDividerModule, MatProgressSpinnerModule
+    ],
+    templateUrl: './ver-factura.component.html',
+    styleUrls: ['./ver-factura.component.css']
 })
 export class VerFacturaComponent implements OnInit {
 

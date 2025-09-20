@@ -34,13 +34,12 @@ import { ConfirmacionReemplazarCarritoDialog } from '../confirmacion-reemplazar-
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
-  selector: 'app-punto-venta',
-  standalone: true,
-  imports: [FormsModule, MatInputModule, MatIconButton, ReactiveFormsModule, TablaArticulosVentasComponent,
-    CommonModule, MatIcon, MatButton, CrearClienteComponent, MatFormField, MatOption, MatAutocompleteModule,
-    MatSelect, MatSpinner, MatSlideToggleModule],
-  templateUrl: './punto-venta.component.html',
-  styleUrl: './punto-venta.component.css'
+    selector: 'app-punto-venta',
+    imports: [FormsModule, MatInputModule, MatIconButton, ReactiveFormsModule, TablaArticulosVentasComponent,
+        CommonModule, MatIcon, MatButton, CrearClienteComponent, MatFormField, MatOption, MatAutocompleteModule,
+        MatSelect, MatSpinner, MatSlideToggleModule],
+    templateUrl: './punto-venta.component.html',
+    styleUrl: './punto-venta.component.css'
 })
 export class PuntoVentaComponent implements OnInit, OnDestroy {
   public aplicarIVA: boolean = true;

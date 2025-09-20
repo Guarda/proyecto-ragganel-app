@@ -11,11 +11,10 @@ import { Router } from '@angular/router';
 
 
 @Component({
-  selector: 'app-agregar-categorias-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-  templateUrl: './agregar-categorias-dialog.component.html',
-  styleUrl: './agregar-categorias-dialog.component.css'
+    selector: 'app-agregar-categorias-dialog',
+    imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
+    templateUrl: './agregar-categorias-dialog.component.html',
+    styleUrl: './agregar-categorias-dialog.component.css'
 })
 export class AgregarCategoriasDialogComponent {
 

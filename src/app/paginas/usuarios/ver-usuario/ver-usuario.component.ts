@@ -24,12 +24,11 @@ import { CambiarPasswordDialogComponent } from '../cambiar-password-dialog/cambi
 
 
 @Component({
-  selector: 'app-ver-usuario',
-  standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, SuccessdialogComponent],
-  templateUrl: './ver-usuario.component.html',
-  styleUrl: './ver-usuario.component.css'
+    selector: 'app-ver-usuario',
+    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, SuccessdialogComponent],
+    templateUrl: './ver-usuario.component.html',
+    styleUrl: './ver-usuario.component.css'
 })
 export class VerUsuarioComponent {
 

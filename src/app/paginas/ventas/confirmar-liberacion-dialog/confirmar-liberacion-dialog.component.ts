@@ -5,16 +5,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-confirmar-liberacion-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule
-  ],
-  templateUrl: './confirmar-liberacion-dialog.component.html',
-  styleUrls: ['./confirmar-liberacion-dialog.component.css']
+    selector: 'app-confirmar-liberacion-dialog',
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatIconModule
+    ],
+    templateUrl: './confirmar-liberacion-dialog.component.html',
+    styleUrls: ['./confirmar-liberacion-dialog.component.css']
 })
 export class ConfirmarLiberacionDialogComponent {
 

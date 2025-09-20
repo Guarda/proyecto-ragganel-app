@@ -15,11 +15,10 @@ import { EliminarCategoriasAccesoriosDialogComponent } from '../eliminar-categor
 import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
 
 @Component({
-  selector: 'app-tabla-categorias-accesorios',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
-  templateUrl: './tabla-categorias-accesorios.component.html',
-  styleUrl: './tabla-categorias-accesorios.component.css'
+    selector: 'app-tabla-categorias-accesorios',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+    templateUrl: './tabla-categorias-accesorios.component.html',
+    styleUrl: './tabla-categorias-accesorios.component.css'
 })
 export class TablaCategoriasAccesoriosComponent {
 

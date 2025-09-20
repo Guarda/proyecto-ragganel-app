@@ -5,11 +5,10 @@ import { PedidoService } from '../../../services/pedido.service';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-cancelar-pedidos',
-  standalone: true,
-  imports: [MatDialogContent, MatDialogActions, MatDialogClose],
-  templateUrl: './cancelar-pedidos.component.html',
-  styleUrl: './cancelar-pedidos.component.css'
+    selector: 'app-cancelar-pedidos',
+    imports: [MatDialogContent, MatDialogActions, MatDialogClose],
+    templateUrl: './cancelar-pedidos.component.html',
+    styleUrl: './cancelar-pedidos.component.css'
 })
 export class CancelarPedidosComponent {
 

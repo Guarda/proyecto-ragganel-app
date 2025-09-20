@@ -5,11 +5,10 @@ import { Router } from '@angular/router';
 import { CategoriasInsumosService } from '../../../services/categorias-insumos.service';
 
 @Component({
-  selector: 'app-eliminar-categorias-insumos',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions],
-  templateUrl: './eliminar-categorias-insumos.component.html',
-  styleUrl: './eliminar-categorias-insumos.component.css'
+    selector: 'app-eliminar-categorias-insumos',
+    imports: [MatDialogModule, MatDialogActions],
+    templateUrl: './eliminar-categorias-insumos.component.html',
+    styleUrl: './eliminar-categorias-insumos.component.css'
 })
 export class EliminarCategoriasInsumosComponent {
   Borrado = new EventEmitter();

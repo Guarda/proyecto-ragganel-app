@@ -5,13 +5,12 @@ import { TablaSubcategoriasAccesoriosComponent } from '../tabla-subcategorias-ac
 import { MatButton } from '@angular/material/button';
 
 @Component({
-  selector: 'app-index-edicioncategorias-accesorios',
-  standalone: true,
-  imports: [TablaFabricantesAccesoriosComponent, TablaCategoriasAccesoriosComponent,TablaSubcategoriasAccesoriosComponent,
-    MatButton
-  ],
-  templateUrl: './index-edicioncategorias-accesorios.component.html',
-  styleUrl: './index-edicioncategorias-accesorios.component.css'
+    selector: 'app-index-edicioncategorias-accesorios',
+    imports: [TablaFabricantesAccesoriosComponent, TablaCategoriasAccesoriosComponent, TablaSubcategoriasAccesoriosComponent,
+        MatButton
+    ],
+    templateUrl: './index-edicioncategorias-accesorios.component.html',
+    styleUrl: './index-edicioncategorias-accesorios.component.css'
 })
 export class IndexEdicioncategoriasAccesoriosComponent {
 

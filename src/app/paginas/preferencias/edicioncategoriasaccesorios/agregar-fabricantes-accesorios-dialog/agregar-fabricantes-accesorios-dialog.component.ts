@@ -9,11 +9,10 @@ import { FabricanteAccesorioService } from '../../../../services/fabricante-acce
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-agregar-fabricantes-accesorios-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-  templateUrl: './agregar-fabricantes-accesorios-dialog.component.html',
-  styleUrl: './agregar-fabricantes-accesorios-dialog.component.css'
+    selector: 'app-agregar-fabricantes-accesorios-dialog',
+    imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
+    templateUrl: './agregar-fabricantes-accesorios-dialog.component.html',
+    styleUrl: './agregar-fabricantes-accesorios-dialog.component.css'
 })
 export class AgregarFabricantesAccesoriosDialogComponent {
 

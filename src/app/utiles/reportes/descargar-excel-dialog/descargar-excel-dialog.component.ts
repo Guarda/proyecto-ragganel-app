@@ -4,11 +4,10 @@ import { ExcelService } from '../../../services/excel.service';
 import { ExcelDialogData } from '../../../paginas/interfaces/exceldialogdata';
 
 @Component({
-  selector: 'app-descargar-excel-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogContent],
-  templateUrl: './descargar-excel-dialog.component.html',
-  styleUrl: './descargar-excel-dialog.component.css'
+    selector: 'app-descargar-excel-dialog',
+    imports: [MatDialogActions, MatDialogContent],
+    templateUrl: './descargar-excel-dialog.component.html',
+    styleUrl: './descargar-excel-dialog.component.css'
 })
 export class DescargarExcelDialogComponent {
 

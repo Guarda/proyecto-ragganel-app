@@ -56,12 +56,11 @@ import { Articulo } from '../../../interfaces/articulo-pedido';
 
 
 @Component({
-  selector: 'app-agregar-articulo',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogClose, FormsModule, ReactiveFormsModule, MatDialogContent, MatFormField, MatLabel, MatOption, MatOptionModule,
-    MatSelectModule, CommonModule, MatFormFieldModule, MatInputModule, MatButtonToggleModule],
-  templateUrl: './agregar-articulo.component.html',
-  styleUrl: './agregar-articulo.component.css'
+    selector: 'app-agregar-articulo',
+    imports: [MatDialogActions, MatDialogClose, FormsModule, ReactiveFormsModule, MatDialogContent, MatFormField, MatLabel, MatOption, MatOptionModule,
+        MatSelectModule, CommonModule, MatFormFieldModule, MatInputModule, MatButtonToggleModule],
+    templateUrl: './agregar-articulo.component.html',
+    styleUrl: './agregar-articulo.component.css'
 })
 export class AgregarArticuloComponent {
   isEditMode = false; // <-- Nueva propiedad

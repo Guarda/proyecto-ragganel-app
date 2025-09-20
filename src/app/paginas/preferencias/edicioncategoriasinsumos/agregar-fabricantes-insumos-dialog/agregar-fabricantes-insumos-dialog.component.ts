@@ -9,11 +9,10 @@ import { FabricanteInsumoService } from '../../../../services/fabricante-insumo.
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-agregar-fabricantes-insumos-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-  templateUrl: './agregar-fabricantes-insumos-dialog.component.html',
-  styleUrl: './agregar-fabricantes-insumos-dialog.component.css'
+    selector: 'app-agregar-fabricantes-insumos-dialog',
+    imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
+    templateUrl: './agregar-fabricantes-insumos-dialog.component.html',
+    styleUrl: './agregar-fabricantes-insumos-dialog.component.css'
 })
 export class AgregarFabricantesInsumosDialogComponent {
   InsumoForm!: FormGroup;

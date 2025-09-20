@@ -23,12 +23,11 @@ import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { CategoriasInsumosService } from '../../../services/categorias-insumos.service';
 
 @Component({
-  selector: 'app-editar-categorias-inumos',
-  standalone: true,
-  imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
-  templateUrl: './editar-categorias-inumos.component.html',
-  styleUrl: './editar-categorias-inumos.component.css'
+    selector: 'app-editar-categorias-inumos',
+    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
+    templateUrl: './editar-categorias-inumos.component.html',
+    styleUrl: './editar-categorias-inumos.component.css'
 })
 export class EditarCategoriasInumosComponent {
   Editado = new EventEmitter();

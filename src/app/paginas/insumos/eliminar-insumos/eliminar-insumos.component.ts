@@ -6,11 +6,10 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 
 
 @Component({
-  selector: 'app-eliminar-insumos',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions],
-  templateUrl: './eliminar-insumos.component.html',
-  styleUrl: './eliminar-insumos.component.css'
+    selector: 'app-eliminar-insumos',
+    imports: [MatDialogModule, MatDialogActions],
+    templateUrl: './eliminar-insumos.component.html',
+    styleUrl: './eliminar-insumos.component.css'
 })
 export class EliminarInsumosComponent {
   Borrado = new EventEmitter();

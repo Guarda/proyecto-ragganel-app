@@ -22,12 +22,11 @@ import { EditarCategoriasAccesoriosComponent } from '../editar-categorias-acceso
 import { EliminarCategoriasAccesoriosComponent } from '../eliminar-categorias-accesorios/eliminar-categorias-accesorios.component';
 
 @Component({
-  selector: 'app-listar-categorias-accesorios',
-  standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
-  templateUrl: './listar-categorias-accesorios.component.html',
-  styleUrl: './listar-categorias-accesorios.component.css'
+    selector: 'app-listar-categorias-accesorios',
+    imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
+    templateUrl: './listar-categorias-accesorios.component.html',
+    styleUrl: './listar-categorias-accesorios.component.css'
 })
 export class ListarCategoriasAccesoriosComponent {
 

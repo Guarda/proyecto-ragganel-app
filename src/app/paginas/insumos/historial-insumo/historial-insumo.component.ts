@@ -4,11 +4,10 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-historial-insumo',
-  standalone: true,
-  imports: [CommonModule, MatDialogContent, MatDialogClose],
-  templateUrl: './historial-insumo.component.html',
-  styleUrl: './historial-insumo.component.css'
+    selector: 'app-historial-insumo',
+    imports: [CommonModule, MatDialogContent, MatDialogClose],
+    templateUrl: './historial-insumo.component.html',
+    styleUrl: './historial-insumo.component.css'
 })
 export class HistorialInsumoComponent implements OnInit{
   @Input() codigoInsumo!: string;

@@ -5,11 +5,10 @@ import { HttpClient } from '@angular/common/http';
 import { SharedService } from '../../../services/shared.service';
 
 @Component({
-  selector: 'app-image-upload',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './image-upload.component.html',
-  styleUrls: ['./image-upload.component.css']
+    selector: 'app-image-upload',
+    imports: [CommonModule],
+    templateUrl: './image-upload.component.html',
+    styleUrls: ['./image-upload.component.css']
 })
 export class ImageUploadComponent {
   selectedFile: File | null = null;

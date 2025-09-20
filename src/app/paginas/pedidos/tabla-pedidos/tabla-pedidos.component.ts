@@ -23,12 +23,11 @@ import { PedidoService } from '../../../services/pedido.service';
 
 import { Pedido } from '../../interfaces/pedido';
 @Component({
-  selector: 'app-tabla-pedidos',
-  standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatTableModule, MatTabsModule],
-  templateUrl: './tabla-pedidos.component.html',
-  styleUrl: './tabla-pedidos.component.css'
+    selector: 'app-tabla-pedidos',
+    imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatTableModule, MatTabsModule],
+    templateUrl: './tabla-pedidos.component.html',
+    styleUrl: './tabla-pedidos.component.css'
 })
 
 export class TablaPedidosComponent implements OnInit {

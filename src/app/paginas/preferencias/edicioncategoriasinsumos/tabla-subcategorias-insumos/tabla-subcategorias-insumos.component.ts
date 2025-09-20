@@ -14,11 +14,10 @@ import { AgregarSubcategoriasInsumosComponent } from '../agregar-subcategorias-i
 import { EliminarSubcategoriasInsumosComponent } from '../eliminar-subcategorias-insumos/eliminar-subcategorias-insumos.component';
 
 @Component({
-  selector: 'app-tabla-subcategorias-insumos',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
-  templateUrl: './tabla-subcategorias-insumos.component.html',
-  styleUrl: './tabla-subcategorias-insumos.component.css'
+    selector: 'app-tabla-subcategorias-insumos',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+    templateUrl: './tabla-subcategorias-insumos.component.html',
+    styleUrl: './tabla-subcategorias-insumos.component.css'
 })
 export class TablaSubcategoriasInsumosComponent {
   displayedColumns: string[] = ['IdSubCategoria', 'NombreSubCategoria', 'delete'];

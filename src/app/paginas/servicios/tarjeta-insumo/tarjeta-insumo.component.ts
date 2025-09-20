@@ -6,11 +6,10 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { InsumosBase } from '../../interfaces/insumosbase';
 
 @Component({
-  selector: 'app-tarjeta-insumo',
-  standalone: true,
-  imports: [MatIcon, CurrencyPipe, CommonModule, MatButton, MatIconButton],
-  templateUrl: './tarjeta-insumo.component.html',
-  styleUrl: './tarjeta-insumo.component.css'
+    selector: 'app-tarjeta-insumo',
+    imports: [MatIcon, CurrencyPipe, CommonModule, MatButton, MatIconButton],
+    templateUrl: './tarjeta-insumo.component.html',
+    styleUrl: './tarjeta-insumo.component.css'
 })
 export class TarjetaInsumoComponent {
   @Input() image!: string;

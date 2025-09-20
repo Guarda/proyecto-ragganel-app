@@ -15,24 +15,23 @@ import { Cliente } from '../../interfaces/clientes';
 import { ClientesService } from '../../../services/clientes.service';
 
 @Component({
-  selector: 'app-crear-cliente',
-  standalone: true,
-  imports: [
-    NgFor,
-    ReactiveFormsModule,
-    MatSelectModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIcon,
-    MatFormField,
-    MatLabel,
-    FormsModule,
-    MatInputModule,
-    MatFormFieldModule,
-    CommonModule
-  ],
-  templateUrl: './crear-cliente.component.html',
-  styleUrl: './crear-cliente.component.css'
+    selector: 'app-crear-cliente',
+    imports: [
+        NgFor,
+        ReactiveFormsModule,
+        MatSelectModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatIcon,
+        MatFormField,
+        MatLabel,
+        FormsModule,
+        MatInputModule,
+        MatFormFieldModule,
+        CommonModule
+    ],
+    templateUrl: './crear-cliente.component.html',
+    styleUrl: './crear-cliente.component.css'
 })
 export class CrearClienteComponent {
   @Output() Agregado = new EventEmitter(); // Emisor de eventos para notificar la creación del cliente

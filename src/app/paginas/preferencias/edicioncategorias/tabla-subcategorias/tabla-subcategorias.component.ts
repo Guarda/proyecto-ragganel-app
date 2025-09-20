@@ -13,11 +13,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { EliminarSubcategoriaDialogComponent } from '../eliminar-subcategoria-dialog/eliminar-subcategoria-dialog.component';
 
 @Component({
-  selector: 'app-tabla-subcategorias',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
-  templateUrl: './tabla-subcategorias.component.html',
-  styleUrl: './tabla-subcategorias.component.css'
+    selector: 'app-tabla-subcategorias',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule],
+    templateUrl: './tabla-subcategorias.component.html',
+    styleUrl: './tabla-subcategorias.component.css'
 })
 export class TablaSubcategoriasComponent {
   displayedColumns: string[] = ['IdSubCategoria', 'NombreSubCategoria', 'delete'];

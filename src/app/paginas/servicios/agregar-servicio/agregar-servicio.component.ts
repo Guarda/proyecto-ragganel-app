@@ -17,12 +17,11 @@ import { ServiciosBase } from '../../interfaces/servicios';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-agregar-servicio',
-  standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatTableModule, IndexListadoInsumosComponent],
-  templateUrl: './agregar-servicio.component.html',
-  styleUrl: './agregar-servicio.component.css'
+    selector: 'app-agregar-servicio',
+    imports: [NgFor, NgIf, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatTableModule, IndexListadoInsumosComponent],
+    templateUrl: './agregar-servicio.component.html',
+    styleUrl: './agregar-servicio.component.css'
 })
 export class AgregarServicioComponent {
 

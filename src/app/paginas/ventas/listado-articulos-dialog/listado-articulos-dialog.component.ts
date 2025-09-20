@@ -8,11 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { CarritoService } from '../../../services/carrito.service';
 
 @Component({
-  selector: 'app-listado-articulos-dialog',
-  standalone: true,
-  imports: [MatDialogContent, MatDialogModule, MatDialogActions, CommonModule, MatIcon, MatTooltipModule, MatButtonModule, MatDialogClose],
-  templateUrl: './listado-articulos-dialog.component.html',
-  styleUrl: './listado-articulos-dialog.component.css'
+    selector: 'app-listado-articulos-dialog',
+    imports: [MatDialogContent, MatDialogModule, MatDialogActions, CommonModule, MatIcon, MatTooltipModule, MatButtonModule, MatDialogClose],
+    templateUrl: './listado-articulos-dialog.component.html',
+    styleUrl: './listado-articulos-dialog.component.css'
 })
 export class ListadoArticulosDialogComponent {
 

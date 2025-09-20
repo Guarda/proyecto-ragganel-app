@@ -15,11 +15,10 @@ import { FabricanteAccesorio } from '../../../interfaces/fabricantesaccesorios';
 import { FabricanteAccesorioService } from '../../../../services/fabricante-accesorio.service';
 
 @Component({
-  selector: 'app-tabla-fabricantes-accesorios',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesAccesoriosDialogComponent],
-  templateUrl: './tabla-fabricantes-accesorios.component.html',
-  styleUrl: './tabla-fabricantes-accesorios.component.css'
+    selector: 'app-tabla-fabricantes-accesorios',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesAccesoriosDialogComponent],
+    templateUrl: './tabla-fabricantes-accesorios.component.html',
+    styleUrl: './tabla-fabricantes-accesorios.component.css'
 })
 export class TablaFabricantesAccesoriosComponent {
   displayedColumns: string[] = ['IdFabricante', 'NombreFabricante', 'delete'];

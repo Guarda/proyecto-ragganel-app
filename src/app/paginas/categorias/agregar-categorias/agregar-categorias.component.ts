@@ -28,13 +28,12 @@ import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-
 import { SharedService } from '../../../services/shared.service';
 
 @Component({
-  selector: 'app-agregar-categorias',
-  standalone: true,
-  imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-    ImageUploadComponent],
-  templateUrl: './agregar-categorias.component.html',
-  styleUrl: './agregar-categorias.component.css'
+    selector: 'app-agregar-categorias',
+    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
+        ImageUploadComponent],
+    templateUrl: './agregar-categorias.component.html',
+    styleUrl: './agregar-categorias.component.css'
 })
 export class AgregarCategoriasComponent {
 

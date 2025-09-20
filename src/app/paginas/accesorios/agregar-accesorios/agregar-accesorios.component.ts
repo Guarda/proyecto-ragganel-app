@@ -30,12 +30,11 @@ import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosb
 
 // import { Categorias}
 @Component({
-  selector: 'app-agregar-accesorios',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
-  templateUrl: './agregar-accesorios.component.html',
-  styleUrl: './agregar-accesorios.component.css'
+    selector: 'app-agregar-accesorios',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
+    templateUrl: './agregar-accesorios.component.html',
+    styleUrl: './agregar-accesorios.component.css'
 })
 export class AgregarAccesoriosComponent {
 

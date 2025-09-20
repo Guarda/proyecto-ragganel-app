@@ -14,16 +14,15 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'app-confirmacion-reemplazar-carrito-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule
-  ],
-  templateUrl: './confirmacion-reemplazar-carrito-dialog.component.html',
-  styleUrls: ['./confirmacion-reemplazar-carrito-dialog.component.css']
+    selector: 'app-confirmacion-reemplazar-carrito-dialog',
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatIconModule
+    ],
+    templateUrl: './confirmacion-reemplazar-carrito-dialog.component.html',
+    styleUrls: ['./confirmacion-reemplazar-carrito-dialog.component.css']
 })
 export class ConfirmacionReemplazarCarritoDialog {
 

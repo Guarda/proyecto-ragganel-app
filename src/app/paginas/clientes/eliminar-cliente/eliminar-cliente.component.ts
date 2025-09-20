@@ -5,11 +5,10 @@ import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } f
 import { ClientesService } from '../../../services/clientes.service';
 
 @Component({
-  selector: 'app-eliminar-cliente',
-  standalone: true,
-  imports: [MatDialogContent, MatDialogClose, MatDialogActions],
-  templateUrl: './eliminar-cliente.component.html',
-  styleUrl: './eliminar-cliente.component.css'
+    selector: 'app-eliminar-cliente',
+    imports: [MatDialogContent, MatDialogClose, MatDialogActions],
+    templateUrl: './eliminar-cliente.component.html',
+    styleUrl: './eliminar-cliente.component.css'
 })
 export class EliminarClienteComponent {
   public ClienteId: any;

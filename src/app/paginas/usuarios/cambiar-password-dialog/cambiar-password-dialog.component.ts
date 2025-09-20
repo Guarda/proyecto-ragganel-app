@@ -9,11 +9,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-cambiar-password-dialog',
-  standalone: true,
-  imports: [CommonModule, MatFormField, MatInput, MatLabel, MatError, MatDialogContent, MatDialogActions, MatDialogModule, MatFormFieldModule, ReactiveFormsModule, MatButtonModule ] ,
-  templateUrl: './cambiar-password-dialog.component.html',
-  styleUrls: ['./cambiar-password-dialog.component.css']
+    selector: 'app-cambiar-password-dialog',
+    imports: [CommonModule, MatFormField, MatInput, MatLabel, MatError, MatDialogContent, MatDialogActions, MatDialogModule, MatFormFieldModule, ReactiveFormsModule, MatButtonModule],
+    templateUrl: './cambiar-password-dialog.component.html',
+    styleUrls: ['./cambiar-password-dialog.component.css']
 })
 export class CambiarPasswordDialogComponent {
   changePasswordForm: FormGroup;

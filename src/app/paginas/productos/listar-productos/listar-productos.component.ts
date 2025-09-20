@@ -20,15 +20,14 @@ import { EliminarProductosComponent } from '../eliminar-productos/eliminar-produ
 import { HistorialProductoComponent } from '../historial-producto/historial-producto.component';
 
 @Component({
-  selector: 'app-listar-productos',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listar-productos.component.html',
-  styleUrls: ['./listar-productos.component.css']
+    selector: 'app-listar-productos',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listar-productos.component.html',
+    styleUrls: ['./listar-productos.component.css']
 })
 export class ListarProductosComponent implements AfterViewInit {
   displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase', 'Action'];

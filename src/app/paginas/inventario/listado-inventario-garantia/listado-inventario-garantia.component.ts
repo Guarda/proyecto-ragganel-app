@@ -24,15 +24,14 @@ import { AccesorioBaseService } from '../../../services/accesorio-base.service';
 import { ArticuloInventario } from '../../interfaces/articuloinventario';
 
 @Component({
-  selector: 'app-listado-inventario-garantia',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, MatTableModule, MatPaginatorModule, MatSortModule,
-    MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-    MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listado-inventario-garantia.component.html',
-  styleUrls: ['./listado-inventario-garantia.component.css'] // Asegúrate que el nombre del archivo CSS sea correcto
+    selector: 'app-listado-inventario-garantia',
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatPaginatorModule, MatSortModule,
+        MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
+        MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listado-inventario-garantia.component.html',
+    styleUrls: ['./listado-inventario-garantia.component.css'] // Asegúrate que el nombre del archivo CSS sea correcto
 })
 export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit {
   // Define las columnas que se mostrarán en la tabla de garantía

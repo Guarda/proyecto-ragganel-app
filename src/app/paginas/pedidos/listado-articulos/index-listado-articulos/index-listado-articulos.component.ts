@@ -59,11 +59,10 @@ import { MatIcon } from '@angular/material/icon';
 
 
 @Component({
-  selector: 'app-index-listado-articulos',
-  standalone: true,
-  imports: [MatButtonModule, MatTableModule, CurrencyPipe, MatIcon, TarjetaArticuloComponent, CommonModule],
-  templateUrl: './index-listado-articulos.component.html',
-  styleUrl: './index-listado-articulos.component.css'
+    selector: 'app-index-listado-articulos',
+    imports: [MatButtonModule, MatTableModule, CurrencyPipe, MatIcon, TarjetaArticuloComponent, CommonModule],
+    templateUrl: './index-listado-articulos.component.html',
+    styleUrl: './index-listado-articulos.component.css'
 })
 export class IndexListadoArticulosComponent {
   displayedColumns: string[] = [

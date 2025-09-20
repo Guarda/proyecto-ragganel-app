@@ -10,11 +10,10 @@ import { CostDistributionService } from './cost-distribution.service';
 import { ModeloDistribucion } from './cost-distribution.service';
 
 @Component({
-  selector: 'app-cost-distribution-dialog',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule],
-  templateUrl: './cost-distribution-dialog.component.html',
-  styleUrls: ['./cost-distribution-dialog.component.css']
+    selector: 'app-cost-distribution-dialog',
+    imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule],
+    templateUrl: './cost-distribution-dialog.component.html',
+    styleUrls: ['./cost-distribution-dialog.component.css']
 })
 export class CostDistributionDialogComponent implements OnInit {
   distribucionForm: FormGroup;

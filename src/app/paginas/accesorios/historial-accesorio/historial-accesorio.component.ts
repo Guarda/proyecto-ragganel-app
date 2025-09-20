@@ -4,11 +4,10 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-historial-accesorio',
-  standalone: true,
-  imports: [CommonModule, MatDialogContent, MatDialogClose],
-  templateUrl: './historial-accesorio.component.html',
-  styleUrl: './historial-accesorio.component.css'
+    selector: 'app-historial-accesorio',
+    imports: [CommonModule, MatDialogContent, MatDialogClose],
+    templateUrl: './historial-accesorio.component.html',
+    styleUrl: './historial-accesorio.component.css'
 })
 export class HistorialAccesorioComponent implements OnInit{
    @Input() codigoAccesorio!: string;

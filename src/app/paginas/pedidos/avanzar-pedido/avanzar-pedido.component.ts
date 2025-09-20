@@ -4,11 +4,10 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogClose, MatDialog
 import { IngresarInventarioComponent } from '../ingresar-inventario/ingresar-inventario.component';
 
 @Component({
-  selector: 'app-avanzar-pedido',
-  imports: [MatDialogClose, MatDialogActions, MatDialogModule, MatDialogContent],
-  standalone: true,
-  templateUrl: './avanzar-pedido.component.html',
-  styleUrl: './avanzar-pedido.component.css'
+    selector: 'app-avanzar-pedido',
+    imports: [MatDialogClose, MatDialogActions, MatDialogModule, MatDialogContent],
+    templateUrl: './avanzar-pedido.component.html',
+    styleUrl: './avanzar-pedido.component.css'
 })
 export class AvanzarPedidoComponent implements OnInit {
   public OrderId: any;

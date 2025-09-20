@@ -36,13 +36,12 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 
 
 @Component({
-  selector: 'app-ver-producto',
-  standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule
-    , MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule
-  ],
-  templateUrl: './ver-producto.component.html',
-  styleUrl: './ver-producto.component.css'
+    selector: 'app-ver-producto',
+    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule
+    ],
+    templateUrl: './ver-producto.component.html',
+    styleUrl: './ver-producto.component.css'
 })
 export class VerProductoComponent {
   keywords = signal(['']);

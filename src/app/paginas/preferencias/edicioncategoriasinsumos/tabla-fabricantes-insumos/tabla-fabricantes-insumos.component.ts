@@ -15,11 +15,10 @@ import { FabricanteInsumos } from '../../../interfaces/fabricantesinsumos';
 import { FabricanteInsumoService } from '../../../../services/fabricante-insumo.service';
 
 @Component({
-  selector: 'app-tabla-fabricantes-insumos',
-  standalone: true,
-  imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesInsumosDialogComponent],
-  templateUrl: './tabla-fabricantes-insumos.component.html',
-  styleUrl: './tabla-fabricantes-insumos.component.css'
+    selector: 'app-tabla-fabricantes-insumos',
+    imports: [MatTableModule, MatIcon, MatFormField, MatLabel, MatInputModule, MatButtonModule, AgregarFabricantesInsumosDialogComponent],
+    templateUrl: './tabla-fabricantes-insumos.component.html',
+    styleUrl: './tabla-fabricantes-insumos.component.css'
 })
 export class TablaFabricantesInsumosComponent {
   displayedColumns: string[] = ['IdFabricante', 'NombreFabricante', 'delete'];

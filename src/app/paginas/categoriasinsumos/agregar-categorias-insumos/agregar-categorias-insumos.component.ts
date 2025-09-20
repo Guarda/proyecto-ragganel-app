@@ -29,13 +29,12 @@ import { ImageUploadInsumoComponent } from '../../../utiles/images/image-upload-
 import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
 
 @Component({
-  selector: 'app-agregar-categorias-insumos',
-  standalone: true,
-  imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-    ImageUploadComponent, ImageUploadInsumoComponent],
-  templateUrl: './agregar-categorias-insumos.component.html',
-  styleUrl: './agregar-categorias-insumos.component.css'
+    selector: 'app-agregar-categorias-insumos',
+    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
+        ImageUploadComponent, ImageUploadInsumoComponent],
+    templateUrl: './agregar-categorias-insumos.component.html',
+    styleUrl: './agregar-categorias-insumos.component.css'
 })
 export class AgregarCategoriasInsumosComponent {
 

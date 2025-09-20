@@ -31,13 +31,12 @@ import { TiposAccesoriosService } from '../../../services/tipos-accesorios.servi
 import { TipoAccesorios } from '../../interfaces/accesorios';
 
 @Component({
-  selector: 'app-agregar-produtos',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, 
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule,  MatChipsModule ],
-  templateUrl: './agregar-produtos.component.html',
-  styleUrl: './agregar-produtos.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-agregar-produtos',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
+    templateUrl: './agregar-produtos.component.html',
+    styleUrl: './agregar-produtos.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AgregarProdutosComponent {
 

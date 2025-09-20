@@ -12,11 +12,10 @@ import { SubcategoriaAccesorioService } from '../../../../services/subcategoria-
 
 
 @Component({
-  selector: 'app-agregar-subcategorias-accesorios-dialog',
-  standalone: true,
-  imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-  templateUrl: './agregar-subcategorias-accesorios-dialog.component.html',
-  styleUrl: './agregar-subcategorias-accesorios-dialog.component.css'
+    selector: 'app-agregar-subcategorias-accesorios-dialog',
+    imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
+    templateUrl: './agregar-subcategorias-accesorios-dialog.component.html',
+    styleUrl: './agregar-subcategorias-accesorios-dialog.component.css'
 })
 export class AgregarSubcategoriasAccesoriosDialogComponent {
 

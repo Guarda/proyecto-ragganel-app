@@ -17,11 +17,10 @@ import { EstadoConsolasService } from '../../../services/estado-consolas.service
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 
 @Component({
-  selector: 'app-editar-productos',
-  standalone: true,
-  imports: [NgIf, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule],
-  templateUrl: './editar-productos.component.html',
-  styleUrl: './editar-productos.component.css'
+    selector: 'app-editar-productos',
+    imports: [NgIf, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule],
+    templateUrl: './editar-productos.component.html',
+    styleUrl: './editar-productos.component.css'
 })
 export class EditarProductosComponent {
 

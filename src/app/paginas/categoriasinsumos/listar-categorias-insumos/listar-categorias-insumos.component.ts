@@ -21,12 +21,11 @@ import { EditarCategoriasInumosComponent } from '../editar-categorias-inumos/edi
 import { EliminarCategoriasInsumosComponent } from '../eliminar-categorias-insumos/eliminar-categorias-insumos.component';
 
 @Component({
-  selector: 'app-listar-categorias-insumos',
-  standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
-  templateUrl: './listar-categorias-insumos.component.html',
-  styleUrl: './listar-categorias-insumos.component.css'
+    selector: 'app-listar-categorias-insumos',
+    imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
+    templateUrl: './listar-categorias-insumos.component.html',
+    styleUrl: './listar-categorias-insumos.component.css'
 })
 export class ListarCategoriasInsumosComponent {
 

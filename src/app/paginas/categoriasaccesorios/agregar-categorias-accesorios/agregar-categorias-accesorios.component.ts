@@ -29,13 +29,12 @@ import { ImageUploadAccesorioComponent } from "../../../utiles/images/image-uplo
 
 
 @Component({
-  selector: 'app-agregar-categorias-accesorios',
-  standalone: true,
-  imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-    ImageUploadComponent, ImageUploadAccesorioComponent],
-  templateUrl: './agregar-categorias-accesorios.component.html',
-  styleUrl: './agregar-categorias-accesorios.component.css'
+    selector: 'app-agregar-categorias-accesorios',
+    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
+        ImageUploadComponent, ImageUploadAccesorioComponent],
+    templateUrl: './agregar-categorias-accesorios.component.html',
+    styleUrl: './agregar-categorias-accesorios.component.css'
 })
 export class AgregarCategoriasAccesoriosComponent {
 

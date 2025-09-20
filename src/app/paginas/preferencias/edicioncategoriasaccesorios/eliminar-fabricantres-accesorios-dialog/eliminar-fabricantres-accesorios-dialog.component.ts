@@ -9,11 +9,10 @@ import { FabricanteAccesorioService } from '../../../../services/fabricante-acce
 import { FabricanteAccesorio } from '../../../interfaces/fabricantesaccesorios';
 
 @Component({
-  selector: 'app-eliminar-fabricantres-accesorios-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions,MatButton, MatButtonModule],
-  templateUrl: './eliminar-fabricantres-accesorios-dialog.component.html',
-  styleUrl: './eliminar-fabricantres-accesorios-dialog.component.css'
+    selector: 'app-eliminar-fabricantres-accesorios-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
+    templateUrl: './eliminar-fabricantres-accesorios-dialog.component.html',
+    styleUrl: './eliminar-fabricantres-accesorios-dialog.component.css'
 })
 export class EliminarFabricantresAccesoriosDialogComponent {
 

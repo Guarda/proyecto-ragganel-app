@@ -5,17 +5,16 @@ import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms'; // Importante para [(ngModel)]
 
 @Component({
-  selector: 'app-dialog-descargar-pdf-venta',
-  standalone: true,
-  // Asegúrate de que los módulos necesarios estén aquí
-  imports: [
-    FormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatRadioModule
-  ],
-  templateUrl: './dialog-descargar-pdf-venta.component.html',
-  styleUrl: './dialog-descargar-pdf-venta.component.css'
+    selector: 'app-dialog-descargar-pdf-venta',
+    // Asegúrate de que los módulos necesarios estén aquí
+    imports: [
+        FormsModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatRadioModule
+    ],
+    templateUrl: './dialog-descargar-pdf-venta.component.html',
+    styleUrl: './dialog-descargar-pdf-venta.component.css'
 })
 export class DialogDescargarPdfVentaComponent {
 

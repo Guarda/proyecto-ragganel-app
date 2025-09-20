@@ -7,11 +7,10 @@ import { HistorialArticulo } from '../../../services/inventario-general.service'
 import { HistorialData } from '../../interfaces/historialdata';
 
 @Component({
-  selector: 'app-historial-articulo-dialog',
-  standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
-  templateUrl: './historial-articulo-dialog.component.html',
-  styleUrls: ['./historial-articulo-dialog.component.css']
+    selector: 'app-historial-articulo-dialog',
+    imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+    templateUrl: './historial-articulo-dialog.component.html',
+    styleUrls: ['./historial-articulo-dialog.component.css']
 })
 export class HistorialArticuloDialogComponent {
   constructor(@Inject(MAT_DIALOG_DATA) public data: HistorialData) {}

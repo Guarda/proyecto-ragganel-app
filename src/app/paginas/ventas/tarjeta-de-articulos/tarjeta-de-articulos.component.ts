@@ -5,11 +5,10 @@ import { ListadoArticulosDialogComponent } from '../listado-articulos-dialog/lis
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-tarjeta-de-articulos',
-  standalone: true,
-  imports: [CommonModule, ListadoArticulosDialogComponent],
-  templateUrl: './tarjeta-de-articulos.component.html',
-  styleUrl: './tarjeta-de-articulos.component.css'
+    selector: 'app-tarjeta-de-articulos',
+    imports: [CommonModule, ListadoArticulosDialogComponent],
+    templateUrl: './tarjeta-de-articulos.component.html',
+    styleUrl: './tarjeta-de-articulos.component.css'
 })
 export class TarjetaDeArticulosComponent {
   @Input() articulos: ArticuloVenta[] = [];

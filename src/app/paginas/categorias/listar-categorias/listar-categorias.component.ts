@@ -21,13 +21,12 @@ import { EditarCategoriasComponent } from '../editar-categorias/editar-categoria
 import { EliminarCategoriasComponent } from '../eliminar-categorias/eliminar-categorias.component';
 
 @Component({
-  selector: 'app-listar-categorias',
-  standalone: true,
-  imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-    MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
-  templateUrl: './listar-categorias.component.html',
-  styleUrl: './listar-categorias.component.css',
-  schemas: [NO_ERRORS_SCHEMA] // Add NO_ERRORS_SCHEMA here
+    selector: 'app-listar-categorias',
+    imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
+    templateUrl: './listar-categorias.component.html',
+    styleUrl: './listar-categorias.component.css',
+    schemas: [NO_ERRORS_SCHEMA] // Add NO_ERRORS_SCHEMA here
 })
 export class ListarCategoriasComponent implements AfterViewInit {
 

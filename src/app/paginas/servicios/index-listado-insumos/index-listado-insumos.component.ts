@@ -25,12 +25,11 @@ import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { TarjetaInsumoComponent } from '../tarjeta-insumo/tarjeta-insumo.component';
 
 @Component({
-  selector: 'app-index-listado-insumos',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, TarjetaInsumoComponent],
-  templateUrl: './index-listado-insumos.component.html',
-  styleUrl: './index-listado-insumos.component.css'
+    selector: 'app-index-listado-insumos',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, TarjetaInsumoComponent],
+    templateUrl: './index-listado-insumos.component.html',
+    styleUrl: './index-listado-insumos.component.css'
 })
 export class IndexListadoInsumosComponent {
 

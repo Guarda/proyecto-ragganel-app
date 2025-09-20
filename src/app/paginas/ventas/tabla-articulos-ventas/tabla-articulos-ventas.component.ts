@@ -25,11 +25,10 @@ import { VentasBaseService } from '../../../services/ventas-base.service';
 import { DialogIngresarPrecioArticuloComponent } from '../dialog-ingresar-precio-articulo/dialog-ingresar-precio-articulo.component';
 
 @Component({
-  selector: 'app-tabla-articulos-ventas',
-  standalone: true,
-  imports: [TarjetaDeArticulosComponent, CommonModule, FormsModule, DialogIngresarPrecioArticuloComponent],
-  templateUrl: './tabla-articulos-ventas.component.html',
-  styleUrls: ['./tabla-articulos-ventas.component.css']
+    selector: 'app-tabla-articulos-ventas',
+    imports: [TarjetaDeArticulosComponent, CommonModule, FormsModule, DialogIngresarPrecioArticuloComponent],
+    templateUrl: './tabla-articulos-ventas.component.html',
+    styleUrls: ['./tabla-articulos-ventas.component.css']
 })
 export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChanges {
 

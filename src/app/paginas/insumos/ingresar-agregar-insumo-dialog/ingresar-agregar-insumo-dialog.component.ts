@@ -4,11 +4,10 @@ import { AgregarInsumosComponent } from '../agregar-insumos/agregar-insumos.comp
 import { IngresarStockInsumosComponent } from '../ingresar-stock-insumos/ingresar-stock-insumos.component';
 
 @Component({
-  selector: 'app-ingresar-agregar-insumo-dialog',
-  imports: [MatDialogClose, MatDialogActions, MatDialogModule, MatDialogContent ],
-  templateUrl: './ingresar-agregar-insumo-dialog.component.html',
-  styleUrls: ['./ingresar-agregar-insumo-dialog.component.css'],
-  standalone: true
+    selector: 'app-ingresar-agregar-insumo-dialog',
+    imports: [MatDialogClose, MatDialogActions, MatDialogModule, MatDialogContent],
+    templateUrl: './ingresar-agregar-insumo-dialog.component.html',
+    styleUrls: ['./ingresar-agregar-insumo-dialog.component.css']
 })
 export class IngresarAgregarInsumoDialogComponent {
   @Output() Agregado = new EventEmitter<void>();

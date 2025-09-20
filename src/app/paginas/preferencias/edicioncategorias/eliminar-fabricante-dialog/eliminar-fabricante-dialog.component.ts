@@ -8,11 +8,10 @@ import { FabricanteProducto } from '../../../interfaces/fabricantesproductos';
 import { MatButton, MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-eliminar-fabricante-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions,MatButton, MatButtonModule],
-  templateUrl: './eliminar-fabricante-dialog.component.html',
-  styleUrl: './eliminar-fabricante-dialog.component.css'
+    selector: 'app-eliminar-fabricante-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButton, MatButtonModule],
+    templateUrl: './eliminar-fabricante-dialog.component.html',
+    styleUrl: './eliminar-fabricante-dialog.component.css'
 })
 export class EliminarFabricanteDialogComponent {
   Borrado = new EventEmitter();

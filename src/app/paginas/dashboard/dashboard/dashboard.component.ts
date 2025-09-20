@@ -11,14 +11,13 @@ import { DashboardService } from '../../../services/dashboard.service';
 import { DashboardData } from '../../interfaces/dashboarddata';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [
-    CommonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule,
-    MatButtonModule, NgxChartsModule, MatDividerModule
-  ],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+    selector: 'app-dashboard',
+    imports: [
+        CommonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule,
+        MatButtonModule, NgxChartsModule, MatDividerModule
+    ],
+    templateUrl: './dashboard.component.html',
+    styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
 

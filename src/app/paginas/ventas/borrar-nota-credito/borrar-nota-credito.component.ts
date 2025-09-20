@@ -11,14 +11,13 @@ import { NotasCreditoService } from '../../../services/notas-credito.service';
 import { AuthService } from '../../../UI/session/auth.service';
 
 @Component({
-  selector: 'app-borrar-nota-credito',
-  standalone: true,
-  imports: [
-    CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, 
-    MatInputModule, MatButtonModule
-  ],
-  templateUrl: './borrar-nota-credito.component.html',
-  styleUrls: ['./borrar-nota-credito.component.css']
+    selector: 'app-borrar-nota-credito',
+    imports: [
+        CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule,
+        MatInputModule, MatButtonModule
+    ],
+    templateUrl: './borrar-nota-credito.component.html',
+    styleUrls: ['./borrar-nota-credito.component.css']
 })
 export class BorrarNotaCreditoComponent implements OnInit {
   anulacionForm: FormGroup;

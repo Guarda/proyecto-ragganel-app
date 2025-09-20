@@ -6,11 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { SubcategoriaAccesorioService } from '../../../../services/subcategoria-accesorio.service';
 
 @Component({
-  selector: 'app-eliminar-subcategorias-accesorios-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions, MatButtonModule],
-  templateUrl: './eliminar-subcategorias-accesorios-dialog.component.html',
-  styleUrl: './eliminar-subcategorias-accesorios-dialog.component.css'
+    selector: 'app-eliminar-subcategorias-accesorios-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButtonModule],
+    templateUrl: './eliminar-subcategorias-accesorios-dialog.component.html',
+    styleUrl: './eliminar-subcategorias-accesorios-dialog.component.css'
 })
 export class EliminarSubcategoriasAccesoriosDialogComponent {
   Borrado = new EventEmitter();

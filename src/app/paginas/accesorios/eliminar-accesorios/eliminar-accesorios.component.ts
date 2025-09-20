@@ -5,11 +5,10 @@ import { AccesorioBaseService } from '../../../services/accesorio-base.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
-  selector: 'app-eliminar-accesorios',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions],
-  templateUrl: './eliminar-accesorios.component.html',
-  styleUrl: './eliminar-accesorios.component.css'
+    selector: 'app-eliminar-accesorios',
+    imports: [MatDialogModule, MatDialogActions],
+    templateUrl: './eliminar-accesorios.component.html',
+    styleUrl: './eliminar-accesorios.component.css'
 })
 export class EliminarAccesoriosComponent {
   Borrado = new EventEmitter();

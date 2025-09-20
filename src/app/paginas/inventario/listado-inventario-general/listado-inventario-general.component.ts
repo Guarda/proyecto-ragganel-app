@@ -18,15 +18,14 @@ import { HistorialArticuloDialogComponent } from '../historial-articulo-dialog/h
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-listado-inventario-general',
-  standalone: true,
-  imports: [
-    CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
-    MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-    MatProgressSpinnerModule, MatTooltipModule
-  ],
-  templateUrl: './listado-inventario-general.component.html',
-  styleUrls: ['./listado-inventario-general.component.css']
+    selector: 'app-listado-inventario-general',
+    imports: [
+        CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
+        MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
+        MatProgressSpinnerModule, MatTooltipModule
+    ],
+    templateUrl: './listado-inventario-general.component.html',
+    styleUrls: ['./listado-inventario-general.component.css']
 })
 export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit {
   // Define las columnas que se mostrarán en la tabla

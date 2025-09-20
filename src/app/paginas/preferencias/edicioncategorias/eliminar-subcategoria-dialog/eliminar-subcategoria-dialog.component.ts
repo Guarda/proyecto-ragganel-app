@@ -7,11 +7,10 @@ import { MatButtonModule } from '@angular/material/button';
 
 
 @Component({
-  selector: 'app-eliminar-subcategoria-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions, MatButtonModule],
-  templateUrl: './eliminar-subcategoria-dialog.component.html',
-  styleUrl: './eliminar-subcategoria-dialog.component.css'
+    selector: 'app-eliminar-subcategoria-dialog',
+    imports: [MatDialogModule, MatDialogActions, MatButtonModule],
+    templateUrl: './eliminar-subcategoria-dialog.component.html',
+    styleUrl: './eliminar-subcategoria-dialog.component.css'
 })
 export class EliminarSubcategoriaDialogComponent {
   Borrado = new EventEmitter();

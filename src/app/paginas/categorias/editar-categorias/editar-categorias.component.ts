@@ -22,12 +22,11 @@ import { FabricanteService } from '../../../services/fabricante.service';
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
 @Component({
-  selector: 'app-editar-categorias',
-  standalone: true,
-  imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-    NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
-  templateUrl: './editar-categorias.component.html',
-  styleUrl: './editar-categorias.component.css'
+    selector: 'app-editar-categorias',
+    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
+    templateUrl: './editar-categorias.component.html',
+    styleUrl: './editar-categorias.component.css'
 })
 export class EditarCategoriasComponent {
 

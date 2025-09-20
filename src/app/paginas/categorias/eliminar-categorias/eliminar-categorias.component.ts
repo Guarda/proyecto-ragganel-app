@@ -5,11 +5,10 @@ import { Router } from '@angular/router';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 
 @Component({
-  selector: 'app-eliminar-categorias',
-  standalone: true,
-  imports: [MatDialogModule, MatDialogActions],
-  templateUrl: './eliminar-categorias.component.html',
-  styleUrl: './eliminar-categorias.component.css'
+    selector: 'app-eliminar-categorias',
+    imports: [MatDialogModule, MatDialogActions],
+    templateUrl: './eliminar-categorias.component.html',
+    styleUrl: './eliminar-categorias.component.css'
 })
 export class EliminarCategoriasComponent {
   Borrado = new EventEmitter();

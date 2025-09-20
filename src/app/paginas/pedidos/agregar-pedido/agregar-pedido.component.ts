@@ -39,15 +39,14 @@ import { debounceTime, merge, Subscription } from 'rxjs';
 
 
 @Component({
-  selector: 'app-agregar-pedido',
-  standalone: true,
-  imports: [CommonModule, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule,
-    MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule,
-    MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatHint, IndexListadoArticulosComponent, MatButton
-  ],
-  templateUrl: './agregar-pedido.component.html',
-  styleUrl: './agregar-pedido.component.css',
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]  // Add this line
+    selector: 'app-agregar-pedido',
+    imports: [CommonModule, NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule,
+        MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule,
+        MatChipsModule, MatDatepickerModule, MatNativeDateModule, MatHint, IndexListadoArticulosComponent, MatButton
+    ],
+    templateUrl: './agregar-pedido.component.html',
+    styleUrl: './agregar-pedido.component.css',
+    schemas: [CUSTOM_ELEMENTS_SCHEMA] // Add this line
 })
 export class AgregarPedidoComponent implements OnInit, AfterViewInit {
 

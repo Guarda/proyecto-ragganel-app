@@ -33,13 +33,12 @@ import { Producto } from '../../../interfaces/producto';
 import { MatCardActions, MatCardContent } from '@angular/material/card';
 
 @Component({
-  selector: 'app-ingresar-productos-pedido',
-  standalone: true,
-  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-    MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions
-  ],
-  templateUrl: './ingresar-productos-pedido.component.html',
-  styleUrl: './ingresar-productos-pedido.component.css'
+    selector: 'app-ingresar-productos-pedido',
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, CommonModule, MatCardContent, MatCardActions
+    ],
+    templateUrl: './ingresar-productos-pedido.component.html',
+    styleUrl: './ingresar-productos-pedido.component.css'
 })
 export class IngresarProductosPedidoComponent {
   @Input() stepperIndex: number = 0;

@@ -10,15 +10,14 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'app-dialogo-confirmacion',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule, // Necesario para las directivas mat-dialog-*
-    MatButtonModule
-  ],
-  templateUrl: './dialogo-confirmacion.component.html',
-  styleUrls: ['./dialogo-confirmacion.component.css']
+    selector: 'app-dialogo-confirmacion',
+    imports: [
+        CommonModule,
+        MatDialogModule, // Necesario para las directivas mat-dialog-*
+        MatButtonModule
+    ],
+    templateUrl: './dialogo-confirmacion.component.html',
+    styleUrls: ['./dialogo-confirmacion.component.css']
 })
 export class DialogoConfirmacionComponent {
   // Inyectamos los datos pasados al diálogo usando el token MAT_DIALOG_DATA
