@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -11,16 +11,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subscription } from 'rxjs';
 
 import { Usuarios } from '../../interfaces/usuarios';
 import { UsuariosService } from '../../../services/usuarios.service';
 import { CrearUsuariosComponent } from '../crear-usuarios/crear-usuarios.component';
 import { DesactivarUsuarioComponent } from '../desactivar-usuario/desactivar-usuario.component';
-// Importa el componente de eliminar si lo tienes, si no, puedes omitir esta línea
-// import { EliminarUsuarioComponent } from '../eliminar-usuario/eliminar-usuario.component';
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
 
 @Component({
     selector: 'app-listar-usuarios',
+    standalone: true,
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
         MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
@@ -29,19 +31,24 @@ import { DesactivarUsuarioComponent } from '../desactivar-usuario/desactivar-usu
     templateUrl: './listar-usuarios.component.html',
     styleUrls: ['./listar-usuarios.component.css']
 })
-export class ListarUsuariosComponent implements OnInit, AfterViewInit {
+export class ListarUsuariosComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['IdUsuarioPK', 'Nombre', 'Correo', 'DescripcionEstado', 'FechaIngresoUsuario', 'NombreRol', 'Action'];
   dataSource = new MatTableDataSource<Usuarios>();
 
   isLoading = true;
   errorMessage: string | null = null;
 
+  private readonly tableStateKey = 'usuariosTableState';
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   constructor(
     public usuarioService: UsuariosService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private stateService: TableStatePersistenceService
   ) { }
 
   ngOnInit(): void {
@@ -51,6 +58,15 @@ export class ListarUsuariosComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+  }
+
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
   }
 
   getUsuarioList() {
@@ -81,6 +97,44 @@ export class ListarUsuariosComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.saveState();
+  }
+
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      if (this.inputElement) {
+        this.inputElement.nativeElement.value = state.filter;
+      }
+    }
+
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
   private parsearFecha(fechaStr: string | Date | undefined): Date {

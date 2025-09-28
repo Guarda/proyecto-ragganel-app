@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogActions, MatDialogContent, MatDialogClose, MatDialogTitle } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgFor } from '@angular/common';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { MatCardModule } from '@angular/material/card';
 
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
@@ -32,8 +33,8 @@ import { TipoAccesorios } from '../../interfaces/accesorios';
 
 @Component({
     selector: 'app-agregar-produtos',
-    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
+    standalone: true,
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, MatCardModule, MatDialogActions, MatDialogContent, MatDialogClose, MatDialogTitle],
     templateUrl: './agregar-produtos.component.html',
     styleUrl: './agregar-produtos.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -293,6 +294,11 @@ export class AgregarProdutosComponent {
   // Helper method to return the current keywords array
 nkeywords(): string[] {
   return this.todolistKeywords();
+}
+
+ // Helper para acceder fácilmente al formulario en la plantilla
+ get form() {
+  return this.productoForm.controls;
 }
 
  

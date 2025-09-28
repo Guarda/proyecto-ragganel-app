@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subscription } from 'rxjs';
 
 import { AccesoriosBase } from '../../interfaces/accesoriosbase';
 import { AccesorioBaseService } from '../../../services/accesorio-base.service';
@@ -18,8 +19,13 @@ import { AgregarAccesoriosComponent } from '../agregar-accesorios/agregar-acceso
 import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-accesorios.component';
 import { HistorialAccesorioComponent } from '../historial-accesorio/historial-accesorio.component';
 
+// --- CAMBIO 2: Importar el servicio de estado y la interfaz ---
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
+
 @Component({
     selector: 'app-listar-accesorios',
+    standalone: true, // Se asume standalone por los imports
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
         MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
@@ -28,19 +34,26 @@ import { HistorialAccesorioComponent } from '../historial-accesorio/historial-ac
     templateUrl: './listar-accesorios.component.html',
     styleUrls: ['./listar-accesorios.component.css']
 })
-export class ListarAccesoriosComponent implements OnInit, AfterViewInit {
+export class ListarAccesoriosComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['CodigoAccesorio', 'DescripcionAccesorio', 'ColorAccesorio', 'EstadoAccesorio', 'FechaIngreso', 'PrecioBase', 'Action'];
   dataSource = new MatTableDataSource<AccesoriosBase>();
 
   isLoading = true;
   errorMessage: string | null = null;
 
+  // --- CAMBIO 4: Añadir propiedades para la gestión del estado ---
+  private readonly tableStateKey = 'accesoriosTableState'; // ¡Clave única para accesorios!
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   constructor(
     public accesorioService: AccesorioBaseService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    // --- CAMBIO 5: Inyectar el servicio de estado ---
+    private stateService: TableStatePersistenceService
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +63,17 @@ export class ListarAccesoriosComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+
+    // --- CAMBIO 6: Cargar estado y suscribirse a los cambios ---
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+  }
+
+  // --- CAMBIO 7: Añadir ngOnDestroy para limpiar y guardar el estado final ---
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
   }
 
   getAccesorioList() {
@@ -79,6 +103,46 @@ export class ListarAccesoriosComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    // --- CAMBIO 8: Guardar el estado al filtrar ---
+    this.saveState();
+  }
+
+  // --- CAMBIO 9: Añadir los métodos 'saveState' y 'loadAndApplyState' ---
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      if (this.inputElement) {
+        this.inputElement.nativeElement.value = state.filter;
+      }
+    }
+
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+    
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
   private parsearFecha(fechaStr: string | Date): Date {

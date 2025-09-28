@@ -1,9 +1,8 @@
-
-
 const express = require('express');
-//const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path'); 
+const fs = require('fs');
+
 const app = express();
 const port = 3000;
 
@@ -39,35 +38,78 @@ const servicesbaseRouter = require('./routes/services-base');
 const articlelistRouter = require('./routes/article-list');
 const salesbaseRouter = require('./routes/sales-base');
 const creditnotesRouter = require('./routes/credit-notes');
-const shoppingCartRouter = require('./routes/shopping-cart'); // Import the shopping cart router
-const inventoryRouter = require('./routes/inventory'); // Import the inventory router
-const dashboardRouter = require('./routes/dashboard'); // Import the dashboard router
+const shoppingCartRouter = require('./routes/shopping-cart');
+const inventoryRouter = require('./routes/inventory');
+const dashboardRouter = require('./routes/dashboard');
 const preIngresoRoutes = require('./routes/pre-ingreso');
 const costdistributionRouter = require('./routes/cost-distribution');
+const validationRoutes = require('./routes/validation');
+
 // Middleware
 app.use(express.json());
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:4200', // Your Angular app's URL
+  origin: 'http://localhost:4200',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
 }));
 
-// Serve static files from the public/img-consolas directory
+// Servir archivos estáticos de las carpetas de imágenes
 app.use('/img-consolas', express.static(path.join(__dirname, '..', 'public', 'img-consolas')));
 app.use('/img-accesorios', express.static(path.join(__dirname, '..', 'public', 'img-accesorios')));
 app.use('/img-insumos', express.static(path.join(__dirname, '..', 'public', 'img-insumos')));
 app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
 
-// Define your routes
+
+const consolasImagesDir = path.join(__dirname, '..', 'public', 'img-consolas');
+const accesoriosImagesDir = path.join(__dirname, '..', 'public', 'img-accesorios');
+const insumosImagesDir = path.join(__dirname, '..', 'public', 'img-insumos');
+
+// 2. Crea el endpoint GET para listar las imágenes de CONSOLAS (PRODUCTOS)
+app.get('/imagenes-existentes-productos', (req, res) => {
+  fs.readdir(consolasImagesDir, (err, files) => {
+    if (err) {
+      console.error('No se pudo leer el directorio de imágenes de consolas:', err);
+      return res.status(500).send('Error al leer el directorio de imágenes.');
+    }
+    res.json(files);
+  });
+});
+
+// 3. Endpoint GET para listar las imágenes de ACCESORIOS (Ya existente)
+app.get('/imagenes-existentes-accesorios', (req, res) => {
+  fs.readdir(accesoriosImagesDir, (err, files) => {
+    if (err) {
+      console.error('No se pudo leer el directorio de imágenes de accesorios:', err);
+      return res.status(500).send('Error al leer el directorio de imágenes.');
+    }
+    res.json(files);
+  });
+});
+
+// 4. Crea el endpoint GET para listar las imágenes de INSUMOS
+app.get('/imagenes-existentes-insumos', (req, res) => {
+  fs.readdir(insumosImagesDir, (err, files) => {
+    if (err) {
+      console.error('No se pudo leer el directorio de imágenes de insumos:', err);
+      return res.status(500).send('Error al leer el directorio de imágenes.');
+    }
+    res.json(files);
+  });
+});
+
+
+// --- DEFINICIÓN DE RUTAS PRINCIPALES DE LA API ---
+
 app.use('/productos', productsRouter);
 app.use('/categorias', categoriesRouter);
+// ... (el resto de tus app.use no necesita cambios)
 app.use('/fabricantes', manufacturerRouter);
 app.use('/catesubcate', catesubcateRouter);
 app.use('/accesorios', accesroriesRouter);
-app.use('/tareas', tasksRouter);
-app.use('/upload', uploadRouter);
+app.use('/tareas', tasksRouter); 
+app.use('/upload-imagen-producto', uploadRouter); // <-- CORREGIDO: Ruta renombrada para consistencia
 app.use('/accesorios-base', accessoriesbaseRouter);
 app.use('/fabricantes-accesorios', accessoriesmanufacturerRouter);
 app.use('/catesubcate-accesorios', accesoriescatesubcateRouter);
@@ -81,21 +123,22 @@ app.use('/pedidos', ordersbaseRouter);
 app.use('/usuarios',usersRouter);
 app.use('/roles',userrolesRouter);
 app.use('/estados-usuarios',userstates)
-app.use('/insumos-base', suppliesRouter); // Ruta para insumos base
-app.use('/fabricantes-insumos', suppliesmanufacturerRouter); // Ruta para fabricantes de insumos
-app.use('/catesubcate-insumos', suppliescatesubcateRouter); // Ruta para categorías y subcategorías de insumos
+app.use('/insumos-base', suppliesRouter); 
+app.use('/fabricantes-insumos', suppliesmanufacturerRouter); 
+app.use('/catesubcate-insumos', suppliescatesubcateRouter); 
 app.use('/categorias-insumos', categoriessuppliesRouter);
-app.use('/clientes', clientesRouter); // Ruta para clientes
-app.use('/servicios-base', servicesbaseRouter); // Ruta para servicios base
-app.use('/articulo-lista', articlelistRouter); // Ruta para lista de artículos
-app.use('/ventas-base', salesbaseRouter); // Ruta para ventas base
-app.use('/notas-credito', creditnotesRouter); // Ruta para notas de crédito
-app.use('/auth', authRoutes); // Ruta para autenticación
-app.use('/carrito', shoppingCartRouter); // Ruta para el carrito de compras
-app.use('/inventario', inventoryRouter); // Ruta para el inventario
-app.use('/dashboard', dashboardRouter); // Ruta para el dashboard
+app.use('/clientes', clientesRouter); 
+app.use('/servicios-base', servicesbaseRouter); 
+app.use('/articulo-lista', articlelistRouter); 
+app.use('/ventas-base', salesbaseRouter); 
+app.use('/notas-credito', creditnotesRouter); 
+app.use('/auth', authRoutes); 
+app.use('/carrito', shoppingCartRouter); 
+app.use('/inventario', inventoryRouter); 
+app.use('/dashboard', dashboardRouter); 
 app.use('/api/pre-ingreso', preIngresoRoutes);
-app.use('/api/cost-distribution', costdistributionRouter); // Ruta para distribución de costos
+app.use('/api/cost-distribution', costdistributionRouter); 
+app.use('/api/validate', validationRoutes); 
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {
   res.json({ message: 'Acceso permitido' });

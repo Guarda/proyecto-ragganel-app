@@ -14,7 +14,7 @@ import { SubcategoriaInsumoService } from '../../../../services/subcategoria-ins
     selector: 'app-agregar-subcategorias-insumos',
     templateUrl: './agregar-subcategorias-insumos.component.html',
     imports: [MatDialogActions, MatDialogModule, MatButton, MatFormField, MatLabel, ReactiveFormsModule, MatInputModule],
-    styleUrls: ['./agregar-subcategorias-insumos.component.scss']
+    styleUrls: ['./agregar-subcategorias-insumos.component.css']
 })
 export class AgregarSubcategoriasInsumosComponent  {
   SubCategoriaForm!: FormGroup;

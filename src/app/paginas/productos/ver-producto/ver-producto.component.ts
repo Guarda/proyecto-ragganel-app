@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, Inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Inject, OnInit, signal } from '@angular/core';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
 import { ProductosService } from '../productos.service';
@@ -24,8 +24,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { QRCodeModule } from 'angularx-qrcode';
+import { LiveAnnouncer } from '@angular/cdk/a11y'; 
+import { QRCodeComponent } from 'angularx-qrcode';
 import { MatDialog } from '@angular/material/dialog';
 
 import { TareasProductosService } from '../../../services/tareas-productos.service';
@@ -38,202 +38,133 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 @Component({
     selector: 'app-ver-producto',
     imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeComponent, MatCheckboxModule
     ],
     templateUrl: './ver-producto.component.html',
     styleUrl: './ver-producto.component.css'
 })
-export class VerProductoComponent {
+export class VerProductoComponent implements OnInit {
   keywords = signal(['']);
   announcer = inject(LiveAnnouncer);
 
   productoForm!: FormGroup;
-  tareasForm!: FormGroup;
 
-  id!: any;
-
+  id!: string;
   producto!: Producto;
-
   categoria!: CategoriasConsolas;
-  categoriasconsolas: CategoriasConsolas[] = [];
-  selectedCategoria: CategoriasConsolas[] = [];
-
-  estadoconsolas: EstadosConsolas[] = [];
+  
   selectedEstado: EstadosConsolas[] = [];
-
-  tareasproducto: TareasProducto[] = [];
-  tasks: TareasProducto[] = [
-    // Your initial tasks data
-  ];
-
+  tasks: TareasProducto[] = [];
+  
   selectedTipoProducto: TipoProducto[] = [];
   selectedFabricante: FabricanteProducto[] = [];
   selectedCategoriaProducto: categoriasProductos[] = [];
   selectedSubCategoriaProducto: SubcategoriasProductos[] = [];
 
-  public ConsoleId: any;
-  public consoleCode: any;
-  public consoleColor: any;
-  public consoleState: any;
-  public consoleHack: any;
-  public consoleComment: any;
-  public consolePrice: any;
-  public consoleManufacturer: any;
-  public consoleCate: any;
-  public consoleSubCate: any;
-  public consoleSerialCode: any;
-  public consoleAccesories: any;
-  // public consoleCurrency: any;
+  ConsoleId: string | null = null;
 
-  public ImagePath: any;
+  ImagePath: string = '';
 
-  constructor(public categorias: CategoriasConsolasService,
-    public estados: EstadoConsolasService,
-    public productoService: ProductosService,
-    public fabricanteService: FabricanteService,
-    public categoriaproductoService: CategoriaProductoService,
-    public subcategoriaproductoService: SubcategoriaProductoService,
-    public tareasproductoService: TareasProductosService,
-    private changeDetectorRef: ChangeDetectorRef,
+  constructor(
+    private categorias: CategoriasConsolasService,
+    private estados: EstadoConsolasService,
+    private productoService: ProductosService,
+    private fabricanteService: FabricanteService,
+    private categoriaproductoService: CategoriaProductoService,
+    private subcategoriaproductoService: SubcategoriaProductoService,
+    private tareasproductoService: TareasProductosService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private fb: FormBuilder,
     private dialog: MatDialog
   ) {
-
+    // --- CAMBIO 1: Inicializa el formulario aquí ---
+    this.productoForm = this.fb.group({
+      Fabricante: [''],
+      IdModeloConsolaPK: [''],
+      ColorConsola: [''],
+      EstadoConsola: [0],
+      HackConsola: [false],
+      ComentarioConsola: [''],
+      PrecioBase: ['0.00'],
+      NumeroSerie: [''],
+      Cate: [''],
+      SubCategoria: [''],
+      Accesorios: [[]]
+    });
   }
 
   ngOnInit(): void {
-
     this.id = this.route.snapshot.params['CodigoConsola'];
     this.ConsoleId = this.id;
+    this.loadProductData();
+    this.loadTasks();
+    this.loadDropdownData();
+  }
 
-    this.productoService.find(this.id).subscribe((data) => {
+  loadProductData(): void {
+    this.productoService.find(this.id).subscribe((data: Producto[]) => {
       this.producto = data[0];
-      console.log(data)
-      this.ConsoleId = this.id;
-      this.consoleCode = this.producto.Modelo;
-      this.consoleColor = this.producto.Color;
-      this.consoleState = this.producto.Estado;
-      this.consoleHack = this.producto.Hack;
-      this.consoleComment = this.producto.Comentario;
-      this.consolePrice = this.producto.PrecioBase;
-      this.consoleManufacturer = this.producto.Fabricante;
-      this.consoleCate = this.producto.Categoria;
-      this.consoleSubCate = this.producto.Subcategoria;
-      this.consoleSerialCode = this.producto.NumeroSerie;
-      this.consoleAccesories = this.producto.Accesorios.split(',');
+      const accessories = this.producto.Accesorios ? this.producto.Accesorios.split(',') : [];
+      console.log('producto', this.producto);
+      // --- CAMBIO 2: Usa patchValue para llenar el formulario con los datos de la API ---
+      this.productoForm.patchValue({
+        Fabricante: this.producto.Fabricante,
+        IdModeloConsolaPK: String(this.producto.Modelo),
+        ColorConsola: this.producto.Color,
+        EstadoConsola: Number(this.producto.Estado),
+        HackConsola: Number(this.producto.Hack),
+        ComentarioConsola: this.producto.Comentario,
+        PrecioBase: this.formatNumber(this.producto.PrecioBase),
+        NumeroSerie: this.producto.NumeroSerie,
+        Cate: this.producto.Categoria,
+        SubCategoria: String(this.producto.Subcategoria),
+        Accesorios: accessories
+      });
 
+      // --- CAMBIO 3: Actualiza los 'keywords' (chips) de forma segura DESPUÉS de poblar el formulario ---
+      this.keywords.set(accessories);
 
-      this.categorias.find(this.consoleCode).subscribe((data) => {
-        this.categoria = data[0];
+      this.categorias.find(String(this.producto.Modelo)).subscribe((catData: CategoriasConsolas[]) => {
+        this.categoria = catData[0];
         this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-        this.consoleManufacturer = this.categoria.Fabricante;
-        console.log(this.consoleManufacturer)
+        this.productoForm.patchValue({ Fabricante: this.categoria.Fabricante });
       });
-
-      this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-        // console.log(data);
-        this.selectedEstado = data;
-      })
-
-      //FABRICANTE
-      this.fabricanteService.getAllBase().subscribe((data: FabricanteProducto[]) => {
-        // console.log(data);
-        this.selectedFabricante = data;
-      })
-
-      //CATEGORIA
-      this.categoriaproductoService.getAllBase().subscribe((data: categoriasProductos[]) => {
-        // console.log(data);
-        this.selectedCategoriaProducto = data;
-      })
-
-      //SUBCATEGORIA
-      // this.subcategoriaproductoService.getAll().subscribe((data: SubcategoriasProductos[]) => {
-      //    console.log(data);
-      //   this.selectedSubCategoriaProducto = data;
-      // })
-
-      this.subcategoriaproductoService.findBase(this.consoleCate).subscribe((data: SubcategoriasProductos[]) => {
-        this.selectedSubCategoriaProducto = data;
-      })
-
-      //ACCESORIOS
-      console.log(this.consoleAccesories);
-      this.keywords.update(() => []);
-      for (var val of this.consoleAccesories) {
-        this.addt(this.trackByAccessory(val.index, val)); // prints values: 10, 20, 30, 40
-        console.log(val)
-      }
-
-      // console.log(this.consoleHack);      
-
-      //Initialize the form with the product data
-      this.productoForm = this.fb.group({
-        Fabricante: [this.consoleManufacturer],
-        IdModeloConsolaPK: [this.consoleCode],
-        ColorConsola: [this.consoleColor],
-        EstadoConsola: [this.consoleState],
-        HackConsola: [this.consoleHack],
-        ComentarioConsola: [this.consoleComment],
-        PrecioBase: [this.formatNumber(this.consolePrice)],
-        // Moneda: [this.consoleCurrency]
-        NumeroSerie: [this.consoleSerialCode],
-        Cate: [this.consoleCate],
-        SubCategoria: [this.consoleSubCate],
-        Accesorios: [this.consoleAccesories] // Add the parsed array here
-      });
-
-
-      this.cdr.detectChanges(); // Ensure view updates
-
-      // this.productoForm.patchValue({
-      //   HackC: this.consoleHack,
-      //   SubCategoria: this.consoleSubCate
-      // });
     });
+  }
 
+  loadTasks(): void {
     this.tareasproductoService.find(this.id).subscribe((data: TareasProducto[]) => {
-      // Map each task to include RealizadoNumber
       this.tasks = data.map(task => ({
         ...task,
         RealizadoNumber: task.Realizado ? 1 : 0 // Set RealizadoNumber based on Realizado
       }));
-      console.log('Tareas Form:', this.tasks);
-    })
-
-    this.productoForm = new FormGroup({
-      Fabricante: new FormControl('', Validators.required),
-      Cate: new FormControl('', Validators.required),
-      SubCategoria: new FormControl('', Validators.required),
-      IdModeloConsolaPK: new FormControl('', Validators.required),
-      ColorConsola: new FormControl(''),
-      PrecioBase: new FormControl('', Validators.required),
-      EstadoConsola: new FormControl('', Validators.required),
-      HackConsola: new FormControl('', Validators.required),
-      ComentarioConsola: new FormControl(''),
-      Accesorios: new FormControl(''),
-      NumeroSerie: new FormControl('')
     });
+  }
 
-
+  loadDropdownData(): void {
+    this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
+      this.selectedEstado = data;
+    });
+    this.fabricanteService.getAllBase().subscribe((data: FabricanteProducto[]) => {
+      this.selectedFabricante = data;
+    });
+    this.categoriaproductoService.getAllBase().subscribe((data: categoriasProductos[]) => {
+      this.selectedCategoriaProducto = data;
+    });
+    // Cargar subcategorías basadas en la categoría inicial del producto
+    if (this.productoForm.get('Cate')?.value) {
+      this.subcategoriaproductoService.findBase(this.productoForm.get('Cate')?.value).subscribe((data: SubcategoriasProductos[]) => {
+        this.selectedSubCategoriaProducto = data;
+      });
+    }
   }
 
   onCheckboxChange(task: TareasProducto) {
-    // Toggle the Realizado value between true and false
-    task.Realizado = !task.Realizado; // This will toggle the value
-
-    // Assuming that your backend expects 1 for true and 0 for false,
-    // you can convert the boolean to a number before sending the update.
-    // Llamamos al service para actualizar la tarea
-    // Convert to number (1 for true, 0 for false)
+    task.Realizado = !task.Realizado;
     const realizadoValue = task.Realizado ? 1 : 0;
-    this.tareasproductoService.update(task.IdTareaPK, realizadoValue).subscribe((res: any) => {
-      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);
-    })
-
+    this.tareasproductoService.update(task.IdTareaPK, realizadoValue).subscribe();
   }
 
   removeKeyword(keyword: string) {
@@ -244,8 +175,12 @@ export class VerProductoComponent {
       }
 
       keywords.splice(index, 1);
+      const updatedKeywords = [...keywords];
+      this.productoForm.get('Accesorios')?.setValue(updatedKeywords);
+      this.productoForm.get('Accesorios')?.markAsDirty();
+
       this.announcer.announce(`removed ${keyword}`);
-      return [...keywords];
+      return updatedKeywords;
     });
   }
 
@@ -255,30 +190,12 @@ export class VerProductoComponent {
     // Add our keyword
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
-      this.productoForm.get('Accesorios')?.setValue(this.keywords()); // Update the form control
+      this.productoForm.get('Accesorios')?.setValue(this.keywords());
+      this.productoForm.get('Accesorios')?.markAsDirty();
     }
 
     // Clear the input value
     event.chipInput!.clear();
-  }
-
-  addt(valor: String): void {
-    const value = (valor || '').trim();
-
-    // Add our keyword
-    console.log(value);
-    if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
-      console.log(this.keywords());
-
-      this.productoForm.get('Accesorios')?.setValue(this.keywords());
-      this.productoForm.get('Accesorios')?.markAsDirty();
-      // Force change detection
-      this.cdr.detectChanges();
-    }
-
-    // Clear the input value
-    //   
   }
 
   trackByAccessory(index: number, accessory: string): string {
@@ -316,30 +233,28 @@ export class VerProductoComponent {
   }
 
 
-  public openDialogEliminar(cons: string) {
+  openDialogEliminar(cons: string) {
     const dialogRef = this.dialog.open(EliminarProductosComponent, {
       disableClose: true,
       data: { value: cons }
     });
     dialogRef.componentInstance.Borrado.subscribe(() => {
-      this.router.navigateByUrl('listado-productos');
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.ngOnInit();
+      this.router.navigateByUrl('home/listado-productos');
     });
   }
 
 
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    //console.log(this.productoForm.value);
+  onSubmit() {
     if (!this.productoForm.dirty) {
       return; // Exit if the form has not been modified
     }
-    this.productoForm.value.CodigoConsola = this.id;
-    console.log(this.productoForm.value);
-    this.productoService.update(this.productoForm.value).subscribe((res: any) => {
-      this.ngOnInit();
+    const formData = {
+      ...this.productoForm.value,
+      CodigoConsola: this.id
+    };
+    this.productoService.update(formData).subscribe((res: any) => {
+      this.productoForm.markAsPristine();
       this.dialog.open(SuccessdialogComponent); // Show success dialog
     })
 

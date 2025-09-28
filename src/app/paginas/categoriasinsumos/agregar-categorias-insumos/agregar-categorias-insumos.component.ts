@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
+import { MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -10,7 +10,7 @@ import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgFor } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 
 import { MatOptionModule } from '@angular/material/core';
 
@@ -26,13 +26,16 @@ import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { SharedService } from '../../../services/shared.service';
 
 import { ImageUploadInsumoComponent } from '../../../utiles/images/image-upload-insumo/image-upload-insumo.component';
-import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
+import { ValidationService } from '../../../services/validation.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
     selector: 'app-agregar-categorias-insumos',
-    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-        ImageUploadComponent, ImageUploadInsumoComponent],
+    standalone: true,
+    imports: [CommonModule, MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIconModule, MatFormFieldModule,
+        ImageUploadInsumoComponent, MatProgressSpinnerModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose
+    ],
     templateUrl: './agregar-categorias-insumos.component.html',
     styleUrl: './agregar-categorias-insumos.component.css'
 })
@@ -58,14 +61,19 @@ export class AgregarCategoriasInsumosComponent {
     public subcategoriainsumoService: SubcategoriaInsumoService,
     private cdr: ChangeDetectorRef,
     private sharedService: SharedService,
-    private router: Router
+    private router: Router,
+    private validationService: ValidationService
   ) {
 
     this.CategoriaForm = new FormGroup({
       FabricanteInsumo: new FormControl('', Validators.required),
       CategoriaInsumo: new FormControl('', Validators.required),
       SubCategoriaInsumo: new FormControl('', Validators.required),
-      CodigoModeloInsumo: new FormControl('', Validators.required),
+      CodigoModeloInsumo: new FormControl(
+        '',
+        [Validators.required],
+        [this.validationService.codeExistsValidator()]
+      ),
       LinkImagen: new FormControl('', Validators.required)
     });
 

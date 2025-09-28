@@ -3,13 +3,13 @@ import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, 
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
 import { MatFormField, MatInputModule, MatLabel } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { NgFor } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { TipoProducto } from '../../interfaces/tipoproducto';
@@ -21,10 +21,16 @@ import { TiposProductosService } from '../../../services/tipos-productos.service
 import { FabricanteService } from '../../../services/fabricante.service';
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
+import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
+import { SharedService } from '../../../services/shared.service';
+import { ValidationService } from '../../../services/validation.service';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @Component({
     selector: 'app-editar-categorias',
-    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
+    standalone: true,
+    imports: [CommonModule, MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule, NgFor, MatSelectModule, MatButtonModule, MatIconModule, MatFormFieldModule, ImageUploadComponent, MatCardModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatProgressSpinnerModule],
     templateUrl: './editar-categorias.component.html',
     styleUrl: './editar-categorias.component.css'
 })
@@ -60,15 +66,37 @@ export class EditarCategoriasComponent {
     public categoriaproductoService: CategoriaProductoService,
     public subcategoriaproductoService: SubcategoriaProductoService,
     private route: ActivatedRoute,
+    private sharedService: SharedService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private fb: FormBuilder,
+    private validationService: ValidationService,
+    private dialogRef: MatDialogRef<EditarCategoriasComponent>,
     @Inject(MAT_DIALOG_DATA) public idCategory: any
   ) {
+    // FIX 1: Inicializar el formulario en el constructor con una estructura vacía.
+    this.categoriaForm = this.fb.group({
+      IdModeloConsolaPK: [''],
+      Fabricante: ['', Validators.required],
+      Cate: ['', Validators.required],
+      SubCategoria: ['', Validators.required],
+      CodigoModeloConsola: ['', 
+        [Validators.required], // Validadores síncronos
+        // Le pasamos una función que devuelve el código original.
+        [this.validationService.codeExistsValidator(() => this.CodigoModeloConsola)] 
+      ],
+      LinkImagen: ['', Validators.required],
+      TipoProducto: ['', Validators.required]
+    });
   }
 
   ngOnInit(): void {
-
+    
+    this.sharedService.dataNombreArchivo$.subscribe(nombreArchivo => {
+      if (nombreArchivo && nombreArchivo !== '') {
+        this.categoriaForm.get('LinkImagen')?.setValue(nombreArchivo);
+      }
+    });
 
     this.categoriaService.find(this.idCategory.value).subscribe((data) => {
 
@@ -100,15 +128,15 @@ export class EditarCategoriasComponent {
         this.selectedSubCategoriaProducto = data;
       })       
 
-      //Initialize the form with the product data
-      this.categoriaForm = this.fb.group({
-        IdModeloConsolaPK: [this.IdModeloConsolaPK],
-        Fabricante: [this.Fabricante],
-        Cate: [this.Categoria],
-        SubCategoria: [this.Subcategoria],
-        CodigoModeloConsola: [this.CodigoModeloConsola],
-        LinkImagen: [this.LinkImagen],
-        TipoProducto: [this.TipoProducto]
+      // FIX 2: Usar patchValue para llenar el formulario ya creado.
+      this.categoriaForm.patchValue({
+        IdModeloConsolaPK: this.IdModeloConsolaPK,
+        Fabricante: this.Fabricante,
+        Cate: this.Categoria,
+        SubCategoria: this.Subcategoria,
+        CodigoModeloConsola: this.CodigoModeloConsola,
+        LinkImagen: this.LinkImagen,
+        TipoProducto: this.TipoProducto
       });
 
       /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
@@ -130,15 +158,11 @@ export class EditarCategoriasComponent {
       
     });
 
-    this.categoriaForm = new FormGroup({
-      IdModeloConsolaPK: new FormControl(''),
-      Fabricante: new FormControl('', Validators.required),
-      Cate: new FormControl('', Validators.required),
-      SubCategoria: new FormControl('', Validators.required),
-      CodigoModeloConsola: new FormControl('', Validators.required),
-      LinkImagen: new FormControl('', Validators.required),
-      TipoProducto: new FormControl('', Validators.required)
-    });
+  }
+
+  // Helper para acceder fácilmente al formulario en la plantilla
+  get form() {
+    return this.categoriaForm.controls;
   }
 
   getimagePath(l: string | null) {
@@ -156,8 +180,7 @@ export class EditarCategoriasComponent {
     this.categoriaForm.value.CodigoConsola = this.idCategory.value;
     console.log(this.categoriaForm.value);
     this.categoriaService.update(this.categoriaForm.value).subscribe((res: any) => {
-      this.Editado.emit();
-      this.router.navigateByUrl('listado-categorias');
+      this.dialogRef.close(true);
     })
 
   }

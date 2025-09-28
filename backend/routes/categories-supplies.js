@@ -18,11 +18,21 @@ router.post('/crear-categoria-insumos', (req, res) => {
 // Update a category
 router.put('/categoria/:id', (req, res) => {
     const id = req.params.id;
-    // console.log(req.body);
-    const { IdModeloInsumoPK, FabricanteInsumo, CategoriaInsumo, SubCategoriaInsumo, CodigoModeloInsumo, LinkImagen } = req.body;
+    
+    // --- CORRECCIÓN ---
+    // Se ajustan los nombres de las variables para que coincidan con el payload del frontend (plural).
+    const { 
+        IdModeloInsumosPK, 
+        FabricanteInsumos, 
+        CategoriaInsumos, 
+        SubcategoriaInsumos, 
+        CodigoModeloInsumos, 
+        LinkImagen 
+    } = req.body;
+
     const sql = `CALL \`${dbConfig.database}\`.\`ActualizarCategoriaInsumo\` (?, ?, ?, ?, ?, ?)`;
     const sql2 = `CALL \`${dbConfig.database}\`.\`ListarTablacatalogoinsumosXId\` (?)`;
-    Basedatos.query(sql, [IdModeloInsumoPK, FabricanteInsumo, CategoriaInsumo, SubCategoriaInsumo, CodigoModeloInsumo, LinkImagen ], err => {
+    Basedatos.query(sql, [IdModeloInsumosPK, FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen ], err => {
         if (err) {
             res.status(500).send('Error actualizando categoria');
             return;

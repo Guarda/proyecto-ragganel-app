@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, inject, Inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router'; // Router no se usa, pero se mantiene por si acaso
 import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -9,10 +9,10 @@ import { MatOption, MatOptionModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { QRCodeModule } from 'angularx-qrcode';
+import { LiveAnnouncer } from '@angular/cdk/a11y'; 
+import { QRCodeComponent } from 'angularx-qrcode';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
 
@@ -37,50 +37,30 @@ import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-acc
 @Component({
     selector: 'app-ver-accesorio',
     imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule],
+        MatSelectModule, MatButtonModule, MatIconModule, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeComponent, MatCheckboxModule],
     templateUrl: './ver-accesorio.component.html',
-    styleUrl: './ver-accesorio.component.css'
+    styleUrls: ['./ver-accesorio.component.css']
 })
-export class VerAccesorioComponent {
+export class VerAccesorioComponent implements OnInit {
   keywords = signal(['']);
   announcer = inject(LiveAnnouncer);
 
   accesorioForm!: FormGroup;
-  tareasForm!: FormGroup;
 
-  id!: any;
-
+  id!: string;
   accesorio!: AccesoriosBase;
-
   categoria!: CategoriasAccesoriosBase;
-  categoriasconsolas: CategoriasAccesoriosBase[] = [];
-  selectedCategoria: CategoriasAccesoriosBase[] = [];
-
-  estadoconsolas: EstadosConsolas[] = [];
+  
   selectedEstado: EstadosConsolas[] = [];
-
-  tareasproducto: TareasAccesorio[] = [];
-  tasks: TareasAccesorio[] = [
-    // Your initial tasks data
-  ];
+  tasks: TareasAccesorio[] = [];
 
   selectedFabricante: FabricanteAccesorio[] = [];
   selectedCategoriaAccesorio: categoriasAccesorios[] = [];
   selectedSubCategoriaAccesorio: SubcategoriasAccesorios[] = [];
 
-  public accessorieId: any;
-  public accessorieCode: any;
-  public accessorieColor: any;
-  public accessorieState: any;
-  public accessorieComment: any;
-  public accessoriePrice: any;
-  public accessorieManufacturer: any;
-  public accessorieCate: any;
-  public accessorieSubCate: any;
-  public accessorieSerialCode: any;
-  public accessorieCompatibleProducts: any;
+  accessorieId: string | null = null;
 
-  public ImagePath: any;
+  ImagePath: string = '';
 
   constructor(public categorias: CategoriasAccesoriosService,
     public estados: EstadoConsolasService,
@@ -89,129 +69,80 @@ export class VerAccesorioComponent {
     public categoriaaccesorioService: CategoriasAccesoriosService,
     public subcategoriaaccesorioService: SubcategoriaAccesorioService,
     public tareasaccesorioService: TareasAccesoriosService,
-    private changeDetectorRef: ChangeDetectorRef,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private fb: FormBuilder,
     private dialog: MatDialog
   ) {
-
+    // --- CAMBIO 1: Inicializa el formulario aquí ---
+    this.accesorioForm = this.fb.group({
+      FabricanteAccesorio: [''],
+      IdModeloAccesorioPK: [''],
+      ColorAccesorio: [''],
+      EstadoAccesorio: [0],
+      ComentarioAccesorio: [''],
+      PrecioBase: ['0.00'],
+      NumeroSerie: [''],
+      CateAccesorio: [''],
+      SubCategoriaAccesorio: [''],
+      ProductosCompatibles: [[]]
+    });
   }
 
   ngOnInit(): void {
-
     this.id = this.route.snapshot.params['CodigoAccesorio'];
     this.accessorieId = this.id;
-    console.log('codigo accesirio es: ', this.id);
+    this.loadAccessoryData();
+    this.loadTasks();
+    this.loadDropdownData();
+  }
 
+  loadAccessoryData(): void {
     this.accesorioService.find(this.id).subscribe((data) => {
       this.accesorio = data[0];
-      this.accessorieId = this.id;
-      this.accessorieCode = this.accesorio.ModeloAccesorio;
-      this.accessorieColor = this.accesorio.ColorAccesorio;
-      this.accessorieState = this.accesorio.EstadoAccesorio;
-      this.accessorieComment = this.accesorio.Comentario;
-      this.accessoriePrice = this.accesorio.PrecioBase;
-      this.accessorieManufacturer = this.accesorio.FabricanteAccesorio;
-      this.accessorieCate = this.accesorio.CategoriaAccesorio;
-      this.accessorieSubCate = this.accesorio.SubcategoriaAccesorio;
-      this.accessorieSerialCode = this.accesorio.NumeroSerie;
-      this.accessorieCompatibleProducts = this.accesorio.ProductosCompatibles.split(',');
+      const compatibleProducts = this.accesorio.ProductosCompatibles ? this.accesorio.ProductosCompatibles.split(',') : [];
 
+      // --- CAMBIO 2: Usa patchValue para llenar el formulario con los datos de la API ---
+      this.accesorioForm.patchValue({
+        FabricanteAccesorio: this.accesorio.FabricanteAccesorio,
+        IdModeloAccesorioPK: String(this.accesorio.ModeloAccesorio),
+        ColorAccesorio: String(this.accesorio.ColorAccesorio),
+        EstadoAccesorio: this.accesorio.EstadoAccesorio,
+        ComentarioAccesorio: this.accesorio.Comentario,
+        PrecioBase: this.formatNumber(this.accesorio.PrecioBase),
+        NumeroSerie: this.accesorio.NumeroSerie,
+        CateAccesorio: this.accesorio.CategoriaAccesorio,
+        SubCategoriaAccesorio: String(this.accesorio.SubcategoriaAccesorio),
+        ProductosCompatibles: compatibleProducts
+      });
 
-      this.categorias.find(this.accessorieCode).subscribe((data) => {
-        this.categoria = data[0];
+      // --- CAMBIO 3: Actualiza los 'keywords' (chips) de forma segura DESPUÉS de poblar el formulario ---
+      this.keywords.set(compatibleProducts);
+
+      this.categorias.find(String(this.accesorio.ModeloAccesorio)).subscribe((catData) => {
+        this.categoria = catData[0];
         this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-        this.accessorieManufacturer = this.categoria.FabricanteAccesorio;
-        console.log(this.accessorieManufacturer)
+        // También puedes parchear el fabricante aquí si es necesario
+        this.accesorioForm.patchValue({ FabricanteAccesorio: this.categoria.FabricanteAccesorio });
       });
-
-      this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-        // console.log(data);
-        this.selectedEstado = data;
-      })
-
-      //FABRICANTE
-      this.fabricanteaccesorioService.getAllBase().subscribe((data: FabricanteAccesorio[]) => {
-        // console.log(data);
-        this.selectedFabricante = data;
-      })
-
-      //CATEGORIA
-      this.categoriaaccesorioService.getAllBase().subscribe((data: categoriasAccesorios[]) => {
-        // console.log(data);
-        this.selectedCategoriaAccesorio = data;
-      })
-
-      //SUBCATEGORIA
-      // this.subcategoriaproductoService.getAll().subscribe((data: SubcategoriasProductos[]) => {
-      //    console.log(data);
-      //   this.selectedSubCategoriaProducto = data;
-      // })
-
-      this.subcategoriaaccesorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => {
-        console.log(data);
-        this.selectedSubCategoriaAccesorio = data;
-      })
-
-      //ACCESORIOS
-      console.log(this.accessorieCompatibleProducts);
-      this.keywords.update(() => []);
-      for (var val of this.accessorieCompatibleProducts) {
-        this.addt(this.trackByComaptibleProduct(val.index, val)); // prints values: 10, 20, 30, 40
-        console.log(val)
-      }
-
-
-      // console.log(this.consoleHack);      
-
-      //Initialize the form with the product data
-      this.accesorioForm = this.fb.group({
-        FabricanteAccesorio: [this.accessorieManufacturer],
-        IdModeloAccesorioPK: [this.accessorieCode],
-        ColorAccesorio: [this.accessorieColor],
-        EstadoAccesorio: [this.accessorieState],
-        ComentarioAccesorio: [this.accessorieComment],
-        PrecioBase: [this.formatNumber(this.accessoriePrice)],
-        NumeroSerie: [this.accessorieSerialCode],
-        CateAccesorio: [this.accessorieCate],
-        SubCategoriaAccesorio: [this.accessorieSubCate],
-        ProductosCompatibles: [this.accessorieCompatibleProducts]
-      });
-
-
-      this.cdr.detectChanges(); // Ensure view updates
-
-      // this.productoForm.patchValue({
-      //   HackC: this.consoleHack,
-      //   SubCategoria: this.consoleSubCate
-      // });
     });
+  }
 
+  loadTasks(): void {
     this.tareasaccesorioService.find(this.id).subscribe((data: TareasAccesorio[]) => {
-      // Map each task to include RealizadoNumber
       this.tasks = data.map(task => ({
         ...task,
         RealizadoNumber: task.Realizado ? 1 : 0 // Set RealizadoNumber based on Realizado
       }));
-      console.log('Tareas Form:', this.tasks);
-    })
-
-    this.accesorioForm = new FormGroup({
-      FabricanteAccesorio: new FormControl('', Validators.required),
-      CateAccesorio: new FormControl('', Validators.required),
-      SubCategoriaAccesorio: new FormControl('', Validators.required),
-      IdModeloAccesorioPK: new FormControl('', Validators.required),
-      ColorAccesorio: new FormControl(''),
-      PrecioBase: new FormControl('', Validators.required),
-      EstadoAccesorio: new FormControl('', Validators.required),
-      ComentarioAccesorio: new FormControl(''),
-      ProductosCompatibles: new FormControl(''),
-      NumeroSerie: new FormControl('')
     });
+  }
 
-
+  loadDropdownData(): void {
+    this.estados.getAll().subscribe((data: EstadosConsolas[]) => this.selectedEstado = data);
+    this.fabricanteaccesorioService.getAllBase().subscribe((data: FabricanteAccesorio[]) => this.selectedFabricante = data);
+    this.categoriaaccesorioService.getAllBase().subscribe((data: categoriasAccesorios[]) => this.selectedCategoriaAccesorio = data);
+    this.subcategoriaaccesorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => this.selectedSubCategoriaAccesorio = data);
   }
 
   add(event: MatChipInputEvent): void {
@@ -219,42 +150,29 @@ export class VerAccesorioComponent {
 
     // Add our keyword
     if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
+      this.keywords.update(currentKeywords => [...currentKeywords, value]);
       this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update the form control
+      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
     }
 
     // Clear the input value
     event.chipInput!.clear();
   }
-
-  addt(valor: String): void {
-    const value = (valor || '').trim();
-
-    // Add our keyword
-    console.log(value);
-    if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
-      console.log(this.keywords());
-
-      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords());
-      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
-      // Force change detection
-      this.cdr.detectChanges();
-    }
-
-    // Clear the input value
-    //   
-  }
   removeKeyword(keyword: string) {
-    this.keywords.update(keywords => {
-      const index = keywords.indexOf(keyword);
+    this.keywords.update(currentKeywords => {
+      const index = currentKeywords.indexOf(keyword);
       if (index < 0) {
-        return keywords;
+        return currentKeywords;
       }
 
-      keywords.splice(index, 1);
+      const updatedKeywords = [...currentKeywords];
+      updatedKeywords.splice(index, 1);
+
+      this.accesorioForm.get('ProductosCompatibles')?.setValue(updatedKeywords);
+      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
+
       this.announcer.announce(`removed ${keyword}`);
-      return [...keywords];
+      return updatedKeywords;
     });
   }
 
@@ -266,10 +184,8 @@ export class VerAccesorioComponent {
     // you can convert the boolean to a number before sending the update.
     // Llamamos al service para actualizar la tarea
     // Convert to number (1 for true, 0 for false)
-    const realizadoValue = task.Realizado ? 1 : 0;
-    this.tareasaccesorioService.update(task.IdTareaAccesorioPK, realizadoValue).subscribe((res: any) => {
-      console.log(`Task ${task.DescripcionTarea} set to ${task.Realizado}`);
-    })
+    const realizadoValue = task.Realizado ? 1 : 0;    
+    this.tareasaccesorioService.update(task.IdTareaAccesorioPK, realizadoValue).subscribe();
 
   }
 
@@ -308,28 +224,26 @@ export class VerAccesorioComponent {
     return compatibleproduct; // or index, depending on your unique identifiers
   }
 
-  public openDialogEliminar(cons: string) {
+  openDialogEliminar(cons: string) {
     const dialogRef = this.dialog.open(EliminarAccesoriosComponent, {
       disableClose: true,
       data: { value: cons }
     });
-    dialogRef.componentInstance.Borrado.subscribe(() => {
-      this.router.navigateByUrl('listado-accesorios');
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.ngOnInit();
+    dialogRef.componentInstance.Borrado.subscribe(() => {      
+      this.router.navigateByUrl('home/listado-accesorios');
     });
   }
 
   onSubmit() {    // TODO: Use EventEmitter with form value 
-    //console.log(this.productoForm.value);
     if (!this.accesorioForm.dirty) {
       return; // Exit if the form has not been modified
     }
-    this.accesorioForm.value.CodigoAccesorio = this.id;
-    console.log(this.accesorioForm.value);
-    this.accesorioService.update(this.accesorioForm.value).subscribe((res: any) => {
-      this.ngOnInit();
+    const formData = {
+      ...this.accesorioForm.value,
+      CodigoAccesorio: this.id // Asegúrate de enviar el ID para la actualización
+    };
+    this.accesorioService.update(formData).subscribe((res: any) => {
+      this.accesorioForm.markAsPristine(); // Marcar el formulario como "limpio" después de guardar
     })
 
   }

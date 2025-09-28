@@ -9,9 +9,11 @@ import { MatInputModule } from '@angular/material/input';
 
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
@@ -22,167 +24,66 @@ import { EliminarCategoriasComponent } from '../eliminar-categorias/eliminar-cat
 
 @Component({
     selector: 'app-listar-categorias',
-    imports: [CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField, MatInputModule,
-        MatInputModule, MatSortModule, MatPaginatorModule, MatIcon, MatButtonModule, MatRowDef],
+    // Módulos importados para el componente standalone
+    imports: [
+        CommonModule, RouterModule, MatTableModule, MatLabel, MatFormField,
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+    ],
     templateUrl: './listar-categorias.component.html',
     styleUrl: './listar-categorias.component.css',
-    schemas: [NO_ERRORS_SCHEMA] // Add NO_ERRORS_SCHEMA here
+    schemas: [NO_ERRORS_SCHEMA]
 })
 export class ListarCategoriasComponent implements AfterViewInit {
 
-  categoriasconsolas: CategoriasConsolas[] = [];
-  dataSource = new MatTableDataSource<CategoriasConsolas>;
-  link!: string;
-  // Other properties
-  totalItems: number = 0;
-
   displayedColumns: string[] = ['ImagenCategoria', 'CodigoModeloConsola', 'Fabricante', 'Categoria', 'Subcategoria', 'TipoProducto', 'Action'];
-  
+  dataSource = new MatTableDataSource<CategoriasConsolas>;
+
+  // Propiedades para manejar estados de UI
+  isLoading = true;
+  errorMessage: string | null = null;
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
 
-  constructor(public categorias: CategoriasConsolasService,
-    private cdr: ChangeDetectorRef, private router: Router, private dialog: MatDialog) {
+  constructor(
+    public categorias: CategoriasConsolasService,
+    private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
+  ) { }
 
-  }
-
-  public openDialogAgregar() {
-    const dialogRef = this.dialog.open(AgregarCategoriasComponent, {
-      disableClose: true,
-      height: '80%',
-      width: '57%',
-    });
-    dialogRef.componentInstance.Agregado.subscribe(() => {
-      this.getCategoryList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getCategoryList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-  public openDialogEditar(cons: string) {
-    const dialogRef = this.dialog.open(EditarCategoriasComponent, {
-      disableClose: true,
-      height: '80%',
-      width: '50%',
-      data: { value: cons }
-    });
-    dialogRef.componentInstance.Editado.subscribe(() => {
-      this.getCategoryList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getCategoryList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-  public openDialogEliminar(cons: string) {
-    const dialogRef = this.dialog.open(EliminarCategoriasComponent, {
-      disableClose: true,
-      data: { value: cons }
-    });
-    dialogRef.componentInstance.Borrado.subscribe(() => {
-      this.getCategoryList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.getCategoryList();
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
-  /**
-    * Write code on Method
-    *
-    * @return response()
-    */
   ngOnInit(): void {
     this.getCategoryList();
-    
-
-  }
-
-  getCategoryList() {
-    this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {
-      //this.dataSource = new MatTableDataSource<CategoriasConsolas>(data);
-
-      console.log(data); // Log to inspect the fetched data
-
-      // Eliminate duplicates using 'IdModeloConsolaPK' as the key
-      const uniqueData = Array.from(new Map(data.map(item => [item.IdModeloConsolaPK, item])).values());
-
-      // Check if the unique data is truly unique
-      // console.log(uniqueData);
-
-      // Set the data source
-      this.dataSource = new MatTableDataSource<CategoriasConsolas>(uniqueData);
-
-      // Reapply paginator and sorting
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      
-      // Update total item count
-      this.totalItems = uniqueData.length;
-      // console.log(data);
-      data.forEach(item => {
-        item.ImagePath = this.getimagePath(item.LinkImagen);
-        this.trackByFn(item.IdModeloConsolaPK, item);
-      });
-
-      this.cdr.detectChanges();
-      // const uniqueData = Array.from(new Map(data.map(item => [item.IdModeloConsolaPK, item])).values());
-      // this.dataSource = new MatTableDataSource<CategoriasConsolas>(uniqueData);
-      // this.dataSource.paginator = this.paginator;
-      // this.dataSource.sort = this.sort;
-    })
-  }
-
-  trackByFn(index: number, element: CategoriasConsolas): number {
-    return element.IdModeloConsolaPK; // Ensure this ID is unique
-  }
-
-  // getimagePath(l: string | null) {
-  //   if (l == null || l == '') {
-  //     return '/img-consolas/' + 'nestoploader.jpg';
-  //   }
-  //   else {
-  //     return '/img-consolas/' + l;
-  //   }
-  // }
-
-  getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-  
-    if (l == null || l === '') {
-      return `${baseUrl}/img-consolas/nestoploader.jpg`;
-    } else {
-      return `${baseUrl}/img-consolas/${l}`;
-    }
-  }
-  
-
-
-  onAdd(a: any) {
-    this.ngOnInit();
   }
 
   ngAfterViewInit() {
-    // console.log('Sort instance:', this.sort); // Debugging line
-    // console.log('Sortables:', this.sort.sortables);
-    // this.dataSource.paginator = this.paginator;
-    // this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
+  getCategoryList() {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    this.categorias.getAll().subscribe({
+      next: (data: CategoriasConsolas[]) => {
+        const uniqueData = Array.from(new Map(data.map(item => [item.IdModeloConsolaPK, item])).values());
+
+        uniqueData.forEach(item => {
+          item.ImagePath = this.getimagePath(item.LinkImagen);
+        });
+
+        this.dataSource.data = uniqueData;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error al cargar categorías:", err);
+        this.errorMessage = "No se pudieron cargar las categorías.";
+        this.isLoading = false;
+      }
+    });
+  }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
@@ -191,9 +92,55 @@ export class ListarCategoriasComponent implements AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
 
-    // Log sort details
-  console.log('Active Sort Field:', this.sort.active);
-  console.log('Sort Direction:', this.sort.direction);
+  getimagePath(link: string | null): string {
+    const baseUrl = 'http://localhost:3000'; // Asegúrate que el puerto es correcto
+    if (!link) {
+      return `${baseUrl}/img-consolas/nestoploader.jpg`;
+    }
+    return `${baseUrl}/img-consolas/${link}`;
+  }
+
+  // --- Métodos de Diálogos (simplificados para recargar la lista) ---
+
+  public openDialogAgregar() {
+    const dialogRef = this.dialog.open(AgregarCategoriasComponent, {
+      width: '50%',
+      height: '85%',
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getCategoryList();
+      }
+    });
+  }
+
+  public openDialogEditar(id: string) {
+    const dialogRef = this.dialog.open(EditarCategoriasComponent, {
+      width: '50%',
+      height: '85%',
+      disableClose: true,
+      data: { value: id }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getCategoryList();
+      }
+    });
+  }
+
+  public openDialogEliminar(id: string) {
+    const dialogRef = this.dialog.open(EliminarCategoriasComponent, {
+      width: '400px',
+      disableClose: true,
+      data: { value: id }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getCategoryList();
+      }
+    });
   }
 }

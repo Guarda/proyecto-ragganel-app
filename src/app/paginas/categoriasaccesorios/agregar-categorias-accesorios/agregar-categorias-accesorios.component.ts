@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
+import { MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -10,7 +10,7 @@ import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgFor } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 
 import { MatOptionModule } from '@angular/material/core';
 
@@ -25,14 +25,17 @@ import { CategoriasAccesoriosService } from '../../../services/categorias-acceso
 import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosbase';
 import { SharedService } from '../../../services/shared.service';
 import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
-import { ImageUploadAccesorioComponent } from "../../../utiles/images/image-upload-accesorio/image-upload-accesorio.component";
+import { ImageUploadAccesorioComponent } from '../../../utiles/images/image-upload-accesorio/image-upload-accesorio.component';
+import { ValidationService } from '../../../services/validation.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 @Component({
     selector: 'app-agregar-categorias-accesorios',
-    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-        ImageUploadComponent, ImageUploadAccesorioComponent],
+    standalone: true,
+    imports: [CommonModule, MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+        NgFor, MatSelectModule, MatButtonModule, MatIconModule, MatFormFieldModule,
+        ImageUploadComponent, ImageUploadAccesorioComponent, MatProgressSpinnerModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose],
     templateUrl: './agregar-categorias-accesorios.component.html',
     styleUrl: './agregar-categorias-accesorios.component.css'
 })
@@ -58,13 +61,18 @@ export class AgregarCategoriasAccesoriosComponent {
     public subcategoriaaccesorioService: SubcategoriaAccesorioService,
     private cdr: ChangeDetectorRef,
     private sharedService: SharedService,
-    private router: Router) {
+    private router: Router,
+    private validationService: ValidationService) {
 
     this.CategoriaForm = new FormGroup({
       FabricanteAccesorio: new FormControl('', Validators.required),
       CateAccesorio: new FormControl('', Validators.required),
       SubCategoriaAccesorio: new FormControl('', Validators.required),
-      CodigoModeloAccesorio: new FormControl('', Validators.required),
+      CodigoModeloAccesorio: new FormControl(
+        '', 
+        [Validators.required], // Validadores síncronos
+        [this.validationService.codeExistsValidator()] // Validadores asíncronos
+      ),
       LinkImagen: new FormControl('', Validators.required)
     });
 
@@ -111,7 +119,7 @@ export class AgregarCategoriasAccesoriosComponent {
     // console.log("enviado");
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('listado-categorias-accesorios');
+      this.router.navigateByUrl('home/listado-categorias-accesorios');
     });
 
   }

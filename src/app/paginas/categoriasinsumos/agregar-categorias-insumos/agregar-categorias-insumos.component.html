@@ -8,7 +8,7 @@
         <img class="img-console"  src="/img-consolas/nestoploader.jpg" alt="imagen-consola">
       </div> -->
       <div class="contenedor-image">
-        <app-image-upload-insumo></app-image-upload-insumo>>
+        <app-image-upload-insumo></app-image-upload-insumo>
       </div>
       <div class="contendor-form">
         <mat-dialog-content class="mat-typography">
@@ -36,8 +36,18 @@
           </mat-form-field> 
           <!--Codigo Consola  -->
           <mat-form-field class="input-form-prod">
-            <mat-label>Prefijo de la consola</mat-label>
-            <textarea formControlName = "CodigoModeloInsumo" matInput cdkFocusInitial></textarea>
+          <mat-label>Prefijo del insumo</mat-label>
+          <input formControlName="CodigoModeloInsumo" matInput cdkFocusInitial>
+          <mat-error *ngIf="CategoriaForm.get('CodigoModeloInsumo')?.hasError('required')">
+            El código es requerido.
+          </mat-error>
+          <mat-error *ngIf="CategoriaForm.get('CodigoModeloInsumo')?.hasError('codeExists')">
+            Este código ya está en uso. Por favor, elige otro.
+          </mat-error>
+          <!-- Indicador de carga mientras se valida -->
+          <mat-icon matSuffix *ngIf="CategoriaForm.get('CodigoModeloInsumo')?.pending">
+            <mat-spinner diameter="20"></mat-spinner>
+          </mat-icon>
           </mat-form-field>
             <!--desc Consola  -->
           <!-- <mat-form-field class="input-form-prod">

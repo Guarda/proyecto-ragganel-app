@@ -1,62 +1,58 @@
-<h3 mat-dialog-title>    
-    <span>Editar Categoria</span>
-  </h3>
-  <form [formGroup]="categoriaForm" (ngSubmit)="onSubmit()">
+<h3 mat-dialog-title>
+  <span>Editar Categoría de Insumo</span>
+</h3>
+<form [formGroup]="categoriaForm" (ngSubmit)="onSubmit()">
   <div class="contenedor-principal">
     <div class="contenedor-secundario">
       <div class="contenedor-img-consola">
-        <img class="img-console"  [src]="ImagePath" alt="imagen-consola">
+        <app-image-upload-insumo [initialImageName]="LinkImagen"></app-image-upload-insumo>
       </div>
       <div class="contendor-form">
         <mat-dialog-content class="mat-typography">
-          <h3>Edita los detalles de la categoria {{IdModeloInsumoPK}}</h3>
-          <!-- FABRICANTE -->
+          <h3>Edita los detalles de la categoría {{IdModeloInsumoPK}}</h3>
+
           <mat-form-field class="input-form-prod">
             <mat-label>Fabricante</mat-label>
-            <mat-select formControlName ="FabricanteInsumo" name="FabricanteInsumo">             
-                <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricanteInsumosPK" >{{est.NombreFabricanteInsumos}} </mat-option>            
-            </mat-select> 
+            <mat-select formControlName="FabricanteInsumos">
+              <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricanteInsumosPK">{{est.NombreFabricanteInsumos}}</mat-option>
+            </mat-select>
           </mat-form-field>
-          <!-- CATEGORIA -->
+
           <mat-form-field class="input-form-prod">
-            <mat-label>Categoria</mat-label>
-            <mat-select formControlName ="CategoriaInsumo" name="CategoriaInsumo">             
-                <mat-option *ngFor="let est of selectedCategoriaInsumo" [value]="est.IdCategoriaInsumosPK" >{{est.NombreCategoriaInsumos}} </mat-option>            
-            </mat-select> 
-          </mat-form-field> 
-          <!-- SUBCATEGORIA -->
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="CategoriaInsumos">
+              <mat-option *ngFor="let est of selectedCategoriaInsumo" [value]="est.IdCategoriaInsumosPK">{{est.NombreCategoriaInsumos}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
           <mat-form-field class="input-form-prod">
             <mat-label>Modelo</mat-label>
-            <mat-select formControlName ="SubCategoriaInsumo" name="SubCategoriaInsumo">             
-                <mat-option *ngFor="let est of selectedSubCategoriaInsumo" [value]="est.IdSubcategoriaInsumos" >{{est.NombreSubcategoriaInsumos}} </mat-option>            
-            </mat-select> 
-          </mat-form-field>    
-          <!--Codigo Consola  -->
+            <mat-select formControlName="SubcategoriaInsumos">
+              <mat-option *ngFor="let est of selectedSubCategoriaInsumo" [value]="est.IdSubcategoriaInsumos">{{est.NombreSubcategoriaInsumos}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
           <mat-form-field class="input-form-prod">
             <mat-label>Prefijo del insumo</mat-label>
-            <textarea formControlName = "CodigoModeloInsumo" matInput cdkFocusInitial ></textarea>
-          </mat-form-field>         
-            <!--Link Imagen Categoria  -->
-          <mat-form-field class="input-form-prod">
-            <mat-label>Link de la imagen</mat-label>
-            <textarea formControlName = "LinkImagen" matInput> </textarea>
-          </mat-form-field>          
-        </mat-dialog-content>
-      </div>  
+            <input formControlName="CodigoModeloInsumos" matInput cdkFocusInitial>
+            <mat-error *ngIf="categoriaForm.get('CodigoModeloInsumos')?.hasError('required')">
+              El código es requerido.
+            </mat-error>
+            <mat-error *ngIf="categoriaForm.get('CodigoModeloInsumos')?.hasError('codeExists')">
+              Este código ya está en uso. Por favor, elige otro.
+            </mat-error>
+            <!-- Indicador de carga mientras se valida -->
+            <mat-icon matSuffix *ngIf="categoriaForm.get('CodigoModeloInsumos')?.pending">
+              <mat-spinner diameter="20"></mat-spinner>
+            </mat-icon>
+          </mat-form-field>
+          
+          </mat-dialog-content>
+      </div>
     </div>
-    <!-- Comentarios -->
-    <!-- <div class="contenedor-comentario">
-      <h3>Comentarios</h3>
-      <mat-form-field class="example-full-width"  >
-        <mat-label>Describe el estado del producto</mat-label>
-        <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
-      </mat-form-field>
-    </div>   -->
   </div>
   <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancelar</button>
-    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!categoriaForm.valid">Ingresar</button>
-   
+    <button mat-button mat-dialog-close type="button">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!categoriaForm.valid">Guardar Cambios</button>
   </mat-dialog-actions>
-  </form>
-  
+</form>

@@ -1,86 +1,83 @@
-<div class="container">
+<div class="container mat-elevation-z8">
 
-    <div class="cabezera">
-      <h1>Categorias</h1>      
-      <mat-form-field floatLabel="always" appearance="outline" class="white-backgrounded-field">
-        <mat-label>Filter</mat-label>
-        <!-- <input matInput placeholder="Gameboy" #input> -->
-        <input matInput (keyup)="applyFilter($event)" placeholder="Memoria" #input>
-    </mat-form-field>
-      <!-- <a mat-raised-button class="button-crear-prod"  color="primary"> -->
-          <a mat-raised-button class="button-crear-prod" (click)="openDialogAgregar()" (Agregado)="onAdd($event)" color="primary">
-          <!-- <a mat-raised-button class="button-crear-prod"  (Agregado)="onAdd($event)" color="primary"> -->
-          <mat-icon>add</mat-icon>
-        Añade una nueva categoria
+  <header class="header">
+    <h1>Categorías de Insumos</h1>
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-texto">
+        <mat-label>Buscar categoría...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Código, fabricante, categoría..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <a mat-raised-button color="primary" class="button-crear" (click)="openDialogAgregar()">
+        <mat-icon>add</mat-icon>
+        Nueva Categoría
       </a>
     </div>
+  </header>
 
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
+  <div class="table-container">
+    <div *ngIf="isLoading" class="spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando Categorías...</p>
+    </div>
 
-        <!--- Note that these columns can be defined in any order.
-              The actual rendered columns are set as a property on the row definition" -->
+    <div *ngIf="errorMessage && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="getCategoryList()">Reintentar</button>
+    </div>
 
-        <!-- imagen Column -->
-        <ng-container matColumnDef="ImagenCategoria">
-            <th mat-header-cell *matHeaderCellDef > Imagen </th>
-            <td mat-cell *matCellDef="let element"> <img class="category-image-card" [src]="element.ImagePath" alt="imagen-accesorio"> </td>
-            <!-- <td mat-cell *matCellDef="let element"> <img class="category-image-card" src="http://localhost:4200/img-consolas/450_1000-1730429328488.jpeg" alt="imagen-consola"> </td> -->
-          </ng-container>      
-              
-        <!-- codigo Column -->
-        <ng-container matColumnDef="CodigoModeloInsumo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
-          <td mat-cell *matCellDef="let element"> {{element.CodigoModeloInsumos}} </td>
-        </ng-container>
+    <table mat-table [dataSource]="dataSource" matSort [hidden]="isLoading || errorMessage">
 
-        <!-- Fabricante -->
-        <ng-container matColumnDef="FabricanteInsumo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Fabricante </th>
-          <td mat-cell *matCellDef="let element"> {{element.NombreFabricanteInsumos}} </td>
-        </ng-container>
-      
-        <!-- categoria Column -->
-        <ng-container matColumnDef="CategoriaInsumo" class="columna-descripcion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Categoria </th>
-          <td mat-cell *matCellDef="let element"> {{element.NombreCategoriaInsumos}} </td>
-        </ng-container>
+      <ng-container matColumnDef="ImagenCategoria">
+        <th mat-header-cell *matHeaderCellDef> Imagen </th>
+        <td mat-cell *matCellDef="let element">
+          <img class="category-image" [src]="element.ImagePath" alt="Imagen del insumo">
+        </td>
+      </ng-container>
 
-         <!-- subcategoria Column -->
-         <ng-container matColumnDef="SubcategoriaInsumo" class="columna-descripcion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Subcategoria </th>
-          <td mat-cell *matCellDef="let element"> {{element.NombreSubcategoriaInsumos}} </td>
-        </ng-container>
+      <ng-container matColumnDef="CodigoModeloInsumo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Código </th>
+        <td mat-cell *matCellDef="let element"> {{element.CodigoModeloInsumos}} </td>
+      </ng-container>
 
-         <!-- Symbol Column -->
-         <ng-container matColumnDef="Action">
-          <th mat-header-cell *matHeaderCellDef> Acciones </th>
-          <td mat-cell *matCellDef="let element" class="contenedor-botones">             
-            <!-- <a mat-flat-button class="button-editar-prod"   title="editar producto" > -->
-            <a mat-flat-button class="button-editar-prod" (click)="openDialogEditar(element.IdModeloInsumosPK)"  title="editar producto" >
-            <!-- <a mat-flat-button class="button-editar-prod"   title="editar producto" > -->
-              <mat-icon class="iconos-custom">mode_edit</mat-icon>
-            </a>
-            
-            <!-- <a mat-flat-button   color="warn" title="borrar producto" > -->
-            <a mat-flat-button  (click)="openDialogEliminar(element.IdModeloInsumosPK)" color="warn" title="borrar producto" >
-            <!-- <a mat-flat-button   color="warn" title="borrar producto" > -->
-              <mat-icon class="button-eliminar-prod">delete</mat-icon>
-            </a>
-            <!-- <button type="button" class="btn btn-danger">Delete</button>  -->
-          </td>
-        </ng-container>
+      <ng-container matColumnDef="FabricanteInsumo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fabricante </th>
+        <td mat-cell *matCellDef="let element"> {{element.NombreFabricanteInsumos}} </td>
+      </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns; "></tr>
+      <ng-container matColumnDef="CategoriaInsumo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Categoría </th>
+        <td mat-cell *matCellDef="let element"> {{element.NombreCategoriaInsumos}} </td>
+      </ng-container>
 
-        <!-- Row shown when there is no matching data. -->
+      <ng-container matColumnDef="SubcategoriaInsumo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Subcategoría </th>
+        <td mat-cell *matCellDef="let element"> {{element.NombreSubcategoriaInsumos}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Action">
+        <th mat-header-cell *matHeaderCellDef> Acciones </th>
+        <td mat-cell *matCellDef="let element" class="actions-cell">
+          <button mat-icon-button color="primary" (click)="openDialogEditar(element.IdModeloInsumosPK)" matTooltip="Editar Categoría">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="openDialogEliminar(element.IdModeloInsumosPK)" matTooltip="Eliminar Categoría">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">No se encuentran datos con  "{{input.value}}"</td>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No se encontraron categorías que coincidan con la búsqueda "{{input.value}}".
+        </td>
       </tr>
+    </table>
+  </div>
 
-      </table>
-      <mat-paginator class="foo-paginator" [pageSize]="5" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of users" ></mat-paginator>
-      <div>
-        <!-- <span>Total items: {{ totalItems }}</span> -->
-      </div>
+  <mat-paginator [pageSizeOptions]="[10, 25, 100]" showFirstLastButtons></mat-paginator>
 </div>

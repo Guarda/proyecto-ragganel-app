@@ -1,23 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { SharedService } from '../../../services/shared.service';
+import { ImageUploadAccesorioService } from '../../../services/image-upload-accesorio.service'; // 1. Importar el nuevo servicio
 
 @Component({
-    selector: 'app-image-upload-accesorio',
-    imports: [CommonModule],
-    templateUrl: './image-upload-accesorio.component.html',
-    styleUrl: './image-upload-accesorio.component.css'
+  selector: 'app-image-upload-accesorio',
+  standalone: true, // 2. Asegurarse de que sea standalone
+  imports: [CommonModule],
+  templateUrl: './image-upload-accesorio.component.html',
+  styleUrls: ['./image-upload-accesorio.component.css']
 })
-export class ImageUploadAccesorioComponent {
+export class ImageUploadAccesorioComponent implements OnInit {
+  // 3. Añadir Input para el modo de edición
+  @Input() initialImageName: string | null = null;
+
   selectedFile: File | null = null;
   previewUrl: string | null = null;
   uploadSuccess: boolean = false;
   isDragOver: boolean = false;
 
-  constructor(private http: HttpClient,
-    private sharedService: SharedService
-  ) {}
+  // 4. Propiedades para la galería
+  existingImages: string[] = [];
+  isLoadingImages: boolean = true;
+  readonly imagePath = 'http://localhost:3000/img-accesorios/'; // 5. Ruta a las imágenes de accesorios
+
+  constructor(
+    private sharedService: SharedService,
+    private imageUploadAccesorioService: ImageUploadAccesorioService // 6. Inyectar el nuevo servicio
+  ) { }
+
+  ngOnInit(): void {
+    this.loadExistingImages();
+
+    // Lógica para mostrar la imagen inicial en modo "edición"
+    if (this.initialImageName) {
+      this.previewUrl = this.imagePath + this.initialImageName;
+    }
+  }
 
   onFileSelected(event: any): void {
     this.setFile(event.target.files[0]);
@@ -38,14 +57,14 @@ export class ImageUploadAccesorioComponent {
     this.isDragOver = false;
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
       this.setFile(event.dataTransfer.files[0]);
-      event.dataTransfer.clearData();      
+      event.dataTransfer.clearData();
     }
   }
 
   setFile(file: File): void {
-    this.selectedFile = file;     
+    this.selectedFile = file;
+    this.uploadSuccess = false;
 
-    // Preview the image
     const reader = new FileReader();
     reader.onload = () => {
       this.previewUrl = reader.result as string;
@@ -53,24 +72,34 @@ export class ImageUploadAccesorioComponent {
     reader.readAsDataURL(file);
   }
 
+  // 7. Nuevos métodos para la galería
+  loadExistingImages(): void {
+    this.isLoadingImages = true;
+    this.imageUploadAccesorioService.getExistingImages().subscribe((images: string[]) => {
+      this.existingImages = images;
+      this.isLoadingImages = false;
+    });
+  }
+
+  selectExistingImage(filename: string): void {
+    this.selectedFile = null;
+    this.previewUrl = this.imagePath + filename;
+    this.sharedService.nombreImagenAccesorio(filename); // Usar el método específico
+    this.uploadSuccess = true;
+  }
+
   onUpload(event: Event): void {
-    event.preventDefault(); // Prevents any form-like behavior
+    event.preventDefault();
     if (!this.selectedFile) {
-      console.error('No file selected!');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('image', this.selectedFile);
-
-    this.http.post<{ message: string, filename: string }>('http://localhost:3000/upload-imagen-accesorios', formData).subscribe({
+    this.imageUploadAccesorioService.uploadImage(this.selectedFile).subscribe({
       next: (response) => {
         console.log('Upload successful:', response.message);
         this.uploadSuccess = true;
-
-        // Save the uploaded file name into SharedService
-        // this.sharedService.nombreImagen(this.selectedFile!.name);
-        this.sharedService.nombreImagenAccesorio(response.filename);
+        this.sharedService.nombreImagenAccesorio(response.filename); // Usar el método específico
+        this.loadExistingImages();
       },
       error: (error) => {
         console.error('Upload error:', error);

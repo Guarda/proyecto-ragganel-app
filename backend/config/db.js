@@ -1,26 +1,22 @@
 // db.js
 const mysql = require('mysql2');
 
-// 1. Cargar dotenv para leer las variables de entorno
-require('dotenv').config({
-    path: process.env.NODE_ENV === 'production' ? './.env.production' : './.env.development'
-});
+// Cargar dotenv para leer las variables de entorno del archivo .env
+require('dotenv').config();
 
-// Define la configuración de la base de datos
+// Define la configuración de la base de datos usando variables de entorno
 const dbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: 'password', // Asegúrate que esta sea tu contraseña correcta
-    // 2. Lee el nombre de la base de datos desde las variables de entorno
-    // Si no se encuentra, usa la de prueba por seguridad.
-    database: process.env.DB_NAME || 'base_datos_inventario_taller_prueba',
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'password', // Es mejor no tener una contraseña por defecto
+    database: process.env.DB_DATABASE || 'base_datos_inventario_taller',
     multipleStatements: true
 };
 
-// 3. Usar un pool de conexiones es más robusto para una aplicación web que createConnection
+// Usar un pool de conexiones es más robusto para una aplicación web que createConnection
 const Basedatos = mysql.createPool(dbConfig);
 
-// 4. Exporta la conexión, la configuración y el entorno actual para usarlo en otros lugares
+// Exporta la conexión, la configuración y el entorno actual para usarlo en otros lugares
 module.exports = {
     Basedatos,
     dbConfig,

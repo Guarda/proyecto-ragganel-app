@@ -72,8 +72,9 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
         {
           label: 'Productos',
           subItems: [
-            { label: 'Inventario Productos', route: '/home/listado-productos', roles: [1, 3] },
-            { label: 'Categorías de Productos', route: '/home/listado-categorias', roles: [1, 3] }
+            { label: 'Inventario Productos', route: '/home/listado-productos', roles: [1, 3] },            
+            { label: 'Categorías de Productos', route: '/home/listado-categorias', roles: [1, 3] },
+            { label: 'Configuración Productos', route: '/home/preferencias/index-categorias', roles: [1, 3] },
           ],
           roles: [1, 3]
         },
@@ -81,7 +82,8 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
           label: 'Accesorios',
           subItems: [
             { label: 'Inventario Accesorios', route: '/home/listado-accesorios', roles: [1, 3] },
-            { label: 'Categorías de Accesorios', route: '/home/listado-categorias-accesorios', roles: [1, 3] }
+            { label: 'Categorías de Accesorios', route: '/home/listado-categorias-accesorios', roles: [1, 3] },
+            { label: 'Configuración Accesorios', route: '/home/preferencias/index-categorias-accesorios', roles: [1, 3] },
           ],
           roles: [1, 3]
         },
@@ -89,7 +91,8 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
           label: 'Insumos',
           subItems: [
             { label: 'Inventario Insumos', route: '/home/listado-insumos', roles: [1, 3] },
-            { label: 'Categorías de Insumos', route: '/home/listado-categorias-insumos', roles: [1, 3] }
+            { label: 'Categorías de Insumos', route: '/home/listado-categorias-insumos', roles: [1, 3] },            
+            { label: 'Configuración Insumos', route: '/home/preferencias/index-categorias-insumos', roles: [1, 3] },
           ],
           roles: [1, 3]
         },
@@ -115,21 +118,18 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
       route: '/home/listado-pedidos',
       roles: [1, 3] // Roles for Pedidos
     },
-    {
-      label: 'Taller',
-      icon: 'engineering',
-      route: '/home/taller',
-      roles: [1, 3] // Roles for Taller
-    },
+    // {
+    //   label: 'Taller',
+    //   icon: 'engineering',
+    //   route: '/home/taller',
+    //   roles: [1, 3] // Roles for Taller
+    // },
     {
       label: 'Administración',
       icon: 'admin_panel_settings',
       subItems: [
         { label: 'Usuarios', route: '/home/administracion/listado-usuarios', roles: [1] },
         { label: 'Crear Backup de BD', route: '/home/modulo-en-construccion', roles: [1] },
-        { label: 'Configuración Productos', route: '/home/preferencias/index-categorias', roles: [1] },
-        { label: 'Configuración Accesorios', route: '/home/preferencias/index-categorias-accesorios', roles: [1] },
-        { label: 'Configuración Insumos', route: '/home/preferencias/index-categorias-insumos', roles: [1] },
       ],
       roles: [1]
     }

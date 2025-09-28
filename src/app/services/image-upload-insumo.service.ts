@@ -1,4 +1,4 @@
-// src/app/services/image-upload.service.ts
+// src/app/services/image-upload-insumo.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
@@ -7,28 +7,27 @@ import { catchError } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
-export class ImageUploadService {
-  private apiUrl = 'http://localhost:3000'; // URL base de la API
+export class ImageUploadInsumoService {
+  private apiUrl = 'http://localhost:3000'; // URL base de tu API
 
   constructor(private http: HttpClient) {}
 
   /**
-   * Sube un nuevo archivo de imagen al servidor.
+   * Sube un nuevo archivo de imagen de insumo al servidor.
    */
   uploadImage(image: File): Observable<{ message: string, filename: string }> {
     const formData = new FormData();
     formData.append('image', image);
-    // Renombrado para mayor claridad y consistencia
-    return this.http.post<{ message: string, filename: string }>(`${this.apiUrl}/upload-imagen-producto`, formData);
+    return this.http.post<{ message: string, filename: string }>(`${this.apiUrl}/upload-imagen-insumo`, formData);
   }
 
   /**
-   * Obtiene la lista de nombres de archivo de las imágenes existentes en el servidor.
+   * Obtiene la lista de imágenes de insumos existentes.
    */
   getExistingImages(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/imagenes-existentes-productos`).pipe(
+    return this.http.get<string[]>(`${this.apiUrl}/imagenes-existentes-insumos`).pipe(
       catchError(error => {
-        console.error('Error fetching existing images:', error);
+        console.error('Error fetching existing insumo images:', error);
         return of([]); // Devuelve un array vacío en caso de error
       })
     );

@@ -12,7 +12,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { QRCodeModule } from 'angularx-qrcode';
 import { MatDialog } from '@angular/material/dialog';
 
 import { ServiciosService } from '../../../services/servicios.service';
@@ -31,7 +30,7 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 @Component({
     selector: 'app-ver-servicio',
     imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, IndexListadoInsumosEditarComponent],
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, IndexListadoInsumosEditarComponent, NgIf, MatInputModule, MatOptionModule, MatLabel],
     templateUrl: './ver-servicio.component.html',
     styleUrl: './ver-servicio.component.css'
 })

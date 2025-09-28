@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { Basedatos, dbConfig } = require('../config/db');
 
+const fs = require('fs');
+const path = require('path');
 // List all accessories
 router.get('/', (req, res) => {
     Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaAccesoriosBase\`();`, (err, results) => {
@@ -13,6 +15,33 @@ router.get('/', (req, res) => {
         res.json(results[0]);
     });
 });
+
+/**
+ * @route   GET /imagenes-existentes-accesorios
+ * @desc    Devuelve una lista de los nombres de archivo de las imágenes en la carpeta public/img-accesorios
+ * @access  Public
+ */
+router.get('/imagenes-existentes-accesorios', (req, res) => {
+    // Construimos la ruta absoluta al directorio de imágenes de accesorios
+    const directoryPath = path.join(__dirname, '..', 'public', 'img-accesorios');
+  
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        // Si la carpeta no existe, devolvemos un array vacío en lugar de un error 500
+        if (err.code === 'ENOENT') {
+          console.warn(`Directorio no encontrado: ${directoryPath}. Devolviendo lista vacía.`);
+          return res.json([]);
+        }
+        console.error('No se pudo escanear el directorio: ', err);
+        return res.status(500).send('Error al leer el directorio de imágenes de accesorios.');
+      }
+      
+      // Filtramos para devolver solo archivos de imagen comunes
+      const imageFiles = files.filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file));
+      
+      res.json(imageFiles);
+    });
+  });
 
 // List all accesories categories
 router.get('/listar-categorias-accesorios', (req, res) => {

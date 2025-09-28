@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -11,14 +11,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subscription } from 'rxjs';
 
 import { Cliente } from '../../interfaces/clientes';
 import { ClientesService } from '../../../services/clientes.service';
 import { CrearClienteComponent } from '../crear-cliente/crear-cliente.component';
 import { EliminarClienteComponent } from '../eliminar-cliente/eliminar-cliente.component';
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
 
 @Component({
     selector: 'app-listado-clientes',
+    standalone: true,
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
         MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
@@ -27,19 +31,24 @@ import { EliminarClienteComponent } from '../eliminar-cliente/eliminar-cliente.c
     templateUrl: './listado-clientes.component.html',
     styleUrls: ['./listado-clientes.component.css']
 })
-export class ListadoClientesComponent implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['NombreCliente', 'DNI', 'RUC', 'Telefono', 'CorreoElectronico', 'FechaRegistro', 'Estado', 'acciones'];
+export class ListadoClientesComponent implements OnInit, AfterViewInit, OnDestroy {
+  displayedColumns: string[] = ['nombre', 'dni', 'ruc', 'telefono', 'correo', 'fechaRegistro', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<Cliente>();
 
   isLoading = true;
   errorMessage: string | null = null;
 
+  private readonly tableStateKey = 'clientesTableState';
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   constructor(
     public clienteService: ClientesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private stateService: TableStatePersistenceService
   ) { }
 
   ngOnInit(): void {
@@ -49,6 +58,15 @@ export class ListadoClientesComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+  }
+
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
   }
 
   getClientList() {
@@ -57,9 +75,10 @@ export class ListadoClientesComponent implements OnInit, AfterViewInit {
 
     this.clienteService.getAll().subscribe({
       next: (data: Cliente[]) => {
+        console.log("Clientes cargados:", data);
         const datosProcesados = data.map(cliente => ({
           ...cliente,
-          FechaRegistro: this.parsearFecha(cliente.fechaRegistro)
+          fechaRegistro: this.parsearFecha(cliente.fechaRegistro)
         }));
         this.dataSource.data = datosProcesados;
         this.isLoading = false;
@@ -79,6 +98,44 @@ export class ListadoClientesComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.saveState();
+  }
+
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      if (this.inputElement) {
+        this.inputElement.nativeElement.value = state.filter;
+      }
+    }
+
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
    // ===== REEMPLAZA ESTA FUNCIÓN COMPLETA =====

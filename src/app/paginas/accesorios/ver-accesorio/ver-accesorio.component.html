@@ -88,13 +88,13 @@
                 <div class="contenedor2">
                     <div class="botonedicion">
                         <button mat-flat-button type="submit" class="button-editar-prod" class="btn-editar" (Click)="onSubmit()" color="accent" [disabled]="!accesorioForm.dirty">Guardar Cambios</button>
-                        <a mat-flat-button  (click)="openDialogEliminar(accessorieId)" color="warn" title="borrar producto" >Eliminar accesorio</a>
+                        <a mat-flat-button  (click)="accessorieId && openDialogEliminar(accessorieId)" color="warn" title="borrar producto" >Eliminar accesorio</a>
                         <!-- <a mat-flat-button color="warn" title="borrar producto" >Eliminar producto</a> -->
                     </div>  
                     <div  class="contenedorQR"></div>
                         <h5 class="h5qr">Código QR</h5>
-                        <qrcode 
-                            [qrdata]="accessorieId"
+                        <qrcode
+                            [qrdata]="accessorieId ?? ''"
                             [allowEmptyString]="true"
                             [ariaLabel]="'QR Code image with the following content...'"
                             [cssClass]="'center'"

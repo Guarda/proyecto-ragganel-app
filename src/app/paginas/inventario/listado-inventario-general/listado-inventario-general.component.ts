@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ElementRef  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -10,15 +10,22 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { InventarioGeneralService } from '../../../services/inventario-general.service';
-import { ArticuloInventario } from '../../interfaces/articuloinventario';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { HistorialArticuloDialogComponent } from '../historial-articulo-dialog/historial-articulo-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { Subscription } from 'rxjs'; // <- Añadido
+
+import { InventarioGeneralService } from '../../../services/inventario-general.service';
+import { ArticuloInventario } from '../../interfaces/articuloinventario';
+import { HistorialArticuloDialogComponent } from '../historial-articulo-dialog/historial-articulo-dialog.component';
+
+// --- CAMBIO 2: Importar el servicio de estado y la interfaz ---
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
 
 @Component({
     selector: 'app-listado-inventario-general',
+    standalone: true, // Se asume standalone
     imports: [
         CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
         MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
@@ -27,7 +34,7 @@ import { MatDialog } from '@angular/material/dialog';
     templateUrl: './listado-inventario-general.component.html',
     styleUrls: ['./listado-inventario-general.component.css']
 })
-export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit {
+export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit, OnDestroy {
   // Define las columnas que se mostrarán en la tabla
    displayedColumns: string[] = ['LinkImagen', 'Codigo', 'NombreArticulo', 'Tipo', 'Estado', 'Cantidad', 'PrecioBase', 'FechaIngreso', 'Action'];
   dataSource = new MatTableDataSource<ArticuloInventario>();
@@ -35,13 +42,22 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit 
   isLoading = true;
   errorMessage: string | null = null;
 
+  // --- CAMBIO 4: Añadir propiedades para la gestión del estado ---
+  private readonly tableStateKey = 'inventarioGeneralTableState'; // ¡Clave única!
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
-  constructor(private inventarioService: InventarioGeneralService,
+
+  constructor(
+    private inventarioService: InventarioGeneralService,
     private router: Router,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    // --- CAMBIO 5: Inyectar el servicio de estado ---
+    private stateService: TableStatePersistenceService
   ) { }
 
   ngOnInit(): void {
@@ -49,14 +65,19 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit 
   }
 
   ngAfterViewInit(): void {
-    // Comprobamos que el paginador exista antes de asignarlo
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
-    // Hacemos lo mismo para el ordenamiento
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
-    }
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+
+    // --- CAMBIO 6: Cargar estado y suscribirse a los cambios ---
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+  }
+
+  // --- CAMBIO 7: Añadir ngOnDestroy para limpiar y guardar el estado final ---
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
   }
 
   public editarArticulo(articulo: ArticuloInventario): void {
@@ -165,6 +186,47 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit 
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    // --- CAMBIO 8: Guardar el estado al filtrar ---
+    this.saveState();
+  }
+
+  // --- CAMBIO 9: Copiar los métodos 'saveState' y 'loadAndApplyState' ---
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    if (state.filter) {
+    this.dataSource.filter = state.filter;
+    // Y se usa esta nueva lógica, que es más segura:
+    if (this.inputElement) {
+      this.inputElement.nativeElement.value = state.filter;
+    }
+  }
+
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+    
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
   /**

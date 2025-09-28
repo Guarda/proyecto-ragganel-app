@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
+import { MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -10,8 +10,10 @@ import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgFor } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { CommonModule, NgFor } from '@angular/common';
 import { TipoProducto } from '../../interfaces/tipoproducto';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { TiposProductosService } from '../../../services/tipos-productos.service';
@@ -26,14 +28,15 @@ import { SubcategoriaProductoService } from '../../../services/subcategoria-prod
 
 import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
 import { SharedService } from '../../../services/shared.service';
+import { ValidationService } from '../../../services/validation.service';
 
 @Component({
     selector: 'app-agregar-categorias',
-    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule,
-        ImageUploadComponent],
+    standalone: true,
+    imports: [CommonModule, MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule, NgFor, MatSelectModule, MatButtonModule, MatIconModule, MatFormFieldModule, ImageUploadComponent, MatCardModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatProgressSpinnerModule],
     templateUrl: './agregar-categorias.component.html',
-    styleUrl: './agregar-categorias.component.css'
+    styleUrl: './agregar-categorias.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AgregarCategoriasComponent {
 
@@ -59,13 +62,19 @@ export class AgregarCategoriasComponent {
     public subcategoriaproductoService: SubcategoriaProductoService,
     private cdr: ChangeDetectorRef,
     private sharedService: SharedService,
-    private router: Router) {
+    private router: Router,
+    private validationService: ValidationService // Inyectar el nuevo servicio
+  ) {
 
     this.CategoriaForm = new FormGroup({
       Fabricante: new FormControl('', Validators.required),
       Cate: new FormControl('', Validators.required),
       SubCategoria: new FormControl('', Validators.required),
-      CodigoModeloConsola: new FormControl('', Validators.required),
+      CodigoModeloConsola: new FormControl(
+        '', 
+        [Validators.required], // Validadores síncronos
+        [this.validationService.codeExistsValidator()] // Validadores asíncronos
+      ),
       LinkImagen: new FormControl('', Validators.required),
       TipoProducto: new FormControl('', Validators.required)
     });
@@ -111,6 +120,11 @@ export class AgregarCategoriasComponent {
 
   }
 
+  // Helper para acceder fácilmente al formulario en la plantilla
+  get form() {
+    return this.CategoriaForm.controls;
+  }
+
   onSubmit() { 
     console.log("enviado");
     // TODO: Use EventEmitter with form value
@@ -118,7 +132,7 @@ export class AgregarCategoriasComponent {
     // console.log("enviado");
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('listado-categorias');
+      this.router.navigateByUrl('home/listado-categorias');
     })
 
   }

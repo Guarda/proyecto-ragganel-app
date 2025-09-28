@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -30,21 +30,29 @@ import { CrearNotaCreditoComponent } from '../crear-nota-credito/crear-nota-cred
 import { Router } from '@angular/router';
 import { DialogoConfirmacionComponent } from '../dialogo-confirmacion/dialogo-confirmacion.component';
 
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
+import { Subscription } from 'rxjs';
+
 @Component({
-    selector: 'app-listado-ventas',
-    imports: [
-        CommonModule, FormsModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
-        MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatDatepickerModule,
-        MatNativeDateModule, MatTooltipModule
-    ],
-    providers: [{ provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
-    templateUrl: './listado-ventas.component.html',
-    styleUrls: ['./listado-ventas.component.css']
+  selector: 'app-listado-ventas',
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
+    MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatDatepickerModule,
+    MatNativeDateModule, MatTooltipModule
+  ],
+  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
+  templateUrl: './listado-ventas.component.html',
+  styleUrls: ['./listado-ventas.component.css']
 })
-export class ListadoVentasComponent implements OnInit, AfterViewInit {
+export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['IdVentaPK', 'FechaCreacion', 'TipoDocumento', 'NumeroDocumento', 'Cliente', 'TotalVenta', 'EstadoVenta', 'Action'];
   dataSource = new MatTableDataSource<Ventas>();
   usuario!: Usuarios;
+
+  private readonly tableStateKey = 'ventasTableState';
+  private subscriptions = new Subscription();
 
   isLoading = true;
   errorMessage: string | null = null;
@@ -54,7 +62,7 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild('input') inputBusqueda!: ElementRef<HTMLInputElement>;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   constructor(
     private ventasService: VentasBaseService,
@@ -62,7 +70,8 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private creditNotesService: NotasCreditoService,
-    private router: Router
+    private router: Router,
+    private stateService: TableStatePersistenceService
   ) { }
 
   ngOnInit(): void {
@@ -70,9 +79,66 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
     this.setupFilterPredicate();
   }
 
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
+  }
+
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      // El filtro en ventas ya es un string JSON, lo cual es perfecto
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    // Restaura el filtro (texto y fechas)
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      const filterValues = JSON.parse(state.filter);
+
+      // Timeout para asegurar que el elemento de input esté disponible
+      setTimeout(() => {
+        if (this.inputElement) {
+          this.inputElement.nativeElement.value = filterValues.text || '';
+        }
+      });      this.fechaInicio = filterValues.start ? new Date(filterValues.start) : null;
+      this.fechaFin = filterValues.end ? new Date(filterValues.end) : null;
+    }
+
+    // Restaura el paginador
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+
+    // Restaura el ordenamiento (con un pequeño retardo para asegurar que se aplique)
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+
+    this.loadAndApplyState();
+
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }
 
   cargarVentas(): void {
@@ -218,18 +284,14 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
    * Se ejecuta cada vez que cambia un filtro (texto o fecha).
    * Construye el objeto de filtro y lo aplica a la tabla.
    */
-  aplicarFiltros(): void {
-    const textoFiltro = this.inputBusqueda?.nativeElement.value || '';
-
-    // Para las fechas, nos aseguramos de que la comparación sea inclusiva
-    // ajustando la hora a medianoche.
-    const fechaInicioFiltro = this.fechaInicio ? new Date(this.fechaInicio.setHours(0, 0, 0, 0)) : null;
-    const fechaFinFiltro = this.fechaFin ? new Date(this.fechaFin.setHours(23, 59, 59, 999)) : null;
+   aplicarFiltros(): void {
+    const textoFiltro = this.inputElement?.nativeElement.value || '';    const fechaInicioNormalizada = this.fechaInicio ? new Date(this.fechaInicio.setHours(0, 0, 0, 0)) : null;
+    const fechaFinNormalizada = this.fechaFin ? new Date(this.fechaFin.setHours(23, 59, 59, 999)) : null;
 
     const filterValues = {
-      text: textoFiltro,
-      start: fechaInicioFiltro,
-      end: fechaFinFiltro
+      text: textoFiltro.trim().toLowerCase(),
+      start: fechaInicioNormalizada,
+      end: fechaFinNormalizada
     };
 
     this.dataSource.filter = JSON.stringify(filterValues);
@@ -237,6 +299,9 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+
+    // --- AÑADIR ESTA LÍNEA AL FINAL ---
+    this.saveState(); 
   }
 
   applyFilter(event: Event) {

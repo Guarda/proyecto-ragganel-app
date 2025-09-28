@@ -682,6 +682,26 @@ BEGIN
 END$$
 DELIMITER ;
 
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_VerificarCodigoUnico
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-09-15
+-- DESCRIPCIÓN: Verifica si un código de modelo ya existe en cualquiera de
+-- las tablas de catálogo (productos, accesorios o insumos).
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_VerificarCodigoUnico(IN p_Codigo VARCHAR(25))
+BEGIN
+    SELECT 1 AS Existe FROM CatalogoConsolas WHERE CodigoModeloConsola = p_Codigo
+    UNION ALL
+    SELECT 1 AS Existe FROM CatalogoAccesorios WHERE CodigoModeloAccesorio = p_Codigo
+    UNION ALL
+    SELECT 1 AS Existe FROM CatalogoInsumos WHERE CodigoModeloInsumos = p_Codigo
+    LIMIT 1;
+END$$
+DELIMITER ;
+
+
 /*-- III.B. Subsección: Procedimientos accesorios ---------------------------*/
 
 /*------------------------------------------------------------------------------
@@ -911,10 +931,8 @@ DELIMITER ;
 DELIMITER //
 	CREATE PROCEDURE IngresarCategoriaAccesorio(FabricanteA int, CategoriaA int, SubcategoriaA int, PrefijoAccesorio varchar(25), NombreArchivoImagen varchar(100))
     BEGIN
-		DECLARE cantidad varchar(24);
-        select count(idmodeloaccesoriopk)+1 from catalogoaccesorios into cantidad;        
 		INSERT INTO catalogoaccesorios(FabricanteAccesorio, CategoriaAccesorio, SubcategoriaAccesorio, CodigoModeloAccesorio, LinkImagen) 
-        values (FabricanteA, CategoriaA, SubcategoriaA,concat(PrefijoAccesorio,cantidad), NombreArchivoImagen);
+        values (FabricanteA, CategoriaA, SubcategoriaA, PrefijoAccesorio, NombreArchivoImagen);
     END //
 DELIMITER ;
 
@@ -1476,10 +1494,8 @@ END$$
 DELIMITER //
 	CREATE PROCEDURE IngresarCategoriaInsumo(FabricanteI int, CategoriaI int, SubcategoriaI int, PrefijoInsumo varchar(25), NombreArchivoImagen varchar(100))
     BEGIN
-		DECLARE cantidad varchar(24);
-        select count(IdModeloInsumosPK)+1 from catalogoinsumos into cantidad;        
 		INSERT INTO catalogoinsumos(FabricanteInsumos, CategoriaInsumos, SubcategoriaInsumos, CodigoModeloInsumos, LinkImagen) 
-        values (FabricanteI, CategoriaI, SubcategoriaI,concat(PrefijoInsumo,cantidad), NombreArchivoImagen);
+        values (FabricanteI, CategoriaI, SubcategoriaI, PrefijoInsumo, NombreArchivoImagen);
     END //
 DELIMITER ;
 
@@ -2080,10 +2096,8 @@ DELIMITER ;
 DELIMITER //
 	CREATE PROCEDURE IngresarCategoriaProducto(FabricanteP int, CategoriaP int, SubcategoriaP int, PrefijoProducto varchar(25), NombreArchivoImagen varchar(100), TipoProductoP int)
     BEGIN
-		DECLARE cantidad varchar(24);
-        select count(idmodeloconsolapk)+1 from catalogoconsolas into cantidad;        
 		INSERT INTO catalogoconsolas(Fabricante, Categoria, Subcategoria, CodigoModeloConsola, LinkImagen, TipoProducto) 
-        values (FabricanteP, CategoriaP, SubcategoriaP,concat(PrefijoProducto,cantidad), NombreArchivoImagen, TipoProductoP);
+        values (FabricanteP, CategoriaP, SubcategoriaP, PrefijoProducto, NombreArchivoImagen, TipoProductoP);
     END //
 DELIMITER ;
 
@@ -4824,7 +4838,10 @@ BEGIN
         p_Comentarios, 
         CURDATE(), 
         1
-    );
+    );    
+    -- Devolver el cliente recién creado para que el backend pueda usarlo.
+    -- Esta línea es crucial para que el backend reciba los datos del nuevo cliente.
+    SELECT * FROM Clientes WHERE IdClientePK = LAST_INSERT_ID();
 END $$
 DELIMITER ;
 

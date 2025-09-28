@@ -1,154 +1,165 @@
-import { ChangeDetectorRef, Component, EventEmitter, Inject } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CategoriasConsolas } from '../../interfaces/categorias';
-import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatFormField, MatInputModule, MatLabel } from '@angular/material/input';
+import { Component, Inject, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { CommonModule, NgFor } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
-import { NgFor } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
 
+// 1. IMPORTS NECESARIOS
+import { SharedService } from '../../../services/shared.service';
+import { ImageUploadInsumoComponent } from '../../../utiles/images/image-upload-insumo/image-upload-insumo.component';
+
+// Interfaces
 import { FabricanteInsumos } from '../../interfaces/fabricantesinsumos';
 import { categoriasInsumos } from '../../interfaces/categoriasinsumos';
 import { SubcategoriasInsumos } from '../../interfaces/subcategoriasinsumos';
 
+// Services
 import { FabricanteInsumoService } from '../../../services/fabricante-insumo.service';
 import { CategoriaInsumoService } from '../../../services/categoria-insumo.service';
 import { SubcategoriaInsumoService } from '../../../services/subcategoria-insumo.service';
-import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { CategoriasInsumosService } from '../../../services/categorias-insumos.service';
+import { ValidationService } from '../../../services/validation.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
-    selector: 'app-editar-categorias-inumos',
-    imports: [MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
-        NgFor, MatSelectModule, MatButtonModule, MatIcon, MatFormFieldModule],
-    templateUrl: './editar-categorias-inumos.component.html',
-    styleUrl: './editar-categorias-inumos.component.css'
+  selector: 'app-editar-categorias-inumos',
+  standalone: true, // Convertido a standalone
+  imports: [
+    CommonModule, MatFormFieldModule, FormsModule, MatDialogModule, ReactiveFormsModule,
+    MatInputModule, MatOptionModule, NgFor, MatSelectModule, MatButtonModule, MatProgressSpinnerModule,
+    ImageUploadInsumoComponent // Añadir el componente de imagen aquí
+  ],
+  templateUrl: './editar-categorias-inumos.component.html',
+  styleUrls: ['./editar-categorias-inumos.component.css']
 })
-export class EditarCategoriasInumosComponent {
-  Editado = new EventEmitter();
-
+export class EditarCategoriasInumosComponent implements OnInit {
   categoriaForm!: FormGroup;
 
-  categoria!: CategoriasInsumosBase;
-  categoriasinsumos: CategoriasInsumosBase[] = [];
-
+  // Propiedades para los datos de los selects
   selectedFabricante: FabricanteInsumos[] = [];
   selectedCategoriaInsumo: categoriasInsumos[] = [];
   selectedSubCategoriaInsumo: SubcategoriasInsumos[] = [];
 
+  // Propiedades para pasar datos al template
   public IdModeloInsumoPK: any;
-  public FabricanteInsumo: any;
-  public CategoriaInsumo: any;
-  public SubcategoriaInsumo: any;
-  public CodigoModeloInsumo: any;
-  public LinkImagen: any;
-  public ImagePath: any;
+  public LinkImagen: string | null = null; // Para la imagen inicial
+  public originalCodigoModeloInsumos: string | null = null;
 
-  /*VARIABLE YA NO SE USA */
-  // public DescripcionConsola: any;
-
-  constructor(public categoriaService: CategoriasInsumosService,
+  constructor(
+    public categoriaService: CategoriasInsumosService,
     public fabricanteinsumoService: FabricanteInsumoService,
     public categoriainsumoService: CategoriaInsumoService,
     public subcategoriainsumoService: SubcategoriaInsumoService,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
     private fb: FormBuilder,
+    // 2. INYECTAR SERVICIOS FALTANTES
+    private sharedService: SharedService,
+    private validationService: ValidationService,
+    private dialogRef: MatDialogRef<EditarCategoriasInumosComponent>,
     @Inject(MAT_DIALOG_DATA) public idCategory: any
-  ) { }
+  ) {
+    // 3. INICIALIZAR EL FORMULARIO AQUÍ, EN EL CONSTRUCTOR
+    // Usamos los nombres en plural que coinciden con la base de datos
+    this.categoriaForm = this.fb.group({
+      IdModeloInsumosPK: [''],
+      FabricanteInsumos: ['', Validators.required],
+      CategoriaInsumos: ['', Validators.required],
+      SubcategoriaInsumos: ['', Validators.required],
+      CodigoModeloInsumos: ['',
+        [Validators.required],
+        [this.validationService.codeExistsValidator(() => this.originalCodigoModeloInsumos)]
+      ],
+      LinkImagen: ['', Validators.required]
+    });
+  }
+
+  // ... (justo después del constructor)
 
   ngOnInit(): void {
-    console.log("codigo/categoria/insumo",this.idCategory.value);
-
-    this.categoriaService.find(this.idCategory.value).subscribe((data) => {
-
-      
-      this.categoria = data[0];
-      this.IdModeloInsumoPK = this.idCategory.value;
-      this.FabricanteInsumo = this.categoria.FabricanteInsumos;
-      this.CategoriaInsumo = this.categoria.CategoriaInsumos;
-      this.SubcategoriaInsumo = this.categoria.SubcategoriaInsumos;
-      this.CodigoModeloInsumo = this.categoria.CodigoModeloInsumos;
-      this.LinkImagen = this.categoria.LinkImagen;
-      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-
-      this.fabricanteinsumoService.getAll().subscribe((data: FabricanteInsumos[]) => {
-        this.selectedFabricante = data;
-      })
-
-      this.categoriainsumoService.find(String(this.FabricanteInsumo)).subscribe((data: categoriasInsumos[]) => {
-        this.selectedCategoriaInsumo = data;
-      })
-
-      this.subcategoriainsumoService.find(String(this.CategoriaInsumo)).subscribe((data: SubcategoriasInsumos[]) => {
-        this.selectedSubCategoriaInsumo = data;
-      })
-
-      //Initialize the form with the product data
-      this.categoriaForm = this.fb.group({
-        IdModeloInsumoPK: [this.IdModeloInsumoPK],
-        FabricanteInsumo: [this.FabricanteInsumo],
-        CategoriaInsumo: [this.CategoriaInsumo],
-        SubCategoriaInsumo: [this.SubcategoriaInsumo],
-        CodigoModeloInsumo: [this.CodigoModeloInsumo],
-        LinkImagen: [this.LinkImagen]
-      });
-
-      /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
-      this.categoriaForm.get('FabricanteInsumo')?.valueChanges.subscribe(selectedId => {
-        // console.log("cambio");
-        this.categoriainsumoService.find(selectedId).subscribe((data: categoriasInsumos[]) => {
-          this.selectedCategoriaInsumo = data;
-        })
-
-        this.categoriaForm.get('SubcategoriaInsumo')?.reset();
-      });
-
-      this.categoriaForm.get('CategoriaInsumo')?.valueChanges.subscribe(selectedId => {
-        this.subcategoriainsumoService.find(selectedId).subscribe((data: SubcategoriasInsumos[]) => {
-          console.log(data);
-          this.selectedSubCategoriaInsumo = data;
-        })
-      });
-
+    // Suscribirse a la imagen seleccionada desde el componente hijo
+    this.sharedService.dataNombreArchivoInsumo$.subscribe((nombreArchivo: string) => {
+      if (nombreArchivo) {
+        this.categoriaForm.get('LinkImagen')?.setValue(nombreArchivo);
+      }
     });
 
-    this.categoriaForm = new FormGroup({
-      IdModeloInsumoPK: new FormControl(''),
-      FabricanteInsumo: new FormControl('', Validators.required),
-      CategoriaInsumo: new FormControl('', Validators.required),
-      SubCategoriaInsumo: new FormControl('', Validators.required),
-      CodigoModeloInsumo: new FormControl('', Validators.required),
-      LinkImagen: new FormControl('', Validators.required)
+    // Separar la lógica en métodos claros
+    this.cargarDatosDelInsumo();
+    this.setupSelectDependencies();
+  }
+
+  cargarDatosDelInsumo(): void {
+    const id = this.idCategory.value;
+    this.categoriaService.find(id).subscribe((data) => {
+      const insumo = data[0];
+      this.IdModeloInsumoPK = id;
+      this.LinkImagen = insumo.LinkImagen; // Guardamos el nombre de la imagen inicial
+      this.originalCodigoModeloInsumos = insumo.CodigoModeloInsumos;
+
+      // Cargar los datos iniciales para los selects
+      this.fabricanteinsumoService.getAll().subscribe((dataFab: FabricanteInsumos[]) => {
+        this.selectedFabricante = dataFab;
+      });
+
+      // Cargar las listas de categorías y subcategorías ANTES de llenar el formulario.
+      // Esto asegura que los <mat-option> existan cuando Angular intente seleccionarlos.
+      this.categoriainsumoService.find(String(insumo.FabricanteInsumos)).subscribe(dataCat => {
+        this.selectedCategoriaInsumo = dataCat;
+        this.subcategoriainsumoService.find(String(insumo.CategoriaInsumos)).subscribe(dataSub => {
+          this.selectedSubCategoriaInsumo = dataSub;
+
+          // Ahora que todas las listas están cargadas, llenamos el formulario.
+          // Esto previene que los selects se queden en blanco.
+          this.categoriaForm.patchValue(insumo);
+        });
+      });
     });
   }
 
-  getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+  setupSelectDependencies(): void {
+    // Cuando cambia el fabricante, se actualiza la lista de categorías
+    this.categoriaForm.get('FabricanteInsumos')?.valueChanges.subscribe(selectedId => {
+      if (selectedId) {
+        this.categoriainsumoService.find(selectedId).subscribe((dataCat: categoriasInsumos[]) => {
+          this.selectedCategoriaInsumo = dataCat;
+        });
+        // Se resetean los campos dependientes
+        this.categoriaForm.get('CategoriaInsumos')?.reset();
+        this.categoriaForm.get('SubcategoriaInsumos')?.reset();
+      }
+    });
 
-    if (l == null || l === '') {
-      return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;
-    } else {
-      return `${baseUrl}/img-insumos/${l}`;
+    // Cuando cambia la categoría, se actualiza la lista de subcategorías
+    this.categoriaForm.get('CategoriaInsumos')?.valueChanges.subscribe(selectedId => {
+      if (selectedId) {
+        this.subcategoriainsumoService.find(selectedId).subscribe((dataSub: SubcategoriasInsumos[]) => {
+          this.selectedSubCategoriaInsumo = dataSub;
+        });
+      }
+    });
+  }
+
+  onSubmit(): void {
+    if (this.categoriaForm.invalid) {
+      return; // Si el formulario es inválido, no hacer nada
     }
+
+    console.log('Formulario a enviar:', this.categoriaForm.value);
+
+    // El formulario ya tiene la estructura correcta que el backend espera
+    this.categoriaService.update(this.categoriaForm.value).subscribe({
+      next: (response) => {
+        console.log('Actualización exitosa:', response);
+        // Cerrar el diálogo SÓLO si la actualización fue exitosa
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        console.error('Error al intentar actualizar la categoría:', err);
+        // Aquí podrías mostrar una alerta de error al usuario
+      }
+    });
   }
-
-
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    console.log(this.categoriaForm.value);
-    // this.categoriaForm.value.CodigoConsola = this.idCategory.value;
-    // console.log(this.categoriaForm.value);
-    this.categoriaService.update(this.categoriaForm.value).subscribe((res: any) => {
-      this.Editado.emit();
-      this.router.navigateByUrl('home/listado-categorias-insumos');
-    })
-
-  }
-
 }

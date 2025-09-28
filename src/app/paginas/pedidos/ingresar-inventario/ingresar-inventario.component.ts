@@ -27,8 +27,8 @@ import { PreIngresoProducto } from '../../interfaces/pre-ingreso-producto';
 import { PreIngresoAccesorio } from '../../interfaces/pre-ingreso-accesorio';
 import { PreIngresoInsumo } from '../../interfaces/pre-ingreso-insumo';
 import { forkJoin } from 'rxjs';
-import { DistributionChoiceDialogComponent } from '../../../../../backend/distribution-choice-dialog.component';
-import { CostDistributionDialogComponent } from '../../../../../backend/cost-distribution-dialog.component';
+import { DistributionChoiceDialogComponent } from '../dialogs-pedido/preferencia-distribucion/distribution-choice-dialog.component';
+import { CostDistributionDialogComponent } from '../dialogs-pedido/distribucion-costo/cost-distribution-dialog.component';
 
 @Component({
     selector: 'app-ingresar-inventario',

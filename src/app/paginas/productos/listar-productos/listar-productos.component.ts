@@ -1,48 +1,57 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subscription } from 'rxjs';
 
 import { Producto } from '../../interfaces/producto';
+import { TableState } from '../../interfaces/table-state';
 import { ProductosService } from '../productos.service';
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+
 import { AgregarProdutosComponent } from '../agregar-produtos/agregar-produtos.component';
-import { EditarProductosComponent } from '../editar-productos/editar-productos.component';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 import { HistorialProductoComponent } from '../historial-producto/historial-producto.component';
 
 @Component({
-    selector: 'app-listar-productos',
-    imports: [
-        CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
-    ],
-    templateUrl: './listar-productos.component.html',
-    styleUrls: ['./listar-productos.component.css']
+  selector: 'app-listar-productos',
+  standalone: true, // Se asume standalone por los imports directos en @Component
+  imports: [
+    CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
+    MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
+    MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+  ],
+  templateUrl: './listar-productos.component.html',
+  styleUrls: ['./listar-productos.component.css']
 })
-export class ListarProductosComponent implements AfterViewInit {
+// --- CAMBIO: Se implementan OnInit y OnDestroy para un manejo completo del ciclo de vida ---
+export class ListarProductosComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['CodigoConsola', 'DescripcionConsola', 'Estado', 'Hack', 'Fecha_Ingreso', 'PrecioBase', 'Action'];
   dataSource = new MatTableDataSource<Producto>();
 
-  // Propiedades para manejar estados de UI
   isLoading = true;
   errorMessage: string | null = null;
 
+  private readonly tableStateKey = 'productosTableState';
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   constructor(
     public productoService: ProductosService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private stateService: TableStatePersistenceService
   ) { }
 
   ngOnInit(): void {
@@ -50,65 +59,106 @@ export class ListarProductosComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // La asignación del paginador y el sort se hace una sola vez aquí.
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }
 
-  // --- PASO 1: REEMPLAZA TU MÉTODO getProductList CON ESTE ---
-  getProductList() {
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
+  }
+
+  getProductList(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
     this.productoService.getAll().subscribe({
       next: (data: Producto[]) => {
-        // Transformamos los datos ANTES de pasarlos a la tabla
+        // Se procesan las fechas para que el ordenador de la tabla funcione correctamente
         const datosProcesados = data.map(producto => ({
           ...producto,
-          // Convertimos el string "dd/mm/aaaa" a un objeto Date válido
-          Fecha_Ingreso: this.parsearFecha(producto.Fecha_Ingreso) 
+          Fecha_Ingreso: this.parsearFecha(producto.Fecha_Ingreso)
         }));
 
-        this.dataSource.data = datosProcesados; // Usamos los datos ya procesados
+        this.dataSource.data = datosProcesados;
         this.isLoading = false;
       },
       error: (err) => {
         console.error("Error al cargar productos:", err);
-        this.errorMessage = "No se pudieron cargar los productos.";
+        this.errorMessage = "No se pudieron cargar los productos. Intente de nuevo más tarde.";
         this.isLoading = false;
       }
     });
   }
 
-  applyFilter(event: Event) {
+  applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    // --- CAMBIO CLAVE: Guardar el estado cada vez que el filtro cambia ---
+    this.saveState();
+  }
+
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    // Aplicar filtro
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      if (this.inputElement) {
+        this.inputElement.nativeElement.value = state.filter;
+      }
+    }
+
+    // Aplicar paginación (asegurándonos que el paginador esté listo)
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+
+    // Aplicar ordenamiento. Usamos setTimeout para evitar errores de ExpressionChangedAfterItHasBeenChecked
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
   private parsearFecha(fechaStr: string | Date): Date {
-    // Si por alguna razón ya es un objeto Date, lo devolvemos
     if (fechaStr instanceof Date) {
       return fechaStr;
     }
-
-    // Dividimos el string "dd/mm/aaaa" en sus partes
     const partes = fechaStr.split('/');
     if (partes.length === 3) {
       const dia = parseInt(partes[0], 10);
-      const mes = parseInt(partes[1], 10) - 1; // Meses en JS son de 0 a 11
+      const mes = parseInt(partes[1], 10) - 1;
       const anio = parseInt(partes[2], 10);
       return new Date(anio, mes, dia);
     }
-    
-    // Si el formato es inesperado, intentamos una conversión directa
-    return new Date(fechaStr);
+    return new Date(fechaStr); // Fallback por si el formato es diferente
   }
-  
-  // Lógica para los badges de estado
+
   getEstadoClass(status: string): string {
     if (!status) return 'status-default';
     const statusNormalized = status.toLowerCase().replace(/\s+/g, '-');
@@ -124,36 +174,30 @@ export class ListarProductosComponent implements AfterViewInit {
     }
   }
 
-  // --- Métodos de Diálogos (simplificados) ---
-
-  public openDialogAgregar() {
+  // --- Métodos de Diálogos ---
+  public openDialogAgregar(): void {
     const dialogRef = this.dialog.open(AgregarProdutosComponent, {
       width: '50%',
       height: '85%',
       disableClose: true,
     });
     dialogRef.afterClosed().subscribe(result => {
-      // Si el diálogo devuelve 'true' (o cualquier valor afirmativo), recargamos la lista.
-      if (result) {
-        this.getProductList();
-      }
+      if (result) this.getProductList();
     });
   }
 
-  public openDialogEliminar(codigoConsola: string) {
+  public openDialogEliminar(codigoConsola: string): void {
     const dialogRef = this.dialog.open(EliminarProductosComponent, {
       width: '400px',
       disableClose: true,
       data: { value: codigoConsola }
     });
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.getProductList();
-      }
+      if (result) this.getProductList();
     });
   }
 
-  public openDialogHistorial(codigoConsola: string) {
+  public openDialogHistorial(codigoConsola: string): void {
     this.dialog.open(HistorialProductoComponent, {
       width: '600px',
       data: { value: codigoConsola }

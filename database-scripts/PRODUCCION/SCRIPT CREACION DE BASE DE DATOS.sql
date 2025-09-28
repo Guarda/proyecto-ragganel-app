@@ -511,7 +511,7 @@ CREATE TABLE PedidoBase
     ViaPedidoFK int not null,
     EstadoPedidoFK int not null,    
     TotalPedido Decimal(6,2),
-    Comentarios varchar(2000),
+    Comentarios varchar(5000),
     Peso DECIMAL(6,2),
 	SubtotalArticulos DECIMAL(6,2),
 	Impuestos DECIMAL(6,2),
@@ -665,7 +665,7 @@ CREATE TABLE Clientes (
     Direccion VARCHAR(255) NULL,
     FechaRegistro date,
     Estado boolean not null default 1,
-    Comentarios varchar(1000)
+    Comentarios varchar(5000)
 );
 
 /*------------------------------------------------------------------------------
@@ -726,7 +726,7 @@ CREATE TABLE VentasBase(
     /*VALORES EXTRAS VENTA*/   
     IdUsuarioFK int not null,
     IdClienteFK int not null,
-    Observaciones varchar(255),
+    Observaciones varchar(5000),
     FOREIGN KEY (IdTipoDocumentoFK) REFERENCES TipoDocumento(IdTipoDocumentoPK),
     FOREIGN KEY (IdEstadoVentaFK) REFERENCES ESTADOVENTA(IdEstadoVentaPK),
     FOREIGN KEY (IdMetodoDePagoFK) REFERENCES metodosdepago (IdMetodoPagoPK),    
@@ -777,7 +777,7 @@ CREATE TABLE CarritoVentas (
     IdUsuarioFK INT NOT NULL,
     IdClienteFK INT,
     FechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    Comentario VARCHAR(255),
+    Comentario VARCHAR(5000),
     EstadoCarrito VARCHAR(50) DEFAULT 'En curso',
     FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios(IdUsuarioPK),
     FOREIGN KEY (IdClienteFK) REFERENCES Clientes(IdClientePK)
@@ -894,7 +894,7 @@ CREATE TABLE ServiciosBase(
     DescripcionServicio varchar(255),
 	Estado boolean not null default 1,
     PrecioBase Decimal(6,2),
-    Comentario varchar(2000),
+    Comentario varchar(5000),
     FechaIngreso date
 );
 
@@ -1030,7 +1030,7 @@ CREATE TABLE PreIngresoProductos (
     Color VARCHAR(100) NOT NULL,
     Estado INT NOT NULL,
     Hackeado BOOLEAN NOT NULL DEFAULT 0,
-    Comentario VARCHAR(255),
+    Comentario VARCHAR(5000),
     PrecioBase DECIMAL(10,2),
     CostoDistribuido DECIMAL(10,2) NULL DEFAULT 0.00,
     NumeroSerie VARCHAR(100),
@@ -1058,7 +1058,7 @@ CREATE TABLE PreIngresoAccesorios (
     ModeloAccesorio INT NOT NULL,
     ColorAccesorio VARCHAR(100) NOT NULL,
     EstadoAccesorio INT NOT NULL,
-    Comentario VARCHAR(2000),
+    Comentario VARCHAR(5000),
     PrecioBase DECIMAL(6,2),
     CostoDistribuido DECIMAL(10,2) NULL DEFAULT 0.00,
     NumeroSerie VARCHAR(100),
@@ -1107,7 +1107,7 @@ CREATE TABLE PreIngresoInsumos (
     FormIndex INT NOT NULL,
     ModeloInsumo INT NOT NULL,
     EstadoInsumo INT NOT NULL,
-    Comentario VARCHAR(2000),
+    Comentario VARCHAR(5000),
     PrecioBase DECIMAL(6,2),
     CostoDistribuido DECIMAL(10,2) NULL DEFAULT 0.00,
     NumeroSerie VARCHAR(100),

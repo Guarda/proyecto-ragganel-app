@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -9,14 +9,21 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { NotasCreditoService } from '../../../services/notas-credito.service'; // Asegúrate que la ruta sea correcta
-import { BorrarNotaCreditoComponent } from '../borrar-nota-credito/borrar-nota-credito.component';
-
-import { NotaCredito } from '../../interfaces/notacredito';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
+
+import { NotasCreditoService } from '../../../services/notas-credito.service';
+import { BorrarNotaCreditoComponent } from '../borrar-nota-credito/borrar-nota-credito.component';
+import { NotaCredito } from '../../interfaces/notacredito';
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
+
 @Component({
     selector: 'app-listar-notas-credito',
+    standalone: true,
     imports: [
         CommonModule,
         FormsModule,
@@ -27,19 +34,22 @@ import { MatDialog } from '@angular/material/dialog';
         MatInputModule,
         MatIconModule,
         MatButtonModule,
-        RouterModule
+        RouterModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule
     ],
     templateUrl: './listar-notas-credito.component.html',
-    styleUrls: ['./listar-notas-credito.component.css'] // No olvides crear este archivo
+    styleUrls: ['./listar-notas-credito.component.css']
 })
-export class ListarNotasCreditoComponent implements OnInit, AfterViewInit {
+export class ListarNotasCreditoComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  // 2. Columnas que se mostrarán en la tabla
   displayedColumns: string[] = ['IdNotaCreditoPK', 'FechaEmision', 'NumeroVentaOriginal', 'NombreCliente', 'Motivo', 'TotalCredito', 'UsuarioEmisor', 'EstadoNota', 'Acciones'];
   dataSource = new MatTableDataSource<NotaCredito>();
   isLoading = true;
 
-  // 3. Referencias a los elementos de Angular Material
+  private readonly tableStateKey = 'notasCreditoTableState';
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('input') inputBusqueda!: ElementRef<HTMLInputElement>;
@@ -47,7 +57,8 @@ export class ListarNotasCreditoComponent implements OnInit, AfterViewInit {
   constructor(
     private notasCreditoService: NotasCreditoService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private stateService: TableStatePersistenceService
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +68,52 @@ export class ListarNotasCreditoComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+  }
+
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
+  }
+
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      if (this.inputBusqueda) {
+        this.inputBusqueda.nativeElement.value = state.filter;
+      }
+    }
+
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
   cargarNotasDeCredito(): void {
@@ -81,9 +138,9 @@ export class ListarNotasCreditoComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.saveState();
   }
 
-  // 4. Función para obtener la clase CSS según el estado
   getStatusClass(status: string): string {
     switch (status.toLowerCase()) {
       case 'activa':
@@ -95,17 +152,9 @@ export class ListarNotasCreditoComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // 5. Métodos para las acciones (por ahora con un console.log)
-  verNota(id: number): void {
-    console.log(`Ver detalles de la nota de crédito: ${id}`);
-    // Aquí navegarías a una nueva ruta o abrirías un modal
-    this.snackBar.open(`FUNCIONALIDAD PENDIENTE: Ver nota ${id}`, 'OK', { duration: 3000 });
-  }
-
   eliminarNota(id: number): void {
     const dialogRef = this.dialog.open(BorrarNotaCreditoComponent, {
       width: '500px',
-      // Le pasamos el ID de la nota al diálogo para que sepa cuál anular
       data: { idNota: id },
       disableClose: true // Evita que el diálogo se cierre al hacer clic fuera
     });

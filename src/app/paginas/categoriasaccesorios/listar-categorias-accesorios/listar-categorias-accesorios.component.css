@@ -1,110 +1,98 @@
-body {
-    margin: 0;
-    padding: 0;
-  }
-  
-  .container {
-    padding: 0;
-    margin-right: 0;
-    margin-left: 1%;
-  }
-  
-  table {
-    width: 125%;
-  }
-  
-  .mat-mdc-form-field {
-    font-size: 14px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .columna-descripcion{
-    width: 40vw!important;
-  }
-  
-  
-  td,
-  th {
-    
-     height: 110%; 
-    align-items: center;
-    /* width: 10vw; */
-  }
-  
-  .cabezera {
-    display: flex;
-    align-items: center;
-    padding: 1%;
-    justify-content: space-evenly;
-    /* justify-content: space-around; */
-    width: 125%;
-  }
-  
-  .foo-paginator {
-    width: 125%;
-    background-color: #f0f0f0;
-    bottom: 0px;
-    position: sticky;
-    z-index: 10;
-  }
-  
-  .white-backgrounded-field .mdc-text-field--outlined .mdc-notched-outline {
-    z-index: 0;
-    width: 50%!important;
-  }
-  
-  .white-backgrounded-field .mdc-notched-outline__notch,
-  .white-backgrounded-field .mdc-notched-outline__leading,
-  .white-backgrounded-field .mdc-notched-outline__trailing {
-    background-color: white !important;
-    color: white !important;
-  }
-  
-  .btn-create-prod {
-    margin-left: 10% !important;
-  }
-  
-  .contenedor-botones {
-    display: flex;
-    height: 101px!important;
-    margin-bottom: 0%;
-  } 
-  
-  
-  th.mat-header-cell,
-  td.mat-cell {
-    
-    text-align: center;
-  }
-  
-  .button-editar-prod{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white!important;
-    background-color: green!important;
-  }
-  
-  
-  /* cambia el tamaño del icono pero no del holder donde esta XD  */
-  /* .iconos-custom {
-    display: flex;
-    align-items: space-around;
-    justify-content: center;
-  } */
-  
-  .button-eliminar-prod{
-    color: white;
-    background-color: red;
-    display: flex;
-    padding: auto;
-  }
+/* Estructura principal y cabecera */
+.container {
+  margin: 24px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: calc(100% - 48px);
+  max-width: 1800px;
+  box-sizing: border-box;
+}
 
-  .category-image-card{
-    /* border: 1px solid #ddd; */
-    /* border-radius: 4px; */
-    padding: 5px;
-    height: 100px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.actions-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filtro-texto {
+  width: 300px;
+}
+
+.button-crear {
+  /* La altura se ajusta automáticamente con Angular Material */
+}
+
+/* Contenedor de la tabla y estados de carga/error */
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  min-height: 400px;
+  width: 100%;
+}
+
+.spinner-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  gap: 16px;
+}
+
+/* Estilos de la tabla */
+table {
+  width: 100%;
+}
+
+th.mat-header-cell, td.mat-cell {
+  padding: 8px 16px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* Estilo para la imagen de la categoría */
+.category-image {
+  height: 60px;
+  width: auto;
+  padding: 5px 0;
+  vertical-align: middle;
+}
+
+.actions-cell {
+  text-align: center;
+}
+
+/* Media Query para responsividad */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
   }
+  .actions-header {
+    width: 100%;
+  }
+  .filtro-texto {
+    width: 100%;
+  }
+}

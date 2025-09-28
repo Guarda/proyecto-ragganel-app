@@ -10,6 +10,7 @@
 /node_modules
 npm-debug.log
 yarn-error.log
+backend/node_modules
 
 # IDEs and editors
 .idea/
@@ -1143,3 +1144,18 @@ database-scripts/procedimientos2.sql
 database-scripts/PROCEDIMIENTOSALMACENADOS.sql
 database-scripts/ss.sql
 database-scripts/VISTAS.sql
+public/img-accesorios/51KQixnwoNL-1759004940773.jpg
+public/img-accesorios/51KQixnwoNL-1759004104192.jpg
+.gitignore
+public/img-accesorios/7166oBCV+PL._AC_SX679_-1759004948064.jpg
+public/img-accesorios/Front.wm_009308ce-5e39-455e-9176-3883a6dc7f78-1758598512322.webp
+public/img-consolas/41Cc4QnbOTL._UF1000,1000_QL80_-1759002608985.jpg
+public/img-consolas/41Cc4QnbOTL._UF1000,1000_QL80_-1759003218994.jpg
+public/img-consolas/61fCEvJAG0L-1758398972245.jpg
+public/img-consolas/61fCEvJAG0L-1759003576480.jpg
+public/img-consolas/7166oBCV+PL._AC_SX679_-1759003212435.jpg
+public/img-consolas/7166oBCV+PL._AC_SX679_-1759003548411.jpg
+public/img-consolas/ps5-1759031517269.jpeg
+public/img-insumos/7166oBCV+PL._AC_SX679_-1758924692378.jpg
+public/img-insumos/Ethernet_RJ45_connector_p1160054-1758776177598.jpg
+public/img-insumos/Ethernet_RJ45_connector_p1160054-1758776225037.jpg

@@ -1,24 +1,41 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core'; // 1. Importar Input
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { SharedService } from '../../../services/shared.service';
 
 @Component({
-    selector: 'app-image-upload',
-    imports: [CommonModule],
-    templateUrl: './image-upload.component.html',
-    styleUrls: ['./image-upload.component.css']
+  selector: 'app-image-upload',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './image-upload.component.html',
+  styleUrls: ['./image-upload.component.css']
 })
-export class ImageUploadComponent {
+export class ImageUploadComponent implements OnInit {
+  // 2. NUEVO: Propiedad para recibir la imagen inicial desde el componente padre
+  @Input() initialImageName: string | null = null;
+
   selectedFile: File | null = null;
   previewUrl: string | null = null;
   uploadSuccess: boolean = false;
   isDragOver: boolean = false;
 
-  constructor(private http: HttpClient,
-    private sharedService: SharedService
-  ) {}
+  existingImages: string[] = [];
+  isLoadingImages: boolean = true;
+  readonly imagePath = 'http://localhost:3000/img-consolas/';
+
+  constructor(
+    private sharedService: SharedService,
+    private imageUploadService: ImageUploadService
+  ) { }
+
+  ngOnInit(): void {
+    this.loadExistingImages();
+
+    // 3. LÓGICA AÑADIDA: Si recibimos una imagen inicial, la mostramos.
+    if (this.initialImageName) {
+      this.previewUrl = this.imagePath + this.initialImageName;
+    }
+  }
 
   onFileSelected(event: any): void {
     this.setFile(event.target.files[0]);
@@ -44,9 +61,9 @@ export class ImageUploadComponent {
   }
 
   setFile(file: File): void {
-    this.selectedFile = file;     
+    this.selectedFile = file;
+    this.uploadSuccess = false; // Reiniciar el estado de éxito al cambiar de archivo
 
-    // Preview the image
     const reader = new FileReader();
     reader.onload = () => {
       this.previewUrl = reader.result as string;
@@ -54,24 +71,33 @@ export class ImageUploadComponent {
     reader.readAsDataURL(file);
   }
 
+  loadExistingImages(): void {
+    this.isLoadingImages = true;
+    this.imageUploadService.getExistingImages().subscribe((images: string[]) => {
+      this.existingImages = images;
+      this.isLoadingImages = false;
+    });
+  }
+
+  selectExistingImage(filename: string): void {
+    this.selectedFile = null;
+    this.previewUrl = this.imagePath + filename;
+    this.sharedService.nombreImagen(filename);
+    this.uploadSuccess = true;
+  }
+
   onUpload(event: Event): void {
-    event.preventDefault(); // Prevents any form-like behavior
+    event.preventDefault();
     if (!this.selectedFile) {
-      console.error('No file selected!');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('image', this.selectedFile);
-
-    this.http.post<{ message: string, filename: string }>('http://localhost:3000/upload', formData).subscribe({
+    this.imageUploadService.uploadImage(this.selectedFile).subscribe({
       next: (response) => {
         console.log('Upload successful:', response.message);
         this.uploadSuccess = true;
-
-        // Save the uploaded file name into SharedService
-        // this.sharedService.nombreImagen(this.selectedFile!.name);
         this.sharedService.nombreImagen(response.filename);
+        this.loadExistingImages();
       },
       error: (error) => {
         console.error('Upload error:', error);

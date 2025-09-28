@@ -36,8 +36,18 @@
           </mat-form-field> 
           <!--Codigo Consola  -->
           <mat-form-field class="input-form-prod">
-            <mat-label>Prefijo de la consola</mat-label>
-            <textarea formControlName = "CodigoModeloAccesorio" matInput cdkFocusInitial></textarea>
+            <mat-label>Prefijo del accesorio</mat-label>
+            <input formControlName="CodigoModeloAccesorio" matInput cdkFocusInitial>
+            <mat-error *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.hasError('required')">
+              El código es requerido.
+            </mat-error>
+            <mat-error *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.hasError('codeExists')">
+              Este código ya está en uso. Por favor, elige otro.
+            </mat-error>
+            <!-- Indicador de carga mientras se valida -->
+            <mat-icon matSuffix *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.pending">
+              <mat-spinner diameter="20"></mat-spinner>
+            </mat-icon>
           </mat-form-field>
             <!--desc Consola  -->
           <!-- <mat-form-field class="input-form-prod">

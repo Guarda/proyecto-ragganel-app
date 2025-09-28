@@ -12,7 +12,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { QRCodeModule } from 'angularx-qrcode';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
 
@@ -35,7 +34,7 @@ import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.c
 @Component({
     selector: 'app-ver-insumo',
     imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeModule, MatCheckboxModule],
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, MatCheckboxModule],
     templateUrl: './ver-insumo.component.html',
     styleUrl: './ver-insumo.component.css'
 })

@@ -29,20 +29,20 @@ declare module 'jspdf' {
 }
 
 @Component({
-    selector: 'app-ver-nota-credito',
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatListModule,
-        MatDividerModule,
-        MatProgressSpinnerModule,
-        MatTooltipModule
-    ],
-    templateUrl: './ver-nota-credito.component.html',
-    styleUrls: ['./ver-nota-credito.component.css'] // No olvides crear este archivo
+  selector: 'app-ver-nota-credito',
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatListModule,
+    MatDividerModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule
+  ],
+  templateUrl: './ver-nota-credito.component.html',
+  styleUrls: ['./ver-nota-credito.component.css'] // No olvides crear este archivo
 })
 export class VerNotaCreditoComponent implements OnInit {
 
@@ -125,7 +125,7 @@ export class VerNotaCreditoComponent implements OnInit {
     // 3. Información del Cliente y de la Nota
     doc.setLineWidth(0.5);
     doc.line(margin, 35, doc.internal.pageSize.width - margin, 35);
-    
+
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('Cliente:', margin, 42);
@@ -136,12 +136,12 @@ export class VerNotaCreditoComponent implements OnInit {
     doc.text('Identificación:', margin, 48);
     doc.setFont('helvetica', 'normal');
     doc.text(this.encabezado.RUC || this.encabezado.DNI || 'N/A', margin + 30, 48);
-    
+
     doc.setFont('helvetica', 'bold');
     doc.text('Fecha Emisión:', doc.internal.pageSize.width / 2, 42);
     doc.setFont('helvetica', 'normal');
     doc.text(new Date(this.encabezado.FechaEmision).toLocaleDateString('es-NI'), doc.internal.pageSize.width / 2 + 30, 42);
-    
+
     doc.setFont('helvetica', 'bold');
     doc.text('Factura Original:', doc.internal.pageSize.width / 2, 48);
     doc.setFont('helvetica', 'normal');
@@ -153,8 +153,8 @@ export class VerNotaCreditoComponent implements OnInit {
       d.Cantidad,
       d.CodigoArticulo,
       d.TipoArticulo,
-      `$${d.PrecioUnitario.toFixed(2)}`,
-      `$${d.Subtotal.toFixed(2)}`
+      `$${parseFloat(d.PrecioUnitario as any).toFixed(2)}`, 
+      `$${parseFloat(d.Subtotal as any).toFixed(2)}`
     ]);
 
     doc.autoTable({
@@ -172,7 +172,8 @@ export class VerNotaCreditoComponent implements OnInit {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL CRÉDITO:', doc.internal.pageSize.width - margin - 50, finalY + 15, { align: 'left' });
-    doc.text(`$${total.toFixed(2)}`, doc.internal.pageSize.width - margin, finalY + 15, { align: 'right' });
+    doc.text(`$${parseFloat(total as any).toFixed(2)}`, doc.internal.pageSize.width - margin, finalY + 15, { align: 'right' });
+
 
     // 6. Pie de Página
     finalY = pageHeight - 20;
@@ -180,7 +181,7 @@ export class VerNotaCreditoComponent implements OnInit {
     doc.line(margin, finalY, doc.internal.pageSize.width - margin, finalY);
     doc.setFontSize(8);
     doc.text('Gracias por su preferencia.', doc.internal.pageSize.width / 2, finalY + 8, { align: 'center' });
-    
+
     // 7. Guardar el archivo
     doc.save(`Nota_Credito_${this.encabezado.IdNotaCreditoPK}.pdf`);
   }
@@ -190,17 +191,17 @@ export class VerNotaCreditoComponent implements OnInit {
    * Placeholder para la funcionalidad de anular la nota de crédito.
    */
   anularNotaCredito(): void {
-        const dialogRef = this.dialog.open(BorrarNotaCreditoComponent, {
-            width: '500px',
-            data: { idNota: this.encabezado?.IdNotaCreditoPK }
-        });
+    const dialogRef = this.dialog.open(BorrarNotaCreditoComponent, {
+      width: '500px',
+      data: { idNota: this.encabezado?.IdNotaCreditoPK }
+    });
 
-        dialogRef.afterClosed().subscribe(result => {
-            // Si el diálogo devolvió 'true', significa que la anulación fue exitosa
-            if (result === true) {
-                // Recargamos los datos para ver el estado actualizado
-                this.cargarDatosNotaCredito(this.encabezado!.IdNotaCreditoPK);
-            }
-        });
-    }
+    dialogRef.afterClosed().subscribe(result => {
+      // Si el diálogo devolvió 'true', significa que la anulación fue exitosa
+      if (result === true) {
+        // Recargamos los datos para ver el estado actualizado
+        this.cargarDatosNotaCredito(this.encabezado!.IdNotaCreditoPK);
+      }
+    });
+  }
 }

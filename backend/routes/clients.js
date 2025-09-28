@@ -43,29 +43,35 @@ router.get('/:id', (req, res) => {
 // Endpoint para crear un nuevo cliente
 router.post('/crear-cliente/', (req, res) => {
     const { Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios } = req.body;
-    
-    // 1. LLAMADA ÚNICA QUE INSERTA Y DEVUELVE EL ID
-    Basedatos.query(`CALL \`${dbConfig.database}\`.\`IngresarCliente\`(?, ?, ?, ?, ?, ?, ?)`, 
-    [Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios], 
-    (err, result) => {
-        if (err || result.length === 0) {
-            console.error('Error al ejecutar IngresarCliente:', err);
-            return res.status(500).json({ error: 'Error al crear el cliente' });
+
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarCliente\`(?, ?, ?, ?, ?, ?, ?)`;
+    const params = [Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios];
+
+    Basedatos.query(sql, params, (err, result) => {
+        if (err) {
+            console.error('Error al ejecutar el procedimiento almacenado IngresarCliente:', err);
+            return res.status(500).json({ error: 'Error en la base de datos al crear el cliente.' });
         }
 
-        // El ID ahora viene directamente en el resultado de la primera llamada
-        const nuevoClienteId = result[0][0].id;
+        // El resultado de un `CALL` a un SP que devuelve filas es un array donde
+        // el primer elemento (result[0]) contiene las filas de datos.
+        const rows = result[0];
 
-        // 2. LLAMADA PARA OBTENER EL CLIENTE COMPLETO
-        Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarClienteXId\`(?)`, [nuevoClienteId], (err, finalResult) => {
-            if (err || finalResult[0].length === 0) {
-                return res.status(500).json({ error: 'No se pudo encontrar el cliente recién creado' });
-            }
-            
-            res.status(201).json({
-                message: 'Cliente creado exitosamente',
-                nuevoCliente: finalResult[0][0]
-            });
+        // Verificación robusta: Si `rows` no es un array o está vacío, significa que
+        // el SP no devolvió el cliente, probablemente porque no está actualizado en la BD.
+        if (!rows || !Array.isArray(rows) || rows.length === 0) {
+            console.error(
+                'El procedimiento IngresarCliente no devolvió el cliente esperado. ' +
+                'Asegúrese de que el SP en la base de datos termina con "SELECT * FROM Clientes WHERE IdClientePK = LAST_INSERT_ID();". ' +
+                'Resultado recibido:', JSON.stringify(result, null, 2)
+            );
+            return res.status(500).json({ error: 'Error al obtener los datos del cliente recién creado.' });
+        }
+
+        // Devolver el cliente completo, que es la primera fila del resultado.
+        res.status(201).json({
+            message: 'Cliente creado exitosamente',
+            nuevoCliente: rows[0]
         });
     });
 });
@@ -85,26 +91,24 @@ router.put('/actualizar-cliente/:id', (req, res) => {
         Estado 
     } = req.body;
 
-    // Verificación de parámetros
-    // console.log('Datos recibidos para actualizar el cliente:', req.body); // Comentado
-
-    if (!NombreCliente || !DNI || !Telefono || !CorreoElectronico || !Direccion || Estado === undefined) {
-        return res.status(400).json({ error: 'Faltan datos requeridos' });
+    // Validación básica de los campos más importantes.
+    if (!NombreCliente || typeof Estado === 'undefined') {
+        return res.status(400).json({ error: 'El nombre y el estado son requeridos.' });
     }
 
-    // Llamamos al procedimiento almacenado con los parámetros
+    // Llamamos al procedimiento almacenado con los parámetros en el orden correcto.
     const sql = `CALL \`${dbConfig.database}\`.\`ActualizarCliente\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     Basedatos.query(sql, [
-        id,  // Asegúrate de que el ID se pase correctamente
+        id,
         NombreCliente, 
         DNI, 
         RUC, 
         Telefono, 
         CorreoElectronico, 
         Direccion, 
-        Estado,
-        Comentarios
+        Comentarios,
+        Estado
     ], (err, result) => {
         if (err) {
             console.error('Error actualizando cliente:', err);

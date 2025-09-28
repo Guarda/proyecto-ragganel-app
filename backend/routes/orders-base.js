@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { Basedatos, dbConfig } = require('../config/db');
 
+const fs = require('fs');
+const path = require('path');
+
 //create a new order
 router.post('/crear-pedido', (req, res) => {
     const {
@@ -51,6 +54,33 @@ router.post('/crear-pedido', (req, res) => {
         res.send({ message: 'Pedido agregado correctamente' });
     });
 });
+
+/**
+ * @route   GET /imagenes-existentes-productos
+ * @desc    Devuelve una lista de los nombres de archivo de las imágenes en la carpeta public/img-consolas
+ * @access  Public
+ */
+router.get('/imagenes-existentes-productos', (req, res) => {
+    // Construimos la ruta absoluta al directorio de imágenes de productos (consolas)
+    const directoryPath = path.join(__dirname, '..', 'public', 'img-consolas');
+  
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        // Si la carpeta no existe, devolvemos un array vacío en lugar de un error 500
+        if (err.code === 'ENOENT') {
+          console.warn(`Directorio no encontrado: ${directoryPath}. Devolviendo lista vacía.`);
+          return res.json([]);
+        }
+        console.error('No se pudo escanear el directorio: ', err);
+        return res.status(500).send('Error al leer el directorio de imágenes de productos.');
+      }
+      
+      // Filtramos para devolver solo archivos de imagen comunes
+      const imageFiles = files.filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file));
+      
+      res.json(imageFiles);
+    });
+  });
 
 // List all products
 router.get('/', (req, res) => {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -17,14 +17,17 @@ import { ArticuloGarantia } from '../../interfaces/articulogarantia';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CambiarEstadoDialogComponent } from '../cambiar-estado-dialog/cambiar-estado-dialog.component';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { ProductosService } from '../../productos/productos.service';
 import { AccesorioBaseService } from '../../../services/accesorio-base.service';
 import { ArticuloInventario } from '../../interfaces/articuloinventario';
+import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
+import { TableState } from '../../interfaces/table-state';
 
 @Component({
     selector: 'app-listado-inventario-garantia',
+    standalone: true,
     imports: [
         CommonModule, RouterModule, MatTableModule, MatPaginatorModule, MatSortModule,
         MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
@@ -33,7 +36,7 @@ import { ArticuloInventario } from '../../interfaces/articuloinventario';
     templateUrl: './listado-inventario-garantia.component.html',
     styleUrls: ['./listado-inventario-garantia.component.css'] // Asegúrate que el nombre del archivo CSS sea correcto
 })
-export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit {
+export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit, OnDestroy {
   // Define las columnas que se mostrarán en la tabla de garantía
   displayedColumns: string[] = ['TipoArticulo', 'CodigoArticulo', 'Descripcion', 'Estado', 'FechaIngreso', 'PrecioBase', 'NumeroSerie', 'Action'];
   dataSource = new MatTableDataSource<ArticuloGarantia>();
@@ -41,15 +44,20 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
   isLoading = true;
   errorMessage: string | null = null;
 
+  private readonly tableStateKey = 'garantiaTableState';
+  private subscriptions = new Subscription();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   constructor(private inventarioService: InventarioGeneralService,
     private dialog: MatDialog, // <-- AÑADIR
     private snackBar: MatSnackBar, // <-- AÑADIR
     private productoService: ProductosService,
     private accesorioService: AccesorioBaseService,
-    private router: Router
+    private router: Router,
+    private stateService: TableStatePersistenceService
   ) { }
 
   ngOnInit(): void {
@@ -57,12 +65,26 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
   }
 
   ngAfterViewInit(): void {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
-    }
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+
+    this.loadAndApplyState();
+    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+  }
+
+  ngOnDestroy(): void {
+    this.saveState();
+    this.subscriptions.unsubscribe();
+  }
+
+  private parsearFecha(fechaStr: string | Date): Date {
+    if (fechaStr instanceof Date) return fechaStr;
+    if (!fechaStr) return new Date('invalid');
+    const partes = fechaStr.split('/');
+    if (partes.length !== 3) return new Date(fechaStr);
+    const [dia, mes, anio] = partes.map(p => parseInt(p, 10));
+    return new Date(anio, mes - 1, dia);
   }
 
   /**
@@ -74,7 +96,11 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
 
     this.inventarioService.getArticulosEnGarantia().subscribe({
       next: (data) => {
-        this.dataSource.data = data;
+        const datosProcesados = data.map(item => ({
+          ...item,
+          FechaIngreso: this.parsearFecha(item.FechaIngreso)
+        }));
+        this.dataSource.data = datosProcesados;
         this.isLoading = false;
       },
       error: (err) => {
@@ -95,6 +121,44 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.saveState();
+  }
+
+  private saveState(): void {
+    if (!this.paginator || !this.sort) return;
+
+    const state: TableState = {
+      filter: this.dataSource.filter,
+      sortColumn: this.sort.active,
+      sortDirection: this.sort.direction,
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize
+    };
+    this.stateService.saveState(this.tableStateKey, state);
+  }
+
+  private loadAndApplyState(): void {
+    const state = this.stateService.loadState(this.tableStateKey);
+    if (!state) return;
+
+    if (state.filter) {
+      this.dataSource.filter = state.filter;
+      if (this.inputElement) {
+        this.inputElement.nativeElement.value = state.filter;
+      }
+    }
+
+    if (this.paginator) {
+      this.paginator.pageIndex = state.pageIndex;
+      this.paginator.pageSize = state.pageSize;
+    }
+
+    setTimeout(() => {
+      if (this.sort) {
+        this.sort.active = state.sortColumn;
+        this.sort.direction = state.sortDirection;
+      }
+    });
   }
 
   public editarArticulo(articulo: ArticuloGarantia): void { // <-- CORRECCIÓN 1: El tipo de dato es ArticuloGarantia
