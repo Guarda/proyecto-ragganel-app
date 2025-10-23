@@ -30,6 +30,19 @@ export class CategoriasInsumosService {
         catchError(this.errorHandler)
       )
   }
+
+  checkCombinationExists(fab: string, cat: string, sub: string): Observable<any> {
+    const params = new HttpParams()
+      .set('fab', fab)
+      .set('cat', cat)
+      .set('sub', sub);
+
+    // Llama al endpoint de 'categories-supplies.js'
+    return this.httpClient.get(this.apiURL + '/categorias-insumos/check-exists', { params: params })
+      .pipe(
+        catchError(this.errorHandler) // Añadido para consistencia
+      );
+  }
   
   getbymanufacturer(fabricante: number, categoria: number, subcategoria: number): Observable<any> {
     let params = new HttpParams()

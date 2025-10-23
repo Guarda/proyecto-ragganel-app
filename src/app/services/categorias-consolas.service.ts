@@ -33,6 +33,17 @@ export class CategoriasConsolasService {
       )
   }
 
+  // En CategoriasConsolasService
+  checkCombinationExists(fab: string, cat: string, sub: string): Observable<any> {
+    const params = new HttpParams()
+      .set('fab', fab)
+      .set('cat', cat)
+      .set('sub', sub);
+
+    // Asegúrate de que la ruta base es correcta
+    return this.httpClient.get(this.apiURL + '/categorias/check-exists', { params: params });
+  }
+
   /**
    * Write code on Method
    *
@@ -40,15 +51,15 @@ export class CategoriasConsolasService {
    */
 
   getbymanufacturer(fabricante: number, categoria: number, subcategoria: number): Observable<any> {
-    
-    
+
+
     let params = new HttpParams()
-    .set('Fabricante', fabricante)
-    .set('Categoria', categoria)
-    .set('Subcategoria', subcategoria);
+      .set('Fabricante', fabricante)
+      .set('Categoria', categoria)
+      .set('Subcategoria', subcategoria);
 
     //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
-    return this.httpClient.get(this.apiURL + '/categorias/categoria/', {params})
+    return this.httpClient.get(this.apiURL + '/categorias/categoria/', { params })
       .pipe(
         catchError(this.errorHandler)
       )
@@ -87,8 +98,8 @@ export class CategoriasConsolasService {
       )
   }
 
-  eliminar(categoria: CategoriasConsolas): Observable<any> {   
-    console.log(categoria) 
+  eliminar(categoria: CategoriasConsolas): Observable<any> {
+    console.log(categoria)
     return this.httpClient.put(this.apiURL + '/categorias/categoria-eliminar/' + categoria.IdModeloConsolaPK, JSON.stringify(categoria), this.httpOptions)
       .pipe(
         catchError(this.errorHandler)

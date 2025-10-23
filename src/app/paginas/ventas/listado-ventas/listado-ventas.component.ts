@@ -112,7 +112,7 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
         if (this.inputElement) {
           this.inputElement.nativeElement.value = filterValues.text || '';
         }
-      });      this.fechaInicio = filterValues.start ? new Date(filterValues.start) : null;
+      }); this.fechaInicio = filterValues.start ? new Date(filterValues.start) : null;
       this.fechaFin = filterValues.end ? new Date(filterValues.end) : null;
     }
 
@@ -284,8 +284,8 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
    * Se ejecuta cada vez que cambia un filtro (texto o fecha).
    * Construye el objeto de filtro y lo aplica a la tabla.
    */
-   aplicarFiltros(): void {
-    const textoFiltro = this.inputElement?.nativeElement.value || '';    const fechaInicioNormalizada = this.fechaInicio ? new Date(this.fechaInicio.setHours(0, 0, 0, 0)) : null;
+  aplicarFiltros(): void {
+    const textoFiltro = this.inputElement?.nativeElement.value || ''; const fechaInicioNormalizada = this.fechaInicio ? new Date(this.fechaInicio.setHours(0, 0, 0, 0)) : null;
     const fechaFinNormalizada = this.fechaFin ? new Date(this.fechaFin.setHours(23, 59, 59, 999)) : null;
 
     const filterValues = {
@@ -301,7 +301,7 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     // --- AÑADIR ESTA LÍNEA AL FINAL ---
-    this.saveState(); 
+    this.saveState();
   }
 
   applyFilter(event: Event) {
@@ -409,16 +409,23 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     doc.text(`Código vendedor: ${venta.IdUsuario || 'N/A'}`, 20, 87);
 
     const head = [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. c/Desc.', 'Subtotal']];
+    // ... (alrededor de la línea 412)
     const body = detalles.map(item => {
-      const precioConDescuento = item.SubtotalLinea / item.Cantidad;
+      // Convertimos los valores (que llegan como string) a números
+      const cantidad = +item.Cantidad;
+      const subtotalLinea = +item.SubtotalLinea;
+      const precioUnitario = +item.PrecioUnitario;
+      const descuentoPorcentaje = +item.DescuentoPorcentaje;
+
+      const precioConDescuento = subtotalLinea / cantidad;
       return [
-        item.Cantidad.toString(),
+        cantidad.toString(),
         item.CodigoArticulo,
         item.NombreArticulo,
-        item.PrecioUnitario.toFixed(2),
-        item.DescuentoPorcentaje.toFixed(2),
+        precioUnitario.toFixed(2), // <-- Corregido
+        descuentoPorcentaje.toFixed(2), // <-- Corregido
         precioConDescuento.toFixed(2),
-        item.SubtotalLinea.toFixed(2)
+        subtotalLinea.toFixed(2) // <-- Corregido
       ];
     });
 
@@ -434,30 +441,29 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     if (finalY > 260) { doc.addPage(); finalY = 20; }
 
     const totalDescuentos = detalles.reduce((acc, item) => acc + (item.PrecioUnitario * item.Cantidad - item.SubtotalLinea), 0);
-    const subtotalBruto = venta.SubtotalVenta + totalDescuentos;
+    const subtotalVentaNum = +venta.SubtotalVenta;
+    const ivaNum = +venta.IVA;
+    const totalVentaNum = +venta.TotalVenta;
+    const subtotalBruto = subtotalVentaNum + totalDescuentos;
 
     const xAlignRight = 190;
     doc.setFontSize(10);
     doc.text('Subtotal Bruto:', 140, finalY, { align: 'right' });
-    doc.text(`${subtotalBruto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalBruto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
     finalY += 7;
-
     doc.text('Total Descuentos:', 140, finalY, { align: 'right' });
     doc.text(`-${totalDescuentos.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
-
     doc.text('Subtotal Neto (s/IVA):', 140, finalY, { align: 'right' });
-    doc.text(`${venta.SubtotalVenta.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalVentaNum.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
     finalY += 7;
-
     doc.text('IVA (15%):', 140, finalY, { align: 'right' });
-    doc.text(`${venta.IVA.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${ivaNum.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
     finalY += 7;
-
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL A PAGAR:', 140, finalY, { align: 'right' });
-    doc.text(`${venta.TotalVenta.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text('TOTAL PAGADO:', 140, finalY, { align: 'right' });
+    doc.text(`${totalVentaNum.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
 
     finalY += 15;
     if (finalY > 270) { doc.addPage(); finalY = 20; }
@@ -533,18 +539,26 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     (doc as any).autoTable({
       startY: 92,
       head: [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. c/Desc.', 'Subtotal']],
+      // ... (alrededor de la línea 536)
       body: detalles.map(item => {
-        const precioConDescuento = item.SubtotalLinea / item.Cantidad;
+        // Convertimos los valores (que llegan como string) a números
+        const cantidad = +item.Cantidad;
+        const subtotalLinea = +item.SubtotalLinea;
+        const precioUnitario = +item.PrecioUnitario;
+        const descuentoPorcentaje = +item.DescuentoPorcentaje;
+
+        const precioConDescuento = subtotalLinea / cantidad;
         return [
-          item.Cantidad.toString(),
+          cantidad.toString(),
           item.CodigoArticulo,
           item.NombreArticulo,
-          item.PrecioUnitario.toFixed(2),
-          item.DescuentoPorcentaje.toFixed(2),
+          precioUnitario.toFixed(2), // <-- Corregido
+          descuentoPorcentaje.toFixed(2), // <-- Corregido
           precioConDescuento.toFixed(2),
-          item.SubtotalLinea.toFixed(2)
+          subtotalLinea.toFixed(2) // <-- Corregido
         ];
       }),
+      // ...
       theme: 'striped',
       headStyles: { fillColor: [41, 128, 185] },
     });
@@ -553,25 +567,28 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     const xAlignRight = 190;
 
     const totalDescuentos = detalles.reduce((acc, item) => acc + (item.PrecioUnitario * item.Cantidad - item.SubtotalLinea), 0);
-    const subtotalBruto = venta.SubtotalVenta + totalDescuentos;
+    const subtotalVentaNum = +venta.SubtotalVenta;
+    const ivaNum = +venta.IVA;
+    const totalVentaNum = +venta.TotalVenta;
+    const subtotalBruto = subtotalVentaNum + totalDescuentos;
 
     doc.setFontSize(10);
     doc.text('Subtotal Bruto:', 140, finalY, { align: 'right' });
-    doc.text(`${subtotalBruto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalBruto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
     finalY += 7;
     doc.text('Total Descuentos:', 140, finalY, { align: 'right' });
     doc.text(`-${totalDescuentos.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
     doc.text('Subtotal Neto (s/IVA):', 140, finalY, { align: 'right' });
-    doc.text(`${venta.SubtotalVenta.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalVentaNum.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
     finalY += 7;
     doc.text('IVA (15%):', 140, finalY, { align: 'right' });
-    doc.text(`${venta.IVA.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${ivaNum.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
     finalY += 7;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL PAGADO:', 140, finalY, { align: 'right' });
-    doc.text(`${venta.TotalVenta.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${totalVentaNum.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' }); // <-- Corregido
 
     const nombreArchivo = `Factura-${venta.NumeroDocumento}.pdf`;
     doc.save(nombreArchivo);
@@ -605,19 +622,27 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     yPos += 5;
 
     // --- CUERPO CON AJUSTE DE TEXTO (WRAP) ---
+    // ... (alrededor de la línea 594)
+    // ... (dentro de generarFacturaFormatoVoucher)
+
+    // --- CUERPO CON AJUSTE DE TEXTO (WRAP) ---
     detalles.forEach(item => {
       const textoArticulo = `${item.Cantidad} x ${item.NombreArticulo}`;
 
-      // **MEJORA CLAVE:** Se usa 'splitTextToSize' para evitar que el texto se desborde.
-      // Esto divide el texto largo en un array de líneas que caben en el ancho.
+      // **ESTA ES LA LÍNEA QUE FALTABA:**
+      // Divide el texto largo en un array de líneas que caben en el ancho.
       const lineas = doc.splitTextToSize(textoArticulo, anchoVoucher - margen * 2);
 
       // Se imprime cada línea del artículo.
       doc.text(lineas, margen, yPos);
       yPos += (lineas.length * 4); // Aumenta el espacio vertical según el número de líneas
 
-      const precioUnitario = item.SubtotalLinea / item.Cantidad;
-      const lineaPrecio = `@ ${precioUnitario.toFixed(2)} ...... ${item.SubtotalLinea.toFixed(2)}`;
+      // Convertimos los valores (que llegan como string) a números
+      const cantidad = +item.Cantidad;
+      const subtotalLinea = +item.SubtotalLinea;
+
+      const precioUnitario = subtotalLinea / cantidad;
+      const lineaPrecio = `@ ${precioUnitario.toFixed(2)} ...... ${subtotalLinea.toFixed(2)}`;
       doc.text(lineaPrecio, anchoVoucher - margen, yPos, { align: 'right' });
       yPos += 6; // Un poco más de espacio entre artículos
     });
@@ -629,19 +654,22 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     const xEtiqueta = 45;
     const xValor = anchoVoucher - margen;
 
+    const subtotalVentaNum = +venta.SubtotalVenta;
+    const ivaNum = +venta.IVA;
+    const totalVentaNum = +venta.TotalVenta;
+
     doc.setFont('helvetica', 'bold');
-    // Se usa 'padEnd' para alinear los valores de forma tabular
     doc.text('Subtotal:', xEtiqueta, yPos, { align: 'right' });
-    doc.text(venta.SubtotalVenta.toFixed(2), xValor, yPos, { align: 'right' });
+    doc.text(subtotalVentaNum.toFixed(2), xValor, yPos, { align: 'right' }); // <-- Corregido
     yPos += 5;
 
     doc.text('IVA (15%):', xEtiqueta, yPos, { align: 'right' });
-    doc.text(venta.IVA.toFixed(2), xValor, yPos, { align: 'right' });
+    doc.text(ivaNum.toFixed(2), xValor, yPos, { align: 'right' }); // <-- Corregido
     yPos += 5;
 
     doc.setFontSize(10);
     doc.text('TOTAL:', xEtiqueta, yPos, { align: 'right' });
-    doc.text(venta.TotalVenta.toFixed(2), xValor, yPos, { align: 'right' });
+    doc.text(totalVentaNum.toFixed(2), xValor, yPos, { align: 'right' }); // <-- Corregido
     yPos += 10;
 
     // --- PIE DE PÁGINA ---

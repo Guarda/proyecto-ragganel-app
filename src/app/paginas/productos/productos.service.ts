@@ -85,13 +85,14 @@ export class ProductosService {
       )
   }
 
-  actualizarEstado(codigo: string, nuevoEstadoId: number): Observable<any> {
+  actualizarEstado(codigo: string, nuevoEstadoId: number, IdUsuario: number): Observable<any> {
     const body = {
       tipoArticulo: 'Producto',
       codigoArticulo: codigo,
-      nuevoEstadoId: nuevoEstadoId
+      nuevoEstadoId: nuevoEstadoId,
+      IdUsuario: IdUsuario // Se añade el IdUsuario al cuerpo de la petición
     };
-    // Reutilizamos el endpoint genérico del inventario
+    
     return this.httpClient.post(`${this.apiURL}/inventario/cambiar-estado`, body, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
@@ -99,13 +100,17 @@ export class ProductosService {
   }
 
 
-  elininar(producto: Producto): Observable<any> {   
-    console.log(producto) 
-    return this.httpClient.put(this.apiURL + '/productos/producto-eliminar/' + producto.CodigoConsola, JSON.stringify(producto), this.httpOptions)
+  // ✅ ==================== INICIO DE LA CORRECCIÓN ====================
+  eliminar(data: { CodigoConsola: string; IdUsuario: number }): Observable<any> {   
+    // El primer parámetro del método PUT es la URL.
+    // El segundo parámetro es el CUERPO (body) de la petición.
+    // El tercer parámetro son las opciones (headers).
+    return this.httpClient.put(this.apiURL + '/productos/producto-eliminar/' + data.CodigoConsola, data, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
   }
+  // ✅ ===================== FIN DE LA CORRECCIÓN ======================
 
   getProductStateLog(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/productos/historial-producto/' + id)
@@ -124,7 +129,7 @@ export class ProductosService {
     } else {
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
-    return throwError(errorMessage);
+    return throwError(() => new Error(errorMessage)); // Corregido para la versión moderna de RxJS
   }
 
 }

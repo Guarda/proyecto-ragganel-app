@@ -143,24 +143,42 @@ export class IngresarProductosPedidoComponent {
     this.cdr.detectChanges();
   }
 
-  private cargarDatosDinamicosDelArticulo(): void {
+ private cargarDatosDinamicosDelArticulo(): void {
+    // Use the correct service: categorias (which is CategoriasConsolasService)
     this.categorias.find(this.articulo.IdModeloPK).subscribe(data => {
       if (data && data.length > 0) {
-        const categoria = data[0];
+        const categoria = data[0]; // This is the CatalogConsolas object
         this.ImagePath = this.getimagePath(categoria.LinkImagen);
 
-        this.accesoriosService.find(categoria.TipoProducto).subscribe((accesorios: any[]) => {
-          // --- INICIO DE LA CORRECCIÓN ---
-          // Solo establece los accesorios por defecto si el valor inicial del control es null.
-          // Si ya es un array (incluso vacío), significa que se cargó desde un borrador y no se debe sobreescribir.
-          const accesoriosActuales = this.form.get('Accesorios')?.value;
-          if (accesoriosActuales === null) {
-            const nombresAccesorios = accesorios.map((a: any) => a.DescripcionAccesorio);
-            this.keywords.set(nombresAccesorios); // Actualiza la UI de chips
-            this.form.get('Accesorios')?.setValue(nombresAccesorios, { emitEvent: false }); // No disparar valueChanges
-          }
-          // --- FIN DE LA CORRECCIÓN ---
+        // --- CORRECTION STARTS HERE ---
+
+        // Now use TiposProductosService to get accessories for the PRODUCT TYPE
+        // Use categoria.TipoProducto (the product type ID from CatalogConsolas)
+        this.TiposProductosService.find(categoria.TipoProducto).subscribe({
+          next: (productTypeData: any) => { // Expect an object like { ..., accesorios: [1, 5] }
+            const accessoryIds: number[] = productTypeData.accesorios || []; // Get the array of IDs
+
+            // Now you need the actual accessory objects (names) for the chips
+            // Fetch all active accessories ONCE if you don't have them already
+            // Or, if you already loaded them elsewhere, use that list.
+            // For simplicity, let's fetch them here if needed:
+            this.accesoriosService.getActivos().subscribe(allActiveAccessories => {
+              const defaultAccessoryNames = accessoryIds
+                .map(id => allActiveAccessories.find(acc => acc.IdTipoAccesorioPK === id)?.DescripcionAccesorio)
+                .filter((name): name is string => !!name); // Filter out undefined/null names
+
+              // Only set default accessories if the form hasn't been populated (e.g., from a draft)
+              const accesoriosActuales = this.form.get('Accesorios')?.value;
+              if (accesoriosActuales === null || accesoriosActuales === undefined) {
+                  this.keywords.set(defaultAccessoryNames); // Update chip UI
+                  this.form.get('Accesorios')?.setValue(defaultAccessoryNames, { emitEvent: false }); // Update form
+              }
+              this.cdr.markForCheck(); // Needed for OnPush
+            });
+          },
+          error: (err) => console.error(`Error fetching product type details for ID ${categoria.TipoProducto}:`, err)
         });
+         // --- CORRECTION ENDS HERE ---
       }
     });
   }

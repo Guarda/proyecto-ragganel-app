@@ -1,0 +1,59 @@
+<h3 mat-dialog-title>    
+  <span>Editar Tipo de Producto</span>
+</h3>
+
+<form [formGroup]="tipoProductoForm" (ngSubmit)="onSubmit()">
+
+  <div class="contenedor-principal tipo-producto-form-container">
+
+    <div *ngIf="isLoadingData" class="full-dialog-spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando datos...</p>
+    </div>
+
+    <mat-dialog-content class="mat-typography" *ngIf="!isLoadingData">
+      
+      <h3>Edita los detalles del tipo de producto</h3>
+
+      <mat-form-field class="input-form-prod">
+        <mat-label>Descripción</mat-label>
+        <input matInput formControlName="descripcion" cdkFocusInitial>
+        <mat-error *ngIf="tipoProductoForm.get('descripcion')?.hasError('required')">
+          La descripción es requerida.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-slide-toggle formControlName="activo" color="primary" class="input-form-toggle">
+        Estado: {{ tipoProductoForm.get('activo')?.value ? 'Activo' : 'Inactivo' }}
+      </mat-slide-toggle>
+
+      <mat-form-field class="input-form-prod">
+        <mat-label>Accesorios por Defecto</mat-label>
+        
+        <mat-select formControlName="accesorios" multiple>
+          <div *ngIf="isLoadingAccesorios" class="spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="30"></mat-progress-spinner>
+          </div>
+          
+          <mat-option *ngFor="let acc of accesoriosDisponibles" [value]="acc.IdTipoAccesorioPK">
+            {{ acc.DescripcionAccesorio }}
+          </mat-option>
+        </mat-select>
+        
+        <mat-error *ngIf="tipoProductoForm.get('accesorios')?.hasError('required')">
+          Debes seleccionar al menos un accesorio.
+        </mat-error>
+      </mat-form-field>
+
+    </mat-dialog-content>
+  
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!tipoProductoForm.valid || isLoadingData">
+      Guardar Cambios
+    </button>
+  </mat-dialog-actions>
+
+</form>

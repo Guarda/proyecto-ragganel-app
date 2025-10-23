@@ -1,0 +1,50 @@
+<h3 mat-dialog-title>    
+  <span>Agregar Tipo de Producto</span>
+</h3>
+
+<form [formGroup]="tipoProductoForm" (ngSubmit)="onSubmit()">
+
+  <div class.="contenedor-principal">
+    
+    <mat-dialog-content class="mat-typography">
+      <h3>Ingresa los detalles del nuevo tipo de producto</h3>
+
+      <mat-form-field class="input-form-prod">
+        <mat-label>Descripción</mat-label>
+        <input matInput formControlName="descripcion" cdkFocusInitial>
+        <mat-error *ngIf="tipoProductoForm.get('descripcion')?.hasError('required')">
+          La descripción es requerida.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field class="input-form-prod">
+        <mat-label>Accesorios por Defecto</mat-label>
+        
+        <mat-select formControlName="accesorios" multiple>
+          <div *ngIf="isLoading" class="spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="30"></mat-progress-spinner>
+          </div>
+          
+          <mat-option *ngFor="let acc of accesoriosDisponibles" [value]="acc.IdTipoAccesorioPK">
+            {{ acc.DescripcionAccesorio }}
+          </mat-option>
+        </mat-select>
+        
+        <mat-error *ngIf="tipoProductoForm.get('accesorios')?.hasError('required')">
+          Debes seleccionar al menos un accesorio.
+        </mat-error>
+      </mat-form-field>
+
+    </mat-dialog-content>
+  
+  </div>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    
+    <button mat-raised-button color="primary" type="submit" [disabled]="!tipoProductoForm.valid">
+      Crear Tipo de Producto
+    </button>
+  </mat-dialog-actions>
+
+</form>

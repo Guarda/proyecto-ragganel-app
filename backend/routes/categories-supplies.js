@@ -47,6 +47,22 @@ router.put('/categoria/:id', (req, res) => {
     });
 });
 
+router.get('/check-exists', (req, res) => {
+    const { fab, cat, sub } = req.query;
+
+    // Llama al nuevo SP que creamos para insumos
+    const sql = `CALL \`${dbConfig.database}\`.\`sp_CheckSuperCategoriaInsumoActivaExists\`(?, ?, ?);`;
+
+    Basedatos.query(sql, [fab, cat, sub], (err, results) => {
+        if (err) {
+            console.error('Error al verificar supercategoría de insumo:', err);
+            return res.status(500).json({ error: 'Error en el servidor.' });
+        }
+        // results[0][0].existe será 1 si existe, 0 si no.
+        res.json(results[0][0]);
+    });
+});
+
 // Delete a category
 router.put('/categoria-eliminar/:id', (req, res) => {
     const id = req.params.id;

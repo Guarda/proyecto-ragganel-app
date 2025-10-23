@@ -1,9 +1,11 @@
-import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
-import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
-import { EstadoConsolasService } from '../../../services/estado-consolas.service';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router'; // Router no se usa, pero se mantiene por si acaso
-import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
+import { Subscription } from 'rxjs';
+
+// Angular Material Imports
+import { EstadoConsolasService } from '../../../services/estado-consolas.service';
 import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatOption, MatOptionModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
@@ -14,8 +16,10 @@ import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { LiveAnnouncer } from '@angular/cdk/a11y'; 
 import { QRCodeComponent } from 'angularx-qrcode';
 import { MatDialog } from '@angular/material/dialog';
-import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 
+// Interfaces
 import { AccesoriosBase } from '../../interfaces/accesoriosbase';
 import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosbase';
 import { FabricanteAccesorio } from '../../interfaces/fabricantesaccesorios';
@@ -23,25 +27,34 @@ import { categoriasAccesorios } from '../../interfaces/categoriasaccesorios';
 import { SubcategoriasAccesorios } from '../../interfaces/subcategoriasaccesorios';
 import { TareasAccesorio } from '../../interfaces/tareasaccesorios';
 import { EstadosConsolas } from '../../interfaces/estados';
+import { Usuarios } from '../../interfaces/usuarios'; // ✅ AÑADIDO
 
+// Services
 import { AccesorioBaseService } from '../../../services/accesorio-base.service';
 import { FabricanteAccesorioService } from '../../../services/fabricante-accesorio.service';
 import { CategoriaAccesorioService } from '../../../services/categoria-accesorio.service';
 import { SubcategoriaAccesorioService } from '../../../services/subcategoria-accesorio.service';
 import { TareasAccesoriosService } from '../../../services/tareas-accesorios.service';
 import { CategoriasAccesoriosService } from '../../../services/categorias-accesorios.service';
+import { AuthService } from '../../../UI/session/auth.service'; // ✅ AÑADIDO
+
+// Components
 import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-accesorios.component';
 
 
 
 @Component({
     selector: 'app-ver-accesorio',
-    imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-        MatSelectModule, MatButtonModule, MatIconModule, FormsModule, MatFormFieldModule, MatChipsModule, QRCodeComponent, MatCheckboxModule],
+    standalone: true, // Se añade standalone: true
+    imports: [
+        RouterModule, ReactiveFormsModule, MatFormFieldModule, MatLabel, NgFor, NgIf, MatOptionModule,
+        MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, FormsModule, MatChipsModule,
+        QRCodeComponent, MatCheckboxModule
+    ],
     templateUrl: './ver-accesorio.component.html',
     styleUrls: ['./ver-accesorio.component.css']
 })
-export class VerAccesorioComponent implements OnInit {
+export class VerAccesorioComponent implements OnInit, OnDestroy {
   keywords = signal(['']);
   announcer = inject(LiveAnnouncer);
 
@@ -62,20 +75,23 @@ export class VerAccesorioComponent implements OnInit {
 
   ImagePath: string = '';
 
-  constructor(public categorias: CategoriasAccesoriosService,
+  usuario!: Usuarios; // ✅ AÑADIDO
+  private subs = new Subscription(); // ✅ AÑADIDO
+
+  constructor(
+    public categorias: CategoriasAccesoriosService,
     public estados: EstadoConsolasService,
     public accesorioService: AccesorioBaseService,
     public fabricanteaccesorioService: FabricanteAccesorioService,
-    public categoriaaccesorioService: CategoriasAccesoriosService,
+    public categoriaaccesorioService: CategoriaAccesorioService, // Corregido el tipo
     public subcategoriaaccesorioService: SubcategoriaAccesorioService,
     public tareasaccesorioService: TareasAccesoriosService,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
     private router: Router,
     private fb: FormBuilder,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService // ✅ AÑADIDO
   ) {
-    // --- CAMBIO 1: Inicializa el formulario aquí ---
     this.accesorioForm = this.fb.group({
       FabricanteAccesorio: [''],
       IdModeloAccesorioPK: [''],
@@ -96,14 +112,21 @@ export class VerAccesorioComponent implements OnInit {
     this.loadAccessoryData();
     this.loadTasks();
     this.loadDropdownData();
+    // ✅ AÑADIDO: Se obtiene el usuario al iniciar el componente
+    this.subs.add(this.authService.getUser().subscribe(user => this.usuario = user as unknown as Usuarios));
+  }
+
+  ngOnDestroy(): void {
+    // ✅ AÑADIDO: Se desuscribe para evitar fugas de memoria
+    this.subs.unsubscribe();
   }
 
   loadAccessoryData(): void {
     this.accesorioService.find(this.id).subscribe((data) => {
+      if (!data || data.length === 0) return;
       this.accesorio = data[0];
       const compatibleProducts = this.accesorio.ProductosCompatibles ? this.accesorio.ProductosCompatibles.split(',') : [];
 
-      // --- CAMBIO 2: Usa patchValue para llenar el formulario con los datos de la API ---
       this.accesorioForm.patchValue({
         FabricanteAccesorio: this.accesorio.FabricanteAccesorio,
         IdModeloAccesorioPK: String(this.accesorio.ModeloAccesorio),
@@ -117,14 +140,13 @@ export class VerAccesorioComponent implements OnInit {
         ProductosCompatibles: compatibleProducts
       });
 
-      // --- CAMBIO 3: Actualiza los 'keywords' (chips) de forma segura DESPUÉS de poblar el formulario ---
       this.keywords.set(compatibleProducts);
 
       this.categorias.find(String(this.accesorio.ModeloAccesorio)).subscribe((catData) => {
-        this.categoria = catData[0];
-        this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-        // También puedes parchear el fabricante aquí si es necesario
-        this.accesorioForm.patchValue({ FabricanteAccesorio: this.categoria.FabricanteAccesorio });
+        if (catData && catData.length > 0) {
+          this.categoria = catData[0];
+          this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
+        }
       });
     });
   }
@@ -141,7 +163,7 @@ export class VerAccesorioComponent implements OnInit {
   loadDropdownData(): void {
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => this.selectedEstado = data);
     this.fabricanteaccesorioService.getAllBase().subscribe((data: FabricanteAccesorio[]) => this.selectedFabricante = data);
-    this.categoriaaccesorioService.getAllBase().subscribe((data: categoriasAccesorios[]) => this.selectedCategoriaAccesorio = data);
+    this.categoriaaccesorioService.getAllBase().subscribe((data: categoriasAccesorios[]) => this.selectedCategoriaAccesorio = data); // Corregido el servicio
     this.subcategoriaaccesorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => this.selectedSubCategoriaAccesorio = data);
   }
 
@@ -161,9 +183,7 @@ export class VerAccesorioComponent implements OnInit {
   removeKeyword(keyword: string) {
     this.keywords.update(currentKeywords => {
       const index = currentKeywords.indexOf(keyword);
-      if (index < 0) {
-        return currentKeywords;
-      }
+      if (index < 0) return currentKeywords;
 
       const updatedKeywords = [...currentKeywords];
       updatedKeywords.splice(index, 1);
@@ -177,51 +197,26 @@ export class VerAccesorioComponent implements OnInit {
   }
 
   onCheckboxChange(task: TareasAccesorio) {
-    // Toggle the Realizado value between true and false
-    task.Realizado = !task.Realizado; // This will toggle the value
-
-    // Assuming that your backend expects 1 for true and 0 for false,
-    // you can convert the boolean to a number before sending the update.
-    // Llamamos al service para actualizar la tarea
-    // Convert to number (1 for true, 0 for false)
+    task.Realizado = !task.Realizado;
     const realizadoValue = task.Realizado ? 1 : 0;    
     this.tareasaccesorioService.update(task.IdTareaAccesorioPK, realizadoValue).subscribe();
 
   }
 
-  // En tu archivo ver-producto.component.ts
-
   private formatNumber(value: number | string | null): string {
-    // Si el valor es nulo o una cadena vacía, devuelve '0.00'
-    if (value === null || value === '') {
-      return '0.00';
-    }
-
-    // Convierte el valor a string y luego a número flotante
+    if (value === null || value === '') return '0.00';
     const num = parseFloat(String(value));
-
-    // Si la conversión falla (resulta en NaN), devuelve '0.00'
-    if (isNaN(num)) {
-      return '0.00';
-    }
-
-    // Si todo está bien, formatea el número a 2 decimales
-    return num.toFixed(2);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
   }
 
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-
-    if (l == null || l === '') {
-      return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
-    } else {
-      return `${baseUrl}/img-accesorios/${l}`;
-    }
+    const baseUrl = 'http://localhost:3000';
+    return l ? `${baseUrl}/img-accesorios/${l}` : `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
   }
 
   trackByComaptibleProduct(index: number, compatibleproduct: string): string {
-    return compatibleproduct; // or index, depending on your unique identifiers
+    return compatibleproduct;
   }
 
   openDialogEliminar(cons: string) {
@@ -234,17 +229,27 @@ export class VerAccesorioComponent implements OnInit {
     });
   }
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
+  onSubmit() {
     if (!this.accesorioForm.dirty) {
-      return; // Exit if the form has not been modified
+      return;
     }
+    // ✅ AÑADIDO: Se verifica que el usuario esté cargado
+    if (!this.usuario) {
+      console.error('Error: El usuario no ha sido cargado todavía.');
+      return;
+    }
+    
+    // ✅ AÑADIDO: Se añade el ID del usuario al objeto que se envía
     const formData = {
       ...this.accesorioForm.value,
-      CodigoAccesorio: this.id // Asegúrate de enviar el ID para la actualización
+      CodigoAccesorio: this.id,
+      IdUsuario: this.usuario.id 
     };
+
     this.accesorioService.update(formData).subscribe((res: any) => {
-      this.accesorioForm.markAsPristine(); // Marcar el formulario como "limpio" después de guardar
-    })
+      this.accesorioForm.markAsPristine();
+      this.dialog.open(SuccessdialogComponent);
+    });
 
   }
 

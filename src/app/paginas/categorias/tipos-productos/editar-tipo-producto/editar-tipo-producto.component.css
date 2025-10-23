@@ -1,0 +1,64 @@
+/* Estilos generales del diálogo y formulario */
+span {
+  font-family: Quicksand;
+  font-size: 30px;
+  display: flex;
+  flex-direction: row;
+  margin-left: 10px;
+  flex-wrap: nowrap;
+}
+
+.contenedor-principal {
+  padding: 0 24px;
+}
+
+/* Da un alto mínimo para que el spinner de carga no haga "saltar" el layout */
+.tipo-producto-form-container {
+  position: relative;
+  min-height: 300px; /* Ajusta según sea necesario */
+}
+
+/* Aplica el 100% de ancho a los campos del formulario */
+.input-form-prod {
+  width: 100%;
+}
+
+/* NUEVO: Estilo para el toggle 'Activo' */
+.input-form-toggle {
+  width: 100%;
+  margin-bottom: 20px; /* Espaciado */
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Contenedor del contenido del diálogo */
+.mat-typography {
+  display: flex;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+/* NUEVO: Estilo para el spinner de carga principal */
+.full-dialog-spinner-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  gap: 16px;
+}
+
+/* Estilo para el spinner dentro del mat-select */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}

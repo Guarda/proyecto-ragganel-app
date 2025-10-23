@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, OnInit, Output, signal } from '@angular/core'; // Added OnInit
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -9,7 +9,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgFor } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common'; // Import CommonModule
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 
 import { CategoriasAccesoriosService } from '../../../services/categorias-accesorios.service';
@@ -20,7 +20,6 @@ import { FabricanteAccesorio } from '../../interfaces/fabricantesaccesorios';
 import { categoriasAccesorios } from '../../interfaces/categoriasaccesorios';
 import { SubcategoriasAccesorios } from '../../interfaces/subcategoriasaccesorios';
 
-
 import { FabricanteAccesorioService } from '../../../services/fabricante-accesorio.service';
 import { CategoriaAccesorioService } from '../../../services/categoria-accesorio.service';
 import { SubcategoriaAccesorioService } from '../../../services/subcategoria-accesorio.service';
@@ -28,29 +27,48 @@ import { SubcategoriaAccesorioService } from '../../../services/subcategoria-acc
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosbase';
 
-// import { Categorias}
+// **** 1. IMPORT AuthService ****
+import { AuthService } from '../../../UI/session/auth.service';
+
 @Component({
     selector: 'app-agregar-accesorios',
-    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule],
+    standalone: true, // Make it standalone
+    imports: [
+        CommonModule, // Add CommonModule
+        NgFor,
+        ReactiveFormsModule,
+        MatSelectModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatIcon,
+        MatFormField,
+        MatLabel,
+        FormsModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatChipsModule
+    ],
     templateUrl: './agregar-accesorios.component.html',
-    styleUrl: './agregar-accesorios.component.css'
+    styleUrl: './agregar-accesorios.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush // Added ChangeDetectionStrategy
 })
-export class AgregarAccesoriosComponent {
+// **** 2. IMPLEMENT OnInit ****
+export class AgregarAccesoriosComponent implements OnInit {
 
-  keywords = signal(['']);
-  todolistKeywords = signal(['Limpiar']);
+  // Initialize signals with correct type
+  keywords = signal<string[]>([]);
+  todolistKeywords = signal<string[]>(['Limpiar']);
   announcer = inject(LiveAnnouncer);
 
   Agregado = new EventEmitter();
 
   accesorioForm!: FormGroup;
 
-  categoriasaccesorios: categoriasAccesorios[] = [];
-  categoria!: CategoriasAccesoriosBase;
-  categoria2!: CategoriasAccesoriosBase;
+  // Initializing category properties just in case
+  categoria: CategoriasAccesoriosBase | null = null;
+  categoria2: CategoriasAccesoriosBase | null = null;
 
-  selectedCategoria: any[] = [];
+  selectedCategoria: any[] = []; // Consider using a more specific type if possible
 
   selectedFabricanteAccesorio: FabricanteAccesorio[] = [];
   selectedCategoriaAccesorio: categoriasAccesorios[] = [];
@@ -59,34 +77,28 @@ export class AgregarAccesoriosComponent {
   selectedEstado: EstadosConsolas[] = [];
 
   idModeloAccesorioPK: any;
-  FabricanteAccesorio: any;
-  CategoriaAccesorio: any;
-  SubcategoriaAccesorio: any;
+  // These seem redundant if form controls are used correctly
+  // FabricanteAccesorio: any;
+  // CategoriaAccesorio: any;
+  // SubcategoriaAccesorio: any;
 
-  public ImagePath: any;
+  public ImagePath: string | null = null; // Use string type
 
   constructor(
-    public categorias: CategoriasAccesoriosService,
+    public categoriasService: CategoriasAccesoriosService, // Renamed 'categorias' to avoid conflict
     public estados: EstadoConsolasService,
     public fabricanteService: FabricanteAccesorioService,
     public categoriaaccesorioService: CategoriaAccesorioService,
     public subcategoriaaccesrorioService: SubcategoriaAccesorioService,
     public accesorioService: AccesorioBaseService,
+    // **** 3. INJECT AuthService ****
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private router: Router
-  ) {
-
-  }
+    private router: Router // Keep Router if navigation might be needed elsewhere, but not in onSubmit for dialog
+  ) {}
 
   ngOnInit(): void {
-
-    this.categorias.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
-      this.keywords.update(() => []);
-      this.selectedCategoria = data;
-      this.categoria = data[0];
-      this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-    })
-
+    // Moved Form Initialization here
     this.accesorioForm = new FormGroup({
       FabricanteAccesorio: new FormControl('', Validators.required),
       CateAccesorio: new FormControl('', Validators.required),
@@ -97,111 +109,152 @@ export class AgregarAccesoriosComponent {
       EstadoAccesorio: new FormControl('', Validators.required),
       ComentarioAccesorio: new FormControl(''),
       NumeroSerie: new FormControl(''),
-      TodoList: new FormControl(''),
-      ProductosCompatibles: new FormControl('')
+      TodoList: new FormControl(this.nkeywords()), // Use signal value for init
+      ProductosCompatibles: new FormControl([]) // Initialize as empty array
+    });
+
+    // Load initial data for dropdowns and image
+    this.loadInitialData();
+    this.setupValueChangeListeners();
+  }
+
+  // Helper to load initial static data
+  private loadInitialData(): void {
+    // Load category list for image fallback (if needed immediately)
+    // Consider if this is truly needed or if image updates only on selection
+    this.categoriasService.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
+      // It seems you use the first item only for a default image path?
+      if (data && data.length > 0) {
+        this.categoria = data[0];
+        this.ImagePath = this.getimagePath(this.categoria?.LinkImagen ?? null); // Use optional chaining and null coalescing
+      } else {
+         this.ImagePath = this.getimagePath(null); // Set default if no categories
+      }
+      this.cdr.markForCheck();
     });
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-      //console.log(data);
       this.selectedEstado = data;
+      this.cdr.markForCheck();
     });
 
     this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteAccesorio[]) => {
       this.selectedFabricanteAccesorio = data;
+      this.cdr.markForCheck();
     });
-
-    // this.categoriaaccesorioService.getAll().subscribe((data: CategoriasAccesoriosBase[]) => {
-    //   this.selectedCategoriaAccesorio = data;
-    // });
-
-    // this.subcategoriaaccesrorioService.getAll().subscribe((data: SubcategoriasAccesorios[]) => {
-    //   this.selectedSubCategoriaAccesorio = data;
-    // });
-
-    this.accesorioForm.get('TodoList')?.setValue(this.nkeywords());
-
-    /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
-    this.accesorioForm.get('FabricanteAccesorio')?.valueChanges.subscribe(selectedId => {
-      // this.accesorioForm.get('Cate')?.reset();
-      // this.accesorioForm.get('SubCategoria')?.reset();
-      this.categoriaaccesorioService.findWithModel(selectedId).subscribe((data: categoriasAccesorios[]) => {        
-        this.selectedCategoriaAccesorio = data;
-      })
-      this.accesorioForm.get('SubCategoriaAccesorio')?.reset();
-    });
-
-    this.accesorioForm.get('CateAccesorio')?.valueChanges.subscribe(selectedId => {      
-      this.subcategoriaaccesrorioService.findWithModel(selectedId).subscribe((data: SubcategoriasAccesorios[]) => {
-        this.selectedSubCategoriaAccesorio = data;
-        console.log(data);
-      })      
-    });
-
-    this.accesorioForm.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId =>{
-      //console.log(this.accesorioForm.value.Fabricante, this.accesorioForm.value.Cate, this.accesorioForm.get('SubCategoria')?.value);
-      if (this.accesorioForm.value.FabricanteAccesorio != undefined && this.accesorioForm.value.CateAccesorio != undefined &&  this.accesorioForm.get('SubCategoriaAccesorio')?.value != undefined){      
-        this.categorias.getbymanufacturer(this.accesorioForm.value.FabricanteAccesorio, this.accesorioForm.value.CateAccesorio, this.accesorioForm.get('SubCategoriaAccesorio')?.value).subscribe((data) => {
-          this.idModeloAccesorioPK = data[0].IdModeloAccesorioPK;        
-
-       
-          this.categorias.find(this.idModeloAccesorioPK).subscribe((data) => {
-            this.categoria = data[0];
-            this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-            this.cdr.detectChanges();
-            this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(this.idModeloAccesorioPK);
-          });       
-        })
-      }
-    });  
-
   }
 
+  // Helper to set up listeners for dropdown changes
+  private setupValueChangeListeners(): void {
+    /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
+    this.accesorioForm.get('FabricanteAccesorio')?.valueChanges.subscribe(selectedId => {
+      if (selectedId) {
+        this.categoriaaccesorioService.findWithModel(selectedId).subscribe((data: categoriasAccesorios[]) => {
+          this.selectedCategoriaAccesorio = data;
+          // Reset dependent fields and clear data
+          this.accesorioForm.get('CateAccesorio')?.reset(null, { emitEvent: false });
+          this.accesorioForm.get('SubCategoriaAccesorio')?.reset(null, { emitEvent: false });
+          this.selectedSubCategoriaAccesorio = [];
+          this.ImagePath = this.getimagePath(null);
+          this.keywords.set([]);
+          this.accesorioForm.get('ProductosCompatibles')?.setValue([], { emitEvent: false });
+          this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(null, { emitEvent: false });
+          this.cdr.markForCheck();
+        });
+      } else {
+        // Clear dependent lists if parent is cleared
+        this.selectedCategoriaAccesorio = [];
+        this.selectedSubCategoriaAccesorio = [];
+        this.cdr.markForCheck();
+      }
+    });
+
+    this.accesorioForm.get('CateAccesorio')?.valueChanges.subscribe(selectedId => {
+      if (selectedId) {
+        this.subcategoriaaccesrorioService.findWithModel(selectedId).subscribe((data: SubcategoriasAccesorios[]) => {
+          this.selectedSubCategoriaAccesorio = data;
+           // Reset dependent fields and clear data
+          this.accesorioForm.get('SubCategoriaAccesorio')?.reset(null, { emitEvent: false });
+          this.ImagePath = this.getimagePath(null);
+          this.keywords.set([]);
+          this.accesorioForm.get('ProductosCompatibles')?.setValue([], { emitEvent: false });
+          this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(null, { emitEvent: false });
+          this.cdr.markForCheck();
+        });
+      } else {
+         // Clear dependent lists if parent is cleared
+        this.selectedSubCategoriaAccesorio = [];
+        this.cdr.markForCheck();
+      }
+    });
+
+    this.accesorioForm.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId => {
+      const fabId = this.accesorioForm.value.FabricanteAccesorio;
+      const catId = this.accesorioForm.value.CateAccesorio;
+
+      if (fabId && catId && selectedId){
+        this.categoriasService.getbymanufacturer(fabId, catId, selectedId).subscribe((data) => {
+          if (data && data.length > 0 && data[0]) {
+            this.idModeloAccesorioPK = data[0].IdModeloAccesorioPK;
+            this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(this.idModeloAccesorioPK, { emitEvent: false }); // Update form
+
+            // Fetch specific category details to update image
+            this.categoriasService.find(this.idModeloAccesorioPK).subscribe((catData) => {
+              if (catData && catData.length > 0 && catData[0]) { // Check response structure
+                this.categoria = catData[0]; // Assuming find returns array
+                this.ImagePath = this.getimagePath(this.categoria?.LinkImagen ?? null); // Use optional chaining and null coalescing
+                this.cdr.markForCheck();
+              } else {
+                 this.ImagePath = this.getimagePath(null); // Reset image if find fails
+                 this.cdr.markForCheck();
+              }
+            });
+          } else {
+            // Handle case where getbymanufacturer returns nothing
+            console.warn(`No active Catalog Accessory found for F:${fabId}, C:${catId}, S:${selectedId}`);
+            this.idModeloAccesorioPK = null;
+            this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(null, { emitEvent: false });
+            this.ImagePath = this.getimagePath(null);
+            this.cdr.markForCheck();
+          }
+        });
+      } else {
+         // Reset if any parent dropdown is cleared
+         this.idModeloAccesorioPK = null;
+         this.accesorioForm.get('IdModeloAccesorioPK')?.setValue(null, { emitEvent: false });
+         this.ImagePath = this.getimagePath(null);
+         this.cdr.markForCheck();
+      }
+    });
+  }
+
+
+  // --- Chip list logic (ProductosCompatibles) ---
   removeKeyword(keyword: string) {
     this.keywords.update(keywords => {
       const index = keywords.indexOf(keyword);
-      if (index < 0) {
-        return keywords;
-      }
-
+      if (index < 0) return keywords;
       keywords.splice(index, 1);
+      this.accesorioForm.get('ProductosCompatibles')?.setValue([...keywords]); // Update form on removal
       this.announcer.announce(`removed ${keyword}`);
-      return [...keywords];
+      return [...keywords]; // Return new array reference
     });
   }
 
   add(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
-
-    // Add our keyword
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
-      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update the form control
+      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords()); // Update form on add
     }
-
-    // Clear the input value
     event.chipInput!.clear();
   }
 
-  addt(valor: String): void {
-    const value = (valor || '').trim();
+  // This seems redundant, add() handles user input directly
+  // addt(valor: String): void { ... }
 
-    // Add our keyword
-    if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
-      console.log(this.keywords());
 
-      this.accesorioForm.get('ProductosCompatibles')?.setValue(this.keywords());
-      this.accesorioForm.get('ProductosCompatibles')?.markAsDirty();
-      // Force change detection
-      this.cdr.detectChanges();
-    }
-
-    // Clear the input value
-    //
-
-  }
-
-  // Helper method to return the current keywords array
+  // --- Chip list logic (TodoList) ---
   nkeywords(): string[] {
     return this.todolistKeywords();
   }
@@ -209,60 +262,91 @@ export class AgregarAccesoriosComponent {
   removeReactiveKeyword(keyword: string) {
     this.todolistKeywords.update(keywords => {
       const index = keywords.indexOf(keyword);
-      if (index < 0) {
-        return keywords;
-      }
-
+      if (index < 0) return keywords;
       keywords.splice(index, 1);
+      this.accesorioForm.get('TodoList')?.setValue([...keywords]); // Update form on removal
       this.announcer.announce(`removed ${keyword} from reactive form`);
-      return [...keywords];
+      return [...keywords]; // Return new array reference
     });
   }
 
   addReactiveKeyword(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
-
-    // Add our keyword
     if (value) {
       this.todolistKeywords.update(keywords => [...keywords, value]);
-      this.accesorioForm.get('TodoList')?.setValue(this.keywords());
+      this.accesorioForm.get('TodoList')?.setValue(this.todolistKeywords()); // Update form on add
       this.announcer.announce(`added ${value} to reactive form`);
     }
-
-    // Clear the input value
     event.chipInput!.clear();
   }
 
-  getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+  // --- Image Path ---
+  getimagePath(l: string | null): string { // Ensure return type is string
+    const baseUrl = 'http://localhost:3000';
+    // Use a more generic default image if specific one isn't found
+    const defaultImage = `${baseUrl}/assets/placeholder.png`; // Example default image in assets
 
     if (l == null || l === '') {
-      return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
+      return defaultImage; // Return default
     } else {
+      // Assuming images are served from /img-accesorios route in Node.js
       return `${baseUrl}/img-accesorios/${l}`;
     }
   }
 
-  ngAfterViewInit() {
-    this.accesorioForm.get('SubCategoriaAccesorio')?.valueChanges.subscribe(selectedId =>{
-      console.log(selectedId);
+  // ngAfterViewInit() {
+  //   // It's generally better to put subscription logic in ngOnInit or specific methods
+  // }
+
+  // --- Form Accessor ---
+  get f() {
+    return this.accesorioForm.controls;
+  }
+
+  // **** 4. MODIFY onSubmit ****
+  onSubmit() {
+    if (this.accesorioForm.invalid) {
+      console.error("Form is invalid:", this.accesorioForm.errors);
+      // Mark fields as touched to show errors
+      this.accesorioForm.markAllAsTouched();
+      return;
+    }
+
+    // 1. Get current user
+    const usuarioActual = this.authService.getUserValue();
+
+    // 2. Validate user
+    if (!usuarioActual || !usuarioActual.id) { // Also check for id property
+      console.error("Error: No se pudo obtener el ID del usuario para registrar el accesorio.");
+      // Optional: Show user-friendly error
+      return;
+    }
+
+    // 3. Get current chip values explicitly before sending
+    const formValue = this.accesorioForm.value;
+    formValue.ProductosCompatibles = this.keywords(); // Get current signal value
+    formValue.TodoList = this.todolistKeywords();     // Get current signal value
+
+    // 4. Build final data object including User ID
+    const accesorioData = {
+      ...formValue,
+      IdUsuario: usuarioActual.id // Add the user ID
+    };
+
+    console.log("Submitting accesorio data:", accesorioData); // Log for debugging
+
+    // 5. Send data to service
+    this.accesorioService.create(accesorioData).subscribe({
+      next: (res: any) => {
+        this.Agregado.emit();
+        // Assuming this is used in a dialog, the parent component handles closing/refreshing.
+        // If it's a standalone page, re-add navigation:
+        // this.router.navigateByUrl('home/listado-accesorios');
+      },
+      error: (err) => {
+        console.error("Error creating accesorio:", err);
+        // Optional: Show user-friendly error message (e.g., using MatSnackBar)
+      }
     });
   }
-
-  get f() {
-
-    return this.accesorioForm.controls;
-
-  }
-
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    // console.log(this.accesorioForm.value);
-    // console.log("enviado");
-    this.accesorioService.create(this.accesorioForm.value).subscribe((res: any) => {
-      this.Agregado.emit();
-      this.router.navigateByUrl('listado-accesorios');
-    })
-
-  }
-
 }

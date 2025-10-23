@@ -4,4 +4,5 @@ export interface HistorialArticulo {
   EstadoNuevoDescripcion: string;
   StockAnterior: number | null;
   StockNuevo: number | null;
+  Usuario: string;
 }

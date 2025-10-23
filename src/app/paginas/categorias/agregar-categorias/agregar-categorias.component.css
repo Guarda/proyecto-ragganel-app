@@ -53,3 +53,29 @@ span {
   width:360px!important;
 }
 
+.form-level-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  padding: 8px 24px;
+  color: #f44336; /* Color de error de Material */
+  /* Ajusta el padding para que no esté pegado al campo de arriba ni al de abajo */
+  padding: 0 0 15px 0;
+  /* Quita el padding horizontal grande */
+}
+
+.form-level-error span {
+  font-family: Roboto, "Helvetica Neue", sans-serif; /* Fuente estándar */
+  font-size: 14px;   /* Tamaño de fuente normal para el cuerpo del diálogo */
+  font-weight: 500;  /* Mantiene el peso para que sea legible */
+  margin-left: 0;    /* Resetea el margen que tenía el span del título */
+  display: inline;   /* Comportamiento normal de span */
+}
+
+/* (Opcional) Ajusta el tamaño del ícono de error si también se ve grande */
+.form-level-error mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}

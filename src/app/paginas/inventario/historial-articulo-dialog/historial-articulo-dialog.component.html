@@ -18,9 +18,15 @@
         <div class="card-body">
           <div *ngIf="!isFirst" class="detalle-cambio">
             <strong>Cambio:</strong> {{ item.EstadoAnteriorDescripcion }} &rarr; {{ item.EstadoNuevoDescripcion }}
+            <div class="detalle-usuario">
+              <strong>Por:</strong> {{ item.Usuario || 'Sistema' }}
+            </div>
           </div>
           <div *ngIf="isFirst" class="detalle-cambio">
             <strong>Artículo Creado</strong>
+            <div class="detalle-usuario">
+              <strong>Por:</strong> {{ item.Usuario || 'Sistema' }}
+            </div>
           </div>
           
           <div *ngIf="data.tipo === 'Insumo' && item.StockNuevo !== null" class="detalle-stock">

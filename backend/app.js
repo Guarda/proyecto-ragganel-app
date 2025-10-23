@@ -44,7 +44,8 @@ const dashboardRouter = require('./routes/dashboard');
 const preIngresoRoutes = require('./routes/pre-ingreso');
 const costdistributionRouter = require('./routes/cost-distribution');
 const validationRoutes = require('./routes/validation');
-
+const producttypesRouter = require('./routes/product-types');
+const tiposAccesoriosRouter = require('./routes/accesories-list');
 // Middleware
 app.use(express.json());
 
@@ -139,6 +140,8 @@ app.use('/dashboard', dashboardRouter);
 app.use('/api/pre-ingreso', preIngresoRoutes);
 app.use('/api/cost-distribution', costdistributionRouter); 
 app.use('/api/validate', validationRoutes); 
+app.use('/api/tipos-producto', producttypesRouter);
+app.use('/api/tipos-accesorios', tiposAccesoriosRouter);
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {
   res.json({ message: 'Acceso permitido' });

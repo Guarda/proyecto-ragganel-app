@@ -1,0 +1,27 @@
+/* General dialog title styling */
+h3[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+}
+
+h3[mat-dialog-title] span {
+  font-family: Quicksand, sans-serif; /* Use your preferred font */
+  font-size: 1.5rem; /* Adjust size as needed */
+  margin-left: 0; /* Override potential global span styles */
+}
+
+/* Ensure padding within the content */
+.contenedor-principal {
+  padding-top: 10px;
+}
+
+/* Make form fields take full width */
+.input-full-width {
+  width: 100%;
+}
+
+/* Spacing between form fields */
+mat-form-field {
+  margin-bottom: 16px;
+}

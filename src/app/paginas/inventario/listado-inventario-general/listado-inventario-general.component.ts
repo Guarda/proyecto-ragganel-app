@@ -69,7 +69,10 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     this.dataSource.sort = this.sort;
 
     // --- CAMBIO 6: Cargar estado y suscribirse a los cambios ---
-    this.loadAndApplyState();
+    // ✅ CORRECCIÓN: Se envuelve en un setTimeout para evitar el error ExpressionChangedAfterItHasBeenCheckedError.
+    // Esto asegura que la restauración del estado se ejecute en el siguiente ciclo de detección de cambios.
+    setTimeout(() => this.loadAndApplyState());
+    
     this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
     this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }

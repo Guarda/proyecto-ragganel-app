@@ -40,6 +40,8 @@ import { ListadoInventarioGeneralComponent } from './paginas/inventario/listado-
 import { ListadoInventarioGarantiaComponent } from './paginas/inventario/listado-inventario-garantia/listado-inventario-garantia.component';
 import { DashboardComponent } from './paginas/dashboard/dashboard/dashboard.component';
 import { IngresarInventarioComponent } from './paginas/pedidos/ingresar-inventario/ingresar-inventario.component';
+import { ListadoTiposProductosComponent } from './paginas/categorias/tipos-productos/listado-tipos-productos/listado-tipos-productos.component';
+import { ListadoTipoAccesorioComponent } from './paginas/categorias/tipos-accesorios/listado-tipo-accesorio/listado-tipo-accesorio.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -117,6 +119,18 @@ export const routes: Routes = [
         path: 'preferencias/index-categorias',
         component: IndexEdicioncategoriasComponent,
         canActivate: [AuthGuard]
+      },
+      {
+        path: 'listado-tipos-productos',
+        component: ListadoTiposProductosComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1, 3] } 
+      },
+      {
+        path: 'listado-tipos-accesorios',
+        component: ListadoTipoAccesorioComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1, 3] }       
       },
       {
         path: 'listado-accesorios',

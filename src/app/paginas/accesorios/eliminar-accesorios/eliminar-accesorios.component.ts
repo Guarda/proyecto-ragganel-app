@@ -1,44 +1,48 @@
-import { Component, EventEmitter, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogModule } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Component, EventEmitter, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button'; // ✅ CAMBIO: Importar MatButtonModule
 import { AccesorioBaseService } from '../../../services/accesorio-base.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { AuthService } from '../../../UI/session/auth.service'; // ✅ CAMBIO: Importar AuthService
 
 @Component({
     selector: 'app-eliminar-accesorios',
-    imports: [MatDialogModule, MatDialogActions],
+    standalone: true, // ✅ CAMBIO: Se define como standalone
+    imports: [MatDialogModule, MatButtonModule], // ✅ CAMBIO: Se añaden los imports
     templateUrl: './eliminar-accesorios.component.html',
     styleUrl: './eliminar-accesorios.component.css'
 })
 export class EliminarAccesoriosComponent {
-  Borrado = new EventEmitter();
-  accesorioForm!: FormGroup;
-
+  Borrado = new EventEmitter<void>();
   
+  public AccessorieId: string;
+
   constructor(
-    private router: Router,
     public accesorioService: AccesorioBaseService, 
-    private fb: FormBuilder,
-    @Inject(MAT_DIALOG_DATA) public idAccessorie: any
+    private authService: AuthService, // ✅ CAMBIO: Se inyecta el servicio de autenticación
+    @Inject(MAT_DIALOG_DATA) public data: { value: string } // ✅ CAMBIO: Se tipifica 'data'
   ) {
-
+    this.AccessorieId = this.data.value; // Se asigna el valor en el constructor
   }
 
-  public AccessorieId: any;
+  onEliminar(): void {
+    // ✅ CAMBIO: Se obtiene el ID del usuario
+    const usuarioId = this.authService.getUserValue()?.id;
 
-  ngOnInit(): void {
-    console.log(this.idAccessorie.value);
-    this.AccessorieId = this.idAccessorie.value;
-    this.accesorioForm = this.fb.group({
-      CodigoAccesorio: [this.idAccessorie.value]
-    });
-  }
+    if (!usuarioId) {
+      console.error("Error: No se pudo obtener el ID del usuario.");
+      return;
+    }
 
-  onEliminar(){
-    this.accesorioService.eliminar(this.accesorioForm.value).subscribe((res: any) => {
+    // ✅ CAMBIO: Se construye el objeto a enviar con ambos datos
+    const dataToSend = {
+      CodigoAccesorio: this.AccessorieId,
+      IdUsuario: usuarioId
+    };
+
+    // ✅ CAMBIO: Se asume que el método en el servicio se llama 'eliminar'
+    this.accesorioService.eliminar(dataToSend).subscribe((res: any) => {
       this.Borrado.emit();
-      this.router.navigateByUrl('home/listado-accesorios');
-    })
+    });
   }
 
 }

@@ -203,7 +203,8 @@ export class ListarAccesoriosComponent implements OnInit, AfterViewInit, OnDestr
   public openDialogHistorial(codigoAccesorio: string) {
     this.dialog.open(HistorialAccesorioComponent, {
       width: '600px',
-      data: { value: codigoAccesorio }
+      // ✅ CAMBIO CLAVE: Se ajusta la estructura del objeto 'data'
+      data: { codigo: codigoAccesorio, tipo: 'Accesorio' }
     });
   }
 }

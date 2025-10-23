@@ -18,23 +18,25 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CambiarEstadoDialogComponent } from '../cambiar-estado-dialog/cambiar-estado-dialog.component';
 import { Observable, Subscription } from 'rxjs';
+import { Usuarios } from '../../interfaces/usuarios'; // ✅ AÑADIDO
 
 import { ProductosService } from '../../productos/productos.service';
 import { AccesorioBaseService } from '../../../services/accesorio-base.service';
 import { ArticuloInventario } from '../../interfaces/articuloinventario';
 import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
 import { TableState } from '../../interfaces/table-state';
+import { AuthService } from '../../../UI/session/auth.service'; // ✅ AÑADIDO
 
 @Component({
-    selector: 'app-listado-inventario-garantia',
-    standalone: true,
-    imports: [
-        CommonModule, RouterModule, MatTableModule, MatPaginatorModule, MatSortModule,
-        MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-        MatProgressSpinnerModule, MatTooltipModule
-    ],
-    templateUrl: './listado-inventario-garantia.component.html',
-    styleUrls: ['./listado-inventario-garantia.component.css'] // Asegúrate que el nombre del archivo CSS sea correcto
+  selector: 'app-listado-inventario-garantia',
+  standalone: true,
+  imports: [
+    CommonModule, RouterModule, MatTableModule, MatPaginatorModule, MatSortModule,
+    MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
+    MatProgressSpinnerModule, MatTooltipModule
+  ],
+  templateUrl: './listado-inventario-garantia.component.html',
+  styleUrls: ['./listado-inventario-garantia.component.css'] // Asegúrate que el nombre del archivo CSS sea correcto
 })
 export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit, OnDestroy {
   // Define las columnas que se mostrarán en la tabla de garantía
@@ -44,6 +46,7 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
   isLoading = true;
   errorMessage: string | null = null;
 
+  usuario!: Usuarios;
   private readonly tableStateKey = 'garantiaTableState';
   private subscriptions = new Subscription();
 
@@ -57,11 +60,17 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
     private productoService: ProductosService,
     private accesorioService: AccesorioBaseService,
     private router: Router,
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
     this.cargarGarantias();
+    this.subscriptions.add(
+      this.authService.getUser().subscribe(user => {
+        this.usuario = user as unknown as Usuarios;
+      })
+    );
   }
 
   ngAfterViewInit(): void {
@@ -178,13 +187,13 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
         break;
       default:
         console.error(`Tipo de artículo desconocido: ${articulo.TipoArticulo}`);
-        return; 
+        return;
     }
 
     // Navegamos a la ruta construida
     this.router.navigate([rutaBase, articulo.CodigoArticulo, 'view']); // <-- CORRECCIÓN 3: Usar CodigoArticulo
   }
-  
+
   abrirDialogoCambiarEstado(articulo: ArticuloGarantia): void {
     const dialogRef = this.dialog.open(CambiarEstadoDialogComponent, {
       width: '450px',
@@ -197,25 +206,29 @@ export class ListadoInventarioGarantiaComponent implements OnInit, AfterViewInit
 
     dialogRef.afterClosed().subscribe(nuevoEstadoId => {
       if (nuevoEstadoId) {
-        this.snackBar.open(`Actualizando estado para ${articulo.CodigoArticulo}...`, undefined, { duration: 2000 });
-
-        let servicioObservable: Observable<any>;
-
-        // Decide qué servicio llamar basado en el tipo de artículo
-        if (articulo.TipoArticulo === 'Producto') {
-          servicioObservable = this.productoService.actualizarEstado(articulo.CodigoArticulo, nuevoEstadoId);
-        } else {
-          servicioObservable = this.accesorioService.actualizarEstado(articulo.CodigoArticulo, nuevoEstadoId);
+        // ✅ VERIFICAR QUE EL USUARIO ESTÉ CARGADO
+        if (!this.usuario || !this.usuario.id) {
+          this.snackBar.open('Error: No se pudo identificar al usuario. Intente de nuevo.', 'Cerrar', { duration: 4000 });
+          return;
         }
 
-        // Llama al servicio correspondiente
+        this.snackBar.open(`Actualizando estado para ${articulo.CodigoArticulo}...`, undefined, { duration: 2000 });
+        let servicioObservable: Observable<any>;
+
+        // ✅ SE AÑADE EL PARÁMETRO 'this.usuario.id' A LAS LLAMADAS
+        if (articulo.TipoArticulo === 'Producto') {
+          servicioObservable = this.productoService.actualizarEstado(articulo.CodigoArticulo, nuevoEstadoId, this.usuario.id);
+        } else {
+          servicioObservable = this.accesorioService.actualizarEstado(articulo.CodigoArticulo, nuevoEstadoId, this.usuario.id);
+        }
+
         servicioObservable.subscribe({
           next: (response) => {
             this.snackBar.open(response.mensaje || '¡Estado actualizado con éxito!', 'OK', {
               duration: 3000,
               panelClass: ['snackbar-success']
             });
-            this.cargarGarantias(); // Recargar la lista para que el artículo desaparezca
+            this.cargarGarantias(); // Recargar la lista
           },
           error: (err) => {
             console.error('Error al actualizar estado:', err);

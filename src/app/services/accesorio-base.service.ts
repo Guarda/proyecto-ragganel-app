@@ -60,11 +60,12 @@ export class AccesorioBaseService {
       )
   }
 
-  actualizarEstado(codigo: string, nuevoEstadoId: number): Observable<any> {
+  actualizarEstado(codigo: string, nuevoEstadoId: number, IdUsuario: number): Observable<any> {
     const body = {
       tipoArticulo: 'Accesorio',
       codigoArticulo: codigo,
-      nuevoEstadoId: nuevoEstadoId
+      nuevoEstadoId: nuevoEstadoId,
+      IdUsuario: IdUsuario // Se añade el IdUsuario al cuerpo de la petición
     };
     return this.httpClient.post(`${this.apiURL}/inventario/cambiar-estado`, body, this.httpOptions)
       .pipe(
@@ -72,13 +73,16 @@ export class AccesorioBaseService {
       );
   }
 
-  eliminar(accesorio: AccesoriosBase): Observable<any> {   
-    // console.log(accesorio) 
-    return this.httpClient.put(this.apiURL + '/accesorios-base/accesorio-eliminar/' + accesorio.CodigoAccesorio, JSON.stringify(accesorio), this.httpOptions)
+  // ✅ ==================== INICIO DE LA CORRECCIÓN ====================
+  eliminar(data: { CodigoAccesorio: string; IdUsuario: number }): Observable<any> {   
+    // El cuerpo de la petición (el segundo argumento del método put) ahora es el objeto 'data'
+    // que contiene tanto el CodigoAccesorio como el IdUsuario.
+    return this.httpClient.put(this.apiURL + '/accesorios-base/accesorio-eliminar/' + data.CodigoAccesorio, data, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
   }
+  // ✅ ===================== FIN DE LA CORRECCIÓN ======================
 
   getAccesoriosStateLog(id: string): Observable<any> {
     return this.httpClient.get(this.apiURL + '/accesorios-base/historial-accesorio/' + id)
@@ -95,6 +99,6 @@ export class AccesorioBaseService {
     } else {
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
-    return throwError(errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 }

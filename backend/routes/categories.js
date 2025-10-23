@@ -58,13 +58,28 @@ router.get('/categoria', (req, res) => {
     });
 });
 
+// En tu router de categorías (ej. categories.js)
+router.get('/check-exists', (req, res) => {
+    const { fab, cat, sub } = req.query;
+
+    const sql = `CALL \`${dbConfig.database}\`.\`sp_CheckSuperCategoriaActivaExists\`(?, ?, ?);`;
+
+    Basedatos.query(sql, [fab, cat, sub], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error en el servidor.' });
+        }
+        // results[0][0].existe será 1 si existe, 0 si no.
+        res.json(results[0][0]);
+    });
+});
+
 // Update a category
 router.put('/categoria/:id', (req, res) => {
     const id = req.params.id;
     const { IdModeloConsolaPK, Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto } = req.body;
     const sql = `CALL \`${dbConfig.database}\`.\`ActualizarCategoria\` (?, ?, ?, ?, ?, ?, ?)`;
     const sql2 = `CALL \`${dbConfig.database}\`.\`ListarTablacatalogoconsolasXId\` (?)`;
-    Basedatos.query(sql, [IdModeloConsolaPK, Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto ], err => {
+    Basedatos.query(sql, [IdModeloConsolaPK, Fabricante, Cate, SubCategoria, CodigoModeloConsola, LinkImagen, TipoProducto], err => {
         if (err) {
             res.status(500).send('Error actualizando categoria');
             return;

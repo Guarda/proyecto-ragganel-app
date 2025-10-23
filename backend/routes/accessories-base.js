@@ -100,19 +100,24 @@ router.get('/categoria', (req, res) => {
 
 // Create a new product
 router.post('/crear-accesorio', (req, res) => {
-    const { IdModeloAccesorioPK, ColorAccesorio, PrecioBase, EstadoAccesorio, ComentarioAccesorio, NumeroSerie, TodoList, ProductosCompatibles } = req.body;
-    console.log(req.body);
+    // 1. Se añade IdUsuario a la desestructuración del body
+    const { IdModeloAccesorioPK, ColorAccesorio, PrecioBase, EstadoAccesorio, ComentarioAccesorio, NumeroSerie, TodoList, ProductosCompatibles, IdUsuario } = req.body;
 
-    // Convert arrays to comma-separated strings
-    const CompatibleProductsString = ProductosCompatibles.join(',');
-    const TodoListString = TodoList.join(',');
+    // ✅ CORRECCIÓN: Se verifica si las variables son arreglos antes de usar .join()
+    const CompatibleProductsString = Array.isArray(ProductosCompatibles) ? ProductosCompatibles.join(',') : '';
+    const TodoListString = Array.isArray(TodoList) ? TodoList.join(',') : '';
 
-    const sql = `CALL \`${dbConfig.database}\`.\`IngresarAccesorioATablaAccesoriosBaseV2\` (?, ?, ?, ?, ?, ?, ?, ?)`;
-    Basedatos.query(sql, [IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString, TodoListString], (err, result) => {
+    // 2. Se añade un '?' para el nuevo parámetro
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarAccesorioATablaAccesoriosBaseV2\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    // 3. Se pasa IdUsuario como el último parámetro en la consulta
+    Basedatos.query(sql, [IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString, TodoListString, IdUsuario], (err, result) => {
         if (err) {
+            // Se añade un log más detallado del error
+            console.error("Error al ejecutar el SP de crear accesorio:", err);
             return res.status(500).send(err);
         }
-        res.send({ message: 'Producto agregado', id: result.insertId });
+        res.send({ message: 'Accesorio agregado', id: result.insertId });
     });
 });
 
@@ -126,7 +131,7 @@ router.get('/accesorio/:id', (req, res) => {
             return;
         }
         if (result.length === 0) {
-            res.status(404).send('Producto no encontrado');
+            res.status(404).send('Accesorio no encontrado');
             return;
         }
         res.json(result[0]);
@@ -135,32 +140,38 @@ router.get('/accesorio/:id', (req, res) => {
 
 // Update an accessorie
 router.put('/accesorio/:id', (req, res) => {
-    const id = req.params.id; // Assuming this is the CodigoConsola
-    const { IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, ComentarioAccesorio, PrecioBase, NumeroSerie, ProductosCompatibles } = req.body;
-    console.log(req.body);
-    // Convert arrays to comma-separated strings
-    const CompatibleProductsString = ProductosCompatibles.join(',');
-    // Adjust the SQL query to call the new stored procedure
-    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarAccesorioBase\` (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const id = req.params.id;
+    // 1. Se añade IdUsuario
+    const { IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, ComentarioAccesorio, PrecioBase, NumeroSerie, ProductosCompatibles, IdUsuario } = req.body;
 
-    // Call the new stored procedure with the updated parameters
-    Basedatos.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString], err => {
+    // ✅ CORRECCIÓN: Se aplica la misma verificación aquí
+    const CompatibleProductsString = Array.isArray(ProductosCompatibles) ? ProductosCompatibles.join(',') : '';
+    
+    // 2. Se añade un '?' para el nuevo parámetro
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarAccesorioBase\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    // 3. Se pasa IdUsuario como último parámetro
+    Basedatos.query(sql, [id, IdModeloAccesorioPK, ColorAccesorio, EstadoAccesorio, PrecioBase, ComentarioAccesorio, NumeroSerie, CompatibleProductsString, IdUsuario], err => {
          if (err) {
-            res.status(500).send('Error actualizando producto');
+            console.error("Error al ejecutar el SP de actualizar accesorio:", err);
+            res.status(500).send('Error actualizando accesorio');
             return;
         }
-        // Aquí respondemos que todo salió bien
-        res.status(200).json({ message: 'Producto actualizado correctamente' });
-        // Fetch the updated product to return the updated details        
+        res.status(200).json({ message: 'Accesorio actualizado correctamente' });
     });
 });
 
 // Delete an accessorie
 router.put('/accesorio-eliminar/:id', (req, res) => {
     const id = req.params.id;
-    const { CodigoAccesorio } = req.body;
-    const sql = `CALL \`${dbConfig.database}\`.\`BorrarAccesorio\` (?)`;
-    Basedatos.query(sql, [CodigoAccesorio], err => {
+    // 1. Se añade IdUsuario
+    const { CodigoAccesorio, IdUsuario } = req.body;
+    
+    // 2. Se añade un '?' para el nuevo parámetro
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarAccesorio\` (?, ?)`;
+    
+    // 3. Se pasan ambos parámetros
+    Basedatos.query(sql, [CodigoAccesorio, IdUsuario], err => {
         if (err) {
             res.status(500).send('Error al eliminar accesorio');
             return;

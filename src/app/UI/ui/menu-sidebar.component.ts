@@ -75,6 +75,8 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
             { label: 'Inventario Productos', route: '/home/listado-productos', roles: [1, 3] },            
             { label: 'Categorías de Productos', route: '/home/listado-categorias', roles: [1, 3] },
             { label: 'Configuración Productos', route: '/home/preferencias/index-categorias', roles: [1, 3] },
+            { label: 'Tipos de Productos', route: '/home/listado-tipos-productos', roles: [1, 3] },
+            { label: 'Tipos de accesorios', route: '/home/listado-tipos-accesorios', roles: [1, 3] },
           ],
           roles: [1, 3]
         },

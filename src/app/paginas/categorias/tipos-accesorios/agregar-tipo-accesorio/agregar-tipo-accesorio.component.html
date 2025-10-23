@@ -1,0 +1,39 @@
+<h3 mat-dialog-title>
+  <mat-icon>add_circle_outline</mat-icon> <span>Agregar Tipo de Accesorio</span>
+</h3>
+
+<form [formGroup]="tipoAccesorioForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="mat-typography contenedor-principal">
+    <p>Ingrese los detalles del nuevo tipo de accesorio:</p>
+
+    <mat-form-field class="input-full-width">
+      <mat-label>Código</mat-label>
+      <input matInput formControlName="CodigoAccesorio" placeholder="Ej: C001" cdkFocusInitial>
+      <mat-error *ngIf="tipoAccesorioForm.get('CodigoAccesorio')?.hasError('required')">
+        El código es requerido.
+      </mat-error>
+      <mat-error *ngIf="tipoAccesorioForm.get('CodigoAccesorio')?.hasError('maxlength')">
+        El código no puede exceder los 25 caracteres.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="input-full-width">
+      <mat-label>Descripción</mat-label>
+      <input matInput formControlName="DescripcionAccesorio" placeholder="Ej: Cable HDMI">
+      <mat-error *ngIf="tipoAccesorioForm.get('DescripcionAccesorio')?.hasError('required')">
+        La descripción es requerida.
+      </mat-error>
+       <mat-error *ngIf="tipoAccesorioForm.get('DescripcionAccesorio')?.hasError('maxlength')">
+        La descripción no puede exceder los 100 caracteres.
+      </mat-error>
+    </mat-form-field>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="tipoAccesorioForm.invalid">
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</form>

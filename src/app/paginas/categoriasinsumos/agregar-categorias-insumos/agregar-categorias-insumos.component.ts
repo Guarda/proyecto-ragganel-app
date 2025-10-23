@@ -6,7 +6,8 @@ import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import { AbstractControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,6 +30,8 @@ import { ImageUploadInsumoComponent } from '../../../utiles/images/image-upload-
 import { ValidationService } from '../../../services/validation.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { catchError, debounceTime, distinctUntilChanged, map, Observable, of, switchMap, tap } from 'rxjs';
+
 @Component({
     selector: 'app-agregar-categorias-insumos',
     standalone: true,
@@ -37,7 +40,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         ImageUploadInsumoComponent, MatProgressSpinnerModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose
     ],
     templateUrl: './agregar-categorias-insumos.component.html',
-    styleUrl: './agregar-categorias-insumos.component.css'
+    styleUrl: './agregar-categorias-insumos.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AgregarCategoriasInsumosComponent {
 
@@ -65,7 +69,7 @@ export class AgregarCategoriasInsumosComponent {
     private validationService: ValidationService
   ) {
 
-    this.CategoriaForm = new FormGroup({
+   this.CategoriaForm = new FormGroup({
       FabricanteInsumo: new FormControl('', Validators.required),
       CategoriaInsumo: new FormControl('', Validators.required),
       SubCategoriaInsumo: new FormControl('', Validators.required),
@@ -79,27 +83,25 @@ export class AgregarCategoriasInsumosComponent {
 
     this.fabricanteService.getAll().subscribe((data: FabricanteInsumos[]) => {
       this.selectedFabricante = data;
+      this.cdr.markForCheck();
     });
 
     this.CategoriaForm.get('FabricanteInsumo')?.valueChanges.subscribe(selectedId => {
       this.categoriainsumoService.find(selectedId).subscribe((data: categoriasInsumos[]) => {
         console.log(data)
         this.selectedCategoriaInsumo = data;
-
+        this.cdr.markForCheck();
       })
       this.CategoriaForm.get('SubCategoriaInsumo')?.reset();
     });
 
     this.CategoriaForm.get('CategoriaInsumo')?.valueChanges.subscribe(selectedId => {
       this.subcategoriainsumoService.find(selectedId).subscribe((data: SubcategoriasInsumos[]) => {
-
         this.selectedSubCategoriaInsumo = data;
+        this.cdr.markForCheck();
       })
     });
-    // Subscribe to value changes to update the first letter
-    //const inputValue = this.CategoriaForm.controls['Fabricante'].value;
-    //this.CategoriaForm.controls['IdModeloConsolaPK'].setValue('N11');
-
+    this.manageCombinationValidator();
   }
 
   ngOnInit(): void {
@@ -109,6 +111,46 @@ export class AgregarCategoriasInsumosComponent {
       this.CategoriaForm.get('LinkImagen')?.setValue(this.recievedFileName);
     });
 
+  }
+
+  private manageCombinationValidator(): void {
+    const formGroup = this.CategoriaForm;
+
+    formGroup.valueChanges.pipe(
+      debounceTime(500),
+      // Adaptar los campos a los nombres del formulario de insumos
+      distinctUntilChanged((prev, curr) =>
+        prev.FabricanteInsumo === curr.FabricanteInsumo &&
+        prev.CategoriaInsumo === curr.CategoriaInsumo &&
+        prev.SubCategoriaInsumo === curr.SubCategoriaInsumo
+      ),
+      switchMap(value => {
+        // Adaptar los campos a los nombres del formulario de insumos
+        if (!value.FabricanteInsumo || !value.CategoriaInsumo || !value.SubCategoriaInsumo) {
+          return of(null);
+        }
+        
+        // Llamar al servicio (que ya tiene checkCombinationExists)
+        return this.categoriaService.checkCombinationExists(value.FabricanteInsumo, value.CategoriaInsumo, value.SubCategoriaInsumo).pipe(
+          map(response =>
+            response.existe ? { duplicateCombination: true } : null
+          ),
+          catchError(() => of(null)) 
+        );
+      })
+    ).subscribe(error => {
+      const currentErrors = formGroup.errors;
+
+      if (error) {
+        formGroup.setErrors({ ...currentErrors, ...error });
+      } else if (formGroup.hasError('duplicateCombination')) {
+        delete currentErrors?.['duplicateCombination'];
+        formGroup.setErrors(Object.keys(currentErrors || {}).length ? currentErrors : null);
+      }
+
+      // Importante para OnPush
+      this.cdr.markForCheck();
+    });
   }
 
   ngAfterView() {

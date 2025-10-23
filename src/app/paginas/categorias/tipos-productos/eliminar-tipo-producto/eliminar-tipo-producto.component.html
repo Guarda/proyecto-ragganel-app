@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>Inactivar Tipo de Producto</h2>
+
+<mat-dialog-content>
+  
+  <div *ngIf="isLoading" class="spinner-container">
+    <mat-progress-spinner mode="indeterminate" diameter="30"></mat-progress-spinner>
+    <p>Cargando datos...</p>
+  </div>
+  
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage">
+    <p>¿Realmente quieres inactivar el tipo de producto?</p>
+    <p><strong>{{ tipoProductoData?.DescripcionTipoProducto }} (ID: {{ tipoProductoId }})</strong></p>
+    <p><small>El tipo de producto se ocultará de los listados, pero se mantendrá en el historial de productos existentes.</small></p>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions class="contenedor-botones" *ngIf="!isLoading">
+  
+  <button mat-button (click)="onCancel()" [disabled]="isLoading">Cancelar</button>
+  
+  <button mat-flat-button color="warn" (click)="onInactivar()" [disabled]="isLoading || !!errorMessage">
+    Sí, Inactivar
+  </button>
+
+</mat-dialog-actions>

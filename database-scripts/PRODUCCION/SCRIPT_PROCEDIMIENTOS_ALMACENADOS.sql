@@ -823,9 +823,37 @@ DELIMITER //
 		SELECT IdModeloAccesorioPK FROM catalogoaccesorios
         WHERE FabricanteAccesorio = IdFabricanteA
         AND CategoriaAccesorio = IdCategoriaA
-        AND SubcategoriaAccesorio = IdSubcategoriaA;
+        AND SubcategoriaAccesorio = IdSubcategoriaA
+        AND Activo = 1;
     END //
 DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_CheckSuperCategoriaAccesorioActivaExists
+-- AUTOR: Rommel Maltez
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Verifica si ya existe una supercategoría de accesorio activa
+--              con una combinación específica de fabricante, categoría y subcategoría.
+------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE PROCEDURE sp_CheckSuperCategoriaAccesorioActivaExists(
+    IN p_Fabricante INT,
+    IN p_Categoria INT,
+    IN p_Subcategoria INT
+)
+BEGIN
+    SELECT EXISTS(
+        SELECT 1
+        FROM CatalogoAccesorios
+        WHERE FabricanteAccesorio = p_Fabricante
+          AND CategoriaAccesorio = p_Categoria
+          AND SubcategoriaAccesorio = p_Subcategoria
+          AND Activo = 1
+    ) AS 'existe';
+END //
+DELIMITER ;
+
+
 
 /*------------------------------------------------------------------------------
 -- PROCEDIMIENTO: IngresarAccesorioATablaAccesoriosBaseV2
@@ -1451,7 +1479,8 @@ DELIMITER //
 		SELECT IdModeloInsumosPK FROM catalogoinsumos     
         WHERE FabricanteInsumos = IdFabricanteI
         AND CategoriaInsumos = IdCategoriaI
-        AND SubcategoriaInsumos = IdSubcategoriaI;
+        AND SubcategoriaInsumos = IdSubcategoriaI
+        AND Activo = 1;
     END //
 DELIMITER ;
 
@@ -1469,8 +1498,34 @@ DELIMITER //
         on a.IdModeloInsumosPK = b.ModeloInsumo
         WHERE FabricanteInsumos = IdFabricanteI
         AND CategoriaInsumos = IdCategoriaI
-        AND SubcategoriaInsumos = IdSubcategoriaI;
+        AND SubcategoriaInsumos = IdSubcategoriaI
+        AND Activo = 1;
     END //
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_CheckSuperCategoriaInsumoActivaExists
+-- AUTOR: Rommel Maltez
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Verifica si ya existe una supercategoría de insumo activa
+--              con una combinación específica de fabricante, categoría y subcategoría.
+------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE PROCEDURE sp_CheckSuperCategoriaInsumoActivaExists(
+    IN p_Fabricante INT,
+    IN p_Categoria INT,
+    IN p_Subcategoria INT
+)
+BEGIN
+    SELECT EXISTS(
+        SELECT 1
+        FROM CatalogoInsumos
+        WHERE FabricanteInsumos = p_Fabricante
+          AND CategoriaInsumos = p_Categoria
+          AND SubcategoriaInsumos = p_Subcategoria
+          AND Activo = 1
+    ) AS 'existe';
+END //
 DELIMITER ;
 
 /*------------------------------------------------------------------------------
@@ -2070,8 +2125,33 @@ DELIMITER //
 		SELECT IdModeloConsolaPK, TipoProducto FROM catalogoconsolas
         WHERE Fabricante = IdFabricanteP
         AND Categoria = IdCategoriaP
-        AND Subcategoria = IdSubcategoriaP;
+        AND Subcategoria = IdSubcategoriaP
+        AND Activo = 1;
 	END //
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_CheckSuperCategoriaActivaExists
+-- AUTOR: Rommel Maltez
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Procedimiento para validar si hay una supercategoria activa con la combinacion de fabricante, categoria, subcategoria.
+------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE PROCEDURE sp_CheckSuperCategoriaActivaExists(
+    IN p_Fabricante INT,
+    IN p_Categoria INT,
+    IN p_Subcategoria INT
+)
+BEGIN
+    SELECT EXISTS(
+        SELECT 1
+        FROM catalogoconsolas
+        WHERE Fabricante = p_Fabricante
+          AND Categoria = p_Categoria
+          AND Subcategoria = p_Subcategoria
+          AND Activo = 1
+    ) AS 'existe';
+END //
 DELIMITER ;
     
 /*------------------------------------------------------------------------------
@@ -6049,3 +6129,273 @@ BEGIN
     WHERE IdCodigoPedidoFK = p_IdPedido AND IdUsuarioFK = p_IdUsuario;
 END$$
 DELIMITER ;
+
+/*
+================================================================================
+-- IX. SECCIÓN DE MODIFICACION DE TIPOS DE PRODUCTOS
+-- DESCRIPCIÓN: Procedimientos para gestionar tipos de productos y sus accesorios.
+================================================================================
+*/
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_ListarTiposProducto
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Obtiene la lista de tipos de productos.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_ListarTiposProducto()
+BEGIN
+    SELECT IdTipoProductoPK, DescripcionTipoProducto, Activo
+    FROM TiposProductos;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: CREATE PROCEDURE sp_ListarTiposAccesorio
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Obtiene la lista de tipos de accesorios activos.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_ListarTiposAccesorio()
+BEGIN
+    SELECT IdTipoAccesorioPK, DescripcionAccesorio
+    FROM TiposAccesorios
+    WHERE Activo = 1
+    ORDER BY DescripcionAccesorio ASC;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: CREATE PROCEDURE sp_ObtenerTipoProductoConAccesorios
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Obtiene un tipo de producto junto con sus accesorios asociados.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_ObtenerTipoProductoConAccesorios(IN p_IdTipoProductoPK INT)
+BEGIN
+    -- Result Set 1: Datos del Tipo de Producto
+    SELECT IdTipoProductoPK, DescripcionTipoProducto, Activo
+    FROM TiposProductos
+    WHERE IdTipoProductoPK = p_IdTipoProductoPK;
+
+    -- Result Set 2: IDs de los accesorios asociados
+    SELECT IdTipoAccesorioFK
+    FROM CatalogoTiposAccesoriosXProducto
+    WHERE IdTipoProductoFK = p_IdTipoProductoPK AND Activo = 1;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: CREATE PROCEDURE sp_CrearTipoProductoConAccesorios
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Crea un nuevo tipo de producto y asocia accesorios a él.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_CrearTipoProductoConAccesorios(
+    IN p_Descripcion VARCHAR(100),
+    IN p_AccesoriosIDsJSON JSON -- Ej: '[1, 2, 5]'
+)
+BEGIN
+    DECLARE v_IdTipoProducto INT;
+    DECLARE i INT DEFAULT 0;
+    DECLARE accesorio_id INT;
+
+    -- Iniciar transacción
+    START TRANSACTION;
+
+    -- Insertar el nuevo tipo de producto
+    INSERT INTO TiposProductos (DescripcionTipoProducto, Activo)
+    VALUES (p_Descripcion, 1);
+    SET v_IdTipoProducto = LAST_INSERT_ID();
+
+    -- Iterar sobre el JSON de IDs de accesorios
+    WHILE i < JSON_LENGTH(p_AccesoriosIDsJSON) DO
+        SET accesorio_id = JSON_UNQUOTE(JSON_EXTRACT(p_AccesoriosIDsJSON, CONCAT('$[', i, ']')));
+        
+        INSERT INTO CatalogoTiposAccesoriosXProducto (IdTipoAccesorioFK, IdTipoProductoFK, Activo)
+        VALUES (accesorio_id, v_IdTipoProducto, 1);
+        
+        SET i = i + 1;
+    END WHILE;
+
+    COMMIT;
+    
+    SELECT v_IdTipoProducto AS IdTipoProductoCreado;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: CREATE PROCEDURE sp_ActualizarTipoProductoConAccesorios
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Actualiza un tipo de producto y sus accesorios asociados.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_ActualizarTipoProductoConAccesorios(
+    IN p_IdTipoProductoPK INT,
+    IN p_Descripcion VARCHAR(100),
+    IN p_Activo BOOLEAN,
+    IN p_AccesoriosIDsJSON JSON -- Ej: '[1, 5]'
+)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE accesorio_id INT;
+
+    START TRANSACTION;
+
+    -- Actualizar la descripción y estado del Tipo de Producto
+    UPDATE TiposProductos
+    SET DescripcionTipoProducto = p_Descripcion,
+        Activo = p_Activo
+    WHERE IdTipoProductoPK = p_IdTipoProductoPK;
+
+    -- "Limpiar" las asociaciones anteriores (soft delete)
+    UPDATE CatalogoTiposAccesoriosXProducto
+    SET Activo = 0
+    WHERE IdTipoProductoFK = p_IdTipoProductoPK;
+
+    -- Insertar las nuevas asociaciones o reactivar las existentes
+    WHILE i < JSON_LENGTH(p_AccesoriosIDsJSON) DO
+        SET accesorio_id = JSON_UNQUOTE(JSON_EXTRACT(p_AccesoriosIDsJSON, CONCAT('$[', i, ']')));
+        
+        -- Inserta si no existe, o actualiza si ya existía (para reactivarlo)
+        INSERT INTO CatalogoTiposAccesoriosXProducto (IdTipoAccesorioFK, IdTipoProductoFK, Activo)
+        VALUES (accesorio_id, p_IdTipoProductoPK, 1)
+        ON DUPLICATE KEY UPDATE Activo = 1;
+        
+        SET i = i + 1;
+    END WHILE;
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+/*
+================================================================================
+-- IX. SECCIÓN DE TIPOS DE ACCESORIOS (CRUD)
+-- DESCRIPCIÓN: Procedimientos para gestionar el catálogo base de TiposAccesorios.
+================================================================================
+*/
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_ListarTiposAccesorio
+-- AUTOR: Gemini Code Assist
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Obtiene la lista de tipos de accesorios activos.
+--              Utilizado para poblar dropdowns.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_ListarTiposAccesorio()
+BEGIN
+    SELECT IdTipoAccesorioPK, DescripcionAccesorio
+    FROM TiposAccesorios
+    WHERE Activo = 1
+    ORDER BY DescripcionAccesorio ASC;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_ListarTodosTiposAccesorio
+-- AUTOR: Rommel Maltez (Modificado por Gemini)
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Obtiene la lista COMPLETA de tipos de accesorios (activos e inactivos).
+--              Útil para la pantalla de administración.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_ListarTodosTiposAccesorio()
+BEGIN
+    SELECT IdTipoAccesorioPK, CodigoAccesorio, DescripcionAccesorio, Activo
+    FROM TiposAccesorios
+    ORDER BY DescripcionAccesorio ASC;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_GetTipoAccesorioById
+-- AUTOR: Rommel Maltez (Generado por Gemini)
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Obtiene los detalles de un tipo de accesorio específico por su ID.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_GetTipoAccesorioById(
+    IN p_IdTipoAccesorioPK INT
+)
+BEGIN
+    SELECT IdTipoAccesorioPK, CodigoAccesorio, DescripcionAccesorio, Activo
+    FROM TiposAccesorios
+    WHERE IdTipoAccesorioPK = p_IdTipoAccesorioPK;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_InsertTipoAccesorio
+-- AUTOR: Rommel Maltez (Generado por Gemini)
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Inserta un nuevo tipo de accesorio en el catálogo.
+--              Por defecto, se inserta como activo.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_InsertTipoAccesorio(
+    IN p_CodigoAccesorio VARCHAR(25),
+    IN p_DescripcionAccesorio VARCHAR(100)
+)
+BEGIN
+    INSERT INTO TiposAccesorios (CodigoAccesorio, DescripcionAccesorio, Activo)
+    VALUES (p_CodigoAccesorio, p_DescripcionAccesorio, 1);
+
+    SELECT LAST_INSERT_ID() AS IdTipoAccesorioCreado; -- Devuelve el ID generado
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_UpdateTipoAccesorio
+-- AUTOR: Rommel Maltez (Generado por Gemini)
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Actualiza los datos de un tipo de accesorio existente,
+--              incluyendo su código, descripción y estado de activación.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_UpdateTipoAccesorio(
+    IN p_IdTipoAccesorioPK INT,
+    IN p_CodigoAccesorio VARCHAR(25),
+    IN p_DescripcionAccesorio VARCHAR(100),
+    IN p_Activo BOOLEAN
+)
+BEGIN
+    UPDATE TiposAccesorios
+    SET
+        CodigoAccesorio = p_CodigoAccesorio,
+        DescripcionAccesorio = p_DescripcionAccesorio,
+        Activo = p_Activo
+    WHERE IdTipoAccesorioPK = p_IdTipoAccesorioPK;
+END$$
+DELIMITER ;
+
+/*------------------------------------------------------------------------------
+-- PROCEDIMIENTO: sp_DeactivateTipoAccesorio
+-- AUTOR: Rommel Maltez (Generado por Gemini)
+-- FECHA DE CREACIÓN: 2025-10-22
+-- DESCRIPCIÓN: Desactiva un tipo de accesorio (soft delete) poniéndolo inactivo.
+-- NOTA: Considerar si se debe desactivar también en CatalogoTiposAccesoriosXProducto.
+------------------------------------------------------------------------------*/
+DELIMITER $$
+CREATE PROCEDURE sp_DeactivateTipoAccesorio(
+    IN p_IdTipoAccesorioPK INT
+)
+BEGIN
+    UPDATE TiposAccesorios
+    SET Activo = 0
+    WHERE IdTipoAccesorioPK = p_IdTipoAccesorioPK;
+
+    -- Opcional: Desactivar las asociaciones existentes para este tipo de accesorio
+    -- UPDATE CatalogoTiposAccesoriosXProducto
+    -- SET Activo = 0
+    -- WHERE IdTipoAccesorioFK = p_IdTipoAccesorioPK;
+END$$
+DELIMITER ;
+
+

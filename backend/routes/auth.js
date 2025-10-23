@@ -45,7 +45,7 @@ router.post('/login', (req, res) => {
                 avatarUrl: usuario.AvatarUrl  // Incluye el avatar del usuario
             };
 
-            const token = jwt.sign(payload, config.JWT_SECRET_KEY, { expiresIn: '1h' });
+            const token = jwt.sign(payload, config.JWT_SECRET_KEY, { expiresIn: '7d' });
 
             res.json({
                 message: 'Inicio de sesión exitoso',

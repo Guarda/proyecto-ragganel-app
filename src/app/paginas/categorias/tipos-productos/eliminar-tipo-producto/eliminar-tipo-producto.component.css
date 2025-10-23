@@ -1,0 +1,20 @@
+.contenedor-botones{
+    display: flex;
+    justify-content: space-around;
+}
+
+/* Estilos para el spinner y el error */
+.spinner-container, .error-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 10px;
+    gap: 10px;
+    min-height: 100px;
+}
+
+.error-container {
+    color: #f44336; /* Color de error de Material */
+    font-weight: 500;
+}

@@ -6,7 +6,8 @@ import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+// **** 1. AÑADIR IMPORTS ****
+import { AbstractControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,6 +30,8 @@ import { ImageUploadAccesorioComponent } from '../../../utiles/images/image-uplo
 import { ValidationService } from '../../../services/validation.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+// **** 2. AÑADIR IMPORTS DE RxJS ****
+import { catchError, debounceTime, distinctUntilChanged, map, Observable, of, switchMap, tap } from 'rxjs';
 
 @Component({
     selector: 'app-agregar-categorias-accesorios',
@@ -70,8 +73,8 @@ export class AgregarCategoriasAccesoriosComponent {
       SubCategoriaAccesorio: new FormControl('', Validators.required),
       CodigoModeloAccesorio: new FormControl(
         '', 
-        [Validators.required], // Validadores síncronos
-        [this.validationService.codeExistsValidator()] // Validadores asíncronos
+        [Validators.required], 
+        [this.validationService.codeExistsValidator()] 
       ),
       LinkImagen: new FormControl('', Validators.required)
     });
@@ -95,9 +98,7 @@ export class AgregarCategoriasAccesoriosComponent {
         this.selectedSubCategoriaAccesorio = data;
       })
     });
-    // Subscribe to value changes to update the first letter
-    //const inputValue = this.CategoriaForm.controls['Fabricante'].value;
-    //this.CategoriaForm.controls['IdModeloConsolaPK'].setValue('N11');
+    this.manageCombinationValidator();
   }
 
   ngOnInit(): void {
@@ -107,6 +108,46 @@ export class AgregarCategoriasAccesoriosComponent {
       this.CategoriaForm.get('LinkImagen')?.setValue(this.recievedFileName);
     });
 
+  }
+
+  private manageCombinationValidator(): void {
+    const formGroup = this.CategoriaForm;
+
+    formGroup.valueChanges.pipe(
+      debounceTime(500),
+      // Adaptar los campos a los nombres del formulario de accesorios
+      distinctUntilChanged((prev, curr) =>
+        prev.FabricanteAccesorio === curr.FabricanteAccesorio &&
+        prev.CateAccesorio === curr.CateAccesorio &&
+        prev.SubCategoriaAccesorio === curr.SubCategoriaAccesorio
+      ),
+      switchMap(value => {
+        // Adaptar los campos a los nombres del formulario de accesorios
+        if (!value.FabricanteAccesorio || !value.CateAccesorio || !value.SubCategoriaAccesorio) {
+          return of(null);
+        }
+        
+        // Llamar al servicio (que ya tiene checkCombinationExists)
+        return this.categoriaService.checkCombinationExists(value.FabricanteAccesorio, value.CateAccesorio, value.SubCategoriaAccesorio).pipe(
+          map(response =>
+            response.existe ? { duplicateCombination: true } : null
+          ),
+          catchError(() => of(null)) 
+        );
+      })
+    ).subscribe(error => {
+      const currentErrors = formGroup.errors;
+
+      if (error) {
+        formGroup.setErrors({ ...currentErrors, ...error });
+      } else if (formGroup.hasError('duplicateCombination')) {
+        delete currentErrors?.['duplicateCombination'];
+        formGroup.setErrors(Object.keys(currentErrors || {}).length ? currentErrors : null);
+      }
+
+      // Importante para OnPush
+      this.cdr.markForCheck();
+    });
   }
 
   ngAfterView() {

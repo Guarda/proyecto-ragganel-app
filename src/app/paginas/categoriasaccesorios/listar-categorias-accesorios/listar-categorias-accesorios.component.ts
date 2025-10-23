@@ -98,8 +98,8 @@ export class ListarCategoriasAccesoriosComponent implements OnInit, AfterViewIni
 
   public openDialogAgregar() {
     const dialogRef = this.dialog.open(AgregarCategoriasAccesoriosComponent, {
-      width: '55%',
-      height: '85%',
+      width: '70%',
+      height: '90%',
       disableClose: true,
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -111,8 +111,8 @@ export class ListarCategoriasAccesoriosComponent implements OnInit, AfterViewIni
 
   public openDialogEditar(id: string) {
     const dialogRef = this.dialog.open(EditarCategoriasAccesoriosComponent, {
-      width: '55%',
-      height: '85%',
+      width: '70%',
+      height: '90%',
       disableClose: true,
       data: { value: id }
     });

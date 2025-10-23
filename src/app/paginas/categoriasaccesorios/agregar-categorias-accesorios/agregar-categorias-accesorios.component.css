@@ -52,5 +52,32 @@
   .img-console{
     width:360px!important;
   }
+
+  /* ... (tus estilos existentes) ... */
+
+/* **** AÑADIR ESTOS ESTILOS AL FINAL **** */
+.form-level-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #f44336; /* Color de error de Material */
+  padding: 0 0 15px 0; /* Espaciado */
+}
+
+/* Anula el estilo global 'span' de 30px */
+.form-level-error span {
+  font-family: Roboto, "Helvetica Neue", sans-serif; /* Fuente estándar */
+  font-size: 14px;   /* Tamaño de fuente normal */
+  font-weight: 500;
+  margin-left: 0;
+  display: inline;
+}
+
+.form-level-error mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
   
   

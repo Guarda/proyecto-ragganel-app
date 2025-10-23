@@ -4,37 +4,35 @@
   <form [formGroup]="CategoriaForm" (ngSubmit)="onSubmit()">
   <div class="contenedor-principal">
     <div class="contenedor-secundario">
-      <!-- <div class="contenedor-img-consola">
-        <img class="img-console"  src="/img-consolas/nestoploader.jpg" alt="imagen-consola">
-      </div> -->
       <div class="contenedor-image">
         <app-image-upload-accesorio></app-image-upload-accesorio>
       </div>
       <div class="contendor-form">
         <mat-dialog-content class="mat-typography">
           <h3>Ingresa detalles de la categoría del producto a ingresar</h3>
-          <!--Fabricante  -->
           <mat-form-field class="input-form-prod">
             <mat-label>Fabricante</mat-label>
             <mat-select formControlName ="FabricanteAccesorio" name="FabricanteAccesorio">             
                 <mat-option *ngFor="let est of selectedFabricante" [value]="est.IdFabricanteAccesorioPK">{{est.NombreFabricanteAccesorio}} </mat-option>            
             </mat-select> 
           </mat-form-field>
-          <!-- Categoria  -->
           <mat-form-field class="input-form-prod">
             <mat-label>Categoria</mat-label>
             <mat-select formControlName ="CateAccesorio" name="CateAccesorio">             
                 <mat-option *ngFor="let est of selectedCategoriaAccesorio" [value]="est.IdCategoriaAccesorioPK">{{est.NombreCategoriaAccesorio}} </mat-option>            
             </mat-select> 
           </mat-form-field>  
-          <!-- SubCategoria  -->
           <mat-form-field class="input-form-prod">
             <mat-label>Modelo</mat-label>
             <mat-select formControlName ="SubCategoriaAccesorio" name="SubCategoriaAccesorio">             
                 <mat-option *ngFor="let est of selectedSubCategoriaAccesorio" [value]="est.IdSubcategoriaAccesorio">{{est.NombreSubcategoriaAccesorio}} </mat-option>            
             </mat-select> 
           </mat-form-field> 
-          <!--Codigo Consola  -->
+
+          <mat-error *ngIf="CategoriaForm.hasError('duplicateCombination')" class="form-level-error">
+              <mat-icon>error_outline</mat-icon>
+              <span>Ya existe una Supercategoría activa con esta combinación.</span>
+          </mat-error>
           <mat-form-field class="input-form-prod">
             <mat-label>Prefijo del accesorio</mat-label>
             <input formControlName="CodigoModeloAccesorio" matInput cdkFocusInitial>
@@ -44,22 +42,11 @@
             <mat-error *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.hasError('codeExists')">
               Este código ya está en uso. Por favor, elige otro.
             </mat-error>
-            <!-- Indicador de carga mientras se valida -->
             <mat-icon matSuffix *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.pending">
               <mat-spinner diameter="20"></mat-spinner>
             </mat-icon>
           </mat-form-field>
-            <!--desc Consola  -->
-          <!-- <mat-form-field class="input-form-prod">
-            <mat-label>Descripción de producto</mat-label>
-            <textarea formControlName = "DescripcionConsola" matInput></textarea>
-          </mat-form-field> -->
-            <!--Color Consola  -->
-          <!-- <mat-form-field class="input-form-prod">
-            <mat-label>Fabricante</mat-label>
-            <textarea formControlName = "Fabricante" matInput></textarea>
-          </mat-form-field> -->
-            <!--Link Imagen Categoria  -->
+          
           <mat-form-field class="input-form-prod">
             <mat-label>Link de la imagen</mat-label>
             <textarea formControlName = "LinkImagen" matInput> </textarea>
@@ -68,14 +55,6 @@
       </div>  
     </div>
     
-    <!-- Comentarios -->
-    <!-- <div class="contenedor-comentario">
-      <h3>Comentarios</h3>
-      <mat-form-field class="example-full-width"  >
-        <mat-label>Describe el estado del producto</mat-label>
-        <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
-      </mat-form-field>
-    </div>   -->
   </div>
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancelar</button>
@@ -83,4 +62,3 @@
    
   </mat-dialog-actions>
   </form>
-  

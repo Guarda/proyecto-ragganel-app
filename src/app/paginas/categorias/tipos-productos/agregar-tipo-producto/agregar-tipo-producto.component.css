@@ -1,0 +1,41 @@
+/* Estilos generales del diálogo y formulario (copiados de agregar-categorias.css) */
+span {
+  font-family: Quicksand;
+  font-size: 30px;
+  display: flex;
+  flex-direction: row;
+  margin-left: 10px;
+  flex-wrap: nowrap;
+}
+
+.mat-icon {
+  vertical-align: middle;
+}
+
+.contenedor-principal {
+  padding: 0 24px; /* Añade padding horizontal como en el original */
+}
+
+/* Aplica el 100% de ancho a los campos del formulario, 
+  igual que en agregar-categorias
+*/
+.input-form-prod {
+  width: 100%;
+}
+
+/* Contenedor del contenido del diálogo, asegurando que los 
+  campos se muestren como bloque
+*/
+.mat-typography {
+  display: flex;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+/* Estilo para el spinner dentro del mat-select */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}

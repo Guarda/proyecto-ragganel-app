@@ -30,11 +30,14 @@ import { CategoriaProductoService } from '../../../services/categoria-producto.s
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
 import { TiposAccesoriosService } from '../../../services/tipos-accesorios.service';
 import { TipoAccesorios } from '../../interfaces/accesorios';
+import { TipoAccesorio } from '../../../services/tipos-accesorios.service';
 
 @Component({
     selector: 'app-agregar-produtos',
     standalone: true,
-    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, MatCardModule, MatDialogActions, MatDialogContent, MatDialogClose, MatDialogTitle],
+    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel, 
+      FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, MatCardModule, MatDialogActions, 
+      MatDialogContent, MatDialogClose, MatDialogTitle],
     templateUrl: './agregar-produtos.component.html',
     styleUrl: './agregar-produtos.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -154,18 +157,18 @@ export class AgregarProdutosComponent {
       if (this.productoForm.value.Fabricante != undefined && this.productoForm.value.Cate != undefined &&  this.productoForm.get('SubCategoria')?.value != undefined){      
         this.categorias.getbymanufacturer(this.productoForm.value.Fabricante, this.productoForm.value.Cate, this.productoForm.get('SubCategoria')?.value).subscribe((data) => {
           this.IdModeloPK = data[0].IdModeloConsolaPK;          
-
+          console.log("ID MODELO PK: ", this.IdModeloPK);
           //UPDATES THE CHIPS OF ACCESORIES OF GIVEN PRODUCT TYPE
           this.IdTipoProd = data[0].TipoProducto;
-          this.accesoriosService.find(this.IdTipoProd).subscribe((data) => {     
+          this.accesoriosService.find(this.IdTipoProd).subscribe((resp: TipoAccesorio | TipoAccesorio[]) => {     
+            const data = Array.isArray(resp) ? resp : [resp];
             this.keywords.update(() => []);        
-            for (var val of data) {             
-              this.addt(val.DescripcionAccesorio); // prints values: 10, 20, 30, 40
+            for (const val of data) {             
+              if (val && (val as any).DescripcionAccesorio) {
+                this.addt((val as any).DescripcionAccesorio); // add accessory description
+              }
             }
-            //this.keywords.update(() => []); 
-          })
-          // console.log(data[0].IdModeloConsolaPK);
-          // console.log(this.IdModeloPK);
+          });
           this.categorias.find(this.IdModeloPK).subscribe((data) => {
             this.categoria = data[0];
             this.ImagePath = this.getimagePath(this.categoria.LinkImagen);

@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,14 +29,16 @@ import { SubcategoriaProductoService } from '../../../services/subcategoria-prod
 import { ImageUploadComponent } from '../../../utiles/images/image-upload/image-upload.component';
 import { SharedService } from '../../../services/shared.service';
 import { ValidationService } from '../../../services/validation.service';
-
+import { catchError, debounceTime, distinctUntilChanged, map, Observable, of, switchMap, tap } from 'rxjs';
 @Component({
-    selector: 'app-agregar-categorias',
-    standalone: true,
-    imports: [CommonModule, MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule, NgFor, MatSelectModule, MatButtonModule, MatIconModule, MatFormFieldModule, ImageUploadComponent, MatCardModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatProgressSpinnerModule],
-    templateUrl: './agregar-categorias.component.html',
-    styleUrl: './agregar-categorias.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-agregar-categorias',
+  standalone: true,
+  imports: [CommonModule, MatFormField, MatLabel, FormsModule, MatDialogModule, ReactiveFormsModule, MatInputModule, MatOptionModule,
+    NgFor, MatSelectModule, MatButtonModule, MatIconModule, MatFormFieldModule, ImageUploadComponent, MatCardModule, MatDialogTitle,
+    MatDialogContent, MatDialogActions, MatDialogClose, MatProgressSpinnerModule], // <-- ARREGLADO
+  templateUrl: './agregar-categorias.component.html',
+  styleUrl: './agregar-categorias.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AgregarCategoriasComponent {
 
@@ -52,7 +54,7 @@ export class AgregarCategoriasComponent {
   selectedFabricante: FabricanteProducto[] = [];
   selectedCategoriaProducto: categoriasProductos[] = [];
   selectedSubCategoriaProducto: SubcategoriasProductos[] = [];
-
+  public superCategoriaError: string | null = null;
 
   constructor(
     public categoriaService: CategoriasConsolasService,
@@ -71,18 +73,20 @@ export class AgregarCategoriasComponent {
       Cate: new FormControl('', Validators.required),
       SubCategoria: new FormControl('', Validators.required),
       CodigoModeloConsola: new FormControl(
-        '', 
-        [Validators.required], // Validadores síncronos
-        [this.validationService.codeExistsValidator()] // Validadores asíncronos
+        '',
+        [Validators.required], 
+        [this.validationService.codeExistsValidator()]
       ),
       LinkImagen: new FormControl('', Validators.required),
       TipoProducto: new FormControl('', Validators.required)
     });
 
-    this.TiposProductosService.getAll().subscribe((data: TipoProducto[]) => {
-
-      this.selectedTipoProducto = data;
-    })
+    this.TiposProductosService.getList().subscribe((data: TipoProducto[]) => {
+      // 2. Filtra la data (esto ya lo tenías)
+      this.selectedTipoProducto = data.filter(tipo => tipo.Activo);
+      // 3. Añade markForCheck() para notificar a Angular (debido a OnPush)
+      this.cdr.markForCheck();
+    });
 
     this.fabricanteService.getAll().subscribe((data: FabricanteProducto[]) => {
       this.selectedFabricante = data;
@@ -92,6 +96,7 @@ export class AgregarCategoriasComponent {
     this.CategoriaForm.get('Fabricante')?.valueChanges.subscribe(selectedId => {
       this.categoriaproductoService.find(selectedId).subscribe((data: categoriasProductos[]) => {
         this.selectedCategoriaProducto = data;
+        this.cdr.markForCheck();
       })
       this.CategoriaForm.get('SubCategoria')?.reset();
     });
@@ -100,11 +105,11 @@ export class AgregarCategoriasComponent {
       this.subcategoriaproductoService.find(selectedId).subscribe((data: SubcategoriasProductos[]) => {
         console.log(data);
         this.selectedSubCategoriaProducto = data;
+        this.cdr.markForCheck();
       })
     });
-    // Subscribe to value changes to update the first letter
-    //const inputValue = this.CategoriaForm.controls['Fabricante'].value;
-    //this.CategoriaForm.controls['IdModeloConsolaPK'].setValue('N11');
+
+    this.manageCombinationValidator();
   }
 
   ngOnInit(): void {
@@ -116,6 +121,56 @@ export class AgregarCategoriasComponent {
 
   }
 
+  /**
+ * Validador asíncrono que comprueba si la combinación de F/C/S ya existe.
+ */
+  private manageCombinationValidator(): void {
+    const formGroup = this.CategoriaForm;
+
+    formGroup.valueChanges.pipe(
+      // Espera 500ms después de que el usuario deja de hacer cambios
+      debounceTime(500),
+      // Solo continúa si los 3 campos relevantes cambiaron
+      distinctUntilChanged((prev, curr) =>
+        prev.Fabricante === curr.Fabricante &&
+        prev.Cate === curr.Cate &&
+        prev.SubCategoria === curr.SubCategoria
+      ),
+      // Cancela la petición anterior y hace una nueva
+      switchMap(value => {
+        // Si los campos están vacíos, no valida y devuelve 'null' (sin error)
+        if (!value.Fabricante || !value.Cate || !value.SubCategoria) {
+          return of(null);
+        }
+        
+        // Si los campos están llenos, llama al servicio
+        return this.categoriaService.checkCombinationExists(value.Fabricante, value.Cate, value.SubCategoria).pipe(
+          map(response =>
+            // Si existe, devuelve el error; si no, null
+            response.existe ? { duplicateCombination: true } : null
+          ),
+          catchError(() => of(null)) // En caso de error de API, no bloquea el form
+        );
+      })
+    ).subscribe(error => {
+      // Obtenemos los errores síncronos actuales (ej. 'required')
+      const currentErrors = formGroup.errors;
+
+      if (error) {
+        // Si hay un error de duplicado, lo añadimos a los errores existentes
+        formGroup.setErrors({ ...currentErrors, ...error });
+      } else if (formGroup.hasError('duplicateCombination')) {
+        // Si no hay error de duplicado, pero el form SÍ lo tiene, lo borramos
+        delete currentErrors?.['duplicateCombination'];
+        formGroup.setErrors(Object.keys(currentErrors || {}).length ? currentErrors : null);
+      }
+
+      // ¡IMPORTANTE! Le decimos a Angular (OnPush) que actualice la vista
+      // para mostrar/ocultar el mat-error.
+      this.cdr.markForCheck();
+    });
+  }
+
   ngAfterView() {
 
   }
@@ -125,7 +180,7 @@ export class AgregarCategoriasComponent {
     return this.CategoriaForm.controls;
   }
 
-  onSubmit() { 
+  onSubmit() {
     console.log("enviado");
     // TODO: Use EventEmitter with form value
     // console.log(this.CategoriaForm.value); 
