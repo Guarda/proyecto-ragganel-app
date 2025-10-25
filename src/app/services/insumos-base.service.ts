@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { InsumosBase } from '../paginas/interfaces/insumosbase';
+import { InsumoEliminarData } from '../paginas/interfaces/insumoeliminardata';
 
 @Injectable({
   providedIn: 'root'
@@ -54,13 +55,14 @@ export class InsumosBaseService {
   }
 
   // Eliminar un insumo (lógica de eliminación)
-  eliminar(insumo: InsumosBase): Observable<any> {
-    console.log(insumo)
-    return this.httpClient.put(this.apiURL + '/insumos-base/insumo-eliminar/' + insumo.CodigoInsumo, JSON.stringify(insumo), this.httpOptions)
-      .pipe(
-        catchError(this.errorHandler)
-      );
-  }
+  eliminar(data: InsumoEliminarData): Observable<any> { // Change parameter type
+  console.log('Data being sent to delete:', data); // Log the correct data object
+  // Pass the 'data' object directly, it already contains CodigoInsumo and IdUsuario
+  return this.httpClient.put(this.apiURL + '/insumos-base/insumo-eliminar/' + data.CodigoInsumo, JSON.stringify(data), this.httpOptions)
+    .pipe(
+      catchError(this.errorHandler)
+    );
+} // --- FIN DEL CAMBIO ---
 
   // Obtener el historial de cambios de un insumo
   getInsumosStateLog(id: string): Observable<any> {

@@ -163,7 +163,7 @@ export class EditarProductosComponent {
     console.log(this.productoForm.value);
     this.productoService.update(this.productoForm.value).subscribe((res: any) => {
       this.Editado.emit();
-      this.router.navigateByUrl('listado-productos');
+      this.router.navigateByUrl('home/listado-productos');
     })
 
   }

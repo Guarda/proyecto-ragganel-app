@@ -51,15 +51,14 @@ router.get('/listar-tipos-productos', (req, res) => {
 
 // Create a new product
 router.post('/crear-producto', (req, res) => {
-    const { Fabricante, Cate, SubCategoria, IdModeloConsolaPK, ColorConsola, PrecioBase, EstadoConsola, HackConsola, ComentarioConsola, Accesorios, NumeroSerie, TodoList } = req.body;
-    //console.log(req.body);
+    const { IdModeloConsolaPK, ColorConsola, PrecioBase, EstadoConsola, HackConsola, ComentarioConsola, Accesorios, NumeroSerie, TodoList, IdUsuario } = req.body;
 
     // Convert arrays to comma-separated strings
     const AccesoriosString = Accesorios.join(',');
     const TodoListString = TodoList.join(',');
 
-    const sql = `CALL \`${dbConfig.database}\`.\`IngresarProductoATablaProductoBaseV4\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    Basedatos.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString, TodoListString], (err, result) => {
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarProductoATablaProductoBaseV4\` (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    Basedatos.query(sql, [IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString, TodoListString, IdUsuario], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
@@ -86,12 +85,12 @@ router.get('/producto/:id', (req, res) => {
 
 router.put('/producto/:id', (req, res) => {
     const id = req.params.id;
-    const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola, PrecioBase, NumeroSerie, Accesorios } = req.body;
+    const { IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, ComentarioConsola, PrecioBase, NumeroSerie, Accesorios, IdUsuario } = req.body;
 
     const AccesoriosString = Accesorios.join(',');
-    const sql = `CALL \`${dbConfig.database}\`.\`Actualizarproductobasev2\` (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `CALL \`${dbConfig.database}\`.\`Actualizarproductobasev2\` (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    Basedatos.query(sql, [id, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString], err => {
+    Basedatos.query(sql, [id, IdModeloConsolaPK, ColorConsola, EstadoConsola, HackConsola, PrecioBase, ComentarioConsola, NumeroSerie, AccesoriosString, IdUsuario], err => {
         if (err) {
             res.status(500).send('Error actualizando producto');
             return;
@@ -104,9 +103,9 @@ router.put('/producto/:id', (req, res) => {
 // Delete a product
 router.put('/producto-eliminar/:id', (req, res) => {
     const id = req.params.id;
-    const { CodigoConsola } = req.body;
-    const sql = `CALL \`${dbConfig.database}\`.\`BorrarProducto\` (?)`;
-    Basedatos.query(sql, [CodigoConsola], err => {
+    const { CodigoConsola, IdUsuario } = req.body;
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarProducto\` (?, ?)`;
+    Basedatos.query(sql, [CodigoConsola, IdUsuario], err => {
         if (err) {
             res.status(500).send('Error al eliminar producto');
             return;
@@ -118,13 +117,15 @@ router.put('/producto-eliminar/:id', (req, res) => {
 // Get Order article list 
 router.get('/historial-producto/:id', (req, res) => {
     const id = req.params.id;
+    console.log("ID recibido:", id); // Log para verificar el ID recibido
     const sql = `CALL \`${dbConfig.database}\`.\`ListarHistorialEstadoProductoXId\` (?)`;
     Basedatos.query(sql, [id], (err, results) => {
         if (err) {
             console.error("Error al obtener historial:", err);
-            return res.status(500).json({ error: "Error en el servidor" });
+            return res.status(500).json({ error: "Error en el servidor al obtener el historial." });
         }
-        res.json(results[0]); // Devuelve el primer conjunto de resultados
+        console.log(results[0]);
+        res.status(200).json(results[0]);
     });
 });
 

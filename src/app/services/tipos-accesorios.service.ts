@@ -66,6 +66,13 @@ export class TiposAccesoriosService {
       );
   }
 
+  findbyIdProductType(id: string): Observable<any> {
+    return this.httpClient.get('http://localhost:3000/accesorios/accesorio/' + id)
+      .pipe(
+        catchError(this.errorHandler)
+      )
+  }
+
   /**
    * POST: Crea un nuevo tipo de accesorio.
    * Corresponde a: POST /api/tipos-accesorios

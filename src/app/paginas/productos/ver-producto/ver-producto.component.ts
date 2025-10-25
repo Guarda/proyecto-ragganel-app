@@ -29,6 +29,9 @@ import { QRCodeComponent } from 'angularx-qrcode';
 import { MatDialog } from '@angular/material/dialog';
 
 import { TareasProductosService } from '../../../services/tareas-productos.service';
+import { AuthService } from '../../../UI/session/auth.service'; // ✅ AÑADIDO
+import { Usuarios } from '../../interfaces/usuarios'; // ✅ AÑADIDO
+import { Subscription } from 'rxjs'; // ✅ AÑADIDO
 import { TareasProducto } from '../../interfaces/tareasproductos';
 import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
@@ -55,6 +58,8 @@ export class VerProductoComponent implements OnInit {
   
   selectedEstado: EstadosConsolas[] = [];
   tasks: TareasProducto[] = [];
+  usuario!: Usuarios; // ✅ AÑADIDO
+  private subs = new Subscription(); // ✅ AÑADIDO
   
   selectedTipoProducto: TipoProducto[] = [];
   selectedFabricante: FabricanteProducto[] = [];
@@ -77,7 +82,8 @@ export class VerProductoComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private fb: FormBuilder,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService // ✅ AÑADIDO
   ) {
     // --- CAMBIO 1: Inicializa el formulario aquí ---
     this.productoForm = this.fb.group({
@@ -101,6 +107,7 @@ export class VerProductoComponent implements OnInit {
     this.loadProductData();
     this.loadTasks();
     this.loadDropdownData();
+    this.subs.add(this.authService.getUser().subscribe(user => this.usuario = user as unknown as Usuarios)); // ✅ AÑADIDO
   }
 
   loadProductData(): void {
@@ -119,12 +126,18 @@ export class VerProductoComponent implements OnInit {
         PrecioBase: this.formatNumber(this.producto.PrecioBase),
         NumeroSerie: this.producto.NumeroSerie,
         Cate: this.producto.Categoria,
-        SubCategoria: String(this.producto.Subcategoria),
+        SubCategoria: this.producto.Subcategoria,
         Accesorios: accessories
       });
 
       // --- CAMBIO 3: Actualiza los 'keywords' (chips) de forma segura DESPUÉS de poblar el formulario ---
       this.keywords.set(accessories);
+
+      if (this.producto.Categoria) {
+        this.subcategoriaproductoService.findBase(this.producto.Categoria).subscribe((subData: SubcategoriasProductos[]) => {
+          this.selectedSubCategoriaProducto = subData;
+        });
+      }
 
       this.categorias.find(String(this.producto.Modelo)).subscribe((catData: CategoriasConsolas[]) => {
         this.categoria = catData[0];
@@ -153,12 +166,7 @@ export class VerProductoComponent implements OnInit {
     this.categoriaproductoService.getAllBase().subscribe((data: categoriasProductos[]) => {
       this.selectedCategoriaProducto = data;
     });
-    // Cargar subcategorías basadas en la categoría inicial del producto
-    if (this.productoForm.get('Cate')?.value) {
-      this.subcategoriaproductoService.findBase(this.productoForm.get('Cate')?.value).subscribe((data: SubcategoriasProductos[]) => {
-        this.selectedSubCategoriaProducto = data;
-      });
-    }
+    // --- ❌ Lógica de SubCategoria eliminada de aquí ---
   }
 
   onCheckboxChange(task: TareasProducto) {
@@ -249,9 +257,14 @@ export class VerProductoComponent implements OnInit {
     if (!this.productoForm.dirty) {
       return; // Exit if the form has not been modified
     }
+    if (!this.usuario) {
+      console.error('Error: El usuario no ha sido cargado todavía.');
+      return;
+    }
     const formData = {
       ...this.productoForm.value,
-      CodigoConsola: this.id
+      CodigoConsola: this.id,
+      IdUsuario: this.usuario.id // ✅ AÑADIDO: Se añade el ID del usuario
     };
     this.productoService.update(formData).subscribe((res: any) => {
       this.productoForm.markAsPristine();

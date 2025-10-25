@@ -25,6 +25,7 @@ import { SubcategoriaInsumoService } from '../../../services/subcategoria-insumo
 import { CategoriasInsumosService } from '../../../services/categorias-insumos.service';
 import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { MatChipsModule } from '@angular/material/chips';
+import { AuthService } from '../../../UI/session/auth.service'; // ✅ 1. IMPORTACIÓN AÑADIDA
 
 
 @Component({
@@ -62,6 +63,7 @@ export class AgregarInsumosComponent {
     public categoriasInsumosService: CategoriaInsumoService,
     public subcategoriasInsumosService: SubcategoriaInsumoService,
     public estados: EstadoConsolasService,
+    private authService: AuthService, // ✅ 2. INYECCIÓN DEL SERVICIO DE AUTENTICACIÓN
     private cdr: ChangeDetectorRef,
     private router: Router
   ) { }
@@ -143,13 +145,32 @@ export class AgregarInsumosComponent {
     }
   }
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    // console.log(this.insumoForm.value);
-    // console.log("enviado");
-    this.insumosService.create(this.insumoForm.value).subscribe((res: any) => {
+  onSubmit() {
+    if (this.insumoForm.invalid) {
+      return;
+    }
+
+    // ✅ 3. Obtener el objeto del usuario actual
+    const usuarioActual = this.authService.getUserValue();
+
+    // ✅ 4. Validar que el usuario exista
+    if (!usuarioActual) {
+      console.error("Error: No se pudo obtener el usuario para registrar el insumo.");
+      return;
+    }
+
+    // ✅ 5. Construir el objeto de datos incluyendo el ID del usuario
+    const insumoData = {
+      ...this.insumoForm.value,
+      IdUsuario: usuarioActual.id // Se añade la propiedad 'IdUsuario'
+    };
+    
+    // ✅ 6. Enviar los datos completos al servicio
+    this.insumosService.create(insumoData).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('home/listado-insumos');
-    })
+      // Se elimina la navegación, ya que este componente funcionará como un diálogo.
+      // this.router.navigateByUrl('home/listado-insumos');
+    });
 
   }
 

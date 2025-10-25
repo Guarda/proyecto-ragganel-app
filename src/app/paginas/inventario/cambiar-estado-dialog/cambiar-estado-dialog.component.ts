@@ -6,17 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-export interface CambiarEstadoData {
-  codigoArticulo: string;
-  tipoArticulo: 'Producto' | 'Accesorio';
-  estadoActualId: number;
-}
-
-interface Estado {
-  id: number;
-  descripcion: string;
-}
+import { Estado } from '../../interfaces/estado';
+import { CambiarEstadoData } from '../../interfaces/cambiarestadodata';
 
 @Component({
     selector: 'app-cambiar-estado-dialog',

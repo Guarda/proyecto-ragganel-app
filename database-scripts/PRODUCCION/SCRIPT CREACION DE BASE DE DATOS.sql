@@ -219,7 +219,7 @@ CREATE TABLE ProductosBases (
     Estado int not null,
     Hackeado boolean not null default 0,
     FechaIngreso date,
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),    
     Accesorios varchar(500),
@@ -321,7 +321,7 @@ CREATE TABLE AccesoriosBase (
     ColorAccesorio varchar(100) not null,
     EstadoAccesorio int not null,
     FechaIngreso date,
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),
     ProductosCompatibles varchar(500),
@@ -422,7 +422,7 @@ CREATE TABLE InsumosBase (
     ModeloInsumo int not null,
     EstadoInsumo int not null,
     FechaIngreso date,
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     PrecioBase Decimal(6,2),
     NumeroSerie varchar(100),
     ServiciosCompatibles varchar(500),
@@ -511,7 +511,7 @@ CREATE TABLE PedidoBase
     ViaPedidoFK int not null,
     EstadoPedidoFK int not null,    
     TotalPedido Decimal(6,2),
-    Comentarios varchar(5000),
+    Comentarios varchar(10000),
     Peso DECIMAL(6,2),
 	SubtotalArticulos DECIMAL(6,2),
 	Impuestos DECIMAL(6,2),
@@ -533,7 +533,7 @@ CREATE TABLE DetalleProductoPedido
     IdProductoBaseFK varchar(25) not null,
     IdCodigoPedidoFK varchar(25) not null,
     EnlaceArticulo varchar(1000), /*Se agrega para que cada producto pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     FOREIGN KEY (IdProductoBaseFK) REFERENCES productosbases (CodigoConsola),
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );
@@ -549,7 +549,7 @@ CREATE TABLE DetalleAccesorioPedido
     IdAccesorioBaseFK varchar(25) not null,
     IdCodigoPedidoFK varchar(25) not null,
     EnlaceArticulo varchar(1000), /*Se agrega para que cada accesorios pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     FOREIGN KEY (IdAccesorioBaseFK) REFERENCES accesoriosbase (CodigoAccesorio),
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );  
@@ -565,7 +565,7 @@ CREATE TABLE DetalleInsumoPedido
     IdInsumoBaseFK varchar(25) not null,
     IdCodigoPedidoFK varchar(25) not null,
     EnlaceArticulo varchar(1000), /*Se agrega para que cada insumo pueda saberse de donde se obtuvo, este se puede dejar en blanco o se llena a la hora de hacer la recepcion de un pedido*/
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     FOREIGN KEY (IdInsumoBaseFK) REFERENCES insumosbase (CodigoInsumo),
     FOREIGN KEY (IdCodigoPedidoFK) REFERENCES PedidoBase (CodigoPedido)
 );
@@ -665,7 +665,7 @@ CREATE TABLE Clientes (
     Direccion VARCHAR(255) NULL,
     FechaRegistro date,
     Estado boolean not null default 1,
-    Comentarios varchar(5000)
+    Comentarios varchar(10000)
 );
 
 /*------------------------------------------------------------------------------
@@ -726,7 +726,7 @@ CREATE TABLE VentasBase(
     /*VALORES EXTRAS VENTA*/   
     IdUsuarioFK int not null,
     IdClienteFK int not null,
-    Observaciones varchar(5000),
+    Observaciones varchar(10000),
     FOREIGN KEY (IdTipoDocumentoFK) REFERENCES TipoDocumento(IdTipoDocumentoPK),
     FOREIGN KEY (IdEstadoVentaFK) REFERENCES ESTADOVENTA(IdEstadoVentaPK),
     FOREIGN KEY (IdMetodoDePagoFK) REFERENCES metodosdepago (IdMetodoPagoPK),    
@@ -777,7 +777,7 @@ CREATE TABLE CarritoVentas (
     IdUsuarioFK INT NOT NULL,
     IdClienteFK INT,
     FechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    Comentario VARCHAR(5000),
+    Comentario VARCHAR(10000),
     EstadoCarrito VARCHAR(50) DEFAULT 'En curso',
     FOREIGN KEY (IdUsuarioFK) REFERENCES Usuarios(IdUsuarioPK),
     FOREIGN KEY (IdClienteFK) REFERENCES Clientes(IdClientePK)
@@ -894,7 +894,7 @@ CREATE TABLE ServiciosBase(
     DescripcionServicio varchar(255),
 	Estado boolean not null default 1,
     PrecioBase Decimal(6,2),
-    Comentario varchar(5000),
+    Comentario varchar(10000),
     FechaIngreso date
 );
 
@@ -1030,7 +1030,7 @@ CREATE TABLE PreIngresoProductos (
     Color VARCHAR(100) NOT NULL,
     Estado INT NOT NULL,
     Hackeado BOOLEAN NOT NULL DEFAULT 0,
-    Comentario VARCHAR(5000),
+    Comentario VARCHAR(10000),
     PrecioBase DECIMAL(10,2),
     CostoDistribuido DECIMAL(10,2) NULL DEFAULT 0.00,
     NumeroSerie VARCHAR(100),
@@ -1058,7 +1058,7 @@ CREATE TABLE PreIngresoAccesorios (
     ModeloAccesorio INT NOT NULL,
     ColorAccesorio VARCHAR(100) NOT NULL,
     EstadoAccesorio INT NOT NULL,
-    Comentario VARCHAR(5000),
+    Comentario VARCHAR(10000),
     PrecioBase DECIMAL(6,2),
     CostoDistribuido DECIMAL(10,2) NULL DEFAULT 0.00,
     NumeroSerie VARCHAR(100),
@@ -1107,7 +1107,7 @@ CREATE TABLE PreIngresoInsumos (
     FormIndex INT NOT NULL,
     ModeloInsumo INT NOT NULL,
     EstadoInsumo INT NOT NULL,
-    Comentario VARCHAR(5000),
+    Comentario VARCHAR(10000),
     PrecioBase DECIMAL(6,2),
     CostoDistribuido DECIMAL(10,2) NULL DEFAULT 0.00,
     NumeroSerie VARCHAR(100),

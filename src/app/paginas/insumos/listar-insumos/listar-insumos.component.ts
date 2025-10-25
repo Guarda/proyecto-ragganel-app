@@ -78,7 +78,7 @@ export class ListarInsumosComponent implements OnInit, AfterViewInit, OnDestroy 
       next: (data: InsumosBase[]) => {
         const datosProcesados = data.map(insumo => ({
           ...insumo,
-          Fecha_Ingreso: this.parsearFecha(insumo.FechaIngreso)
+          Fecha_Ingreso: this.parsearFecha(insumo.FechaIngreso) // Corregido para usar la propiedad correcta
         }));
         this.dataSource.data = datosProcesados;
         this.isLoading = false;
@@ -164,16 +164,18 @@ export class ListarInsumosComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   public openDialogAgregar() {
-    const dialogRef = this.dialog.open(IngresarAgregarInsumoDialogComponent, {
-      width: '500px',
-      disableClose: true,
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.getSupplyList();
-      }
-    });
-  }
+  const dialogRef = this.dialog.open(IngresarAgregarInsumoDialogComponent, {
+    width: '500px',
+    disableClose: true,
+  });
+  dialogRef.afterClosed().subscribe(result => {
+    console.log('Dialog closed with result:', result); // <--- AÑADE ESTO
+    if (result) {
+      console.log('Refreshing supply list...'); // <--- Y ESTO
+      this.getSupplyList();
+    }
+  });
+}
 
   public openDialogEliminar(codigoInsumo: string) {
     const dialogRef = this.dialog.open(EliminarInsumosComponent, {
@@ -191,7 +193,7 @@ export class ListarInsumosComponent implements OnInit, AfterViewInit, OnDestroy 
   public openDialogHistorial(codigoInsumo: string) {
     this.dialog.open(HistorialInsumoComponent, {
       width: '600px',
-      data: { value: codigoInsumo }
+      data: { codigo: codigoInsumo, tipo: 'Insumo' }
     });
   }
 }

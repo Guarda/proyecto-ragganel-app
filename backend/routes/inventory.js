@@ -50,20 +50,20 @@ router.get('/garantia', (req, res) => {
 });
 
 router.post('/cambiar-estado', (req, res) => {
-  // 1. Obtenemos los datos del cuerpo de la solicitud
-  const { tipoArticulo, codigoArticulo, nuevoEstadoId } = req.body;
+  // 1. Obtenemos los datos del cuerpo de la solicitud, incluyendo IdUsuario
+  const { tipoArticulo, codigoArticulo, nuevoEstadoId, IdUsuario } = req.body;
 
-  // 2. Validación básica
-  if (!tipoArticulo || !codigoArticulo || !nuevoEstadoId) {
+  // 2. Validación básica, incluyendo IdUsuario
+  if (!tipoArticulo || !codigoArticulo || !nuevoEstadoId || !IdUsuario) {
     return res.status(400).json({
       success: false,
-      mensaje: 'Faltan parámetros requeridos (tipoArticulo, codigoArticulo, nuevoEstadoId).'
+      mensaje: 'Faltan parámetros requeridos (tipoArticulo, codigoArticulo, nuevoEstadoId, IdUsuario).'
     });
   }
 
-  // 3. Preparamos la llamada al nuevo procedimiento almacenado
-  const query = `CALL \`${dbConfig.database}\`.\`sp_ActualizarEstadoArticulo\`(?, ?, ?);`;
-  const params = [tipoArticulo, codigoArticulo, nuevoEstadoId];
+  // 3. Preparamos la llamada al procedimiento almacenado con el nuevo parámetro
+  const query = `CALL \`${dbConfig.database}\`.\`sp_ActualizarEstadoArticulo\`(?, ?, ?, ?);`;
+  const params = [tipoArticulo, codigoArticulo, nuevoEstadoId, IdUsuario];
 
   // 4. Ejecutamos la consulta
   Basedatos.query(query, params, (err, results) => {

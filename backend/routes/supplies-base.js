@@ -81,7 +81,7 @@ router.get('/categoria', (req, res) => {
             return res.status(500).send('Error al buscar categoria');
         }
         if (result[0].length === 0) {
-            return res.status(404).send('Producto no categoria');
+            return res.status(404).send('Categoria de insumo no encontrada');
         }
         res.json(result[0]);
     });
@@ -108,7 +108,7 @@ router.get('/categoria-b', (req, res) => {
             return res.status(500).send('Error al buscar categoria');
         }
         if (result[0].length === 0) {
-            return res.status(404).send('Producto no categoria');
+            return res.status(404).send('Categoria de insumo no encontrada');
         }
         res.json(result[0]);
     });
@@ -116,19 +116,19 @@ router.get('/categoria-b', (req, res) => {
 
 // Create a new product
 router.post('/crear-insumo', (req, res) => {
-    const { IdModeloInsumosPK, Cantidad, PrecioBase, EstadoInsumo, ComentarioInsumo, NumeroSerie, StockMinimo } = req.body;
-    console.log(req.body);
+    // 1. Añadimos IdUsuario a la desestructuración del body
+    const { IdModeloInsumosPK, Cantidad, PrecioBase, EstadoInsumo, ComentarioInsumo, NumeroSerie, StockMinimo, IdUsuario } = req.body;
 
-    // Convert arrays to comma-separated strings
-    // const CompatibleProductsString = ProductosCompatibles.join(',');
-    // const TodoListString = TodoList.join(',');
-
-    const sql = `CALL \`${dbConfig.database}\`.\`IngresarInsumoATablaInsumosBase\` (?, ?, ?, ?, ?, ?, ?)`;
-    Basedatos.query(sql, [IdModeloInsumosPK, EstadoInsumo, ComentarioInsumo, PrecioBase, Cantidad, NumeroSerie, StockMinimo], (err, result) => {
+    // 2. Se añade un '?' para el nuevo parámetro del SP
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarInsumoATablaInsumosBase\` (?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    // 3. Pasamos IdUsuario como el último parámetro en el array
+    Basedatos.query(sql, [IdModeloInsumosPK, EstadoInsumo, ComentarioInsumo, PrecioBase, Cantidad, NumeroSerie, StockMinimo, IdUsuario], (err, result) => {
         if (err) {
+            console.error("Error al ejecutar SP para crear insumo:", err);
             return res.status(500).send(err);
         }
-        res.send({ message: 'Producto agregado', id: result.insertId });
+        res.send({ message: 'Insumo agregado', id: result.insertId });
     });
 });
 
@@ -142,7 +142,7 @@ router.get('/insumo/:id', (req, res) => {
             return;
         }
         if (result.length === 0) {
-            res.status(404).send('Producto no encontrado');
+            res.status(404).send('Insumo no encontrado');
             return;
         }
         res.json(result[0]);
@@ -151,6 +151,7 @@ router.get('/insumo/:id', (req, res) => {
 
 router.put('/insumo/:id', (req, res) => {
     const id = req.params.id;
+    // 1. Añadimos IdUsuario a la desestructuración del body
     const {
         CodigoInsumo,
         IdModeloInsumoPK,
@@ -159,11 +160,14 @@ router.put('/insumo/:id', (req, res) => {
         Comentario,
         PrecioBase,
         NumeroSerie,
-        StockMinimo
+        StockMinimo,
+        IdUsuario 
     } = req.body;
 
-    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarInsumoBase\`(?, ?, ?, ?, ?, ?, ?, ?)`;
+    // 2. Se añade un '?' para el nuevo parámetro del SP
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarInsumoBase\`(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
+    // 3. Pasamos IdUsuario como el último parámetro en el array
     Basedatos.query(
         sql,
         [
@@ -174,10 +178,12 @@ router.put('/insumo/:id', (req, res) => {
             Comentario,
             NumeroSerie,
             Cantidad,
-            StockMinimo
+            StockMinimo,
+            IdUsuario
         ],
         (err) => {
             if (err) {
+                console.error("Error al ejecutar SP para actualizar insumo:", err);
                 res.status(500).send('Error actualizando insumo');
                 return;
             }
@@ -188,15 +194,19 @@ router.put('/insumo/:id', (req, res) => {
 
 // Delete a supply
 router.put('/insumo-eliminar/:id', (req, res) => {
-    const id = req.params.id;
-    const { CodigoInsumo } = req.body;
-    const sql = `CALL \`${dbConfig.database}\`.\`BorrarInsumo\` (?)`;
-    Basedatos.query(sql, [CodigoInsumo], err => {
+    // 1. Añadimos IdUsuario a la desestructuración del body
+    const { CodigoInsumo, IdUsuario } = req.body;
+    
+    // 2. Se añade un '?' para el nuevo parámetro del SP
+    const sql = `CALL \`${dbConfig.database}\`.\`BorrarInsumo\` (?, ?)`;
+    
+    // 3. Pasamos ambos parámetros en el array
+    Basedatos.query(sql, [CodigoInsumo, IdUsuario], err => {
         if (err) {
-            res.status(500).send('Error al eliminar accesorio');
+            res.status(500).send('Error al eliminar insumo');
             return;
         }
-        res.send({ message: 'Accesorio eliminado' });
+        res.send({ message: 'Insumo eliminado' });
     });
 });
 

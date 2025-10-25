@@ -1,29 +1,52 @@
-<div class="timeline-container">
-    <mat-dialog-content class="dialog-content">
-      <h5>Seguimiento del insumo {{ SupplyId }}</h5>
-      <div class="timeline">
-        <div *ngFor="let historial of historialInsumos; let i = index" class="timeline-event">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <h5>{{ historial.EstadoNuevoDescripcion }}</h5>
-            <p>Fecha: {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
-  
-            <p *ngIf="i === 0"><strong>Fecha de Creación:</strong> {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
-            <ng-container *ngIf="i !== 0">
-              <p><strong>Estado Anterior:</strong> {{ historial.EstadoAnteriorDescripcion }}</p>
-              <p><strong>Estado Nuevo:</strong> {{ historial.EstadoNuevoDescripcion }}</p>
-              <p><strong>Stock Anterior:</strong> {{ historial.StockAnterior }}</p>
-              <p><strong>Stock Nuevo:</strong> {{ historial.StockNuevo }}</p>
-              <p><strong>Stock Mínimo Anterior:</strong> {{ historial.StockMinimoAnterior }}</p>
-              <p><strong>Stock Mínimo Nuevo:</strong> {{ historial.StockMinimoNuevo }}</p>
-            </ng-container>
+<h1 mat-dialog-title>
+  <mat-icon>inventory</mat-icon> Historial del {{ data.tipo }}: {{ data.codigo }}
+</h1>
+
+<mat-dialog-content class="dialog-content">
+  <div *ngIf="historial.length > 0; else noHistory" class="timeline">
+    
+    <div *ngFor="let item of historial; let isFirst = first" class="timeline-item">
+      <div class="timeline-icon">
+        <mat-icon>{{ isFirst ? 'add_circle' : 'change_circle' }}</mat-icon>
+      </div>
+      <div class="timeline-card">
+        <div class="card-header">
+          <span class="estado-nuevo">{{ item.EstadoNuevoDescripcion }}</span>
+          <span class="fecha">{{ item.FechaCambio | date:'dd/MM/yyyy h:mm a' }}</span>
+        </div>
+        <div class="card-body">
+          <div *ngIf="!isFirst" class="detalle-cambio">
+            <strong>Cambio de Estado:</strong> {{ item.EstadoAnteriorDescripcion }} &rarr; {{ item.EstadoNuevoDescripcion }}
+          </div>
+          <div *ngIf="isFirst" class="detalle-cambio">
+            <strong>Artículo Creado</strong>
+          </div>
+
+          <div *ngIf="item.StockAnterior !== null" class="detalle-stock">
+            <strong>Stock:</strong> {{ item.StockAnterior }} &rarr; <strong>{{ item.StockNuevo }}</strong>
+          </div>
+           <div *ngIf="item.StockMinimoAnterior !== null && item.StockMinimoAnterior !== item.StockMinimoNuevo" class="detalle-stock">
+            <strong>Stock Mínimo:</strong> {{ item.StockMinimoAnterior }} &rarr; <strong>{{ item.StockMinimoNuevo }}</strong>
+          </div>
+
+          <div class="detalle-usuario">
+            <strong>Por:</strong> {{ item.Usuario || 'Sistema' }}
           </div>
         </div>
       </div>
-    </mat-dialog-content>
+    </div>
+
   </div>
-  
-  <div>
-    <button mat-button mat-dialog-close class="boton-cerrar">Cerrar ventana</button>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>
+
+<ng-template #noHistory>
+  <div class="no-history">
+    <mat-icon>info</mat-icon>
+    <p>No se encontraron registros de historial para este insumo.</p>
   </div>
+</ng-template>
   

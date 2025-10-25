@@ -1,24 +1,35 @@
-<div class="timeline-container">
-  <mat-dialog-content class="dialog-content">
-    <h5>Seguimiento del pedido {{ OrderId }}</h5>
-    <div class="timeline">
-      <div *ngFor="let historial of historialPedidos; let i = index" class="timeline-event">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <h5>{{ historial.EstadoNuevoDescripcion }}</h5>
-          <p>Fecha: {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
-          
-          <!-- Si es el primer estado, mostrar "Fecha de Creación" en lugar de "Estado Anterior" -->
-          <p *ngIf="i === 0"><strong>Fecha de Creación:</strong> {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
-          <p *ngIf="i !== 0"><strong>Estado Anterior:</strong> {{ historial.EstadoAnteriorDescripcion }}</p>
+<h2 mat-dialog-title>Historial del Pedido: {{ OrderId }}</h2>
 
-          <p *ngIf="i !== 0"><strong>Estado Nuevo:</strong> {{ historial.EstadoNuevoDescripcion }}</p>
-        </div>
+<mat-dialog-content>
+  <div class="timeline-container">
+    <!-- Se itera sobre cada evento en el historial -->
+    <div *ngFor="let item of historialPedidos; let i = index" class="timeline-item">
+      <!-- El círculo que marca el evento -->
+      <div class="timeline-icon"></div>
+      
+      <!-- El contenido del evento -->
+      <div class="timeline-content">
+        <p class="state-change">
+          <!-- Si hay un estado anterior, lo muestra. Si no, muestra "Creado" -->
+          <span *ngIf="item.EstadoAnteriorDescripcion">
+            De: <strong>{{ item.EstadoAnteriorDescripcion }}</strong>
+          </span>
+          <span *ngIf="!item.EstadoAnteriorDescripcion">
+            <strong>Creado</strong>
+          </span>
+          a <strong>{{ item.EstadoNuevoDescripcion }}</strong>
+        </p>
+        <p class="details">
+          <!-- Muestra el usuario que hizo el cambio -->
+          <span class="user">Por: {{ item.Usuario || 'Sistema' }}</span>
+          <!-- Muestra la fecha y hora del cambio -->
+          <span class="date">{{ item.FechaCambio | date:'dd/MM/yyyy h:mm a' }}</span>
+        </p>
       </div>
     </div>
-  </mat-dialog-content>
-</div>
+  </div>
+</mat-dialog-content>
 
-<div>
-  <button mat-button mat-dialog-close class="boton-cerrar">Cerrar ventana</button>
-</div>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

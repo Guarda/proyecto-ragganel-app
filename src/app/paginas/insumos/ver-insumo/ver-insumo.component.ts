@@ -30,6 +30,7 @@ import { CategoriasInsumosService } from '../../../services/categorias-insumos.s
 
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.component';
+import { AuthService } from '../../../UI/session/auth.service';
 
 @Component({
     selector: 'app-ver-insumo',
@@ -83,7 +84,8 @@ export class VerInsumoComponent {
     private route: ActivatedRoute,
     private liveAnnouncer: LiveAnnouncer,
     private fb: FormBuilder,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService // <-- ✅ AÑADIR ESTO
   ) {
 
   }
@@ -225,23 +227,37 @@ export class VerInsumoComponent {
       return; // Salir si no hay cambios
     }
 
-    this.insumoForm.value.CodigoAccesorio = this.id;
-    console.log(this.insumoForm.value);
-    //this.dialog.open(SuccessdialogComponent); // Mostrar el diálogo de éxito
+    // --- ✅ INICIO DE CAMBIOS ---
+    // 1. Obtener el ID del usuario actual
+    const usuarioId = this.authService.getUserValue()?.id;
 
-    this.insumosService.update(this.insumoForm.value).subscribe(
+    // 2. Validación de seguridad
+    if (!usuarioId) {
+      console.error("Error: No se pudo obtener el ID del usuario.");
+      alert('Error: No se pudo identificar al usuario. Intente iniciar sesión de nuevo.');
+      return;
+    }
+
+    // 3. Combinar datos del formulario con el ID del usuario
+    const dataToSend = {
+      ...this.insumoForm.value,
+      IdUsuario: usuarioId // Se añade el ID del usuario que modifica
+    };
+    // --- ✅ FIN DE CAMBIOS ---
+
+    console.log('Datos a enviar:', dataToSend); // Verificar el objeto antes de enviar
+
+    // 4. Enviar los datos combinados al servicio
+    this.insumosService.update(dataToSend).subscribe(
       (response) => {
         console.log('Insumo actualizado:', response);
         this.dialog.open(SuccessdialogComponent); // Mostrar el diálogo de éxito
-        //this.ngOnInit(); // Refrescar datos si es necesario
+        this.insumoForm.markAsPristine(); // Marcar como no modificado después de guardar
       },
       (error) => {
         console.error('Error al actualizar el insumo:', error);
         alert('Error al actualizar el insumo');
       }
     );
-
   }
-
-
 }

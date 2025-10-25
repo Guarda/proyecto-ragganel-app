@@ -29,18 +29,20 @@ import { FabricanteService } from '../../../services/fabricante.service';
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
 import { TiposAccesoriosService } from '../../../services/tipos-accesorios.service';
-import { TipoAccesorios } from '../../interfaces/accesorios';
+// ✅ MANTENIDO: Importación del tipo específico para la lógica segura
 import { TipoAccesorio } from '../../../services/tipos-accesorios.service';
+// ✅ AÑADIDO: Importación del servicio de autenticación
+import { AuthService } from '../../../UI/session/auth.service';
 
 @Component({
-    selector: 'app-agregar-produtos',
-    standalone: true,
-    imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel, 
-      FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, MatCardModule, MatDialogActions, 
-      MatDialogContent, MatDialogClose, MatDialogTitle],
-    templateUrl: './agregar-produtos.component.html',
-    styleUrl: './agregar-produtos.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-agregar-produtos',
+  standalone: true,
+  imports: [NgFor, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon, MatFormField, MatLabel,
+    FormsModule, MatInputModule, MatFormFieldModule, MatChipsModule, MatCardModule, MatDialogActions,
+    MatDialogContent, MatDialogClose, MatDialogTitle],
+  templateUrl: './agregar-produtos.component.html',
+  styleUrl: './agregar-produtos.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AgregarProdutosComponent {
 
@@ -63,7 +65,6 @@ export class AgregarProdutosComponent {
   selectedCategoriaProducto: categoriasProductos[] = [];
   selectedSubCategoriaProducto: SubcategoriasProductos[] = [];
 
-  // estadoconsolas: EstadosConsolas[] = [];
   selectedEstado: EstadosConsolas[] = [];
 
   IdModeloPK: any;
@@ -72,10 +73,7 @@ export class AgregarProdutosComponent {
   Categoria: any;
   Subcategoria: any;
 
- 
-
   public ImagePath: any;
-
 
   constructor(
     public categorias: CategoriasConsolasService,
@@ -86,28 +84,29 @@ export class AgregarProdutosComponent {
     public subcategoriaproductoService: SubcategoriaProductoService,
     public productoService: ProductosService,
     public accesoriosService: TiposAccesoriosService,
+    // ✅ AÑADIDO: Inyección del servicio de autenticación
+    private authService: AuthService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef, private router: Router) {
-
   }
 
   ngOnInit(): void {
-    this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {         
-      this.keywords.update(() => []); 
+    this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {
+      this.keywords.update(() => []);
       this.selectedCategoria = data;
       this.categoria = data[0];
       this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
     })
 
     this.productoForm = new FormGroup({
-      Fabricante: new FormControl('',Validators.required),
-      Cate: new FormControl('',Validators.required),
-      SubCategoria: new FormControl('',Validators.required),
-      IdModeloConsolaPK: new FormControl('',Validators.required),
+      Fabricante: new FormControl('', Validators.required),
+      Cate: new FormControl('', Validators.required),
+      SubCategoria: new FormControl('', Validators.required),
+      IdModeloConsolaPK: new FormControl('', Validators.required),
       ColorConsola: new FormControl(''),
-      PrecioBase: new FormControl('',Validators.required),
-      EstadoConsola: new FormControl('',Validators.required),
-      HackConsola: new FormControl('',Validators.required),
+      PrecioBase: new FormControl('', Validators.required),
+      EstadoConsola: new FormControl('', Validators.required),
+      HackConsola: new FormControl('', Validators.required),
       ComentarioConsola: new FormControl(''),
       Accesorios: new FormControl(''),
       NumeroSerie: new FormControl(''),
@@ -115,79 +114,81 @@ export class AgregarProdutosComponent {
     });
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
-      //console.log(data);
       this.selectedEstado = data;
     });
 
-    this.TiposProductosService.getAll().subscribe((data: TipoProducto[]) => {      
+    this.TiposProductosService.getAll().subscribe((data: TipoProducto[]) => {
       this.selectedTipoProducto = data;
       console.log(this.selectedTipoProducto);
     })
 
-    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteProducto[]) => {      
+    this.fabricanteService.getManufacturerWithModel().subscribe((data: FabricanteProducto[]) => {
       this.selectedFabricante = data;
     })
-    
+
     this.productoForm.get('TodoList')?.setValue(this.nkeywords());
 
-    // this.accesoriosService.find(this.selec).subscribe((data: FabricanteProducto[]) => {      
-    //   console.log(data);
-    // })
-
-    /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
     this.productoForm.get('Fabricante')?.valueChanges.subscribe(selectedId => {
-      // this.productoForm.get('Cate')?.reset();
-      // this.productoForm.get('SubCategoria')?.reset();
-      this.categoriaproductoService.findWithModel(selectedId).subscribe((data: categoriasProductos[]) => {        
+      this.categoriaproductoService.findWithModel(selectedId).subscribe((data: categoriasProductos[]) => {
         this.selectedCategoriaProducto = data;
       })
       this.productoForm.get('SubCategoria')?.reset();
     });
 
-        
-    this.productoForm.get('Cate')?.valueChanges.subscribe(selectedId => {      
+
+    this.productoForm.get('Cate')?.valueChanges.subscribe(selectedId => {
       this.subcategoriaproductoService.findWithModel(selectedId).subscribe((data: SubcategoriasProductos[]) => {
         this.selectedSubCategoriaProducto = data;
       })
-      
+
     });
 
-    this.productoForm.get('SubCategoria')?.valueChanges.subscribe(selectedId =>{
-      //console.log(this.productoForm.value.Fabricante, this.productoForm.value.Cate, this.productoForm.get('SubCategoria')?.value);
-      if (this.productoForm.value.Fabricante != undefined && this.productoForm.value.Cate != undefined &&  this.productoForm.get('SubCategoria')?.value != undefined){      
+    this.productoForm.get('SubCategoria')?.valueChanges.subscribe(selectedId => {
+      if (this.productoForm.value.Fabricante != undefined && this.productoForm.value.Cate != undefined && this.productoForm.get('SubCategoria')?.value != undefined) {
+
         this.categorias.getbymanufacturer(this.productoForm.value.Fabricante, this.productoForm.value.Cate, this.productoForm.get('SubCategoria')?.value).subscribe((data) => {
-          this.IdModeloPK = data[0].IdModeloConsolaPK;          
-          console.log("ID MODELO PK: ", this.IdModeloPK);
-          //UPDATES THE CHIPS OF ACCESORIES OF GIVEN PRODUCT TYPE
+
+          this.IdModeloPK = data[0].IdModeloConsolaPK;
           this.IdTipoProd = data[0].TipoProducto;
-          this.accesoriosService.find(this.IdTipoProd).subscribe((resp: TipoAccesorio | TipoAccesorio[]) => {     
-            const data = Array.isArray(resp) ? resp : [resp];
-            this.keywords.update(() => []);        
-            for (const val of data) {             
-              if (val && (val as any).DescripcionAccesorio) {
-                this.addt((val as any).DescripcionAccesorio); // add accessory description
-              }
-            }
-          });
-          this.categorias.find(this.IdModeloPK).subscribe((data) => {
-            this.categoria = data[0];
+
+          this.categorias.find(this.IdModeloPK).subscribe((catData) => {
+            this.categoria = catData[0];
             this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
-            this.cdr.detectChanges();
-            this.productoForm.get('IdModeloConsolaPK')?.setValue(this.IdModeloPK);
-          });       
-        })
+            
+            // Esto evita que el 'valueChanges' de IdModeloConsolaPK se dispare
+            this.productoForm.get('IdModeloConsolaPK')?.setValue(this.IdModeloPK, { emitEvent: false });
+
+            this.accesoriosService.findbyIdProductType(this.IdTipoProd).subscribe((resp: TipoAccesorio | TipoAccesorio[]) => {
+              console.log(resp);
+              const accessoryData = Array.isArray(resp) ? resp : [resp];
+
+              const newKeywords: string[] = [];
+              for (const val of accessoryData) {
+                if (val && (val as any).DescripcionAccesorio) {
+                  newKeywords.push((val as any).DescripcionAccesorio.trim());
+                }
+              }
+              this.keywords.update(() => newKeywords);
+              this.productoForm.get('Accesorios')?.setValue(newKeywords);
+              this.productoForm.get('Accesorios')?.markAsDirty();
+              this.cdr.detectChanges(); 
+            });
+          });
+        });
       }
-    });  
+    });
 
     // Watch for changes to the selected category
     this.productoForm.get('IdModeloConsolaPK')?.valueChanges.subscribe(selectedId => {
-      this.categorias.find(selectedId).subscribe((data) =>{
+      this.categorias.find(selectedId).subscribe((data) => {
         this.categoria2 = data[0];
         this.ImagePath = this.getimagePath(this.categoria2.LinkImagen);
         this.cdr.detectChanges();
-      });      
+      });
     });
   }
+
+  // ... (Las funciones removeKeyword, add, addt, ngAfterViewInit, f, y getimagePath son idénticas y se mantienen) ...
 
   removeKeyword(keyword: string) {
     this.keywords.update(keywords => {
@@ -207,7 +208,7 @@ export class AgregarProdutosComponent {
 
     // Add our keyword
     if (value) {
-      this.keywords.update(keywords => [...keywords, value]);      
+      this.keywords.update(keywords => [...keywords, value]);
       this.productoForm.get('Accesorios')?.setValue(this.keywords()); // Update the form control
     }
 
@@ -216,50 +217,34 @@ export class AgregarProdutosComponent {
   }
 
   addt(valor: String): void {
-    const value = (valor || '').trim();    
+    const value = (valor || '').trim();
 
     // Add our keyword
     if (value) {
       this.keywords.update(keywords => [...keywords, value]);
       console.log(this.keywords());
-      
+
       this.productoForm.get('Accesorios')?.setValue(this.keywords());
-      this.productoForm.get('Accesorios')?.markAsDirty(); 
-       // Force change detection
+      this.productoForm.get('Accesorios')?.markAsDirty();
+      // Force change detection
       this.cdr.detectChanges();
     }
-
-    // Clear the input value
-    //
-    
   }
 
   ngAfterViewInit() {
-    this.productoForm.get('SubCategoria')?.valueChanges.subscribe(selectedId =>{
+    this.productoForm.get('SubCategoria')?.valueChanges.subscribe(selectedId => {
       console.log(selectedId);
     });
   }
 
 
   get f() {
-
     return this.productoForm.controls;
-
   }
-
-  // getimagePath(l: string | null) {
-  //   if (l == null || l == '') {
-  //     //console.log(l);
-  //     return '/img-consolas/' + 'nestoploader.jpg';
-  //   }
-  //   else {
-  //     return '/img-consolas/' + l;
-  //   }
-  // }
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
-  
+
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;
     } else {
@@ -294,25 +279,40 @@ export class AgregarProdutosComponent {
     event.chipInput!.clear();
   }
 
-  // Helper method to return the current keywords array
-nkeywords(): string[] {
-  return this.todolistKeywords();
-}
+  nkeywords(): string[] {
+    return this.todolistKeywords();
+  }
 
- // Helper para acceder fácilmente al formulario en la plantilla
- get form() {
-  return this.productoForm.controls;
-}
+  get form() {
+    return this.productoForm.controls;
+  }
 
- 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    // console.log(this.productoForm.value);
-    // console.log(this.productoForm.get('Accesorios')?.value) 
-    // console.log("enviado");
-    this.productoService.create(this.productoForm.value).subscribe((res: any) => {
+  // ✅ FUSIÓN: Lógica de onSubmit de la nueva versión + navegación de la versión original
+  onSubmit() {
+    if (this.productoForm.invalid) {
+      return;
+    }
+
+    // Obtener el objeto de usuario actual
+    const usuarioActual = this.authService.getUserValue();
+
+    // Verificación de seguridad
+    if (!usuarioActual) {
+      console.error("Error: No se pudo obtener el usuario actual. El usuario podría no haber iniciado sesión.");
+      return;
+    }
+
+    // Combinar datos del formulario con el ID del usuario
+    const productoData = {
+      ...this.productoForm.value,
+      IdUsuario: usuarioActual.id // Aquí se añade la trazabilidad
+    };
+
+    // Llamar al servicio con los datos completos
+    this.productoService.create(productoData).subscribe((res: any) => {
       this.Agregado.emit();
-      this.router.navigateByUrl('listado-productos');
-    })
-
+      // ✅ AÑADIDO: Navegación que faltaba en la nueva versión
+      this.router.navigateByUrl('home/listado-productos');
+    });
   }
 }

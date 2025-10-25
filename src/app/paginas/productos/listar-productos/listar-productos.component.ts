@@ -55,16 +55,17 @@ export class ListarProductosComponent implements OnInit, AfterViewInit, OnDestro
   ) { }
 
   ngOnInit(): void {
+    // ✅ CORRECCIÓN: Se carga el estado aquí para establecer los valores iniciales antes de que la vista se renderice.
+    this.loadAndApplyState();
     this.getProductList();
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-    this.loadAndApplyState();
-    this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
-    this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
-  }
+  this.dataSource.paginator = this.paginator; // Se mantiene la asignación de paginador y sort aquí.
+  this.dataSource.sort = this.sort;
+  this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
+  this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
+}
 
   ngOnDestroy(): void {
     this.saveState();
@@ -82,6 +83,12 @@ export class ListarProductosComponent implements OnInit, AfterViewInit, OnDestro
           ...producto,
           Fecha_Ingreso: this.parsearFecha(producto.Fecha_Ingreso)
         }));
+
+        // ✅ CORRECCIÓN: Si hay un filtro guardado, se aplica después de cargar los datos.
+        const state = this.stateService.loadState(this.tableStateKey);
+        if (state && state.filter) {
+          this.dataSource.filter = state.filter;
+        }
 
         this.dataSource.data = datosProcesados;
         this.isLoading = false;
@@ -122,25 +129,22 @@ export class ListarProductosComponent implements OnInit, AfterViewInit, OnDestro
     const state = this.stateService.loadState(this.tableStateKey);
     if (!state) return;
 
-    // Aplicar filtro
+    // Aplicar filtro al input. El filtro del dataSource se aplica en getProductList.
     if (state.filter) {
-      this.dataSource.filter = state.filter;
       if (this.inputElement) {
         this.inputElement.nativeElement.value = state.filter;
       }
     }
 
-    // Aplicar paginación (asegurándonos que el paginador esté listo)
-    if (this.paginator) {
-      this.paginator.pageIndex = state.pageIndex;
-      this.paginator.pageSize = state.pageSize;
-    }
-
-    // Aplicar ordenamiento. Usamos setTimeout para evitar errores de ExpressionChangedAfterItHasBeenChecked
+    // Aplicar ordenamiento y paginación después de que la vista esté inicializada.
     setTimeout(() => {
       if (this.sort) {
         this.sort.active = state.sortColumn;
         this.sort.direction = state.sortDirection;
+      }
+      if (this.paginator) {
+        this.paginator.pageIndex = state.pageIndex;
+        this.paginator.pageSize = state.pageSize;
       }
     });
   }
@@ -200,7 +204,7 @@ export class ListarProductosComponent implements OnInit, AfterViewInit, OnDestro
   public openDialogHistorial(codigoConsola: string): void {
     this.dialog.open(HistorialProductoComponent, {
       width: '600px',
-      data: { value: codigoConsola }
+      data: { codigo: codigoConsola, tipo: 'Producto' }
     });
   }
 }

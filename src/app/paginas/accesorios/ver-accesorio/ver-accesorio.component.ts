@@ -136,7 +136,7 @@ export class VerAccesorioComponent implements OnInit, OnDestroy {
         PrecioBase: this.formatNumber(this.accesorio.PrecioBase),
         NumeroSerie: this.accesorio.NumeroSerie,
         CateAccesorio: this.accesorio.CategoriaAccesorio,
-        SubCategoriaAccesorio: String(this.accesorio.SubcategoriaAccesorio),
+        SubCategoriaAccesorio: this.accesorio.SubcategoriaAccesorio,
         ProductosCompatibles: compatibleProducts
       });
 

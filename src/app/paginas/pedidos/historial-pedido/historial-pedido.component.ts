@@ -1,11 +1,11 @@
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 
 @Component({
     selector: 'app-historial-pedido',
-    imports: [CommonModule, MatDialogContent, MatDialogClose
+    imports: [CommonModule, MatDialogContent, MatDialogClose, MatDialogTitle, MatDialogActions
     ],
     templateUrl: './historial-pedido.component.html',
     styleUrl: './historial-pedido.component.css'
@@ -38,4 +38,3 @@ export class HistorialPedidoComponent implements OnInit {
     );
   }
 }
-

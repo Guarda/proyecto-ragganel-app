@@ -1,71 +1,77 @@
-.timeline-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .timeline {
-    position: relative;
-    width: 80%;
-    padding-left: 30px;
-    padding-right: 30px;
-    margin: 20px 0;
-  }
-  
-  .timeline-event {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    position: relative;
-  }
-  
-  .timeline-dot {
-    background-color: #3498db;
-    border-radius: 50%;
-    width: 15px;
-    height: 15px;
-    position: absolute;
-    left: -30px;
-    top: 5px;
-  }
-  
-  .timeline-content {
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    padding: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .timeline-content h5 {
-    margin: 0;
-    font-size: 1.2em;
-  }
-  
-  .timeline-content p {
-    margin: 5px 0;
-  }
-  
-  .timeline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 6px;
-    width: 2px;
-    height: 100%;
-    background-color: #3498db;
-  }
+:host {
+  display: block;
+  max-width: 500px;
+  font-family: 'Roboto', sans-serif;
+}
 
-  .dialog-content {
-    max-height: 800px; /* Ajusta según necesites */
-    overflow-y: auto;
-    display: block;
-  }
-  
-  .mat-dialog-container {
-    max-height: 90vh !important; /* Permite más espacio en el diálogo */
-  }
-  
-  
+mat-dialog-content {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.timeline-container {
+  position: relative;
+  padding-left: 30px; /* Espacio para la línea y los íconos */
+}
+
+/* La línea vertical de la línea de tiempo */
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 5px;
+  bottom: 5px;
+  width: 2px;
+  background-color: #e0e0e0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -25px; /* Centra el ícono en la línea vertical */
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #1976d2; /* Color primario */
+  border: 2px solid white;
+  z-index: 1;
+}
+
+.timeline-content {
+  padding-left: 15px;
+}
+
+.state-change {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.state-change strong {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.details {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #757575;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Alinea verticalmente los elementos */
+  gap: 16px; /* Añade un espacio mínimo entre el usuario y la fecha */
+}
+
+.user {
+  font-style: italic;
+}
+

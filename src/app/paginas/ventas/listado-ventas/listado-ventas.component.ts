@@ -150,16 +150,8 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
           this.usuario = usuariok;
           this.ventasService.listarVentasPorUsuario(this.usuario).subscribe({
             next: (data: Ventas[]) => {
-
-              // --- LÍNEAS AÑADIDAS ---
-              // Transformamos el string de fecha a un objeto Date para cada venta
-              const datosProcesados = data.map(venta => ({
-                ...venta,
-                FechaCreacion: this.parsearFecha(venta.FechaCreacion)
-              }));
-              // -------------------------
-
-              this.dataSource.data = datosProcesados; // Usamos los datos ya procesados
+              // Se asignan los datos directamente, el pipe de Angular se encargará del formato y la zona horaria.
+              this.dataSource.data = data;
               this.isLoading = false;
             },
             error: (error) => {
@@ -317,33 +309,6 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-  private parsearFecha(fecha: string | Date): Date {
-    // 1. Si el valor ya es un objeto Date, lo devolvemos directamente.
-    if (fecha instanceof Date) {
-      return fecha;
-    }
-
-    // 2. Si es un string, procedemos con la lógica de conversión.
-    const fechaStr = fecha;
-    if (!fechaStr) {
-      return new Date(); // Devuelve la fecha actual si el string es nulo o vacío
-    }
-
-    const partes = fechaStr.split(/[\s/:]+/);
-
-    if (partes.length >= 3) {
-      const dia = parseInt(partes[0], 10);
-      const mes = parseInt(partes[1], 10) - 1; // Meses en JS son 0-11
-      const anio = parseInt(partes[2], 10);
-      const hora = partes.length > 3 ? parseInt(partes[3], 10) : 0;
-      const minuto = partes.length > 4 ? parseInt(partes[4], 10) : 0;
-
-      return new Date(anio, mes, dia, hora, minuto);
-    }
-
-    // Fallback por si el formato es inesperado
-    return new Date(fechaStr);
-  }
   // ... (El resto de tus métodos de descarga no necesitan cambios)
   abrirDialogoDescargar(venta: Ventas): void {
     const dialogRef = this.dialog.open(DialogDescargarPdfProformaComponent, {

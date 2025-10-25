@@ -456,6 +456,7 @@ export class IngresarInventarioComponent implements OnInit {
   enviarInventario() {
     const inventarioCompleto = {
       idPedido: this.OrderId,
+      IdUsuario: this.usuarioId, // ✅ CORRECCIÓN: Se añade el ID del usuario.
 
       // ✅ 1. PROCESAMIENTO PARA PRODUCTOS
       productos: this.formulariosProductos.map(f => {

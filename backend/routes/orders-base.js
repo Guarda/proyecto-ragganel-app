@@ -5,7 +5,7 @@ const { Basedatos, dbConfig } = require('../config/db');
 const fs = require('fs');
 const path = require('path');
 
-//create a new order
+// Crear un nuevo pedido
 router.post('/crear-pedido', (req, res) => {
     const {
         Comentarios,
@@ -22,13 +22,13 @@ router.post('/crear-pedido', (req, res) => {
         SubTotalArticulos,
         ViaPedido,
         PrecioEstimadoDelPedido,
-        articulos
+        articulos,
+        IdUsuario // Se espera el ID del usuario desde el frontend
     } = req.body;
 
-    console.log(req.body)
-
     // Asegúrate de que los valores enviados sean los correctos
-    const sql = `CALL \`${dbConfig.database}\`.\`IngresarPedidoATablaPedidos\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    // CAMBIO: La llamada al SP ahora tiene 16 parámetros
+    const sql = `CALL \`${dbConfig.database}\`.\`IngresarPedidoATablaPedidos\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     Basedatos.query(sql, [
         FechaCreacionPedido,
@@ -45,7 +45,8 @@ router.post('/crear-pedido', (req, res) => {
         ShippingNic,
         SubTotalArticulos,
         PrecioEstimadoDelPedido,
-        JSON.stringify(articulos)  // Artículos debe ser un JSON stringificado
+        JSON.stringify(articulos),  // Artículos debe ser un JSON stringificado
+        IdUsuario // Se pasa el ID del usuario recibido del frontend
     ], (err, result) => {
         if (err) {
             console.error(err);
@@ -166,13 +167,14 @@ router.put('/actualizar-pedido/:id', (req, res) => {
         SubTotalArticulos,
         ViaPedido,
         Estado,
-        // Se añade la variable para los artículos
-        articulos 
+        articulos,
+        IdUsuario // Se espera el ID del usuario desde el frontend
     } = req.body;
 
-    // console.log(req.body)
+    const idUsuario = IdUsuario; // Se usa el IdUsuario del body
     // Llamar al procedimiento almacenado para actualizar los datos generales del pedido
-    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarDatosGeneralesPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    // CAMBIO: La llamada ahora tiene 17 parámetros
+    const sql = `CALL \`${dbConfig.database}\`.\`ActualizarDatosGeneralesPedido\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     Basedatos.query(sql, [
         CodigoPedido,
@@ -190,7 +192,8 @@ router.put('/actualizar-pedido/:id', (req, res) => {
         ShippingNic,
         SubTotalArticulos,
         PrecioEstimadoDelPedido,
-        Estado
+        Estado,
+        idUsuario // Se pasa el ID del usuario recibido del frontend
     ], (err, result) => {
         if (err) {
             console.error(err);
@@ -360,44 +363,10 @@ router.post('/actualizar-o-agregar-articulos', (req, res) => {
 
 });
 
-// // Endpoint para ingresar inventario
-// router.post('/ingresar-inventario/', (req, res) => {
-//     const { idPedido, productos, accesorios, insumos } = req.body;
-//     console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
 
-//     // Llamada al procedimiento almacenado
-//     const query = 'CALL IngresarArticulosPedido(?, ?, ?)';
-
-//     // En tu lógica de inserción en el servidor, puedes verificar antes de enviar los datos
-//     productos.forEach((producto) => {
-//         // Asegúrate de que CodigoConsola tenga un valor válido, si no, asigna un valor predeterminado
-//         if (!producto.CodigoConsola) {
-//             producto.CodigoConsola = 'Sin código'; // Asignar un valor predeterminado
-//         }
-//     });
-
-
-//     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
-//     db.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios)], (err, results) => {
-//         if (err) {
-//             console.error('Error al ejecutar el procedimiento: ', err);
-//             return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
-//         }
-
-//         // Si la consulta es exitosa, podemos devolver los códigos generados
-//         const codigosGenerados = results[0][0].CodigosIngresados;  // Acceder a los resultados
-
-//         // Enviar la respuesta con los códigos generados
-//         res.status(200).send({
-//             mensaje: 'Inventario ingresado correctamente',
-//             codigosGenerados
-//         });
-//     });
-// });
-// Endpoint para ingresar inventario
 router.post('/ingresar-inventario/', (req, res) => {
-    const { idPedido, productos, accesorios, insumos } = req.body;
-    console.log("Recibido en servidor:", { idPedido, productos, accesorios, insumos });
+    const { idPedido, productos, accesorios, insumos, IdUsuario } = req.body;
+    const idUsuario = IdUsuario; // Se usa el IdUsuario del body
 
     // Se procesan los arrays para convertir sub-arrays (como listas de tareas) en strings.
     productos.forEach((producto) => {
@@ -408,20 +377,18 @@ router.post('/ingresar-inventario/', (req, res) => {
         if (Array.isArray(accesorio.TodoList)) { accesorio.TodoList = accesorio.TodoList.join(','); }
         if (Array.isArray(accesorio.ProductosCompatibles)) { accesorio.ProductosCompatibles = accesorio.ProductosCompatibles.join(','); }
     });
-    // Los insumos no tienen arrays que necesiten ser convertidos.
 
     // Llamada al procedimiento almacenado
-    const query = `CALL \`${dbConfig.database}\`.\`IngresarArticulosPedidov3\`(?, ?, ?, ?)`;
+    // CAMBIO: La llamada ahora tiene 5 parámetros
+    const query = `CALL \`${dbConfig.database}\`.\`IngresarArticulosPedidov3\`(?, ?, ?, ?, ?)`;
 
     // Convertir los objetos a JSON.stringify para pasarlos como cadenas a MySQL
-    Basedatos.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios), JSON.stringify(insumos)], (err, results) => {
+    Basedatos.query(query, [idPedido, JSON.stringify(productos), JSON.stringify(accesorios), JSON.stringify(insumos), idUsuario], (err, results) => {
         if (err) {
             console.error('Error al ejecutar el procedimiento: ', err);
             return res.status(500).send({ error: 'Error al ejecutar el procedimiento almacenado.' });
         }
 
-        // ✅ ¡CORRECCIÓN! Envía el resultado DIRECTO del procedimiento almacenado.
-        // results[0] contendrá el array con el objeto: [ { Resultado: '...' } ]
         res.status(200).json(results[0]);
     });
 });
@@ -430,10 +397,10 @@ router.post('/ingresar-inventario/', (req, res) => {
 // Endpoint para cancelar un pedido
 router.put('/cancelar-pedido/:id', (req, res) => {
     const idpedido = req.params.id;
+    const { IdUsuario } = req.body; // Se espera el ID del usuario desde el frontend
+    const sql = `CALL \`${dbConfig.database}\`.\`CancelarPedido\`(?, ?)`; // CAMBIO: 2 parámetros
 
-    const sql = `CALL \`${dbConfig.database}\`.\`CancelarPedido\`(?)`;
-
-    Basedatos.query(sql, [idpedido], (err, results) => {
+    Basedatos.query(sql, [idpedido, IdUsuario], (err, results) => {
         if (err) {
             console.error('Error al cancelar el pedido:', err);
             return res.status(500).json({ mensaje: 'Error al cancelar el pedido' });
@@ -445,10 +412,10 @@ router.put('/cancelar-pedido/:id', (req, res) => {
 // Endpoint para eliminar un pedido
 router.put('/eliminar-pedido/:id', (req, res) => {
     const idpedido = req.params.id;
+    const { IdUsuario } = req.body; // Se espera el ID del usuario desde el frontend
+    const sql = `CALL \`${dbConfig.database}\`.\`EliminarPedido\`(?, ?)`; // CAMBIO: 2 parámetros
 
-    const sql = `CALL \`${dbConfig.database}\`.\`EliminarPedido\`(?)`;
-
-    Basedatos.query(sql, [idpedido], (err, results) => {
+    Basedatos.query(sql, [idpedido, IdUsuario], (err, results) => {
         if (err) {
             console.error('Error al eliminar el pedido:', err);
             return res.status(500).json({ mensaje: 'Error al eliminar el pedido' });
@@ -460,10 +427,10 @@ router.put('/eliminar-pedido/:id', (req, res) => {
 // Endpoint para avanzar un pedido
 router.put('/avanzar-pedido/:id', (req, res) => {
     const idpedido = req.params.id;
+    const { IdUsuario } = req.body; // Se espera el ID del usuario desde el frontend
+    const sql = `CALL \`${dbConfig.database}\`.\`AvanzarEstadoPedido\`(?, ?)`; // CAMBIO: 2 parámetros
 
-    const sql = `CALL \`${dbConfig.database}\`.\`AvanzarEstadoPedido\`(?)`;
-
-    Basedatos.query(sql, [idpedido], (err, results) => {
+    Basedatos.query(sql, [idpedido, IdUsuario], (err, results) => {
         if (err) {
             console.error('Error al avanzar el pedido:', err);
             return res.status(500).json({ mensaje: 'Error al avanzar el pedido' });

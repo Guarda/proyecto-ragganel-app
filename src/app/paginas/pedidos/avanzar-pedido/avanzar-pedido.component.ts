@@ -1,7 +1,10 @@
-import { Component, EventEmitter, Inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Inject, OnDestroy, OnInit } from '@angular/core';
 import { PedidoService } from '../../../services/pedido.service';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { IngresarInventarioComponent } from '../ingresar-inventario/ingresar-inventario.component';
+import { AuthService } from '../../../UI/session/auth.service';
+import { Usuarios } from '../../interfaces/usuarios';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-avanzar-pedido',
@@ -9,20 +12,28 @@ import { IngresarInventarioComponent } from '../ingresar-inventario/ingresar-inv
     templateUrl: './avanzar-pedido.component.html',
     styleUrl: './avanzar-pedido.component.css'
 })
-export class AvanzarPedidoComponent implements OnInit {
+export class AvanzarPedidoComponent implements OnInit, OnDestroy {
   public OrderId: any;
   Avanzar = new EventEmitter();
+  usuario!: Usuarios;
+  private subs = new Subscription();
 
   constructor(
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<AvanzarPedidoComponent>,
     public pedidoService: PedidoService,
+    private authService: AuthService,
     @Inject(MAT_DIALOG_DATA) public data: { value: string, codigoEstado: number }
   ) {}
 
   ngOnInit(): void {
     this.OrderId = this.data.value;
     console.log(`ID Pedido: ${this.data.value}, Estado: ${this.data.codigoEstado}`);
+    this.subs.add(this.authService.getUser().subscribe(user => this.usuario = user as unknown as Usuarios));
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   onAvanzar() {
@@ -57,7 +68,11 @@ export class AvanzarPedidoComponent implements OnInit {
 
 
   private avanzarPedido() {
-    this.pedidoService.avanzar(this.data.value).subscribe(() => {
+    if (!this.usuario) {
+      console.error('Error: El usuario no ha sido cargado todavía.');
+      return;
+    }
+    this.pedidoService.avanzar(this.data.value, this.usuario.id).subscribe(() => {
       this.Avanzar.emit();
       this.dialogRef.close(); // Cierra el diálogo después de avanzar
     });

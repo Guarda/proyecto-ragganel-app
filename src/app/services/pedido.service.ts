@@ -71,25 +71,25 @@ export class PedidoService {
       )
   }
 
-  cancelar(idpedido: any): Observable<any> {
-    // console.log(producto)
-    return this.httpClient.put(this.apiURL + '/pedidos/cancelar-pedido/' + idpedido, this.httpOptions)
+  cancelar(idpedido: any, userId: any): Observable<any> {
+    const body = { IdUsuario: userId };
+    return this.httpClient.put(this.apiURL + '/pedidos/cancelar-pedido/' + idpedido, body, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
   }
 
-  eliminar(idpedido: any): Observable<any> {
-    // console.log(producto)
-    return this.httpClient.put(this.apiURL + '/pedidos/eliminar-pedido/' + idpedido, this.httpOptions)
+  eliminar(idpedido: any, userId: any): Observable<any> {
+    const body = { IdUsuario: userId };
+    return this.httpClient.put(this.apiURL + '/pedidos/eliminar-pedido/' + idpedido, body, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
   }
 
-  avanzar(idpedido: any): Observable<any> {
-    // console.log(producto)
-    return this.httpClient.put(this.apiURL + '/pedidos/avanzar-pedido/' + idpedido, this.httpOptions)
+  avanzar(idpedido: any, userId: any): Observable<any> {
+    const body = { IdUsuario: userId };
+    return this.httpClient.put(this.apiURL + '/pedidos/avanzar-pedido/' + idpedido, body, this.httpOptions)
       .pipe(
         catchError(this.errorHandler)
       )
@@ -112,6 +112,7 @@ export class PedidoService {
   ingresarInventario(pedido: any): Observable<any> {
     const requestBody = {
       idPedido: pedido.idPedido,
+      IdUsuario: pedido.IdUsuario, // Se añade el IdUsuario al cuerpo
       productos: pedido.productos, // Cambiado de `productosData` a `productos`
       accesorios: pedido.accesorios, // Cambiado de `accesoriosData` a `accesorios`
       insumos: pedido.insumos // Asegurar que también se envíen los insumos si existen

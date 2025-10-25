@@ -1,71 +1,100 @@
-.timeline-container {
+h1 {
     display: flex;
-    justify-content: center;
     align-items: center;
-    flex-direction: column;
-    width: 100%;
+    gap: 8px;
+    color: #3f51b5; /* Color primario de Angular Material */
+  }
+  
+  .dialog-content {
+    padding-top: 20px;
   }
   
   .timeline {
     position: relative;
-    width: 80%;
-    padding-left: 30px;
-    padding-right: 30px;
-    margin: 20px 0;
-  }
-  
-  .timeline-event {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    position: relative;
-  }
-  
-  .timeline-dot {
-    background-color: #3498db;
-    border-radius: 50%;
-    width: 15px;
-    height: 15px;
-    position: absolute;
-    left: -30px;
-    top: 5px;
-  }
-  
-  .timeline-content {
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    padding: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .timeline-content h5 {
-    margin: 0;
-    font-size: 1.2em;
-  }
-  
-  .timeline-content p {
-    margin: 5px 0;
+    padding-left: 30px; /* Espacio para la línea y los iconos */
   }
   
   .timeline::before {
     content: '';
     position: absolute;
+    left: 14px; /* Centrado con el icono */
     top: 0;
-    left: 6px;
+    bottom: 0;
     width: 2px;
-    height: 100%;
-    background-color: #3498db;
-  }
-
-  .dialog-content {
-    max-height: 800px; /* Ajusta según necesites */
-    overflow-y: auto;
-    display: block;
+    background-color: #e0e0e0; /* Gris claro */
   }
   
-  .mat-dialog-container {
-    max-height: 90vh !important; /* Permite más espacio en el diálogo */
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
   }
   
+  .timeline-icon {
+    position: absolute;
+    left: -16px; /* Mueve el icono a la izquierda */
+    top: 0;
+    background-color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   
+  .timeline-icon mat-icon {
+    color: #3f51b5;
+  }
+  
+  .timeline-card {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .estado-nuevo {
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .fecha {
+    font-size: 0.85em;
+    color: #666;
+  }
+  
+  .card-body {
+    padding: 15px;
+    font-size: 0.9em;
+  }
+  
+  .detalle-cambio, .detalle-stock, .detalle-usuario {
+    margin-bottom: 8px;
+  }
+  
+  .detalle-usuario {
+    color: #555;
+    font-style: italic;
+  }
+  
+  .no-history {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+  }
+  
+  .no-history mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+  }

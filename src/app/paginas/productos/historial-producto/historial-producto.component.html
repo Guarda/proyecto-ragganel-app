@@ -1,25 +1,44 @@
-<div class="timeline-container">
-    <mat-dialog-content class="dialog-content">
-      <h5>Seguimiento del producto {{ ProductId }}</h5>
-      <div class="timeline">
-        <div *ngFor="let historial of historialProudctos; let i = index" class="timeline-event">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <h5>{{ historial.EstadoNuevoDescripcion }}</h5>
-            <p>Fecha: {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
-            
-            <!-- Si es el primer estado, mostrar "Fecha de Creación" en lugar de "Estado Anterior" -->
-            <p *ngIf="i === 0"><strong>Fecha de Creación:</strong> {{ historial.FechaCambio | date: 'dd/MM/yyyy HH:mm' }}</p>
-            <p *ngIf="i !== 0"><strong>Estado Anterior:</strong> {{ historial.EstadoAnteriorDescripcion }}</p>
-  
-            <p *ngIf="i !== 0"><strong>Estado Nuevo:</strong> {{ historial.EstadoNuevoDescripcion }}</p>
+<h1 mat-dialog-title>
+  <mat-icon>inventory</mat-icon>
+  Historial del {{ data.tipo }}: {{ data.codigo }}
+</h1>
+
+<mat-dialog-content class="dialog-content">
+  <div *ngIf="historial.length > 0; else noHistory" class="timeline">
+    
+    <div *ngFor="let item of historial; let isFirst = first" class="timeline-item">
+      <div class="timeline-icon">
+        <mat-icon>{{ isFirst ? 'add_circle' : 'change_circle' }}</mat-icon>
+      </div>
+      <div class="timeline-card">
+        <div class="card-header">
+          <span class="estado-nuevo">{{ item.EstadoNuevoDescripcion }}</span>
+          <span class="fecha">{{ item.FechaCambio | date:'dd/MM/yyyy h:mm a' }}</span>
+        </div>
+        <div class="card-body">
+          <div *ngIf="!isFirst" class="detalle-cambio">
+            <strong>Cambio:</strong> {{ item.EstadoAnteriorDescripcion }} &rarr; {{ item.EstadoNuevoDescripcion }}
+          </div>
+          <div *ngIf="isFirst" class="detalle-cambio">
+            <strong>Artículo Creado</strong>
+          </div>
+          <div class="detalle-usuario">
+            <strong>Por:</strong> {{ item.Usuario || 'Sistema' }}
           </div>
         </div>
       </div>
-    </mat-dialog-content>
+    </div>
+
   </div>
-  
-  <div>
-    <button mat-button mat-dialog-close class="boton-cerrar">Cerrar ventana</button>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>
+
+<ng-template #noHistory>
+  <div class="no-history">
+    <mat-icon>info</mat-icon>
+    <p>No se encontraron registros de historial para este artículo.</p>
   </div>
-  
+</ng-template>

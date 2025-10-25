@@ -36,6 +36,8 @@ import { PedidoService } from '../../../services/pedido.service';
 
 import { ResultadoPedidoDialogComponent } from '../resultado-pedido-dialog/resultado-pedido-dialog.component';
 import { debounceTime, merge, Subscription } from 'rxjs';
+import { AuthService } from '../../../UI/session/auth.service';
+import { Usuarios } from '../../interfaces/usuarios';
 
 
 @Component({
@@ -59,7 +61,10 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
   selectedEstadoPedido: EstadoPedido[] = [];
   selectedSitioWebPedido: SitioWeb[] = [];
   
+  usuario!: Usuarios;
+
   private formChangesSubscription!: Subscription;
+  private subs = new Subscription();
 
   constructor(
     private fb: FormBuilder,
@@ -69,7 +74,8 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
     private pedidosService: PedidoService,
     private tipopedidos: TipoPedidoService,
     private estadopedidos: EstadoPedidoService,
-    private sitioweb: SitiowebPedidoService
+    private sitioweb: SitiowebPedidoService,
+    private authService: AuthService
   ) {
     this.ImagePath = this.getimagePath("");
   }
@@ -79,6 +85,7 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
     this.loadSelectData();
     this.subscribeToSubtotal();
     this.subscribeToFormChanges();
+    this.subs.add(this.authService.getUser().subscribe(user => this.usuario = user as unknown as Usuarios));
   }
 
   ngAfterViewInit(): void {
@@ -212,9 +219,19 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    if (!this.usuario || !this.usuario.id) {
+      console.error('Error: El usuario no ha sido cargado todavía o no tiene ID.');
+      // Aquí podrías mostrar un mensaje al usuario.
+      this.dialog.open(ResultadoPedidoDialogComponent, {
+        data: { success: false, message: 'Error de autenticación. Por favor, recargue la página e intente de nuevo.' }
+      });
+      return;
+    }
+
     const pedidoData = {
       ...this.pedidoForm.getRawValue(),
       articulos: this.listadoArticulos.activeArticulos,
+      IdUsuario: this.usuario.id // <-- CAMBIO: Se añade el ID del usuario
     };
     
     // Formatear fechas a YYYY-MM-DD
@@ -241,5 +258,7 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
     if (this.formChangesSubscription) {
       this.formChangesSubscription.unsubscribe();
     }
+    // Desuscribirse de todas las suscripciones gestionadas por 'subs'
+    this.subs.unsubscribe();
   }
 }
