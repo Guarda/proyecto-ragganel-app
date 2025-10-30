@@ -5,7 +5,7 @@ import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -90,6 +90,30 @@ export class AgregarProdutosComponent {
     private cdr: ChangeDetectorRef, private router: Router) {
   }
 
+  // ✅ AÑADIDO: Validador personalizado para la longitud de accesorios
+  /**
+   * Validador personalizado para la longitud total de los accesorios.
+   * Comprueba la longitud del array de strings una vez convertido a JSON,
+   * que es como se enviará al backend y debe caber en varchar(500).
+   * @param max La longitud máxima permitida para el string JSON.
+   */
+  accesoriosLengthValidator(max: number) {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value as string[];
+      if (!value || value.length === 0) {
+        return null; // Válido si está vacío
+      }
+      
+      // Convertimos el array a un string JSON (ej: ["Cargador","Cable"])
+      // para medir su longitud real, que es lo que se guarda.
+      const jsonString = JSON.stringify(value);
+      
+      return jsonString.length > max 
+        ? { 'totalLengthExceeded': { requiredLength: max, actualLength: jsonString.length } } 
+        : null;
+    };
+  }
+
   ngOnInit(): void {
     this.categorias.getAll().subscribe((data: CategoriasConsolas[]) => {
       this.keywords.update(() => []);
@@ -98,18 +122,33 @@ export class AgregarProdutosComponent {
       this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
     })
 
+    // 2. MODIFICADO: Actualiza tu 'productoForm' con los nuevos validadores
     this.productoForm = new FormGroup({
       Fabricante: new FormControl('', Validators.required),
       Cate: new FormControl('', Validators.required),
       SubCategoria: new FormControl('', Validators.required),
       IdModeloConsolaPK: new FormControl('', Validators.required),
-      ColorConsola: new FormControl(''),
-      PrecioBase: new FormControl('', Validators.required),
+      
+      // --- CAMBIOS AQUÍ ---
+      ColorConsola: new FormControl('', [Validators.maxLength(100)]), // Límite de 100 (varchar(100))
+      
+      PrecioBase: new FormControl('', [
+        Validators.required, 
+        Validators.pattern(/^\d{1,4}(\.\d{1,2})?$/), // Para Decimal(6,2) -> ej: 9999.99
+        Validators.max(9999.99) // Límite máximo del Decimal(6,2)
+      ]),
+      
       EstadoConsola: new FormControl('', Validators.required),
       HackConsola: new FormControl('', Validators.required),
-      ComentarioConsola: new FormControl(''),
-      Accesorios: new FormControl(''),
-      NumeroSerie: new FormControl(''),
+      
+      ComentarioConsola: new FormControl('', [Validators.maxLength(10000)]), // Límite de 10k (varchar(10000))
+      
+      // El valor inicial es un array vacío y le añadimos el validador
+      Accesorios: new FormControl([], [this.accesoriosLengthValidator(500)]), // Límite de 500 (varchar(500))
+      
+      NumeroSerie: new FormControl('', [Validators.maxLength(100)]), // Límite de 100 (varchar(100))
+      // --- FIN DE CAMBIOS ---
+
       TodoList: new FormControl('')
     });
 

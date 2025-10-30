@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
@@ -30,7 +30,7 @@ import { ImageUploadInsumoComponent } from '../../../utiles/images/image-upload-
 import { ValidationService } from '../../../services/validation.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { catchError, debounceTime, distinctUntilChanged, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
 @Component({
     selector: 'app-agregar-categorias-insumos',
@@ -66,19 +66,23 @@ export class AgregarCategoriasInsumosComponent {
     private cdr: ChangeDetectorRef,
     private sharedService: SharedService,
     private router: Router,
-    private validationService: ValidationService
+    private validationService: ValidationService,
+    private dialogRef: MatDialogRef<AgregarCategoriasInsumosComponent> // ✅ AÑADIDO
   ) {
 
+   // ✅ CAMBIO: FormGroup actualizado con todos los validadores
    this.CategoriaForm = new FormGroup({
       FabricanteInsumo: new FormControl('', Validators.required),
       CategoriaInsumo: new FormControl('', Validators.required),
       SubCategoriaInsumo: new FormControl('', Validators.required),
       CodigoModeloInsumo: new FormControl(
         '',
-        [Validators.required],
+        // --- Se añaden validadores síncronos ---
+        [Validators.required, Validators.maxLength(25)], 
         [this.validationService.codeExistsValidator()]
       ),
-      LinkImagen: new FormControl('', Validators.required)
+      // --- Se añaden validadores síncronos ---
+      LinkImagen: new FormControl('', [Validators.required, Validators.maxLength(100)])
     });
 
     this.fabricanteService.getAll().subscribe((data: FabricanteInsumos[]) => {
@@ -118,12 +122,9 @@ export class AgregarCategoriasInsumosComponent {
 
     formGroup.valueChanges.pipe(
       debounceTime(500),
-      // Adaptar los campos a los nombres del formulario de insumos
-      distinctUntilChanged((prev, curr) =>
-        prev.FabricanteInsumo === curr.FabricanteInsumo &&
-        prev.CategoriaInsumo === curr.CategoriaInsumo &&
-        prev.SubCategoriaInsumo === curr.SubCategoriaInsumo
-      ),
+      // ----------------------------------------------------
+      // --- ✅ CAMBIO: 'distinctUntilChanged' ELIMINADO ---
+      // ----------------------------------------------------
       switchMap(value => {
         // Adaptar los campos a los nombres del formulario de insumos
         if (!value.FabricanteInsumo || !value.CategoriaInsumo || !value.SubCategoriaInsumo) {
@@ -158,12 +159,16 @@ export class AgregarCategoriasInsumosComponent {
   }
 
   onSubmit() { 
-    // TODO: Use EventEmitter with form value
-    // console.log(this.CategoriaForm.value); 
-    // console.log("enviado");
+    // --- ✅ AÑADIDO: Guardia de validez ---
+    if (this.CategoriaForm.invalid) {
+      console.log('Formulario inválido, no se enviará.');
+      return; 
+    }
+    // --- FIN DEL AÑADIDO ---
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {
       this.Agregado.emit();
       this.router.navigateByUrl('home/listado-categorias-insumos');
+      this.dialogRef.close(true); // ✅ AÑADIDO: Cierre manual al éxito
     });
 
   }

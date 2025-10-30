@@ -37,12 +37,18 @@
          <!--Numero de serie Consola  -->
          <mat-form-field class="input-form-prod">
           <mat-label>Numero de serie</mat-label>
-          <textarea formControlName = "NumeroSerie" name="NumeroSerie" matInput cdkFocusInitial></textarea>
+          <input formControlName = "NumeroSerie" name="NumeroSerie" matInput cdkFocusInitial maxlength="100">
+          <mat-error *ngIf="accesorioForm.get('NumeroSerie')?.hasError('maxlength')">
+            El número de serie no puede exceder los 100 caracteres.
+          </mat-error>
           </mat-form-field>    
             <!--Color Consola  -->
           <mat-form-field class="input-form-prod">
             <mat-label>Color</mat-label>
-            <textarea formControlName = "ColorAccesorio" name="ColorAccesorio" matInput cdkFocusInitial></textarea>
+            <input formControlName = "ColorAccesorio" name="ColorAccesorio" matInput cdkFocusInitial maxlength="100">
+            <mat-error *ngIf="accesorioForm.get('ColorAccesorio')?.hasError('maxlength')">
+              El color no puede exceder los 100 caracteres.
+            </mat-error>
           </mat-form-field>
             <!--Estado Consola  -->
           <mat-form-field class="input-form-prod">
@@ -54,7 +60,14 @@
           <!--Precio Base Consola  -->
           <mat-form-field class="input-form-prod">
             <mat-label>Precio Base</mat-label>
-            <textarea formControlName = "PrecioBase" name="PrecioBase" matInput></textarea>
+            <input formControlName = "PrecioBase" name="PrecioBase" matInput 
+                   type="number" step="0.01" placeholder="Ej: 150.50">
+            <mat-error *ngIf="accesorioForm.get('PrecioBase')?.hasError('required')">
+              El precio es obligatorio.
+            </mat-error>
+            <mat-error *ngIf="accesorioForm.get('PrecioBase')?.hasError('pattern') || accesorioForm.get('PrecioBase')?.hasError('max')">
+              Precio inválido. Use hasta 4 dígitos y 2 decimales (ej: 1250.99).
+            </mat-error>
           </mat-form-field>        
           
           <!-- Productos Compatibles -->
@@ -75,6 +88,9 @@
               [matChipInputFor]="chipGrid"
               (matChipInputTokenEnd)="add($event)"
             />
+            <mat-error *ngIf="accesorioForm.get('ProductosCompatibles')?.hasError('totalLengthExceeded')">
+              La lista de productos es muy larga (máximo 500 caracteres en total).
+            </mat-error>
         </mat-form-field>
           <!--Tareas -->         
         <mat-form-field class="example-form-field">
@@ -105,7 +121,10 @@
       <h3>Comentarios</h3>
       <mat-form-field class="example-full-width"  >
         <mat-label>Describe el estado del producto</mat-label>
-        <textarea matInput formControlName = "ComentarioAccesorio" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+        <textarea matInput formControlName = "ComentarioAccesorio" placeholder="Pantalla rota, para repuesto, etc..." maxlength="10000"></textarea>
+        <mat-error *ngIf="accesorioForm.get('ComentarioAccesorio')?.hasError('maxlength')">
+          El comentario no puede exceder los 10,000 caracteres.
+        </mat-error>
       </mat-form-field>
     </div>  
   </div>

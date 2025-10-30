@@ -6,7 +6,8 @@
       <mat-label>Motivo de la anulación</mat-label>
       <textarea matInput formControlName="motivo"
                 placeholder="Ej: El cliente se arrepintió de la devolución."
-                rows="4" required></textarea>
+                rows="4" required
+                maxlength="255"></textarea> 
       <mat-error *ngIf="anulacionForm.get('motivo')?.hasError('required')">El motivo es obligatorio.</mat-error>
       <mat-error *ngIf="anulacionForm.get('motivo')?.hasError('minlength')">El motivo debe tener al menos 10 caracteres.</mat-error>
     </mat-form-field>

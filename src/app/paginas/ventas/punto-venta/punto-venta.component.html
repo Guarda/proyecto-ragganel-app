@@ -83,16 +83,18 @@
           <input 
             type="text" 
             [(ngModel)]="numeroReferenciaTransferencia" 
-            placeholder="Ej: Comprobante 12345">
+            placeholder="Ej: Comprobante 12345"
+            maxlength="255"> 
         </div>
 
         <div class="campo-adicional">
-            <label>Observaciones Adicionales:</label>
-            <textarea 
-              [(ngModel)]="observacionesOtros" 
-              rows="2" 
-              placeholder="Anotaciones sobre la venta, garantía, etc.">
-            </textarea>
+          <label>Observaciones Adicionales:</label>
+          <textarea 
+            [(ngModel)]="observacionesOtros" 
+            rows="2" 
+            placeholder="Anotaciones sobre la venta, garantía, etc."
+            maxlength="10000">
+          </textarea>
         </div>
       </div>
 

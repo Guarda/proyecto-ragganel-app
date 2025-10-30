@@ -77,15 +77,20 @@ export class EditarCategoriasComponent {
     // FIX 1: Inicializar el formulario en el constructor con una estructura vacía.
     this.categoriaForm = this.fb.group({
       IdModeloConsolaPK: [''],
-      Fabricante: ['', Validators.required],
-      Cate: ['', Validators.required],
-      SubCategoria: ['', Validators.required],
+      // --- CAMBIO AQUÍ ---
+      // Usamos la sintaxis de objeto para pasar 'value' y 'disabled'
+      Fabricante:   [{ value: '', disabled: true }, Validators.required],
+      Cate:         [{ value: '', disabled: true }, Validators.required],
+      SubCategoria: [{ value: '', disabled: true }, Validators.required],
+      // --- FIN DEL CAMBIO ---
       CodigoModeloConsola: ['', 
-        [Validators.required], // Validadores síncronos
+        // --- SE AÑADE EL VALIDADOR DE MAXLENGTH (25) ---
+        [Validators.required, Validators.maxLength(25)], 
         // Le pasamos una función que devuelve el código original.
         [this.validationService.codeExistsValidator(() => this.CodigoModeloConsola)] 
       ],
-      LinkImagen: ['', Validators.required],
+      // --- SE AÑADE EL VALIDADOR DE MAXLENGTH (100) ---
+      LinkImagen: ['', [Validators.required, Validators.maxLength(100)]],
       TipoProducto: ['', Validators.required]
     });
   }

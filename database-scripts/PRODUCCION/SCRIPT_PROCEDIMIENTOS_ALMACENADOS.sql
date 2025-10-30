@@ -1684,10 +1684,11 @@ CREATE PROCEDURE IngresarInsumoATablaInsumosBase(
     IN p_Cantidad INT UNSIGNED,
     IN p_NumeroSerie VARCHAR(100),
     IN p_StockMinimo INT UNSIGNED,
-    IN p_IdUsuarioFK INT
+    IN p_IdUsuarioFK INT,
+    OUT p_AccionRealizada VARCHAR(20),
+    OUT p_CodigoGenerado VARCHAR(50)
 )
 BEGIN
-    DECLARE v_CodigoGenerado VARCHAR(50);
     DECLARE v_CodigoModelo VARCHAR(25);
     DECLARE v_CantidadExistente INT;
     DECLARE v_EstadoExistente INT;
@@ -1700,42 +1701,67 @@ BEGIN
     WHERE ModeloInsumo = p_IdModeloInsumosPK;
 
     IF v_Existe > 0 THEN
-        SELECT Cantidad, StockMinimo, PrecioBase, EstadoInsumo, CodigoInsumo INTO v_CantidadExistente, v_StockMinimoExistente, v_PrecioBaseExistente, v_EstadoExistente, v_CodigoGenerado
+        SELECT Cantidad, StockMinimo, PrecioBase, EstadoInsumo, CodigoInsumo 
+        INTO v_CantidadExistente, v_StockMinimoExistente, v_PrecioBaseExistente, v_EstadoExistente, p_CodigoGenerado 
         FROM InsumosBase
         WHERE ModeloInsumo = p_IdModeloInsumosPK
         LIMIT 1;
 
-        INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK)
-        VALUES (v_CodigoGenerado, v_EstadoExistente, v_EstadoExistente, v_CantidadExistente, v_CantidadExistente + p_Cantidad, p_IdUsuarioFK);
+        IF v_EstadoExistente = 7 THEN
+            SET p_AccionRealizada = 'reactivated'; 
+            
+            INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK)
+            VALUES (p_CodigoGenerado, 7, p_EstadoInsumo, v_CantidadExistente, p_Cantidad, p_IdUsuarioFK);
 
-        UPDATE InsumosBase
-        SET 
-            Cantidad = v_CantidadExistente + p_Cantidad,
-            StockMinimo = IF(v_StockMinimoExistente != p_StockMinimo, p_StockMinimo, v_StockMinimoExistente),
-            PrecioBase = IF(p_PrecioBase > v_PrecioBaseExistente, p_PrecioBase, v_PrecioBaseExistente),
-            Comentario = IF(p_ComentarioInsumo IS NOT NULL AND p_ComentarioInsumo != '', p_ComentarioInsumo, Comentario),
-            NumeroSerie = IF(p_NumeroSerie IS NOT NULL AND p_NumeroSerie != '', p_NumeroSerie, NumeroSerie)
-        WHERE ModeloInsumo = p_IdModeloInsumosPK;
+            UPDATE InsumosBase
+            SET 
+                EstadoInsumo = p_EstadoInsumo,
+                Cantidad = p_Cantidad,
+                StockMinimo = p_StockMinimo,
+                PrecioBase = p_PrecioBase,
+                Comentario = p_ComentarioInsumo,
+                NumeroSerie = p_NumeroSerie,
+                FechaIngreso = CURDATE()
+            WHERE ModeloInsumo = p_IdModeloInsumosPK;
+
+        ELSE
+            -- ESTABA ACTIVO: Suma el stock
+            SET p_AccionRealizada = 'updated';
+
+            INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK)
+            VALUES (p_CodigoGenerado, v_EstadoExistente, v_EstadoExistente, v_CantidadExistente, v_CantidadExistente + p_Cantidad, p_IdUsuarioFK);
+
+            UPDATE InsumosBase
+            SET 
+                Cantidad = v_CantidadExistente + p_Cantidad,
+                StockMinimo = IF(v_StockMinimoExistente != p_StockMinimo, p_StockMinimo, v_StockMinimoExistente),
+                PrecioBase = IF(p_PrecioBase > v_PrecioBaseExistente, p_PrecioBase, v_PrecioBaseExistente),
+                Comentario = IF(p_ComentarioInsumo IS NOT NULL AND p_ComentarioInsumo != '', p_ComentarioInsumo, Comentario),
+                NumeroSerie = IF(p_NumeroSerie IS NOT NULL AND p_NumeroSerie != '', p_NumeroSerie, NumeroSerie)
+            WHERE ModeloInsumo = p_IdModeloInsumosPK;
+        END IF;
 
     ELSE
+        SET p_AccionRealizada = 'created'; 
+
         SELECT CodigoModeloInsumos INTO v_CodigoModelo
         FROM CatalogoInsumos
         WHERE IdModeloInsumosPK = p_IdModeloInsumosPK
         LIMIT 1;
 
-        SET v_CodigoGenerado = CONCAT(v_CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
+        SET p_CodigoGenerado = CONCAT(v_CodigoModelo, '-', (SELECT COUNT(*) + 1 FROM InsumosBase));
 
         INSERT INTO InsumosBase (
             CodigoInsumo, ModeloInsumo, EstadoInsumo, FechaIngreso, Comentario,
             PrecioBase, NumeroSerie, Cantidad, StockMinimo
         )
         VALUES (
-            v_CodigoGenerado, p_IdModeloInsumosPK, p_EstadoInsumo, CURDATE(), p_ComentarioInsumo,
+            p_CodigoGenerado, p_IdModeloInsumosPK, p_EstadoInsumo, CURDATE(), p_ComentarioInsumo,
             p_PrecioBase, p_NumeroSerie, p_Cantidad, p_StockMinimo
         );
 
         INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK)
-        VALUES (v_CodigoGenerado, NULL, p_EstadoInsumo, NULL, p_Cantidad, p_IdUsuarioFK);
+        VALUES (p_CodigoGenerado, NULL, p_EstadoInsumo, NULL, p_Cantidad, p_IdUsuarioFK);
     END IF;
 END //
 DELIMITER ;

@@ -23,7 +23,13 @@
     
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>Observaciones Adicionales (Motivo Detallado)</mat-label>
-      <textarea matInput [(ngModel)]="observaciones" rows="3" placeholder="Ej: El cliente devolvió el producto..."></textarea>
+      <textarea 
+        matInput 
+        [(ngModel)]="observaciones" 
+        rows="3" 
+        placeholder="Ej: El cliente devolvió el producto..."
+        maxlength="10000">
+      </textarea>
     </mat-form-field>
   </div>
 

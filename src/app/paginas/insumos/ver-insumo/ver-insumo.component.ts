@@ -96,18 +96,35 @@ export class VerInsumoComponent {
     console.log(this.id);
     this.supplyId = this.id;
 
+    // ✅ CAMBIO: FormGroup actualizado con todos los validadores
     this.insumoForm = new FormGroup({
       IdModeloInsumoPK: new FormControl('', Validators.required),
       CodigoInsumo: new FormControl(this.supplyCode, Validators.required),
       EstadoInsumo: new FormControl(this.supplyState, Validators.required),
-      PrecioBase: new FormControl(this.supplyPrice, Validators.required),
-      Cantidad: new FormControl(this.supplyStock, Validators.required),
-      StockMinimo: new FormControl(this.supplyMinimumStock, Validators.required),
-      Comentario: new FormControl(this.supplyComment, Validators.required),
+      
+      // --- VALIDACIONES AÑADIDAS ---
+      PrecioBase: new FormControl(this.supplyPrice, [
+        Validators.required, 
+        Validators.pattern(/^\d{1,4}(\.\d{1,2})?$/), // Para Decimal(6,2)
+        Validators.max(9999.99)
+      ]),
+      
+      Cantidad: new FormControl(this.supplyStock, [
+        Validators.required, 
+        Validators.pattern(/^[0-9]+$/), // Solo números enteros
+        Validators.min(0) // int unsigned
+      ]),
+      
+      StockMinimo: new FormControl(this.supplyMinimumStock, [
+        Validators.required, 
+        Validators.pattern(/^[0-9]+$/), // Solo números enteros
+        Validators.min(0) // int unsigned
+      ]),
+      Comentario: new FormControl(this.supplyComment, [Validators.maxLength(10000)]), // Límite varchar(10000)
+      NumeroSerie: new FormControl(this.supplySerialCode, [Validators.maxLength(100)]), // Límite varchar(100)
       FabricanteInsumos: new FormControl(this.supplyManufacturer, Validators.required),
       CategoriaInsumos: new FormControl(this.supplyCate, Validators.required),
-      SubcategoriaInsumos: new FormControl(this.supplySubCate, Validators.required),
-      NumeroSerie: new FormControl(this.supplySerialCode, Validators.required)
+      SubcategoriaInsumos: new FormControl(this.supplySubCate, Validators.required)
     });
 
 
@@ -223,6 +240,15 @@ export class VerInsumoComponent {
   }
 
   onSubmit() {
+    // --- ✅ AÑADIDO: Guardia de validez ---
+    this.insumoForm.markAllAsTouched(); // Muestra los errores
+    
+    if (this.insumoForm.invalid) {
+      console.error('Formulario inválido, no se enviará.');
+      return;
+    }
+    // --- FIN DEL AÑADIDO ---
+
     if (!this.insumoForm.dirty) {
       return; // Salir si no hay cambios
     }

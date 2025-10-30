@@ -116,19 +116,35 @@ router.get('/categoria-b', (req, res) => {
 
 // Create a new product
 router.post('/crear-insumo', (req, res) => {
-    // 1. Añadimos IdUsuario a la desestructuración del body
+    // 1. Se mantienen los mismos parámetros del body
     const { IdModeloInsumosPK, Cantidad, PrecioBase, EstadoInsumo, ComentarioInsumo, NumeroSerie, StockMinimo, IdUsuario } = req.body;
 
-    // 2. Se añade un '?' para el nuevo parámetro del SP
-    const sql = `CALL \`${dbConfig.database}\`.\`IngresarInsumoATablaInsumosBase\` (?, ?, ?, ?, ?, ?, ?, ?)`;
+    // 2. Se añaden los parámetros OUT a la llamada
+    //    Y se añade un SELECT para capturar los valores
+    const sql = `
+        SET @p_AccionRealizada = '';
+        SET @p_CodigoGenerado = '';
+        CALL \`${dbConfig.database}\`.\`IngresarInsumoATablaInsumosBase\`(?, ?, ?, ?, ?, ?, ?, ?, @p_AccionRealizada, @p_CodigoGenerado);
+        SELECT @p_AccionRealizada AS action, @p_CodigoGenerado AS codigo;
+    `;
     
-    // 3. Pasamos IdUsuario como el último parámetro en el array
-    Basedatos.query(sql, [IdModeloInsumosPK, EstadoInsumo, ComentarioInsumo, PrecioBase, Cantidad, NumeroSerie, StockMinimo, IdUsuario], (err, result) => {
+    // 3. Se pasan los parámetros
+    Basedatos.query(sql, [IdModeloInsumosPK, EstadoInsumo, ComentarioInsumo, PrecioBase, Cantidad, NumeroSerie, StockMinimo, IdUsuario], (err, results) => {
         if (err) {
             console.error("Error al ejecutar SP para crear insumo:", err);
             return res.status(500).send(err);
         }
-        res.send({ message: 'Insumo agregado', id: result.insertId });
+        
+        // 4. Se extrae la respuesta de la query 'SELECT'
+        // results[3] contiene el resultado del SELECT
+        const responseData = results[3][0]; 
+        
+        // 5. Se envía la respuesta JSON al frontend
+        res.status(200).json({ 
+            success: true, 
+            action: responseData.action, 
+            codigo: responseData.codigo 
+        });
     });
 });
 

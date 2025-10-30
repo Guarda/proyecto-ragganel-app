@@ -5,7 +5,7 @@ import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -97,20 +97,57 @@ export class AgregarAccesoriosComponent implements OnInit {
     private router: Router // Keep Router if navigation might be needed elsewhere, but not in onSubmit for dialog
   ) {}
 
+  // ✅ AÑADIDO: Validador personalizado para la longitud de los chips
+  /**
+   * Validador personalizado para la longitud total de los productos compatibles.
+   * Comprueba la longitud del array de strings una vez convertido a JSON,
+   * que es como se enviará al backend y debe caber en varchar(500).
+   * @param max La longitud máxima permitida para el string JSON.
+   */
+  productosCompatiblesLengthValidator(max: number) {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value as string[];
+      if (!value || value.length === 0) {
+        return null; // Válido si está vacío
+      }
+      
+      // Convertimos el array a un string JSON (ej: ["PS4","PS5"])
+      // para medir su longitud real, que es lo que se guarda.
+      const jsonString = JSON.stringify(value);
+      
+      return jsonString.length > max 
+        ? { 'totalLengthExceeded': { requiredLength: max, actualLength: jsonString.length } } 
+        : null;
+    };
+  }
+
   ngOnInit(): void {
-    // Moved Form Initialization here
+    // ✅ CAMBIO: Se actualiza el FormGroup con todos los validadores
     this.accesorioForm = new FormGroup({
       FabricanteAccesorio: new FormControl('', Validators.required),
       CateAccesorio: new FormControl('', Validators.required),
       SubCategoriaAccesorio: new FormControl('', Validators.required),
       IdModeloAccesorioPK: new FormControl('', Validators.required),
-      ColorAccesorio: new FormControl(''),
-      PrecioBase: new FormControl('', Validators.required),
+
+      // --- VALIDACIONES AÑADIDAS ---
+      ColorAccesorio: new FormControl('', [Validators.maxLength(100)]), // Límite varchar(100)
+      
+      PrecioBase: new FormControl('', [ // Límite Decimal(6,2)
+        Validators.required, 
+        Validators.pattern(/^\d{1,4}(\.\d{1,2})?$/), // 4 dígitos enteros, 2 decimales
+        Validators.max(9999.99) 
+      ]),
+      
       EstadoAccesorio: new FormControl('', Validators.required),
-      ComentarioAccesorio: new FormControl(''),
-      NumeroSerie: new FormControl(''),
+      
+      ComentarioAccesorio: new FormControl('', [Validators.maxLength(10000)]), // Límite varchar(10000)
+      
+      NumeroSerie: new FormControl('', [Validators.maxLength(100)]), // Límite varchar(100)
+      
       TodoList: new FormControl(this.nkeywords()), // Use signal value for init
-      ProductosCompatibles: new FormControl([]) // Initialize as empty array
+      
+      ProductosCompatibles: new FormControl([], [this.productosCompatiblesLengthValidator(500)]) // Límite varchar(500)
+      // --- FIN DE VALIDACIONES ---
     });
 
     // Load initial data for dropdowns and image

@@ -32,9 +32,12 @@
         </mat-form-field>    
         <mat-form-field class="input-form-prod">
           <mat-label>Prefijo del accesorio</mat-label>
-          <input formControlName="CodigoModeloAccesorio" matInput cdkFocusInitial>
+          <input formControlName="CodigoModeloAccesorio" matInput cdkFocusInitial maxlength="25">
           <mat-error *ngIf="categoriaForm.get('CodigoModeloAccesorio')?.hasError('required')">
             El código es requerido.
+          </mat-error>
+          <mat-error *ngIf="categoriaForm.get('CodigoModeloAccesorio')?.hasError('maxlength')">
+            El prefijo no puede exceder los 25 caracteres.
           </mat-error>
           <mat-error *ngIf="categoriaForm.get('CodigoModeloAccesorio')?.hasError('codeExists')">
             Este código ya está en uso. Por favor, elige otro.

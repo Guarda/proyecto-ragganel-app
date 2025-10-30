@@ -35,9 +35,12 @@
           </mat-error>
           <mat-form-field class="input-form-prod">
             <mat-label>Prefijo del accesorio</mat-label>
-            <input formControlName="CodigoModeloAccesorio" matInput cdkFocusInitial>
+            <input formControlName="CodigoModeloAccesorio" matInput cdkFocusInitial maxlength="25">
             <mat-error *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.hasError('required')">
               El código es requerido.
+            </mat-error>
+            <mat-error *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.hasError('maxlength')">
+              El prefijo no puede exceder los 25 caracteres.
             </mat-error>
             <mat-error *ngIf="CategoriaForm.get('CodigoModeloAccesorio')?.hasError('codeExists')">
               Este código ya está en uso. Por favor, elige otro.
@@ -49,7 +52,13 @@
           
           <mat-form-field class="input-form-prod">
             <mat-label>Link de la imagen</mat-label>
-            <textarea formControlName = "LinkImagen" matInput> </textarea>
+            <input formControlName = "LinkImagen" matInput maxlength="100">
+            <mat-error *ngIf="CategoriaForm.get('LinkImagen')?.hasError('required')">
+              El link de la imagen es requerido (se asigna al subir una).
+            </mat-error>
+            <mat-error *ngIf="CategoriaForm.get('LinkImagen')?.hasError('maxlength')">
+              El nombre del archivo es muy largo (máx. 100 caracteres).
+            </mat-error>
           </mat-form-field>         
         </mat-dialog-content>
       </div>  
@@ -58,7 +67,7 @@
   </div>
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancelar</button>
-    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!CategoriaForm.valid">Ingresar</button>
+    <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" [disabled]="!CategoriaForm.valid">Ingresar</button>
    
   </mat-dialog-actions>
   </form>

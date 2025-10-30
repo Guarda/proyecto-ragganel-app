@@ -55,7 +55,10 @@
                                 <!--Numero de serie Consola  -->
                                 <mat-form-field class="input-form-prod">
                                     <mat-label>Numero de serie</mat-label>
-                                    <textarea formControlName = "NumeroSerie" name="NumeroSerie" matInput> {{producto}}</textarea>
+                                    <input formControlName="NumeroSerie" name="NumeroSerie" matInput maxlength="100">
+                                    <mat-error *ngIf="productoForm.get('NumeroSerie')?.hasError('maxlength')">
+                                      El número de serie no puede exceder los 100 caracteres.
+                                    </mat-error>
                                 </mat-form-field>    
                                 <mat-form-field class="input-form-prod" *ngIf="producto">
                                     <mat-label>Estado</mat-label>
@@ -68,7 +71,10 @@
                                 <h5> Color y Hack</h5>
                                 <mat-form-field class="input-form-prod" *ngIf="producto">
                                     <mat-label>Color del producto</mat-label>
-                                    <textarea formControlName = "ColorConsola" name="ColorConsola" matInput> {{producto}}</textarea>
+                                    <input formControlName="ColorConsola" name="ColorConsola" matInput maxlength="100">
+                                    <mat-error *ngIf="productoForm.get('ColorConsola')?.hasError('maxlength')">
+                                      El color no puede exceder los 100 caracteres.
+                                    </mat-error>
                                 </mat-form-field>
                                 <mat-form-field class="input-form-prod">
                                     <mat-label>Select</mat-label>
@@ -84,17 +90,27 @@
                         <h5> Precio y comentarios </h5>
                         <mat-form-field class="input-form-prod">
                             <mat-label>Precio Base</mat-label>
-                            <textarea formControlName = "PrecioBase" name="PrecioBase" matInput></textarea>
+                            <input formControlName="PrecioBase" name="PrecioBase" matInput 
+                                   type="text" inputmode="decimal" placeholder="Ej: 150.50">
+                            <mat-error *ngIf="productoForm.get('PrecioBase')?.hasError('required')">
+                              El precio es obligatorio.
+                            </mat-error>
+                            <mat-error *ngIf="productoForm.get('PrecioBase')?.hasError('pattern') || productoForm.get('PrecioBase')?.hasError('max')">
+                              Precio inválido. Use hasta 4 dígitos y 2 decimales (ej: 1250.99).
+                            </mat-error>
                         </mat-form-field>
                         <mat-form-field class="example-full-width"  >
                             <mat-label>Describe el estado del producto</mat-label>
-                            <textarea matInput formControlName = "ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..."></textarea>
+                            <textarea matInput formControlName="ComentarioConsola" placeholder="Pantalla rota, para repuesto, etc..." maxlength="10000"></textarea>
+                            <mat-error *ngIf="productoForm.get('ComentarioConsola')?.hasError('maxlength')">
+                              El comentario no puede exceder los 10,000 caracteres.
+                            </mat-error>
                         </mat-form-field>
                     </div>
                 </div>
                 <div class="contenedor2">
                     <div class="botonedicion">
-                        <button mat-flat-button type="submit" class="button-editar-prod" class="btn-editar" (Click)="onSubmit()" color="accent" [disabled]="!productoForm.dirty">Guardar Cambios</button>
+                        <button mat-flat-button type="submit" class="button-editar-prod" class="btn-editar" (Click)="onSubmit()" color="accent" [disabled]="!productoForm.valid || !productoForm.dirty">Guardar Cambios</button>
                         <a mat-flat-button  (click)="ConsoleId && openDialogEliminar(ConsoleId)" color="warn" title="borrar producto" >Eliminar producto</a>
                     </div>  
                     <div  class="contenedorQR"></div>
@@ -129,6 +145,9 @@
                                   <mat-icon>cancel</mat-icon>
                                 </button>
                               </mat-chip-row>
+                              <mat-error *ngIf="productoForm.get('Accesorios')?.hasError('totalLengthExceeded')">
+                                La lista de accesorios es muy larga (máximo 500 caracteres en total).
+                              </mat-error>
                             </mat-chip-grid>
                             <input
                               placeholder="Agrega accesorios..."

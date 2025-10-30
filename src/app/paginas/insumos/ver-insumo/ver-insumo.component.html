@@ -45,7 +45,10 @@
             <!-- Número de Serie -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Número de Serie</mat-label>
-              <input matInput formControlName="NumeroSerie" />
+              <input matInput formControlName="NumeroSerie" maxlength="100" />
+              <mat-error *ngIf="insumoForm.get('NumeroSerie')?.hasError('maxlength')">
+                El número de serie no puede exceder los 100 caracteres.
+              </mat-error>
             </mat-form-field>
       
             <!-- Estado -->
@@ -59,31 +62,52 @@
             <!-- Precio -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Precio Base</mat-label>
-              <input matInput formControlName="PrecioBase" type="number" />
+              <input matInput formControlName="PrecioBase" type="text" inputmode="decimal" placeholder="Ej: 150.50" />
+              <mat-error *ngIf="insumoForm.get('PrecioBase')?.hasError('required')">
+                El precio es obligatorio.
+              </mat-error>
+              <mat-error *ngIf="insumoForm.get('PrecioBase')?.hasError('pattern') || insumoForm.get('PrecioBase')?.hasError('max')">
+                Precio inválido. Use hasta 4 dígitos y 2 decimales (ej: 1250.99).
+              </mat-error>
             </mat-form-field>
       
             <!-- Cantidad -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Cantidad</mat-label>
-              <input matInput formControlName="Cantidad" type="number" />
+              <input matInput formControlName="Cantidad" type="number" step="1" min="0" />
+              <mat-error *ngIf="insumoForm.get('Cantidad')?.hasError('required')">
+                La cantidad es obligatoria.
+              </mat-error>
+              <mat-error *ngIf="insumoForm.get('Cantidad')?.hasError('pattern') || insumoForm.get('Cantidad')?.hasError('min')">
+                La cantidad debe ser un número entero positivo.
+              </mat-error>
             </mat-form-field>
       
             <!-- Stock Mínimo -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Stock Mínimo</mat-label>
-              <input matInput formControlName="StockMinimo" type="number" />
+              <input matInput formControlName="StockMinimo" type="number" step="1" min="0" />
+              <mat-error *ngIf="insumoForm.get('StockMinimo')?.hasError('required')">
+                El stock mínimo es obligatorio.
+              </mat-error>
+              <mat-error *ngIf="insumoForm.get('StockMinimo')?.hasError('pattern') || insumoForm.get('StockMinimo')?.hasError('min')">
+                El stock debe ser un número entero positivo.
+              </mat-error>
             </mat-form-field>
       
             <!-- Comentario -->
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Comentario</mat-label>
-              <textarea matInput formControlName="Comentario" rows="3"></textarea>
+              <textarea matInput formControlName="Comentario" rows="3" maxlength="10000"></textarea>
+              <mat-error *ngIf="insumoForm.get('Comentario')?.hasError('maxlength')">
+                El comentario no puede exceder los 10,000 caracteres.
+              </mat-error>
             </mat-form-field>
       
           </div>
       
           <div class="buttons-container">
-            <button mat-flat-button color="primary" type="submit" [disabled]="!insumoForm.dirty">Actualizar</button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="!insumoForm.valid || !insumoForm.dirty">Actualizar</button>
             <!-- <button mat-flat-button color="warn" type="button" >Eliminar</button> -->
             <button mat-flat-button color="warn" type="button" (click)="openDialogEliminar(supplyId)">Eliminar</button>
           </div>

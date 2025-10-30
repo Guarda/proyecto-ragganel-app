@@ -31,7 +31,7 @@ import { ValidationService } from '../../../services/validation.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // **** 2. AÑADIR IMPORTS DE RxJS ****
-import { catchError, debounceTime, distinctUntilChanged, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, map, Observable, of, switchMap } from 'rxjs';
 
 @Component({
     selector: 'app-agregar-categorias-accesorios',
@@ -71,12 +71,14 @@ export class AgregarCategoriasAccesoriosComponent {
       FabricanteAccesorio: new FormControl('', Validators.required),
       CateAccesorio: new FormControl('', Validators.required),
       SubCategoriaAccesorio: new FormControl('', Validators.required),
+      // --- Se añaden validadores síncronos ---
       CodigoModeloAccesorio: new FormControl(
         '', 
-        [Validators.required], 
+        [Validators.required, Validators.maxLength(25)], 
         [this.validationService.codeExistsValidator()] 
       ),
-      LinkImagen: new FormControl('', Validators.required)
+      // --- Se añaden validadores síncronos ---
+      LinkImagen: new FormControl('', [Validators.required, Validators.maxLength(100)])
     });
 
     this.fabricanteService.getAll().subscribe((data: FabricanteAccesorio[]) => {
@@ -115,12 +117,9 @@ export class AgregarCategoriasAccesoriosComponent {
 
     formGroup.valueChanges.pipe(
       debounceTime(500),
-      // Adaptar los campos a los nombres del formulario de accesorios
-      distinctUntilChanged((prev, curr) =>
-        prev.FabricanteAccesorio === curr.FabricanteAccesorio &&
-        prev.CateAccesorio === curr.CateAccesorio &&
-        prev.SubCategoriaAccesorio === curr.SubCategoriaAccesorio
-      ),
+      // ----------------------------------------------------
+      // --- ✅ CAMBIO: 'distinctUntilChanged' ELIMINADO ---
+      // ----------------------------------------------------
       switchMap(value => {
         // Adaptar los campos a los nombres del formulario de accesorios
         if (!value.FabricanteAccesorio || !value.CateAccesorio || !value.SubCategoriaAccesorio) {
@@ -155,9 +154,12 @@ export class AgregarCategoriasAccesoriosComponent {
   }
 
   onSubmit() { 
-    // TODO: Use EventEmitter with form value
-    // console.log(this.CategoriaForm.value); 
-    // console.log("enviado");
+    // --- ✅ AÑADIDO: Guardia de validez ---
+    if (this.CategoriaForm.invalid) {
+      console.log('Formulario inválido, no se enviará.');
+      return; 
+    }
+    // --- FIN DEL AÑADIDO ---
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {
       this.Agregado.emit();
       this.router.navigateByUrl('home/listado-categorias-accesorios');

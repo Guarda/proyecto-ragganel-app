@@ -107,13 +107,16 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
       this.dataSource.filter = state.filter;
       const filterValues = JSON.parse(state.filter);
 
-      // Timeout para asegurar que el elemento de input esté disponible
       setTimeout(() => {
         if (this.inputElement) {
           this.inputElement.nativeElement.value = filterValues.text || '';
         }
-      }); this.fechaInicio = filterValues.start ? new Date(filterValues.start) : null;
-      this.fechaFin = filterValues.end ? new Date(filterValues.end) : null;
+
+        // --- CORRECCIÓN ---
+        // Mueve las asignaciones de fecha DENTRO del setTimeout
+        this.fechaInicio = filterValues.start ? new Date(filterValues.start) : null;
+        this.fechaFin = filterValues.end ? new Date(filterValues.end) : null;
+      }); // <-- El setTimeout ahora envuelve las asignaciones de fecha
     }
 
     // Restaura el paginador
@@ -141,6 +144,8 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }
 
+  // En: listado-ventas.component.ts
+
   cargarVentas(): void {
     this.isLoading = true;
     this.errorMessage = null;
@@ -150,8 +155,51 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
           this.usuario = usuariok;
           this.ventasService.listarVentasPorUsuario(this.usuario).subscribe({
             next: (data: Ventas[]) => {
-              // Se asignan los datos directamente, el pipe de Angular se encargará del formato y la zona horaria.
-              this.dataSource.data = data;
+
+              // --- INICIO DE LA CORRECCIÓN ---
+              // El backend está enviando fechas como strings en un formato
+              // que Angular no puede interpretar (ej: "22/09/2025 09:36 PM").
+              // Debemos convertirlas a objetos Date válidos antes de pasarlas a la tabla.
+              const processedData = data.map(venta => {
+                const fechaString = venta.FechaCreacion as any; // La tratamos como string
+                let fechaConvertida: Date;
+
+                // Intentamos parsear el formato "dd/MM/yyyy hh:mm a"
+                const parts = fechaString.match(/(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})\s(AM|PM)/);
+
+                if (parts) {
+                  // parts = ["22/09/2025 09:36 PM", "22", "09", "2025", "09", "36", "PM"]
+                  const day = parseInt(parts[1], 10);
+                  const month = parseInt(parts[2], 10) - 1; // Meses en JS son 0-11
+                  const year = parseInt(parts[3], 10);
+                  let hour = parseInt(parts[4], 10);
+                  const minute = parseInt(parts[5], 10);
+                  const ampm = parts[6];
+
+                  if (ampm === 'PM' && hour < 12) {
+                    hour += 12; // 1 PM -> 13
+                  }
+                  if (ampm === 'AM' && hour === 12) { // 12 AM es 00:00
+                    hour = 0;
+                  }
+
+                  fechaConvertida = new Date(year, month, day, hour, minute);
+
+                } else {
+                  // Si no coincide, puede ser un formato ISO u otro que JS sí entienda
+                  // o ya falló, pero intentamos pasarlo directo.
+                  fechaConvertida = new Date(fechaString);
+                }
+
+                // Devolvemos una copia de la venta con la fecha (ahora sí) como objeto Date
+                return {
+                  ...venta,
+                  FechaCreacion: fechaConvertida
+                };
+              });
+              // --- FIN DE LA CORRECCIÓN ---
+
+              this.dataSource.data = processedData; // Usamos los datos procesados
               this.isLoading = false;
             },
             error: (error) => {

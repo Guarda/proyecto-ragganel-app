@@ -259,6 +259,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.carritoService.refrescarCarrito(null!, null!).subscribe();
     this.subs.unsubscribe();
   }
 
@@ -374,7 +375,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
               this.listaClientes = clientesActualizados.filter(c => c.estado);
 
               // Usa 'id' para encontrar al cliente
-              const clienteParaSeleccionar = this.listaClientes.find(c => c.id === nuevoClienteCreado.idClientePK);
+              const clienteParaSeleccionar = this.listaClientes.find(c => c.id === nuevoClienteCreado.IdClientePK);
               console.log("id cliente creado ", nuevoClienteCreado)
 
               if (clienteParaSeleccionar) {

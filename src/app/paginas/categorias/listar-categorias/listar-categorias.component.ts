@@ -119,7 +119,7 @@ export class ListarCategoriasComponent implements AfterViewInit {
 
   public openDialogEditar(id: string) {
     const dialogRef = this.dialog.open(EditarCategoriasComponent, {
-      width: '70%',
+      width: '55%',
       height: '90%',
       disableClose: true,
       data: { value: id }

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -65,7 +65,8 @@ export class AgregarInsumosComponent {
     public estados: EstadoConsolasService,
     private authService: AuthService, // ✅ 2. INYECCIÓN DEL SERVICIO DE AUTENTICACIÓN
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private dialogRef: MatDialogRef<AgregarInsumosComponent> // <-- ✅ AÑADE ESTA LÍNEA
   ) { }
 
   ngOnInit(): void {
@@ -77,17 +78,35 @@ export class AgregarInsumosComponent {
       this.ImagePath = this.getimagePath('kingston-32gb-clase10.jpg');
     })
 
+    // ✅ CAMBIO: FormGroup actualizado con todos los validadores
     this.insumoForm = new FormGroup({
       FabricanteInsumo: new FormControl('', Validators.required),
       CateInsumo: new FormControl('', Validators.required),
       SubCategoriaInsumo: new FormControl('', Validators.required),
       IdModeloInsumosPK: new FormControl('', Validators.required),
-      PrecioBase: new FormControl('', Validators.required),
-      Cantidad: new FormControl('', Validators.required),
-      StockMinimo: new FormControl('', Validators.required),
+      
+      // --- VALIDACIONES AÑADIDAS ---
+      PrecioBase: new FormControl('', [
+        Validators.required, 
+        Validators.pattern(/^\d{1,4}(\.\d{1,2})?$/), // Para Decimal(6,2)
+        Validators.max(9999.99)
+      ]),
+      
+      Cantidad: new FormControl('', [
+        Validators.required, 
+        Validators.pattern(/^[0-9]+$/), // Solo números enteros
+        Validators.min(0) // int unsigned
+      ]),
+      
+      StockMinimo: new FormControl('', [
+        Validators.required, 
+        Validators.pattern(/^[0-9]+$/), // Solo números enteros
+        Validators.min(0) // int unsigned
+      ]),
+      
       EstadoInsumo: new FormControl(1, Validators.required),
-      ComentarioInsumo: new FormControl(''),
-      NumeroSerie: new FormControl('')
+      ComentarioInsumo: new FormControl('', [Validators.maxLength(10000)]), // Límite varchar(10000)
+      NumeroSerie: new FormControl('', [Validators.maxLength(100)]) // Límite varchar(100)
     });
 
     this.estados.getAll().subscribe((data: EstadosConsolas[]) => {
@@ -166,10 +185,13 @@ export class AgregarInsumosComponent {
     };
     
     // ✅ 6. Enviar los datos completos al servicio
+    // --- ✅ CAMBIO CLAVE ---
+    // 'res' es el objeto que esperamos del backend (ej: { success: true, action: 'updated', ... })
     this.insumosService.create(insumoData).subscribe((res: any) => {
       this.Agregado.emit();
-      // Se elimina la navegación, ya que este componente funcionará como un diálogo.
-      // this.router.navigateByUrl('home/listado-insumos');
+      
+      // En lugar de cerrar con 'true', cerramos con la respuesta completa
+      this.dialogRef.close(res); 
     });
 
   }

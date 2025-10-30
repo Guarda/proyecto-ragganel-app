@@ -3,7 +3,7 @@ import { CategoriasConsolasService } from '../../../services/categorias-consolas
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
 import { ProductosService } from '../productos.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 
 import { Producto } from '../../interfaces/producto';
@@ -86,19 +86,51 @@ export class VerProductoComponent implements OnInit {
     private authService: AuthService // ✅ AÑADIDO
   ) {
     // --- CAMBIO 1: Inicializa el formulario aquí ---
+    // --- ✅ CAMBIO: Se añaden los validadores al FormGroup ---
     this.productoForm = this.fb.group({
       Fabricante: [''],
       IdModeloConsolaPK: [''],
-      ColorConsola: [''],
+      
+      ColorConsola: ['', [Validators.maxLength(100)]], // Límite 100
+      
       EstadoConsola: [0],
       HackConsola: [false],
-      ComentarioConsola: [''],
-      PrecioBase: ['0.00'],
-      NumeroSerie: [''],
+      
+      ComentarioConsola: ['', [Validators.maxLength(10000)]], // Límite 10k
+      
+      PrecioBase: ['0.00', [
+        Validators.required,
+        Validators.pattern(/^\d{1,4}(\.\d{1,2})?$/), // Para Decimal(6,2)
+        Validators.max(9999.99)
+      ]],
+      
+      NumeroSerie: ['', [Validators.maxLength(100)]], // Límite 100
+      
       Cate: [''],
       SubCategoria: [''],
-      Accesorios: [[]]
+      
+      // Límite 500 (usando la función que añadiremos abajo)
+      Accesorios: [[], [this.accesoriosLengthValidator(500)]] 
     });
+  }
+
+  // ✅ AÑADIDO: Validador personalizado para la longitud de accesorios
+  /**
+   * Validador personalizado para la longitud total de los accesorios.
+   */
+  accesoriosLengthValidator(max: number) {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value as string[];
+      if (!value || value.length === 0) {
+        return null; // Válido si está vacío
+      }
+      // Convertimos el array a un string JSON (ej: ["Cargador","Cable"])
+      const jsonString = JSON.stringify(value);
+      
+      return jsonString.length > max 
+        ? { 'totalLengthExceeded': { requiredLength: max, actualLength: jsonString.length } } 
+        : null;
+    };
   }
 
   ngOnInit(): void {
@@ -254,6 +286,17 @@ export class VerProductoComponent implements OnInit {
 
 
   onSubmit() {
+    // --- ✅ AÑADIDO: Guardia de validez ---
+    // Marca todos los campos como "tocados" para mostrar errores
+    this.productoForm.markAllAsTouched();
+
+    // Si el formulario es inválido (por el patrón o cualquier otra razón), detiene todo.
+    if (this.productoForm.invalid) {
+      console.error('Formulario inválido, no se enviará.');
+      return;
+    }
+    // --- FIN DEL AÑADIDO ---
+
     if (!this.productoForm.dirty) {
       return; // Exit if the form has not been modified
     }

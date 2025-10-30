@@ -31,9 +31,12 @@
         </mat-form-field>    
         <mat-form-field class="input-form-prod">
           <mat-label>Prefijo de la consola</mat-label>
-          <input formControlName="CodigoModeloConsola" matInput cdkFocusInitial>
+          <input formControlName="CodigoModeloConsola" matInput cdkFocusInitial maxlength="25">
           <mat-error *ngIf="categoriaForm.get('CodigoModeloConsola')?.hasError('required')">
             El código es requerido.
+          </mat-error>
+          <mat-error *ngIf="categoriaForm.get('CodigoModeloConsola')?.hasError('maxlength')">
+            El prefijo no puede exceder los 25 caracteres.
           </mat-error>
           <mat-error *ngIf="categoriaForm.get('CodigoModeloConsola')?.hasError('codeExists')">
             Este código ya está en uso. Por favor, elige otro.
@@ -56,6 +59,6 @@
 </div>
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancelar</button>
-  <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" (Click)="onSubmit()" [disabled]="!categoriaForm.valid">Guardar Cambios</button>
+  <button mat-button type="submit" [mat-dialog-close]="true" cdkFocusInitial class="btn btn-secundary" color="primary" [disabled]="!categoriaForm.valid">Guardar Cambios</button>
 </mat-dialog-actions>
 </form>

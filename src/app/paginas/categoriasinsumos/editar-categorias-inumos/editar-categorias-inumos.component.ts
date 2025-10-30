@@ -65,14 +65,20 @@ export class EditarCategoriasInumosComponent implements OnInit {
     // Usamos los nombres en plural que coinciden con la base de datos
     this.categoriaForm = this.fb.group({
       IdModeloInsumosPK: [''],
-      FabricanteInsumos: ['', Validators.required],
-      CategoriaInsumos: ['', Validators.required],
-      SubcategoriaInsumos: ['', Validators.required],
+      
+      // --- ✅ CAMBIO: Se inicializan como deshabilitados ---
+      FabricanteInsumos: [{ value: '', disabled: true }, Validators.required],
+      CategoriaInsumos: [{ value: '', disabled: true }, Validators.required],
+      SubcategoriaInsumos: [{ value: '', disabled: true }, Validators.required],
+      
       CodigoModeloInsumos: ['',
-        [Validators.required],
+        // --- ✅ CAMBIO: Se añade maxLength(25) ---
+        [Validators.required, Validators.maxLength(25)],
         [this.validationService.codeExistsValidator(() => this.originalCodigoModeloInsumos)]
       ],
-      LinkImagen: ['', Validators.required]
+      
+      // --- ✅ CAMBIO: Se añade maxLength(100) ---
+      LinkImagen: ['', [Validators.required, Validators.maxLength(100)]]
     });
   }
 

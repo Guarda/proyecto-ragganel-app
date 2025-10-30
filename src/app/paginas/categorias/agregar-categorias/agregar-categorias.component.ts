@@ -74,10 +74,12 @@ export class AgregarCategoriasComponent {
       SubCategoria: new FormControl('', Validators.required),
       CodigoModeloConsola: new FormControl(
         '',
-        [Validators.required], 
+        // --- SE AÑADE EL VALIDADOR DE MAXLENGTH ---
+        [Validators.required, Validators.maxLength(25)], 
         [this.validationService.codeExistsValidator()]
       ),
-      LinkImagen: new FormControl('', Validators.required),
+      // --- SE AÑADE EL VALIDADOR DE MAXLENGTH ---
+      LinkImagen: new FormControl('', [Validators.required, Validators.maxLength(100)]),
       TipoProducto: new FormControl('', Validators.required)
     });
 
@@ -130,12 +132,6 @@ export class AgregarCategoriasComponent {
     formGroup.valueChanges.pipe(
       // Espera 500ms después de que el usuario deja de hacer cambios
       debounceTime(500),
-      // Solo continúa si los 3 campos relevantes cambiaron
-      distinctUntilChanged((prev, curr) =>
-        prev.Fabricante === curr.Fabricante &&
-        prev.Cate === curr.Cate &&
-        prev.SubCategoria === curr.SubCategoria
-      ),
       // Cancela la petición anterior y hace una nueva
       switchMap(value => {
         // Si los campos están vacíos, no valida y devuelve 'null' (sin error)
@@ -181,10 +177,11 @@ export class AgregarCategoriasComponent {
   }
 
   onSubmit() {
+    if (this.CategoriaForm.invalid) {
+      console.log('Formulario inválido, no se enviará.');
+      return; 
+    }
     console.log("enviado");
-    // TODO: Use EventEmitter with form value
-    // console.log(this.CategoriaForm.value); 
-    // console.log("enviado");
     this.categoriaService.create(this.CategoriaForm.value).subscribe((res: any) => {
       this.Agregado.emit();
       this.router.navigateByUrl('home/listado-categorias');

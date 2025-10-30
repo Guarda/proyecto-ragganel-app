@@ -61,14 +61,21 @@ export class EditarCategoriasAccesoriosComponent {
     // FIX 1: Inicializar el formulario en el constructor con una estructura vacía.
     this.categoriaForm = this.fb.group({
       IdModeloAccesorioPK: [''],
-      FabricanteAccesorio: ['', Validators.required],
-      CateAccesorio: ['', Validators.required],
-      SubCategoriaAccesorio: ['', Validators.required],
-      CodigoModeloAccesorio: ['',
-        [Validators.required],
+      
+      // --- CAMBIO: Se inicializan como deshabilitados ---
+      FabricanteAccesorio: [{ value: '', disabled: true }, Validators.required],
+      CateAccesorio: [{ value: '', disabled: true }, Validators.required],
+      SubCategoriaAccesorio: [{ value: '', disabled: true }, Validators.required],
+      
+      CodigoModeloAccesorio: [
+        '',
+        // --- CAMBIO: Se añade maxLength(25) ---
+        [Validators.required, Validators.maxLength(25)],
         [this.validationService.codeExistsValidator(() => this.originalCodigoModeloAccesorio)]
       ],
-      LinkImagen: ['', Validators.required]
+      
+      // --- CAMBIO: Se añade maxLength(100) ---
+      LinkImagen: ['', [Validators.required, Validators.maxLength(100)]]
     });
   }
 

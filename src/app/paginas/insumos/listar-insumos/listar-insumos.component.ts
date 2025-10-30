@@ -11,6 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+// En la parte superior de listar-insumos.component.ts
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // <-- Añade el Módulo
 import { Subscription } from 'rxjs';
 
 import { InsumosBase } from '../../interfaces/insumosbase';
@@ -20,14 +22,15 @@ import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.c
 import { HistorialInsumoComponent } from '../historial-insumo/historial-insumo.component';
 import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
 import { TableState } from '../../interfaces/table-state';
+import { AgregarInsumosComponent } from '../agregar-insumos/agregar-insumos.component';
 
 @Component({
     selector: 'app-listar-insumos',
     standalone: true,
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
+        MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule // <-- ✅ AÑADE ESTO
     ],
     templateUrl: './listar-insumos.component.html',
     styleUrls: ['./listar-insumos.component.css']
@@ -49,7 +52,8 @@ export class ListarInsumosComponent implements OnInit, AfterViewInit, OnDestroy 
   constructor(
     public insumosService: InsumosBaseService,
     private dialog: MatDialog,
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private snackBar: MatSnackBar // <-- ✅ AÑADE ESTO
   ) {}
 
   ngOnInit(): void {
@@ -164,15 +168,38 @@ export class ListarInsumosComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   public openDialogAgregar() {
-  const dialogRef = this.dialog.open(IngresarAgregarInsumoDialogComponent, {
-    width: '500px',
+  // ✅ CAMBIO: Apunta al componente que sí tiene la lógica de dialogRef.close(true)
+  const dialogRef = this.dialog.open(AgregarInsumosComponent, {
+    width: '1000px', // O el ancho que prefieras, '500px' se veía bien
     disableClose: true,
   });
+
   dialogRef.afterClosed().subscribe(result => {
-    console.log('Dialog closed with result:', result); // <--- AÑADE ESTO
-    if (result) {
-      console.log('Refreshing supply list...'); // <--- Y ESTO
-      this.getSupplyList();
+    // 'result' ya no es 'true', sino el objeto { success: true, action: '...', ... }
+    
+    if (result && result.success) {
+      
+      // 1. Refresca la lista (esto ya lo hacías)
+      this.getSupplyList(); 
+      
+      // 2. Muestra el mensaje contextual
+      let mensaje = '';
+      if (result.action === 'updated') {
+        mensaje = `El insumo ${result.codigo} ya existía. Se actualizó el stock.`;
+      } else if (result.action === 'created') {
+        mensaje = `Nuevo insumo ${result.codigo} creado con éxito.`;
+      } else if (result.action === 'reactivated') {
+         mensaje = `El insumo ${result.codigo} estaba eliminado y ha sido reactivado.`;
+      }
+
+      this.snackBar.open(mensaje, 'Cerrar', {
+        duration: 5000,
+        panelClass: ['snackbar-info'] // (Opcional: puedes añadir CSS para este estilo)
+      });
+
+    } else if (result) {
+       // Falló en el backend pero devolvió una respuesta
+       console.error("La operación falló:", result);
     }
   });
 }

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
 
@@ -78,6 +78,25 @@ export class VerAccesorioComponent implements OnInit, OnDestroy {
   usuario!: Usuarios; // ✅ AÑADIDO
   private subs = new Subscription(); // ✅ AÑADIDO
 
+  // ✅ AÑADIDO: Validador personalizado para la longitud de los chips
+  /**
+   * Validador personalizado para la longitud total de los productos compatibles.
+   */
+  productosCompatiblesLengthValidator(max: number) {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value as string[];
+      if (!value || value.length === 0) {
+        return null; // Válido si está vacío
+      }
+      // Convertimos el array a un string JSON (ej: ["PS4","PS5"])
+      const jsonString = JSON.stringify(value);
+      
+      return jsonString.length > max 
+        ? { 'totalLengthExceeded': { requiredLength: max, actualLength: jsonString.length } } 
+        : null;
+    };
+  }
+
   constructor(
     public categorias: CategoriasAccesoriosService,
     public estados: EstadoConsolasService,
@@ -92,17 +111,30 @@ export class VerAccesorioComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private authService: AuthService // ✅ AÑADIDO
   ) {
+    // ✅ CAMBIO: Se actualiza el FormGroup con todos los validadores
     this.accesorioForm = this.fb.group({
       FabricanteAccesorio: [''],
       IdModeloAccesorioPK: [''],
-      ColorAccesorio: [''],
+
+      // --- VALIDACIONES AÑADIDAS ---
+      ColorAccesorio: ['', [Validators.maxLength(100)]], // Límite varchar(100)
+      
       EstadoAccesorio: [0],
-      ComentarioAccesorio: [''],
-      PrecioBase: ['0.00'],
-      NumeroSerie: [''],
+      
+      ComentarioAccesorio: ['', [Validators.maxLength(10000)]], // Límite varchar(10000)
+      
+      PrecioBase: ['0.00', [ // Límite Decimal(6,2)
+        Validators.required,
+        Validators.pattern(/^\d{1,4}(\.\d{1,2})?$/), // 4 dígitos enteros, 2 decimales
+        Validators.max(9999.99)
+      ]],
+      
+      NumeroSerie: ['', [Validators.maxLength(100)]], // Límite varchar(100)
+      // --- FIN DE VALIDACIONES ---
+
       CateAccesorio: [''],
       SubCategoriaAccesorio: [''],
-      ProductosCompatibles: [[]]
+      ProductosCompatibles: [[], [this.productosCompatiblesLengthValidator(500)]] // Límite varchar(500)
     });
   }
 
@@ -230,6 +262,17 @@ export class VerAccesorioComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    // --- ✅ AÑADIDO: Guardia de validez ---
+    // Marca todos los campos como "tocados" para mostrar errores si no lo están
+    this.accesorioForm.markAllAsTouched();
+
+    // Si el formulario es inválido (por el patrón o cualquier otra razón), detiene todo.
+    if (this.accesorioForm.invalid) {
+      console.error('Formulario inválido, no se enviará.');
+      return;
+    }
+    // --- FIN DEL AÑADIDO ---
+
     if (!this.accesorioForm.dirty) {
       return;
     }
