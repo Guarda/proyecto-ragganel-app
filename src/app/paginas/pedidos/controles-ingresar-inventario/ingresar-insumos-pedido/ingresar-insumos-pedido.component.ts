@@ -5,7 +5,8 @@ import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+// 1. AÑADIR IMPORTS
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -95,12 +96,58 @@ export class IngresarInsumosPedidoComponent {
       return;
     }
 
+    // --- AÑADIDO: Aplicar validadores ---
+    this.addValidatorsToForm();
+    // --- FIN DEL CAMBIO ---
+
     // Solución para ExpressionChangedAfterItHasBeenCheckedError
     setTimeout(() => {
       this.cargarDatosParaSelects();
       this.establecerValoresIniciales();
       this.cargarDatosDinamicosDelArticulo();
     });
+  }
+
+  // --- AÑADIDO: Nuevo método para establecer los validadores ---
+  private addValidatorsToForm(): void {
+    // Basado en la ruta /api/pre-ingreso/insumo en pre-ingreso.js
+    
+    // ComentarioInsumo: VARCHAR(10000) (asumido)
+    this.form.get('ComentarioInsumo')?.setValidators([Validators.maxLength(10000)]);
+    
+    // PrecioBase: DECIMAL(10,2) (asumido)
+    this.form.get('PrecioBase')?.setValidators([
+        Validators.required, 
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/), // 8 dígitos + 2 decimales
+        Validators.max(99999999.99) 
+    ]);
+    
+    // CostoDistribuido: DECIMAL(10,2) (asumido)
+    this.form.get('CostoDistribuido')?.setValidators([
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/),
+        Validators.max(99999999.99)
+    ]);
+    
+    // Cantidad: INT (debe ser entero positivo)
+    this.form.get('Cantidad')?.setValidators([
+        Validators.required,
+        Validators.pattern(/^[1-9][0-9]*$/), // Solo enteros positivos
+        Validators.min(1)
+    ]);
+    
+    // StockMinimo: INT (debe ser entero, 0 o más)
+    this.form.get('StockMinimo')?.setValidators([
+        Validators.required,
+        Validators.pattern(/^[0-9]+$/), // Solo enteros no-negativos
+        Validators.min(0)
+    ]);
+
+    // NumeroSerie: VARCHAR(100) (asumido)
+    // (Este campo está en el FormGroup del padre, aunque no esté en el HTML del hijo)
+    this.form.get('NumeroSerie')?.setValidators([Validators.maxLength(100)]);
+
+    // Actualizamos el formulario para que los validadores tomen efecto
+    this.form.updateValueAndValidity({ emitEvent: false });
   }
 
   private cargarDatosParaSelects(): void {

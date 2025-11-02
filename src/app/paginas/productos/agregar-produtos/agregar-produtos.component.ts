@@ -30,7 +30,7 @@ import { CategoriaProductoService } from '../../../services/categoria-producto.s
 import { SubcategoriaProductoService } from '../../../services/subcategoria-producto.service';
 import { TiposAccesoriosService } from '../../../services/tipos-accesorios.service';
 // ✅ MANTENIDO: Importación del tipo específico para la lógica segura
-import { TipoAccesorio } from '../../../services/tipos-accesorios.service';
+import { TipoAccesorio } from '../../interfaces/tipoaccesorio';
 // ✅ AÑADIDO: Importación del servicio de autenticación
 import { AuthService } from '../../../UI/session/auth.service';
 

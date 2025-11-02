@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field'; // <-- Importar MatError
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
@@ -15,11 +15,17 @@ import { IndexListadoInsumosComponent } from '../index-listado-insumos/index-lis
 import { ServiciosService } from '../../../services/servicios.service';
 import { ServiciosBase } from '../../interfaces/servicios';
 import { MatDialogRef } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // <-- Importar para spinner
 
 @Component({
     selector: 'app-agregar-servicio',
-    imports: [NgFor, NgIf, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
-        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatTableModule, IndexListadoInsumosComponent],
+    imports: [
+        NgFor, NgIf, ReactiveFormsModule, MatSelectModule, MatDialogModule, MatButtonModule, MatIcon,
+        MatFormField, MatLabel, FormsModule, MatInputModule, MatFormFieldModule, MatTableModule,
+        IndexListadoInsumosComponent,
+        MatError, // <-- Añadir MatError
+        MatProgressSpinnerModule // <-- Añadir Spinner
+    ],
     templateUrl: './agregar-servicio.component.html',
     styleUrl: './agregar-servicio.component.css'
 })
@@ -28,6 +34,7 @@ export class AgregarServicioComponent {
   servicioForm!: FormGroup;
 
   mostrarInsumos = false;
+  isSubmitting = false; // <-- 1. Bandera para evitar doble envío
 
   Agregado = new EventEmitter();
   // Insumos seleccionados y añadidos con cantidad
@@ -43,10 +50,20 @@ export class AgregarServicioComponent {
     private servicioService: ServiciosService,
      private dialogRef: MatDialogRef<AgregarServicioComponent>
   ) {
+    // --- 2. "Blindaje" de validadores basado en la BD ---
     this.servicioForm = this.fb.group({
-      DescripcionServicio: ['', Validators.required],
-      PrecioBase: [null, [Validators.required, Validators.min(0)]],
-      Comentario: ['']
+      DescripcionServicio: ['', [
+        Validators.required,
+        Validators.maxLength(255) // Límite de la BD
+      ]],
+      PrecioBase: [null, [
+        Validators.required,
+        Validators.min(0),
+        Validators.max(9999.99) // Límite por Decimal(6,2)
+      ]],
+      Comentario: ['', [
+        Validators.maxLength(10000) // Límite de la BD
+      ]]
     });
   }
 
@@ -85,31 +102,22 @@ export class AgregarServicioComponent {
   }
 
   onSubmit() {
-    if (this.servicioForm.valid) {
-      const servicio = this.servicioForm.value;
-      const insumosValidos = this.mostrarInsumos
-        ? this.insumosAgregados.filter(i => i.Cantidad > 0)
-        : [];
+    // 3. Validar si el formulario es inválido o si ya se está enviando
+    if (this.servicioForm.invalid || this.isSubmitting) {
+      return;
+    }
 
-      const payload = {
-        servicio: {
-          DescripcionServicio: servicio.DescripcionServicio,
-          PrecioBase: servicio.PrecioBase,
-          Comentario: servicio.Comentario
-        },
-        insumos: insumosValidos.map(i => ({
-          CodigoInsumoFK: i.Codigo,
-          CantidadDescargue: i.Cantidad
-        }))
-      };
+    // 4. Activar la bandera de envío
+    this.isSubmitting = true;
 
-      if (this.servicioForm.valid) {
         const servicio = this.servicioForm.value;
 
         // Validar insumos
         const insumosValidos = this.insumosAgregados.filter(i => i.Cantidad > 0);
         if (this.mostrarInsumos && insumosValidos.length === 0) {
           console.warn('No se pueden enviar insumos con cantidad 0 o negativa.');
+          // 5. Desactivar bandera si hay error lógico
+          this.isSubmitting = false; 
           return;
         }
 
@@ -133,14 +141,16 @@ export class AgregarServicioComponent {
             console.log('Servicio creado exitosamente:', response);
             this.Agregado.emit();
             this.dialogRef.close(true); // ← esto cierra el diálogo
-            //this.router.navigate(['/home/listado-servicios']);
+            // 6. Desactivar bandera al finalizar (éxito)
+            // this.isSubmitting = false; // No es necesario si el diálogo se cierra
           },
           error: (error) => {
             console.error('Error al crear el servicio:', error);
+            // 6. Desactivar bandera al finalizar (error)
+            this.isSubmitting = false;
           }
         });
-      }
-    }
+      
   }
 
 }

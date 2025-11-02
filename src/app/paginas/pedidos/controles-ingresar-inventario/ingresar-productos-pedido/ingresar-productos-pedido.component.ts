@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../../interfaces/categorias';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -89,12 +89,52 @@ export class IngresarProductosPedidoComponent {
       return;
     }
 
+    // --- INICIO DE CAMBIOS: AÑADIR VALIDADORES ---
+    this.addValidatorsToForm();
+    // --- FIN DE CAMBIOS ---
+
     this.cargarDatosParaSelects();
     this.establecerValoresIniciales();
     this.cargarDatosDinamicosDelArticulo();
   }
 
-  private cargarDatosParaSelects(): void {
+  // --- AÑADIDO: Nuevo método para establecer los validadores ---
+  private addValidatorsToForm(): void {
+    // Límites basados en sp_UpsertPreIngresoProducto
+    
+    // p_NumeroSerie: VARCHAR(100)
+    this.form.get('NumeroSerie')?.setValidators([Validators.maxLength(100)]);
+    
+    // p_Color: VARCHAR(100)
+    this.form.get('ColorConsola')?.setValidators([Validators.maxLength(100)]);
+    
+    // p_Comentario: TEXT (Usamos 10000 como en agregar-produtos)
+    this.form.get('ComentarioConsola')?.setValidators([Validators.maxLength(10000)]);
+    
+    // p_PrecioBase: DECIMAL(10,2) (Hasta 99,999,999.99)
+    this.form.get('PrecioBase')?.setValidators([
+        Validators.required, 
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/), // 8 dígitos + 2 decimales
+        Validators.max(99999999.99) 
+    ]);
+    
+    // p_CostoDistribuido: DECIMAL(10,2)
+    this.form.get('CostoDistribuido')?.setValidators([
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/),
+        Validators.max(99999999.99)
+    ]);
+    
+    // p_Accesorios: VARCHAR(500)
+    this.form.get('Accesorios')?.setValidators([this.jsonLengthValidator(500)]);
+    
+    // p_TareasPendientes: VARCHAR(1000)
+    this.form.get('TodoList')?.setValidators([this.jsonLengthValidator(1000)]);
+
+    // Actualizamos el formulario para que los validadores tomen efecto
+    this.form.updateValueAndValidity({ emitEvent: false });
+  }
+
+    private cargarDatosParaSelects(): void {
     this.estados.getAll().subscribe(data => this.selectedEstado = data);
     this.fabricanteService.getAllBase().subscribe(data => this.selectedFabricante = data);
     this.categoriaproductoService.getAllBase().subscribe(data => this.selectedCategoriaProducto = data);
@@ -183,6 +223,27 @@ export class IngresarProductosPedidoComponent {
     });
   }
 
+  // --- AÑADIDO: Validador genérico de `agregar-produtos.ts` ---
+  /**
+   * Validador personalizado para la longitud total de un array (chips).
+   * Comprueba la longitud del array de strings una vez convertido a JSON,
+   * que es como se enviará al backend.
+   * @param max La longitud máxima permitida para el string JSON.
+   */
+  jsonLengthValidator(max: number) {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value as string[];
+      if (!value || value.length === 0) {
+        return null; // Válido si está vacío
+      }
+      
+      const jsonString = JSON.stringify(value);
+      
+      return jsonString.length > max 
+        ? { 'totalLengthExceeded': { requiredLength: max, actualLength: jsonString.length } } 
+        : null;
+    };
+  }
 
   
 

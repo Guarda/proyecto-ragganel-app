@@ -16,6 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TiposAccesoriosService } from '../../../../services/tipos-accesorios.service';
 import { TipoAccesorio } from '../../../interfaces/tipoaccesorio';
 import { AgregarTipoAccesorioComponent } from '../agregar-tipo-accesorio/agregar-tipo-accesorio.component';
+import { EditarTipoAccesorioComponent } from '../editar-tipo-accesorio/editar-tipo-accesorio.component';
+import { EliminarTipoAccesorioComponent } from '../eliminar-tipo-accesorio/eliminar-tipo-accesorio.component';
 
 // 2. Asumir los nombres de los diálogos (reemplaza cuando los crees)
 // import { AgregarTipoAccesorioComponent } from '../agregar-tipo-accesorio/agregar-tipo-accesorio.component';
@@ -127,9 +129,8 @@ export class ListadoTipoAccesorioComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
 
-  /*
+
   public openDialogEditar(id: number) { // El ID es numérico
     const dialogRef = this.dialog.open(EditarTipoAccesorioComponent, {
       width: '500px', // Ajusta el tamaño
@@ -137,31 +138,24 @@ export class ListadoTipoAccesorioComponent implements OnInit, AfterViewInit {
       data: { id: id } // Pasamos el ID al diálogo
     });
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.getListadoTiposAccesorios();
+      if (result) { // Si el diálogo se cerró guardando (true)
+        this.getListadoTiposAccesorios(); // Recarga la lista
       }
     });
   }
-  */
 
-  /*
+  // AÑADE ESTE MÉTODO:
   public openDialogEliminar(id: number) { // El ID es numérico
     const dialogRef = this.dialog.open(EliminarTipoAccesorioComponent, {
-      width: '400px', // Ajusta el tamaño
+      width: '450px', // Ajusta el tamaño
       disableClose: true,
       data: { id: id } // Pasamos el ID al diálogo
     });
+
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.getListadoTiposAccesorios();
+      if (result) { // Si el diálogo se cerró con éxito (true)
+        this.getListadoTiposAccesorios(); // Recarga la lista
       }
     });
   }
-  */
-
-  // --- Métodos Provisionales (para que los botones no den error) ---
-  // BORRA ESTO cuando descomentes los métodos de diálogo de arriba
-  public openDialogEditar(id: number) { console.log('Abrir diálogo editar para ID:', id); }
-  public openDialogEliminar(id: number) { console.log('Abrir diálogo eliminar/desactivar para ID:', id); }
-
 }

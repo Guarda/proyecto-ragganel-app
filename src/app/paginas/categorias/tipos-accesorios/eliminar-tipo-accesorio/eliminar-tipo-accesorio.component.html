@@ -1,1 +1,40 @@
-<p>eliminar-tipo-accesorio works!</p>
+<h3 mat-dialog-title>
+  <mat-icon color="warn">warning</mat-icon>
+  <span>Desactivar Tipo de Accesorio</span>
+</h3>
+
+<mat-dialog-content class="mat-typography">
+
+  <div *ngIf="isLoadingDetails" class="spinner-container">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <div *ngIf="!isLoadingDetails">
+    <p>¿Estás seguro de que deseas desactivar el tipo de accesorio?</p>
+    
+    <p class="item-name">
+      <strong>{{ nombreAccesorio }}</strong>
+    </p>
+
+    <p class="warning-text">
+      Esta acción lo marcará como 'Inactivo' y no podrá ser seleccionado en futuros registros.
+    </p>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isLoading">
+    Cancelar
+  </button>
+  
+  <button mat-raised-button color="warn" (click)="onConfirmDeactivate()" [disabled]="isLoading || isLoadingDetails">
+    <span *ngIf="!isLoading">Sí, Desactivar</span>
+    
+    <span *ngIf="isLoading" class="loading-button-content">
+      <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+      <span>Desactivando...</span>
+    </span>
+  </button>
+</mat-dialog-actions>

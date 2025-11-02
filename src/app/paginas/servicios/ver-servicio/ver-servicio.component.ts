@@ -26,11 +26,15 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { CategoriasInsumosService } from '../../../services/categorias-insumos.service';
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // <-- 1. IMPORTAR SPINNER
 
 @Component({
     selector: 'app-ver-servicio',
     imports: [RouterModule, ReactiveFormsModule, MatFormField, MatLabel, NgFor, NgIf, MatOption, MatInputModule, MatOptionModule,
-        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule, IndexListadoInsumosEditarComponent, NgIf, MatInputModule, MatOptionModule, MatLabel],
+        MatSelectModule, MatButtonModule, MatIcon, FormsModule, MatFormFieldModule, MatChipsModule,
+        IndexListadoInsumosEditarComponent, NgIf, MatInputModule, MatOptionModule, MatLabel,
+        MatProgressSpinnerModule // <-- 2. AÑADIR SPINNER A IMPORTS
+    ],
     templateUrl: './ver-servicio.component.html',
     styleUrl: './ver-servicio.component.css'
 })
@@ -52,6 +56,9 @@ export class VerServicioComponent {
   dataToDisplay: InsumosBase[] = [];
 
   public serviceId: any;
+  
+  // --- 3. AÑADIR BANDERA DE ENVÍO ---
+  isSubmitting = false;
 
   constructor(
     private fb: FormBuilder,
@@ -63,12 +70,21 @@ export class VerServicioComponent {
     private cateinsumoService: CategoriasInsumosService,
     public dialog: MatDialog
   ) {
+    // --- 4. CORREGIR EL FORMGROUP ---
+    // Incluir SOLO los campos que están en el HTML y añadir validadores de BD
     this.servicioForm = this.fb.group({
-      DescripcionServicio: ['', Validators.required],
-      PrecioBase: [null, [Validators.required, Validators.min(0)]],
-      EstadoServicioFK: ['', Validators.required],
-      Fecha_Ingreso: ['', Validators.required],
-      Comentario: ['']
+      DescripcionServicio: ['', [
+        Validators.required,
+        Validators.maxLength(255) // Límite de la BD
+      ]],
+      PrecioBase: [null, [
+        Validators.required,
+        Validators.min(0),
+        Validators.max(9999.99) // Límite por Decimal(6,2)
+      ]],
+      Comentario: ['', [
+        Validators.maxLength(10000) // Límite de la BD
+      ]]
     });
   }
 
@@ -101,11 +117,12 @@ export class VerServicioComponent {
       if (results.servicio && results.servicio.length > 0) {
         const servicioData = results.servicio[0] as ServicioEditar;
         this.servicioActual = servicioData;
+
+        // --- 5. CORREGIR PATCHVALUE ---
+        // "Parchear" solo los valores del formulario
         this.servicioForm.patchValue({
           DescripcionServicio: servicioData.DescripcionServicio || '',
           PrecioBase: servicioData.PrecioBase || 0,
-          EstadoServicioFK: servicioData.Estado || null,
-          Fecha_Ingreso: servicioData.Fecha_Ingreso || null,
           Comentario: servicioData.Comentario || ''
         });
       }
@@ -285,25 +302,67 @@ export class VerServicioComponent {
     return 'Ingresar Insumos';
   }
 
+  // --- 6. "BLINDAR" MÉTODO DE CONFIRMACIÓN ---
   confirmarCambios() {
-    if (this.servicioForm.invalid) return;
+    // Validar si el formulario es inválido o si ya se está enviando
+    if (this.servicioForm.invalid || this.isSubmitting) {
+      return;
+    }
 
-    const servicioEditado = this.servicioForm.value;
+    // Activar la bandera de envío
+    this.isSubmitting = true;
+
+    // Obtener los valores editables desde el formulario
+    const formValues = this.servicioForm.value;
+
+    // --- INICIO DE LA CORRECCIÓN ---
+
+    // 2. Construir el objeto 'servicio' anidado
+    //    (Combinando el form, los datos no editables, y el ID)
+    const servicioData = {
+      // Campos del formulario
+      DescripcionServicio: formValues.DescripcionServicio,
+      PrecioBase: formValues.PrecioBase,
+      Comentario: formValues.Comentario,
+
+      // Campos NO editables (los tomamos del objeto 'servicioActual' cargado en ngOnInit)
+      EstadoServicioFK: this.servicioActual?.Estado,
+      Fecha_Ingreso: this.servicioActual?.Fecha_Ingreso,
+
+      // El ID del servicio que se está actualizando
+      CodigoServicio: this.serviceId 
+    };
+
+    // 3. Construir el array 'insumos' anidado
+    //    (Mapeando tu array 'insumosAgregados' al formato que el SP espera)
+    const insumosData = this.insumosAgregados.map(i => ({
+      CodigoInsumoFK: i.Codigo,       // Mapear 'Codigo' a 'CodigoInsumoFK'
+      CantidadDescargue: i.Cantidad // Mapear 'Cantidad' a 'CantidadDescargue'
+    }));
+
+    // 4. Crear el payload final que SÍ coincide con la interfaz 'ServiciosBase'
     const payload = {
-      ...servicioEditado,
-      CodigoServicio: this.serviceId,
-      InsumosAgregados: this.insumosAgregados
+      servicio: servicioData,
+      insumos: insumosData
     };
 
     this.servicioService.update(payload).subscribe(
       (response) => {
         console.log('Servicio actualizado:', response);
-        // alert('Servicio actualizado con éxito');
+        
+        // Desactivar bandera al finalizar (éxito)
+        this.isSubmitting = false; 
+        
         this.dialog.open(SuccessdialogComponent); // Mostrar el diálogo de éxito
-        //this.router.navigate(['/servicios']);
+        
+        // Marcamos el formulario como "limpio" (pristine) para que el botón se deshabilite
+        this.servicioForm.markAsPristine();
       },
       (error) => {
         console.error('Error al actualizar el servicio:', error);
+        
+        // Desactivar bandera al finalizar (error)
+        this.isSubmitting = false; 
         alert('Error al actualizar el servicio');
       }
     );

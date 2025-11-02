@@ -50,10 +50,18 @@ router.get('/activos', (req, res) => {
  * @access  Private (Asumido)
  */
 router.get('/:id', (req, res) => {
-    const idTipoAccesorio = req.params.id;
+    // ---- ⬇️ CORRECCIÓN ⬇️ ----
+    // Convertimos el ID de la URL (string) a un número entero.
+    const idTipoAccesorio = parseInt(req.params.id, 10);
+
+    // Validamos si el resultado es un número válido.
+    if (isNaN(idTipoAccesorio)) {
+        return res.status(400).json({ error: 'El ID proporcionado no es un número válido.' });
+    }
+    // ---- ⬆️ FIN CORRECCIÓN ⬆️ ----
     const sql = `CALL \`${dbConfig.database}\`.\`sp_GetTipoAccesorioById\`(?);`;
 
-    Basedatos.query(sql, [idTipoAccesorio], (err, results) => {
+    Basedatos.query(sql, [idTipoAccesorio], (err, results) => { // Ahora pasamos un número
         if (err) {
             console.error('Error al obtener tipo de accesorio por ID:', err);
             return res.status(500).json({ error: 'Error en el servidor.' });
@@ -97,18 +105,28 @@ router.post('/', (req, res) => {
  * @access  Private (Asumido)
  */
 router.put('/:id', (req, res) => {
-    const idTipoAccesorio = req.params.id;
+    // ---- ⬇️ CORRECCIÓN ⬇️ ----
+    // Hacemos la misma validación que en el GET /:id
+    const idTipoAccesorio = parseInt(req.params.id, 10);
+
+    if (isNaN(idTipoAccesorio)) {
+        return res.status(400).json({ error: 'El ID proporcionado no es un número válido.' });
+    }
+    // ---- ⬆️ FIN CORRECCIÓN ⬆️ ----
+
     // Nombres coinciden con el SP: p_CodigoAccesorio, p_DescripcionAccesorio, p_Activo
     const { CodigoAccesorio, DescripcionAccesorio, Activo } = req.body;
-
-    // Validamos que 'Activo' sea explícitamente true o false
-    if (!CodigoAccesorio || !DescripcionAccesorio || typeof Activo !== 'boolean') {
+    console.log('Datos recibidos para actualización:', req.body);
+    // --- LÍNEA NUEVA (LA SOLUCIÓN) ---
+    // Simplemente verificamos que 'Activo' no sea nulo o indefinido.
+    // MySQL aceptará 1, 0, true, o false sin problemas.
+    if (!CodigoAccesorio || !DescripcionAccesorio || Activo === null || Activo === undefined) {
         return res.status(400).json({ error: 'Faltan datos: Código, Descripción y Estado (Activo) son requeridos y deben ser del tipo correcto.' });
     }
 
     const sql = `CALL \`${dbConfig.database}\`.\`sp_UpdateTipoAccesorio\`(?, ?, ?, ?);`;
 
-    Basedatos.query(sql, [idTipoAccesorio, CodigoAccesorio, DescripcionAccesorio, Activo], (err, results) => {
+    Basedatos.query(sql, [idTipoAccesorio, CodigoAccesorio, DescripcionAccesorio, Activo], (err, results) => { // Pasamos el ID numérico
         if (err) {
             console.error('Error al actualizar tipo de accesorio:', err);
             return res.status(500).json({ error: 'Error en el servidor al actualizar el tipo de accesorio.' });
@@ -127,10 +145,18 @@ router.put('/:id', (req, res) => {
  * @access  Private (Asumido)
  */
 router.delete('/:id', (req, res) => {
-    const idTipoAccesorio = req.params.id;
+    // ---- ⬇️ CORRECCIÓN ⬇️ ----
+    // Hacemos la misma validación
+    const idTipoAccesorio = parseInt(req.params.id, 10);
+
+    if (isNaN(idTipoAccesorio)) {
+        return res.status(400).json({ error: 'El ID proporcionado no es un número válido.' });
+    }
+    // ---- ⬆️ FIN CORRECCIÓN ⬆️ ----
+
     const sql = `CALL \`${dbConfig.database}\`.\`sp_DeactivateTipoAccesorio\`(?);`;
 
-    Basedatos.query(sql, [idTipoAccesorio], (err, results) => {
+    Basedatos.query(sql, [idTipoAccesorio], (err, results) => { // Pasamos el ID numérico
         if (err) {
             console.error('Error al desactivar tipo de accesorio:', err);
             return res.status(500).json({ error: 'Error en el servidor al desactivar el tipo de accesorio.' });

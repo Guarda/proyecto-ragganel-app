@@ -16,6 +16,9 @@
         <mat-error *ngIf="servicioForm.get('DescripcionServicio')?.touched && servicioForm.get('DescripcionServicio')?.hasError('required')">
           La descripción es requerida.
         </mat-error>
+        <mat-error *ngIf="servicioForm.get('DescripcionServicio')?.hasError('maxlength')">
+          La descripción no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="input-form">
@@ -27,11 +30,17 @@
         <mat-error *ngIf="servicioForm.get('PrecioBase')?.touched && servicioForm.get('PrecioBase')?.hasError('min')">
           El precio debe ser positivo.
         </mat-error>
+        <mat-error *ngIf="servicioForm.get('PrecioBase')?.hasError('max')">
+          El precio no puede exceder 9999.99 (Decimal(6,2)).
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="input-form">
         <mat-label>Comentario</mat-label>
         <textarea matInput formControlName="Comentario" rows="3" placeholder="Detalle adicional..."></textarea>
+        <mat-error *ngIf="servicioForm.get('Comentario')?.hasError('maxlength')">
+          El comentario no puede exceder los 10,000 caracteres.
+        </mat-error>
       </mat-form-field>
     </section>
 
@@ -60,14 +69,21 @@
 
     <!-- Botones de acción -->
     <div class="botones-acciones">
-      <button mat-flat-button color="warn" (click)="eliminarServicio()" *ngIf="servicioActual">
+      <button mat-flat-button color="warn" (click)="eliminarServicio()" *ngIf="servicioActual" 
+              [disabled]="isSubmitting">
         Eliminar Servicio
       </button>
       <!--  -->
       <button mat-flat-button color="primary" type="button"
-          [disabled]="!servicioForm.valid || (!servicioForm.dirty && insumosAgregados.length === 0)"
+          [disabled]="!servicioForm.valid || (!servicioForm.dirty && insumosAgregados.length === 0) || isSubmitting"
           (click)="confirmarCambios()">
-          Confirmar Cambios
+          
+          <span *ngIf="!isSubmitting">Confirmar Cambios</span>
+          
+          <span *ngIf="isSubmitting" class="spinner-en-boton">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Guardando...</span>
+          </span>
       </button>
 
     </div>

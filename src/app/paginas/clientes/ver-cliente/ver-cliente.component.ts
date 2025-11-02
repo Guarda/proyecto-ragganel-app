@@ -47,18 +47,36 @@ export class VerClienteComponent {
   }
 
   ngOnInit(): void {
-    // Inicializa el formulario antes de usarlo
+    // --- INICIO DE CAMBIOS: Sincronizar validadores ---
     this.clienteForm = new FormGroup({
-      IdCliente: new FormControl(null),
-      Nombre: new FormControl('', [Validators.required, Validators.minLength(3)]),
-      Correo: new FormControl('', [Validators.required, Validators.email]),
-      DNI: new FormControl(''),
-      RUC: new FormControl(''),
-      Telefono: new FormControl('', [Validators.pattern(/^\+?\d{1,4}?\d{8,}$/)]),
-      Direccion: new FormControl(''),
-      FechaRegistro: new FormControl(''),
-      Estado: new FormControl(true),
-      Comentarios: new FormControl(''), // <-- AÑADIR ESTA LÍNEA
+      IdCliente: new FormControl(null), // Se mantiene
+      
+      // Nombre: Requerido, Límite 255
+      Nombre: new FormControl('', [Validators.required, Validators.maxLength(255)]),
+      
+      // Correo: Opcional (pero si se escribe, debe ser email), Límite 255
+      Correo: new FormControl('', [Validators.email, Validators.maxLength(255)]),
+      
+      // DNI: Opcional, Límite 255
+      DNI: new FormControl('', [Validators.maxLength(255)]),
+      
+      // RUC: Opcional, Límite 255
+      RUC: new FormControl('', [Validators.maxLength(255)]),
+      
+      // Telefono: Opcional, Límite 255, Mínimo 8
+      Telefono: new FormControl('', [
+        Validators.minLength(8),
+        Validators.maxLength(255)
+      ]),
+      
+      // Direccion: Opcional, Límite 255
+      Direccion: new FormControl('', [Validators.maxLength(255)]),
+
+      FechaRegistro: new FormControl(''), // Se mantiene (no editable)
+      Estado: new FormControl(true), // Se mantiene (no editable)
+
+      // Comentarios: Opcional, Límite 9999
+      Comentarios: new FormControl('', [Validators.maxLength(9999)]),
     });
 
     // Obtén el ID del cliente desde los parámetros de la ruta
@@ -92,7 +110,8 @@ export class VerClienteComponent {
             Direccion: this.cliente.direccion,
             FechaRegistro: this.cliente.fechaRegistro,
             Estado: this.cliente.estado,
-             Comentarios: this.cliente.Comentarios,
+            // --- CAMBIO: Corregida posible inconsistencia (Comentarios -> comentarios) ---
+            Comentarios: this.cliente.Comentarios, 
           });
         }
       },

@@ -35,10 +35,16 @@
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Número Tracking 1</mat-label>
                             <input matInput type="text" formControlName="NumeroTracking1" />
+                            <mat-error *ngIf="pedidoForm.get('NumeroTracking1')?.hasError('maxLength')">
+                              El tracking no puede exceder los 100 caracteres.
+                            </mat-error>
                         </mat-form-field>
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Número Tracking 2</mat-label>
                             <input matInput type="text" formControlName="NumeroTracking2" />
+                            <mat-error *ngIf="pedidoForm.get('NumeroTracking2')?.hasError('maxLength')">
+                              El tracking no puede exceder los 100 caracteres.
+                            </mat-error>
                         </mat-form-field>
                         <mat-form-field class="input-form-pedido">
                             <mat-label>Sitio Web</mat-label>
@@ -64,8 +70,11 @@
                         </mat-form-field>
                         <mat-form-field class="input-form-pedido grow">
                             <mat-label>Comentarios</mat-label>
-                            <textarea matInput class="comentario" formControlName="Comentarios" (input)="adjustTextareaHeight($event)" maxlength="2000"></textarea>
-                            <mat-hint align="end">{{ pedidoForm.get('Comentarios')?.value?.length || 0 }}/2000</mat-hint>
+                            <textarea matInput class="comentario" formControlName="Comentarios" (input)="adjustTextareaHeight($event)" maxlength="9999"></textarea>
+                            <mat-hint align="end">{{ pedidoForm.get('Comentarios')?.value?.length || 0 }}/9999</mat-hint>
+                            <mat-error *ngIf="pedidoForm.get('Comentarios')?.hasError('maxLength')">
+                              El comentario no puede exceder los 9999 caracteres.
+                            </mat-error>
                         </mat-form-field>
                     </div>
                     <div class="contenedor-tarifas">

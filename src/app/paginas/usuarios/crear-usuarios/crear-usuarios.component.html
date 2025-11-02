@@ -16,26 +16,51 @@
       <!-- Nombre -->
       <mat-form-field class="input-form">
         <mat-label>Nombre</mat-label>
-        <input matInput formControlName="Nombre" required>
+        <input matInput formControlName="Nombre" required />
+        <mat-error *ngIf="usuarioForm.get('Nombre')?.hasError('required')">
+          El nombre es requerido.
+        </mat-error>
+        <mat-error *ngIf="usuarioForm.get('Nombre')?.hasError('maxlength')">
+          El nombre no puede exceder los 100 caracteres.
+        </mat-error>
       </mat-form-field>
 
       <!-- Correo -->
       <mat-form-field class="input-form">
         <mat-label>Correo</mat-label>
         <input matInput type="email" formControlName="Correo" required>
+        <mat-error *ngIf="usuarioForm.get('Correo')?.hasError('required')">
+          El correo es requerido.
+        </mat-error>
+        
+        <mat-error *ngIf="usuarioForm.get('Correo')?.hasError('email')">
+          El formato del correo no es válido (ej: usuario&#64;dominio.com).
+        </mat-error>
+        <mat-error *ngIf="usuarioForm.get('Correo')?.hasError('maxlength')">
+          El correo no puede exceder los 100 caracteres.
+        </mat-error>
       </mat-form-field>
 
       <!-- Contraseña -->
       <mat-form-field class="input-form">
         <mat-label>Contraseña</mat-label>
-        <input matInput type="password" formControlName="Password" required>
+        <input matInput type="password" formControlName="Password" required />
+        <mat-error *ngIf="usuarioForm.get('Password')?.hasError('required')">
+          La contraseña es requerida.
+        </mat-error>
+        <mat-error *ngIf="usuarioForm.get('Password')?.hasError('maxlength')">
+          La contraseña no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
 
       <!-- Estado del usuario -->
       <mat-form-field class="input-form">
         <mat-label>Estado</mat-label>
         <mat-select formControlName="IdEstadoFK" required>
-          <mat-option *ngFor="let estado of selectedEstadoUsuarios" [value]="estado.IdEstadoPK">
+          <mat-option
+            *ngFor="let estado of selectedEstadoUsuarios"
+            [value]="estado.IdEstadoPK"
+          >
             {{ estado.DescripcionEstado }}
           </mat-option>
         </mat-select>
@@ -44,11 +69,14 @@
       <!-- Rol del usuario -->
       <mat-form-field class="input-form">
         <mat-label>Rol</mat-label>
-        <mat-select formControlName="IdRol" required>
+        <mat-select formControlName="IdRolFK" required>
           <mat-option *ngFor="let rol of selectedRol" [value]="rol.IdRolPK">
             {{ rol.NombreRol }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="usuarioForm.get('IdRolFK')?.hasError('required')">
+          Debe seleccionar un rol.
+        </mat-error>
       </mat-form-field>
 
     </mat-dialog-content>

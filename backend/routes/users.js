@@ -20,9 +20,9 @@ router.get('/', (req, res) => {
 //CREAR USUARIO
 
 router.post('/crear-usuario', (req, res) => {
-    const { Nombre, Correo, Password, IdEstadoFK, IdRol } = req.body;
+    const { Nombre, Correo, Password, IdEstadoFK, IdRolFK } = req.body;
 
-    if (!Nombre || !Correo || !Password || !IdEstadoFK || !IdRol) {
+    if (!Nombre || !Correo || !Password || !IdEstadoFK || !IdRolFK) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios' });
     }
 
@@ -34,7 +34,7 @@ router.post('/crear-usuario', (req, res) => {
 
         // Usar la contraseña encriptada para el procedimiento almacenado
         const sql = `CALL \`${dbConfig.database}\`.\`InsertarUsuario\`(?, ?, ?, CURDATE(), ?, ?)`;
-        Basedatos.query(sql, [Nombre, Correo, hashedPassword, IdEstadoFK, IdRol], (err, result) => {
+        Basedatos.query(sql, [Nombre, Correo, hashedPassword, IdEstadoFK, IdRolFK], (err, result) => {
             if (err) {
                 return res.status(500).json({ error: 'Error al insertar usuario', details: err });
             }

@@ -29,12 +29,27 @@
                                     <!-- Nombre -->
                                     <mat-form-field class="input-form-prod">
                                         <mat-label>Nombre</mat-label>
-                                        <textarea formControlName = "NombreUsuario" name="NombreUsuario" matInput> </textarea>
+                                        <input formControlName="NombreUsuario" name="NombreUsuario" matInput />
+                                        <mat-error *ngIf="usuarioForm.get('NombreUsuario')?.hasError('required')">
+                                          El nombre es requerido.
+                                        </mat-error>
+                                        <mat-error *ngIf="usuarioForm.get('NombreUsuario')?.hasError('maxlength')">
+                                          El nombre no puede exceder los 100 caracteres.
+                                        </mat-error>
                                     </mat-form-field>    
                                     <!-- Correo -->
                                     <mat-form-field class="input-form-prod">
-                                        <mat-label>Numero de serie</mat-label>
-                                        <textarea formControlName = "CorreoUsuario" name="CorreoUsuario" matInput> </textarea>
+                                        <mat-label>Correo</mat-label>
+                                        <input formControlName="CorreoUsuario" name="CorreoUsuario" matInput />
+                                        <mat-error *ngIf="usuarioForm.get('CorreoUsuario')?.hasError('required')">
+                                          El correo es requerido.
+                                        </mat-error>
+                                        <mat-error *ngIf="usuarioForm.get('CorreoUsuario')?.hasError('email')">
+                                          El formato del correo no es válido (ej: usuario&#64;dominio.com).
+                                        </mat-error>
+                                        <mat-error *ngIf="usuarioForm.get('CorreoUsuario')?.hasError('maxlength')">
+                                          El correo no puede exceder los 100 caracteres.
+                                        </mat-error>
                                     </mat-form-field>    
                                     <!-- Password -->
                                     <!-- Contraseña -->

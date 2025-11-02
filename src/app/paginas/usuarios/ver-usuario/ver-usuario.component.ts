@@ -67,16 +67,25 @@ export class VerUsuarioComponent {
     this.UserId = this.id;
     this.ImagePath = this.getimagePath('');
 
-    // Inicializar formulario vacío
+    // --- INICIO DE CAMBIOS ---
+    // Inicializar formulario con validadores y sin campos innecesarios
     this.usuarioForm = this.fb.group({
       IdUsuario: ['', Validators.required],
-      NombreUsuario: ['', Validators.required],
-      CorreoUsuario: ['', Validators.required],
-      PasswordUsuario: ['', Validators.required],
-      FechaIngresoUsuario: ['', Validators.required],
+      NombreUsuario: ['', [
+        Validators.required,
+        Validators.maxLength(100) // Límite de 100 caracteres
+      ]],
+      CorreoUsuario: ['', [
+        Validators.required,
+        Validators.email, // Validador de formato de email
+        Validators.maxLength(100) // Límite de 100 caracteres
+      ]],
+      // PasswordUsuario: ['', Validators.required],  // <-- ELIMINADO
+      // FechaIngresoUsuario: ['', Validators.required], // <-- ELIMINADO
       IdEstadoUsuario: ['', Validators.required],
       IdRolUsuario: ['', Validators.required],
     });
+    // --- FIN DE CAMBIOS ---
 
     // Obtener estados y roles
     this.estadosUsuarios.getAll().subscribe((data: EstadosUsuarios[]) => {
@@ -92,16 +101,19 @@ export class VerUsuarioComponent {
       if (data.length > 0) {
         this.usuario = data[0];
         console.log(this.usuario)
-        // Actualizar formulario con los datos obtenidos
+        
+        // --- INICIO DE CAMBIOS ---
+        // Actualizar formulario solo con los datos relevantes
         this.usuarioForm.patchValue({
           IdUsuario: this.usuario.IdUsuarioPK,
-          NombreUsuario: this.usuario.Nombre,  // ✅ Correcto
-          CorreoUsuario: this.usuario.Correo,  // ✅ Correcto
-          PasswordUsuario: this.usuario.Password,  // ✅ Correcto
-          FechaIngresoUsuario: this.usuario.FechaIngresoUsuario,
+          NombreUsuario: this.usuario.Nombre,
+          CorreoUsuario: this.usuario.Correo,
+          // PasswordUsuario: this.usuario.Password, // <-- ELIMINADO
+          // FechaIngresoUsuario: this.usuario.FechaIngresoUsuario, // <-- ELIMINADO
           IdEstadoUsuario: this.usuario.IdEstadoFK,
           IdRolUsuario: this.usuario.IdRolFK,
         });
+        // --- FIN DE CAMBIOS ---
       }
     });
   }

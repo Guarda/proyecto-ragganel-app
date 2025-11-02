@@ -3164,7 +3164,7 @@ CREATE PROCEDURE IngresarArticulosPedidov3(
     IN p_IdUsuarioFK INT
 )
 BEGIN
-    -- Variables comunes
+    -- ... (Todas tus declaraciones de variables se mantienen igual) ...
     DECLARE v_CodigoConsolaGenerated VARCHAR(50);
     DECLARE v_CodigoAccesorioGenerated VARCHAR(50);
     DECLARE v_CodigoInsumo VARCHAR(50);
@@ -3177,8 +3177,8 @@ BEGIN
     DECLARE v_AccesoriosProcesados INT DEFAULT 0;
     DECLARE v_InsumosCantidadTotal INT UNSIGNED DEFAULT 0;
     DECLARE v_JsonResultado JSON;
-
-    -- Variables de producto
+    DECLARE v_AccionRealizada VARCHAR(20);
+    DECLARE v_CodigoInsumoGenerado VARCHAR(50);
     DECLARE v_modeloP INT;
     DECLARE v_colorP VARCHAR(100);
     DECLARE v_EstadoP INT;
@@ -3189,7 +3189,6 @@ BEGIN
     DECLARE v_AccesoriosP TEXT;
     DECLARE v_TareasP TEXT;
 
-    -- Variables de accesorio
     DECLARE v_modeloA INT;
     DECLARE v_colorA VARCHAR(100);
     DECLARE v_estadoA INT;
@@ -3199,7 +3198,6 @@ BEGIN
     DECLARE v_productoscomaptiblesA TEXT;
     DECLARE v_tareasA TEXT;
 
-    -- Variables de insumo
     DECLARE v_modeloI INT;
     DECLARE v_estadoI INT;
     DECLARE v_comentarioI TEXT;
@@ -3212,6 +3210,7 @@ BEGIN
     SET v_ProductosCount = JSON_LENGTH(p_Productos);
     SET v_AccesoriosCount = JSON_LENGTH(p_Accesorios);
     SET v_InsumosCount = JSON_LENGTH(p_Insumos);
+
 
     SET v_Indice = 0;
     WHILE v_Indice < v_ProductosCount DO
@@ -3268,25 +3267,18 @@ BEGIN
         SET v_numeroSerieI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].NumeroSerie')));
         SET v_stockMinimoI = JSON_UNQUOTE(JSON_EXTRACT(p_Insumos, CONCAT('$[', v_Indice, '].StockMinimo')));
 
-        -- Llama al procedimiento que maneja la lógica de inserción o actualización del stock.
         CALL IngresarInsumoATablaInsumosBase(
-            v_modeloI, v_estadoI, v_comentarioI, v_precioBaseI, v_cantidadI, v_numeroSerieI, v_stockMinimoI, p_IdUsuarioFK
+            v_modeloI, v_estadoI, v_comentarioI, v_precioBaseI, v_cantidadI, v_numeroSerieI, v_stockMinimoI, p_IdUsuarioFK,
+            v_AccionRealizada, v_CodigoInsumoGenerado
         );
 
-        -- Obtener código
-        SELECT CodigoInsumo INTO v_CodigoInsumo
-        FROM InsumosBase
-        WHERE ModeloInsumo = v_modeloI
-        ORDER BY IdIngreso DESC
-        LIMIT 1;
+        SET v_CodigoInsumo = v_CodigoInsumoGenerado;
 
-        -- Validación por seguridad
         IF v_CodigoInsumo IS NULL THEN
-            SET @error_msg = CONCAT('Insumo con modelo ', v_modeloI, ' no existe.');
+            SET @error_msg = CONCAT('Insumo con modelo ', v_modeloI, ' no existe o no se pudo generar/obtener el código.');
 			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @error_msg;
         END IF;
 
-        -- Insertar en detalle
         INSERT INTO DetalleInsumoPedido (IdInsumoBaseFK, IdCodigoPedidoFK, Comentario)
         VALUES (v_CodigoInsumo, p_IdPedido, v_comentarioI);
 
@@ -3294,6 +3286,7 @@ BEGIN
         SET v_InsumosCantidadTotal = v_InsumosCantidadTotal + v_cantidadI;
         SET v_Indice = v_Indice + 1;
     END WHILE;
+
 
     CALL AvanzarEstadoPedido(p_IdPedido, p_IdUsuarioFK);
 

@@ -48,15 +48,28 @@ export class CrearClienteComponent {
   ) { }
 
   ngOnInit(): void {
-    // Inicialización del formulario con validadores
+    // --- INICIO DE CAMBIOS ---
     this.clienteForm = this.fb.group({
-      Nombre: ['', [Validators.required, Validators.minLength(3)]],
-      DNI: [''],
-      RUC: [''],
-      Correo: ['', [Validators.email]], // (Aquí también está el cambio de la respuesta anterior)
-      Telefono: ['', [Validators.required, Validators.pattern(/^\+?\d{1,4}?\d{8,}$/)]], // (Y aquí)
-      Direccion: [''],
-      Comentarios: [''] // <-- AÑADIR ESTA LÍNEA
+      // Nombre: Requerido, Límite 255
+      Nombre: ['', [Validators.required, Validators.maxLength(255)]],
+      
+      // DNI: Opcional, Límite 255
+      DNI: ['', [Validators.maxLength(255)]],
+      
+      // RUC: Opcional, Límite 255
+      RUC: ['', [Validators.maxLength(255)]],
+      
+      // Correo: Opcional (pero si se escribe, debe ser email), Límite 255
+      Correo: ['', [Validators.email, Validators.maxLength(255)]],
+      
+      // Telefono: Opcional, Límite 255 (sin patrón)
+      Telefono: ['', [Validators.maxLength(255)]],
+      
+      // Direccion: Opcional, Límite 255
+      Direccion: ['', [Validators.maxLength(255)]],
+      
+      // Comentarios: Opcional, Límite 9999
+      Comentarios: ['', [Validators.maxLength(9999)]]
     });
 
     // Inicializa la ruta de la imagen

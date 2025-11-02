@@ -18,7 +18,7 @@ import { ExcelService } from '../../../services/excel.service';
 import { MatButtonModule } from '@angular/material/button';
 
 import { CostoDistribucionService, CostosPedido } from '../../../services/costo-distribucion.service';
-import { debounceTime, distinctUntilChanged, switchMap, take } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, take, filter } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { PreIngresoService } from '../../../services/pre-ingreso.service';
@@ -273,6 +273,11 @@ export class IngresarInventarioComponent implements OnInit {
         form.valueChanges.pipe(
           debounceTime(1500), // Espera 1.5s después de que el usuario deja de escribir
           distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+          
+          // --- AÑADIDO: BLINDAJE DE AUTOGUARDADO ---
+          // Solo continúa si el formulario es VÁLIDO
+          filter(() => form.valid),
+          // --- FIN DEL CAMBIO ---
           switchMap(formValue => {
             const payload = { ...formValue, idPedido: this.OrderId, usuarioId: this.usuarioId, formIndex };
             return this.preIngresoService.saveProduct(payload);
@@ -332,6 +337,11 @@ export class IngresarInventarioComponent implements OnInit {
         form.valueChanges.pipe(
           debounceTime(1500),
           distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+
+          // --- AÑADIDO: BLINDAJE DE AUTOGUARDADO ---
+          filter(() => form.valid),
+          // --- FIN DEL CAMBIO ---
+          
           switchMap(formValue => {
             const payload = { ...formValue, idPedido: this.OrderId, usuarioId: this.usuarioId, formIndex };
             return this.preIngresoService.saveAccessory(payload);
@@ -353,8 +363,8 @@ export class IngresarInventarioComponent implements OnInit {
       const form = this.fb.group({
         articuloId: [insumo.IdModeloPK],
         nombre: [insumo.NombreCategoria],
-        tipoId: [insumo.TipoArticuloFK], // ✅ AÑADIDO: Campo para el ID numérico del tipo.
-        NumeroSerie: [''], // ✅ CORREGIDO: Se añade el validador requerido.
+        tipoId: [insumo.TipoArticuloFK], 
+        NumeroSerie: [''], 
         tipo: [insumo.TipoArticulo],
         Cantidad: [insumo.Cantidad, [Validators.required, Validators.min(1)]],
         EstadoInsumo: [null as number | null, Validators.required],
@@ -376,7 +386,10 @@ export class IngresarInventarioComponent implements OnInit {
           PrecioBase: dataGuardada.PrecioBase,
           CostoDistribuido: dataGuardada.CostoDistribuido,
           ComentarioInsumo: dataGuardada.Comentario,
+          // --- AÑADIDO: Cargar el dato guardado ---
           NumeroSerie: dataGuardada.NumeroSerie,
+          // --- FIN DEL CAMBIO ---
+
           Cantidad: dataGuardada.Cantidad
         }, { emitEvent: false });
       }
@@ -384,6 +397,11 @@ export class IngresarInventarioComponent implements OnInit {
       form.valueChanges.pipe(
         debounceTime(1500),
         distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+
+        // --- AÑADIDO: BLINDAJE DE AUTOGUARDADO ---
+        filter(() => form.valid),
+        // --- FIN DEL CAMBIO ---
+
         switchMap(formValue => {
           const payload = { ...formValue, idPedido: this.OrderId, usuarioId: this.usuarioId, formIndex };
           return this.preIngresoService.saveSupply(payload);

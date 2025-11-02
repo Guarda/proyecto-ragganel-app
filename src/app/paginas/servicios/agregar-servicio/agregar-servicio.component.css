@@ -24,3 +24,11 @@
     margin-top: 1.5rem;
   }
   
+/* --- AÑADIR ESTO --- */
+/* Estilo para el spinner dentro del botón */
+.spinner-en-boton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+  

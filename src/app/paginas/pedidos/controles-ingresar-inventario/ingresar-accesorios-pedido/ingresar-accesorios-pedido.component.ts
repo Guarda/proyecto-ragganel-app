@@ -5,7 +5,8 @@ import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+// 1. AÑADIR IMPORTS
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -101,6 +102,11 @@ export class IngresarAccesoriosPedidoComponent {
       console.error('⚠️ Componente "IngresarAccesoriosPedido" no recibió un formulario o artículo válido.');
       return;
     }
+
+    // --- AÑADIDO: Aplicar validadores ---
+    this.addValidatorsToForm();
+    // --- FIN DEL CAMBIO ---
+
     // Solución para ExpressionChangedAfterItHasBeenCheckedError:
     // Se difiere la inicialización para el siguiente ciclo de detección de cambios.
     setTimeout(() => {
@@ -108,6 +114,56 @@ export class IngresarAccesoriosPedidoComponent {
       this.establecerValoresIniciales();
       this.cargarDatosDinamicosDelArticulo();
     });
+  }
+
+  // --- AÑADIDO: Nuevo método para establecer los validadores ---
+  private addValidatorsToForm(): void {
+    // Basado en la ruta /api/pre-ingreso/accesorio en pre-ingreso.js
+    
+    // NumeroSerie: VARCHAR(100) (asumido)
+    this.form.get('NumeroSerie')?.setValidators([Validators.maxLength(100)]);
+    
+    // ColorAccesorio: VARCHAR(100) (asumido)
+    this.form.get('ColorAccesorio')?.setValidators([Validators.maxLength(100)]);
+    
+    // ComentarioAccesorio: VARCHAR(10000) (asumido)
+    this.form.get('ComentarioAccesorio')?.setValidators([Validators.maxLength(10000)]);
+    
+    // PrecioBase: DECIMAL(10,2) (asumido)
+    this.form.get('PrecioBase')?.setValidators([
+        Validators.required, 
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/), // 8 dígitos + 2 decimales
+        Validators.max(99999999.99) 
+    ]);
+    
+    // CostoDistribuido: DECIMAL(10,2) (asumido)
+    this.form.get('CostoDistribuido')?.setValidators([
+        Validators.pattern(/^\d{1,8}(\.\d{1,2})?$/),
+        Validators.max(99999999.99)
+    ]);
+    
+    // ProductosCompatibles: VARCHAR(500) (asumido)
+    this.form.get('ProductosCompatibles')?.setValidators([this.jsonLengthValidator(500)]);
+    
+    // TareasPendientes: VARCHAR(1000) (asumido)
+    this.form.get('TodoList')?.setValidators([this.jsonLengthValidator(1000)]);
+
+    // Actualizamos el formulario para que los validadores tomen efecto
+    this.form.updateValueAndValidity({ emitEvent: false });
+  }
+
+  // --- AÑADIDO: Validador genérico de chips ---
+  jsonLengthValidator(max: number) {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value as string[];
+      if (!value || value.length === 0) {
+        return null; // Válido si está vacío
+      }
+      const jsonString = JSON.stringify(value);
+      return jsonString.length > max 
+        ? { 'totalLengthExceeded': { requiredLength: max, actualLength: jsonString.length } } 
+        : null;
+    };
   }
 
   private cargarDatosParaSelects(): void {

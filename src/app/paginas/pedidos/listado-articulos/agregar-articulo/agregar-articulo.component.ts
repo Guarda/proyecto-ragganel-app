@@ -136,12 +136,17 @@ export class AgregarArticuloComponent {
       Fabricante: new FormControl('', Validators.required),
       Cate: new FormControl('', Validators.required),
       SubCategoria: new FormControl('', Validators.required),
-      EnlaceCompra: new FormControl(''),
+      // --- CAMBIO AQUÍ ---
+      EnlaceCompra: new FormControl('', [Validators.maxLength(1000)]),
       IdModeloPK: new FormControl('', Validators.required),
       Activo: new FormControl(1),
       Cantidad: new FormControl('1', [Validators.required, Validators.min(1)]),
       priceMode: new FormControl(this.isEditMode ? 'unit' : 'lot'), // En edición, empieza en 'unit'
-      Precio: new FormControl('', Validators.required),
+      // --- CAMBIO AQUÍ ---
+      Precio: new FormControl('', [
+        Validators.required,
+        Validators.max(9999.99) // Límite de DECIMAL(6,2)
+      ]),
       PrecioLote: new FormControl(''),
     });
   }

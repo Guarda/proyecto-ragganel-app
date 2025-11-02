@@ -14,6 +14,9 @@
         <mat-error *ngIf="clienteForm.get('Nombre')?.hasError('required')">
           El nombre es obligatorio.
         </mat-error>
+        <mat-error *ngIf="clienteForm.get('Nombre')?.hasError('maxLength')">
+          El nombre no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -22,12 +25,18 @@
         <mat-label>DNI</mat-label>
         <mat-icon matPrefix>fingerprint</mat-icon>
         <input matInput formControlName="DNI" placeholder="001-000000-0000A">
+        <mat-error *ngIf="clienteForm.get('DNI')?.hasError('maxLength')">
+          El DNI no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>RUC</mat-label>
         <mat-icon matPrefix>business</mat-icon>
         <input matInput formControlName="RUC">
+        <mat-error *ngIf="clienteForm.get('RUC')?.hasError('maxLength')">
+          El RUC no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -35,9 +44,9 @@
       <mat-form-field appearance="outline">
         <mat-label>Teléfono</mat-label>
         <mat-icon matPrefix>phone</mat-icon>
-        <input matInput formControlName="Telefono" placeholder="+505 8888-8888" required>
-        <mat-error *ngIf="clienteForm.get('Telefono')?.hasError('required')">
-          El teléfono es obligatorio.
+        <input matInput formControlName="Telefono" placeholder="+505 8888-8888">
+        <mat-error *ngIf="clienteForm.get('Telefono')?.hasError('maxLength')">
+          El teléfono no puede exceder los 255 caracteres.
         </mat-error>
       </mat-form-field>
 
@@ -48,6 +57,9 @@
         <mat-error *ngIf="clienteForm.get('Correo')?.hasError('email')">
           Formato de correo no válido.
         </mat-error>
+        <mat-error *ngIf="clienteForm.get('Correo')?.hasError('maxLength')">
+          El correo no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -56,6 +68,9 @@
         <mat-label>Dirección</mat-label>
         <mat-icon matPrefix>location_on</mat-icon>
         <textarea matInput formControlName="Direccion" placeholder="Dirección del cliente..."></textarea>
+        <mat-error *ngIf="clienteForm.get('Direccion')?.hasError('maxLength')">
+          La dirección no puede exceder los 255 caracteres.
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -64,6 +79,9 @@
             <mat-label>Comentarios</mat-label>
             <mat-icon matPrefix>comment</mat-icon>
             <textarea matInput formControlName="Comentarios" placeholder="Anotaciones adicionales sobre el cliente..."></textarea>
+            <mat-error *ngIf="clienteForm.get('Comentarios')?.hasError('maxLength')">
+              El comentario no puede exceder los 9999 caracteres.
+            </mat-error>
         </mat-form-field>
     </div>
 

@@ -99,13 +99,13 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
       FechaCreacionPedido: [new Date(), Validators.required],
       FechaArrivoUSA: [null, Validators.required],
       FechaEstimadaRecepcion: [null, Validators.required],
-      NumeroTracking1: ['', Validators.required],
-      NumeroTracking2: [''],
+      NumeroTracking1: ['', [Validators.required, Validators.maxLength(100)]],
+      NumeroTracking2: ['', [Validators.maxLength(100)]],
       PesoPedido: [null],
       SitioWeb: ['', Validators.required],
       ViaPedido: ['', Validators.required],
       Estado: [1, Validators.required], // Por defecto "En espera"
-      Comentarios: ['', Validators.maxLength(2000)],
+      Comentarios: ['', Validators.maxLength(9999)],
       // Campos de costos
       SubTotalArticulos: [{ value: 0, disabled: true }], // Campo deshabilitado para mostrar el valor
       Impuestos: [0],

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { CategoriasConsolas } from '../../interfaces/categorias';
@@ -19,7 +19,6 @@ import { RolesUsuarios } from '../../interfaces/roles-usuarios';
 import { EstadosUsuarios } from '../../interfaces/estados-usuarios';
 import { EstadosUsuariosService } from '../../../services/estados-usuarios.service';
 import { RolesUsuariosService } from '../../../services/roles-usuarios.service';
-import { DialogRef } from '@angular/cdk/dialog';
 
 @Component({
     selector: 'app-crear-usuarios',
@@ -30,8 +29,6 @@ import { DialogRef } from '@angular/cdk/dialog';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CrearUsuariosComponent {
-
-  Agregado = new EventEmitter();
 
   usuarioForm!: FormGroup;
 
@@ -46,7 +43,7 @@ export class CrearUsuariosComponent {
     public rolesUsuarios: RolesUsuariosService,
     public usuariosService: UsuariosService,
     private fb: FormBuilder,
-    private dialogRef: DialogRef,
+    private dialogRef: MatDialogRef<CrearUsuariosComponent>,
     private cdr: ChangeDetectorRef,
     private router: Router
   ){
@@ -62,36 +59,54 @@ export class CrearUsuariosComponent {
       this.selectedRol = data;
     });
 
+    // --- INICIO DE CAMBIOS ---
     this.usuarioForm = new FormGroup({
-      Nombre: new FormControl('',Validators.required),
-      Correo: new FormControl('',Validators.required),
-      Password: new FormControl('',Validators.required),
+      Nombre: new FormControl('', [
+        Validators.required,
+        Validators.maxLength(100) // Límite de 100 caracteres
+      ]),
+      Correo: new FormControl('', [
+        Validators.required,
+        Validators.email, // Validador de formato de email
+        Validators.maxLength(100) // Límite de 100 caracteres
+      ]),
+      Password: new FormControl('', [
+        Validators.required,
+        Validators.maxLength(255) // Límite de 255 caracteres
+      ]),
       IdEstadoFK: new FormControl('',Validators.required),
-      IdRol: new FormControl('',Validators.required)
-    })
+      IdRolFK: new FormControl('', Validators.required) 
+    });
     this.ImagePath = this.getimagePath('');
   }
 
   getimagePath(l: string | null) {
     const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
   
-    if (l == null || l === '') {
-      return `${baseUrl}/assets/avatardefault.png`;
-    } else {
-      return `${baseUrl}/assets/${l}`;
-    }
+    // Tu HTML usa 'assets/img/default-user.png' como fallback.
+    // Alineamos la lógica para que coincida.
+    if (l == null || l === '') return 'assets/img/default-user.png';
+    
+    return `${baseUrl}/assets/${l}`;
   }
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    console.log(this.usuarioForm.value);
-    // console.log(this.productoForm.get('Accesorios')?.value) 
-    console.log("enviado");
-    this.usuariosService.create(this.usuarioForm.value).subscribe((res: any) => {
-      this.Agregado.emit();
-      this.dialogRef.close(); // Cerrar diálogo después de agregar
-      this.router.navigateByUrl('administracion/listado-usuarios');
-    })
+  onSubmit() {
+    if (this.usuarioForm.invalid) {
+      return; // No hacer nada si el formulario es inválido
+    }
 
+    console.log(this.usuarioForm.value);
+    console.log("enviado");
+
+    this.usuariosService.create(this.usuarioForm.value).subscribe({
+      next: (res: any) => {
+        // Envía 'true' al cerrar para que el componente padre (la lista) sepa que debe recargar.
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        console.error("Error al crear usuario", err);
+      }
+    });
   }
 
 }
