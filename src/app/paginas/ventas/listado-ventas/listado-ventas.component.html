@@ -23,6 +23,19 @@
         <mat-datepicker #pickerFin></mat-datepicker>
       </mat-form-field>
 
+      <button mat-icon-button 
+              color="warn" 
+              matTooltip="Resetear filtros"
+              (click)="resetearFiltros()"
+              class="button-crear"> <mat-icon>filter_list_off</mat-icon>
+      </button>
+      <button mat-stroked-button 
+              color="primary"
+              (click)="descargarExcel()"
+              class="button-crear">
+        <mat-icon>download</mat-icon>
+        Exportar
+      </button>
       <a mat-raised-button color="primary" class="button-crear" routerLink="/home/punto-venta">
         <mat-icon>add</mat-icon>
         Nueva Venta

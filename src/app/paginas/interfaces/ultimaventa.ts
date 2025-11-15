@@ -1,4 +1,5 @@
 export interface UltimaVenta {
+  IdVentaPK: number;
   NumeroDocumento: string;
   NombreCliente: string;
   TotalVenta: number;

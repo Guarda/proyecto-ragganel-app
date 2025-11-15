@@ -38,8 +38,6 @@ import { VerNotaCreditoComponent } from './paginas/ventas/ver-nota-credito/ver-n
 import { ListadoCarritosComponent } from './paginas/ventas/listado-carritos/listado-carritos.component';
 import { ListadoInventarioGeneralComponent } from './paginas/inventario/listado-inventario-general/listado-inventario-general.component';
 import { ListadoInventarioGarantiaComponent } from './paginas/inventario/listado-inventario-garantia/listado-inventario-garantia.component';
-import { DashboardComponent } from './paginas/dashboard/dashboard/dashboard.component';
-import { IngresarInventarioComponent } from './paginas/pedidos/ingresar-inventario/ingresar-inventario.component';
 import { ListadoTiposProductosComponent } from './paginas/categorias/tipos-productos/listado-tipos-productos/listado-tipos-productos.component';
 import { ListadoTipoAccesorioComponent } from './paginas/categorias/tipos-accesorios/listado-tipo-accesorio/listado-tipo-accesorio.component';
 
@@ -52,8 +50,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard, RoleGuard],
-        data: { expectedRoles: [1] } 
+        path: 'dashboard',
+        // CORRECCIÓN: Usar loadComponent para cargar el componente standalone de forma diferida.
+        loadComponent: () => import('./paginas/dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1] }
       },
       { path: 'modulo-en-construccion', component: ModuloEnConstruccionComponent },
       {
@@ -198,7 +199,7 @@ export const routes: Routes = [
       },
       {
         path: 'ingresar-inventario/:CodigoPedido',
-        component: IngresarInventarioComponent,
+        loadComponent: () => import('./paginas/pedidos/ingresar-inventario/ingresar-inventario.component').then(m => m.IngresarInventarioComponent),
         canActivate: [AuthGuard, RoleGuard],
         data: { expectedRoles: [1, 3] }
       },

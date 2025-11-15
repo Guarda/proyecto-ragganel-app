@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ElementRef  } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router'; // <-- MODIFICAR ESTA LÍNEA
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs'; // <- Añadido
@@ -24,19 +24,19 @@ import { TableStatePersistenceService } from '../../../services/table-state-pers
 import { TableState } from '../../interfaces/table-state';
 
 @Component({
-    selector: 'app-listado-inventario-general',
-    standalone: true, // Se asume standalone
-    imports: [
-        CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
-        MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-        MatProgressSpinnerModule, MatTooltipModule
-    ],
-    templateUrl: './listado-inventario-general.component.html',
-    styleUrls: ['./listado-inventario-general.component.css']
+  selector: 'app-listado-inventario-general',
+  standalone: true, // Se asume standalone
+  imports: [
+    CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
+    MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
+    MatProgressSpinnerModule, MatTooltipModule
+  ],
+  templateUrl: './listado-inventario-general.component.html',
+  styleUrls: ['./listado-inventario-general.component.css']
 })
 export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit, OnDestroy {
   // Define las columnas que se mostrarán en la tabla
-   displayedColumns: string[] = ['LinkImagen', 'Codigo', 'NombreArticulo', 'Tipo', 'Estado', 'Cantidad', 'PrecioBase', 'FechaIngreso', 'Action'];
+  displayedColumns: string[] = ['LinkImagen', 'Codigo', 'NombreArticulo', 'Tipo', 'Estado', 'Cantidad', 'PrecioBase', 'FechaIngreso', 'Action'];
   dataSource = new MatTableDataSource<ArticuloInventario>();
 
   isLoading = true;
@@ -57,7 +57,8 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     // --- CAMBIO 5: Inyectar el servicio de estado ---
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private route: ActivatedRoute // <--- AÑADIR ESTA LÍNEA
   ) { }
 
   ngOnInit(): void {
@@ -68,11 +69,32 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
 
-    // --- CAMBIO 6: Cargar estado y suscribirse a los cambios ---
-    // ✅ CORRECCIÓN: Se envuelve en un setTimeout para evitar el error ExpressionChangedAfterItHasBeenCheckedError.
-    // Esto asegura que la restauración del estado se ejecute en el siguiente ciclo de detección de cambios.
+    this.dataSource.filterPredicate = (data: ArticuloInventario, filter: string) => {
+      // Función helper para normalizar los strings de forma segura
+      const safeTrim = (val: string | null) => (val || '').trim().toLowerCase();
+      
+      // 1. Lógica para FILTRO DE COLUMNA ESPECÍFICA (desde Dashboard)
+      if (filter.startsWith('estado:')) {
+        const searchTerm = safeTrim(filter.substring(7)); // 'estado:'.length = 7
+        // Coincidencia exacta para el Estado
+        return safeTrim(data.Estado) === searchTerm;
+      
+      } else if (filter.startsWith('nombre:')) {
+        const searchTerm = safeTrim(filter.substring(7)); // 'nombre:'.length = 7
+        // ⭐️ ESTA ES LA SOLUCIÓN: Usamos .includes() en lugar de ===
+        // Esto encontrará "Mica 2DS" dentro de "Mica Protectora para Nintendo 2DS"
+        return safeTrim(data.NombreArticulo).includes(searchTerm);
+      }
+
+      // 2. Lógica para el FILTRO GENÉRICO (de la barra de búsqueda)
+      const lowerCaseFilter = safeTrim(filter);
+      if (lowerCaseFilter === '') return true; // Mostrar todo si el filtro está vacío
+
+      const dataStr = safeTrim(data.Codigo) + safeTrim(data.NombreArticulo) + safeTrim(data.Tipo) + safeTrim(data.Estado);
+      return dataStr.includes(lowerCaseFilter);
+    };
     setTimeout(() => this.loadAndApplyState());
-    
+
     this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
     this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }
@@ -110,7 +132,7 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
   /**
    * Llama al servicio para obtener los datos del inventario y los carga en la tabla.
    */
-   cargarInventario(): void {
+  cargarInventario(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
@@ -208,22 +230,70 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
   }
 
   private loadAndApplyState(): void {
+    // 1. Revisamos si un filtro viene de la URL (ej. ?filtro=exact:Nintendo...)
+    const filtroQuery = this.route.snapshot.queryParamMap.get('filtro');
+
+    if (filtroQuery) {
+
+      // 2. Si existe, lo pasamos TAL CUAL (con el prefijo)
+      //    al 'filterPredicate' que definimos arriba.
+      this.dataSource.filter = filtroQuery;
+
+      // 3. Mostramos el valor "limpio" en la barra de búsqueda
+      if (this.inputElement) {
+        if (filtroQuery.startsWith('estado:')) {
+          this.inputElement.nativeElement.value = filtroQuery.substring(7);
+        } else if (filtroQuery.startsWith('nombre:')) {
+          this.inputElement.nativeElement.value = filtroQuery.substring(7);
+        } else {
+          // Comportamiento normal para filtros guardados (genéricos)
+          this.inputElement.nativeElement.value = filtroQuery;
+        }
+      }
+
+
+      // 4. Limpiamos el query param de la URL (esto está bien)
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { filtro: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+
+      // 5. Cargamos el resto del estado (sort, paginación) pero OMITIMOS el filtro guardado
+      const state = this.stateService.loadState(this.tableStateKey);
+      if (state) {
+        if (this.paginator) {
+          this.paginator.pageIndex = state.pageIndex;
+          this.paginator.pageSize = state.pageSize;
+        }
+        setTimeout(() => {
+          if (this.sort) {
+            this.sort.active = state.sortColumn;
+            this.sort.direction = state.sortDirection;
+          }
+        });
+      }
+      return; // ¡Importante! Salimos para no cargar el filtro del 'state'
+    }
+
+    // --- LÓGICA ORIGINAL ---
+    // (Esta parte no cambia)
     const state = this.stateService.loadState(this.tableStateKey);
     if (!state) return;
 
     if (state.filter) {
-    this.dataSource.filter = state.filter;
-    // Y se usa esta nueva lógica, que es más segura:
-    if (this.inputElement) {
-      this.inputElement.nativeElement.value = state.filter;
+      this.dataSource.filter = state.filter;
+      if (this.inputElement) {
+        this.inputElement.nativeElement.value = state.filter;
+      }
     }
-  }
 
     if (this.paginator) {
       this.paginator.pageIndex = state.pageIndex;
       this.paginator.pageSize = state.pageSize;
     }
-    
+
     setTimeout(() => {
       if (this.sort) {
         this.sort.active = state.sortColumn;
@@ -231,6 +301,8 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
       }
     });
   }
+
+  // ... (resto de tu componente) ...
 
   /**
    * Devuelve una clase CSS basada en el tipo de artículo para darle un estilo visual.
@@ -252,9 +324,9 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     }
   }
 
-   abrirDialogoHistorial(articulo: ArticuloInventario): void {
+  abrirDialogoHistorial(articulo: ArticuloInventario): void {
     this.snackBar.open(`Cargando historial para ${articulo.Codigo}...`, undefined, { duration: 2000 });
-    
+
     this.inventarioService.getHistorialArticulo(articulo.Tipo, articulo.Codigo).subscribe({
       next: (historialData) => {
         this.dialog.open(HistorialArticuloDialogComponent, {

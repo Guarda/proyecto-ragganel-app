@@ -25,8 +25,6 @@
 -- ===================================================================================
 
 DELIMITER $$
-
--- DROP PROCEDURE IF EXISTS sp_Dashboard_KPIs;
 CREATE PROCEDURE sp_Dashboard_KPIs()
 BEGIN
     -- Declaramos variables para los IDs clave y mejorar la legibilidad
@@ -35,7 +33,31 @@ BEGIN
     DECLARE var_estado_garantia INT DEFAULT 9; -- Estado 'En garantia' para inventario
     DECLARE var_estado_reparar INT DEFAULT 6;  -- Estado 'A reparar' para inventario
 
-    SELECT        
+    DECLARE var_productos_garantia INT DEFAULT 0;
+    DECLARE var_productos_reparar INT DEFAULT 0;
+    DECLARE var_accesorios_garantia INT DEFAULT 0;
+    DECLARE var_accesorios_reparar INT DEFAULT 0;
+
+    SELECT 
+        COUNT(CASE WHEN Estado = var_estado_garantia THEN 1 END),
+        COUNT(CASE WHEN Estado = var_estado_reparar THEN 1 END)
+    INTO
+        var_productos_garantia,
+        var_productos_reparar
+    FROM ProductosBases
+    WHERE Estado IN (var_estado_garantia, var_estado_reparar);
+
+    SELECT 
+        COUNT(CASE WHEN EstadoAccesorio = var_estado_garantia THEN 1 END),
+        COUNT(CASE WHEN EstadoAccesorio = var_estado_reparar THEN 1 END)
+    INTO
+        var_accesorios_garantia,
+        var_accesorios_reparar
+    FROM AccesoriosBase
+    WHERE EstadoAccesorio IN (var_estado_garantia, var_estado_reparar);
+
+    -- SELECT final que construye el resultado del KPI
+    SELECT 
         (
             (SELECT IFNULL(SUM(TotalVenta), 0) FROM VentasBase WHERE IdTipoDocumentoFK = var_tipo_factura AND IdEstadoVentaFK = var_estado_pagado AND DATE(FechaCreacion) = CURDATE()) -
             (SELECT IFNULL(SUM(TotalCredito), 0) FROM NotasCredito WHERE Estado = 1 AND DATE(FechaEmision) = CURDATE())
@@ -51,46 +73,62 @@ BEGIN
         
         (SELECT COUNT(IdClientePK) FROM Clientes WHERE MONTH(FechaRegistro) = MONTH(CURDATE()) AND YEAR(FechaRegistro) = YEAR(CURDATE())) AS ClientesNuevosMes,
         
-        (
-            (SELECT COUNT(CodigoConsola) FROM ProductosBases WHERE Estado = var_estado_garantia) +
-            (SELECT COUNT(CodigoAccesorio) FROM AccesoriosBase WHERE EstadoAccesorio = var_estado_garantia)
-        ) AS ArticulosEnGarantia,
-        (
-            (SELECT COUNT(CodigoConsola) FROM ProductosBases WHERE Estado = var_estado_reparar) +
-            (SELECT COUNT(CodigoAccesorio) FROM AccesoriosBase WHERE EstadoAccesorio = var_estado_reparar)
-        ) AS ArticulosAReparar;
+        -- Usamos las variables que calculamos eficientemente
+        (var_productos_garantia + var_accesorios_garantia) AS ArticulosEnGarantia,
+        (var_productos_reparar + var_accesorios_reparar) AS ArticulosAReparar;
+
 END$$
 
 DELIMITER ;
 
 -- ===================================================================================
--- 2. PROCEDIMIENTO PARA EL GRÁFICO DE VENTAS DE LOS ÚLTIMOS 30 DÍAS
--- FECHA DE CREACIÓN: 2025-08-02
+-- 2. PROCEDIMIENTO PARA EL GRÁFICO DE VENTAS (DINÁMICO)
+-- DESCRIPCIÓN: Devuelve las ventas totales por día para un rango de fechas.
+--            Utiliza una tabla de calendario virtual para incluir días sin ventas.
 -- ===================================================================================
 DELIMITER $$
-
--- DROP PROCEDURE IF EXISTS sp_Dashboard_VentasUltimos30Dias;
-CREATE PROCEDURE sp_Dashboard_VentasUltimos30Dias()
+-- DROP PROCEDURE IF EXISTS sp_Dashboard_VentasPorPeriodo; 
+CREATE PROCEDURE sp_Dashboard_VentasPorPeriodo(
+    IN fecha_inicio DATE,
+    IN fecha_fin DATE
+)
 BEGIN
-    SELECT 
-        DATE(FechaCreacion) AS name,
-        -- Aseguramos que el total nunca sea nulo, aunque SUM() ya suele devolver 0
-        IFNULL(SUM(TotalVenta), 0) AS value
-    FROM VentasBase
-    WHERE FechaCreacion >= CURDATE() - INTERVAL 30 DAY
-    GROUP BY DATE(FechaCreacion)
-    ORDER BY name ASC;
-END$$
+    -- 1. Crear una tabla de calendario temporal en memoria
+    -- Esta tabla contendrá todas las fechas desde 'fecha_inicio' hasta 'fecha_fin'
+    DROP TEMPORARY TABLE IF EXISTS RangoDeFechas;
+    CREATE TEMPORARY TABLE RangoDeFechas (dia DATE);
 
+    SET @current_date = fecha_inicio;
+    WHILE @current_date <= fecha_fin DO
+        INSERT INTO RangoDeFechas (dia) VALUES (@current_date);
+        SET @current_date = ADDDATE(@current_date, INTERVAL 1 DAY);
+    END WHILE;
+
+    -- 2. Consultar las ventas y unirlas (LEFT JOIN) con nuestro calendario
+    -- Esto asegura que los días con 0 ventas también aparezcan.
+    SELECT
+        cal.dia AS name, -- 'name' para ngx-charts
+        IFNULL(SUM(v.TotalVenta), 0) AS value -- 'value' para ngx-charts
+    FROM
+        RangoDeFechas cal
+    LEFT JOIN
+        VentasBase v ON DATE(v.FechaCreacion) = cal.dia
+                     AND v.IdTipoDocumentoFK = 3 -- Opcional: Contar solo 'Factura'
+                     AND v.IdEstadoVentaFK = 2   -- Opcional: Contar solo 'Pagado'
+    GROUP BY
+        cal.dia
+    ORDER BY
+        cal.dia ASC;
+
+END$$
 DELIMITER ;
 
 
 -- ===================================================================================
--- 3. PROCEDIMIENTO PARA EL GRÁFICO DE TOP 5 ARTÍCULOS VENDIDOS (POR MONTO)
--- FECHA DE CREACIÓN: 2025-08-02
+-- 3. PROCEDIMIENTO PARA EL GRÁFICO DE TOP 5 ARTÍCULOS VENDIDOS (CORREGIDO)
+-- FECHA DE MODIFICACIÓN: 2025-11-15
 -- ===================================================================================
 DELIMITER $$
-
 -- DROP PROCEDURE IF EXISTS sp_Dashboard_Top5ArticulosVendidos;
 CREATE PROCEDURE sp_Dashboard_Top5ArticulosVendidos()
 BEGIN
@@ -98,29 +136,45 @@ BEGIN
         Codigo VARCHAR(25) PRIMARY KEY,
         Nombre VARCHAR(255)
     );
+
+    TRUNCATE TABLE TempNombresArticulos;
+
     INSERT INTO TempNombresArticulos (Codigo, Nombre)
-    SELECT pb.CodigoConsola, CONCAT(f.NombreFabricante, ' ', cp.NombreCategoria, ' ', sp.NombreSubcategoria)
+    SELECT pb.CodigoConsola, 
+           CONCAT(f.NombreFabricante, ' - ', cp.NombreCategoria, ' - ', sp.NombreSubcategoria)
     FROM ProductosBases pb
     JOIN CatalogoConsolas cc ON pb.Modelo = cc.IdModeloConsolaPK
     JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
     JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
     JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
     ON DUPLICATE KEY UPDATE Nombre = VALUES(Nombre);
+
     INSERT INTO TempNombresArticulos (Codigo, Nombre)
-    SELECT ab.CodigoAccesorio, CONCAT(fa.NombreFabricanteAccesorio, ' ', ca.NombreCategoriaAccesorio)
+    SELECT ab.CodigoAccesorio, 
+           CONCAT(fa.NombreFabricanteAccesorio, ' - ', ca.NombreCategoriaAccesorio)
     FROM AccesoriosBase ab
     JOIN CatalogoAccesorios cacc ON ab.ModeloAccesorio = cacc.IdModeloAccesorioPK
     JOIN FabricanteAccesorios fa ON cacc.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
     JOIN CategoriasAccesorios ca ON cacc.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
     ON DUPLICATE KEY UPDATE Nombre = VALUES(Nombre);
 
+    INSERT INTO TempNombresArticulos (Codigo, Nombre)
     SELECT 
-        -- Si el nombre es nulo, lo reemplazamos con 'Artículo Desconocido'
+        ib.CodigoInsumo,
+        CONCAT(fi.NombreFabricanteInsumos, ' - ', cati.NombreCategoriaInsumos, ' - ', subi.NombreSubcategoriaInsumos)
+    FROM InsumosBase ib
+    JOIN CatalogoInsumos ci ON ib.ModeloInsumo = ci.IdModeloInsumosPK
+    JOIN FabricanteInsumos fi ON ci.FabricanteInsumos = fi.IdFabricanteInsumosPK
+    JOIN CategoriasInsumos cati ON ci.CategoriaInsumos = cati.IdCategoriaInsumosPK
+    JOIN SubcategoriasInsumos subi ON ci.SubcategoriaInsumos = subi.IdSubcategoriaInsumos
+    ON DUPLICATE KEY UPDATE Nombre = VALUES(Nombre);
+
+    SELECT 
         IFNULL(tna.Nombre, 'Artículo Desconocido') AS name, 
         SUM(dv.SubtotalSinIVA) AS value
     FROM DetalleVenta dv
     LEFT JOIN TempNombresArticulos tna ON dv.CodigoArticulo = tna.Codigo 
-    WHERE dv.TipoArticulo IN ('Producto', 'Accesorio')
+    WHERE dv.TipoArticulo IN ('Producto', 'Accesorio', 'Insumo') 
     GROUP BY name
     ORDER BY value DESC
     LIMIT 5;
@@ -129,7 +183,6 @@ BEGIN
 END$$
 
 DELIMITER ;
-
 
 -- ===================================================================================
 -- 4. PROCEDIMIENTO PARA EL GRÁFICO DE VENTAS POR VENDEDOR
@@ -250,12 +303,11 @@ END$$
 
 DELIMITER ;
 
-DELIMITER $$
-
 -- ===================================================================================
--- 7. PROCEDIMIENTO PARA EL ANÁLISIS DE INVENTARIO ABC
--- FECHA DE CREACIÓN: 2025-08-02
--- Devuelve el valor total del inventario para Productos (A), Accesorios (B) e Insumos (C).
+-- 7. PROCEDIMIENTO PARA EL ANÁLISIS DE INVENTARIO ABC (MODIFICADO)
+-- FECHA DE MODIFICACIÓN: 2025-11-12
+-- Devuelve el valor total, y la cantidad total de inventario para
+-- Productos (A), Accesorios (B) e Insumos (C), excluyendo estados inactivos.
 -- ===================================================================================
 DELIMITER $$
 
@@ -263,25 +315,183 @@ DELIMITER $$
 CREATE PROCEDURE sp_Dashboard_ValorInventarioABC()
 BEGIN
     SELECT 
-        'A (Productos)' AS name, 
-        IFNULL(SUM(PrecioBase), 0) AS value 
+        -- MODIFICACIÓN AQUÍ
+        CONCAT('A (Productos) (', IFNULL(COUNT(*), 0), ' arts.)') AS name, 
+        IFNULL(SUM(PrecioBase), 0) AS value,
+        IFNULL(COUNT(*), 0) AS quantity
     FROM ProductosBases 
-    WHERE Estado IN (1, 2)
+    WHERE Estado NOT IN (7, 8, 9, 10, 11)
 
     UNION ALL
 
     SELECT 
-        'B (Accesorios)' AS name, 
-        IFNULL(SUM(PrecioBase), 0) AS value 
+        -- MODIFICACIÓN AQUÍ
+        CONCAT('B (Accesorios) (', IFNULL(COUNT(*), 0), ' arts.)') AS name, 
+        IFNULL(SUM(PrecioBase), 0) AS value,
+        IFNULL(COUNT(*), 0) AS quantity
     FROM AccesoriosBase 
-    WHERE EstadoAccesorio IN (1, 2)
+    WHERE EstadoAccesorio NOT IN (7, 8, 9, 10, 11)
 
     UNION ALL
 
     SELECT 
-        'C (Insumos)' AS name, 
-        IFNULL(SUM(PrecioBase * Cantidad), 0) AS value
-    FROM InsumosBase;
+        -- MODIFICACIÓN AQUÍ
+        CONCAT('C (Insumos) (', IFNULL(SUM(Cantidad), 0), ' arts.)') AS name, 
+        IFNULL(SUM(PrecioBase * Cantidad), 0) AS value,
+        IFNULL(SUM(Cantidad), 0) AS quantity
+    FROM InsumosBase
+    WHERE EstadoInsumo NOT IN (7, 8, 9, 10, 11);
+END$$
+
+DELIMITER ;
+
+-- ===================================================================================
+-- 8. PROCEDIMIENTO PARA EL DESGLOSE TOP 10 POR TIPO DE ARTÍCULO
+-- FECHA DE CREACIÓN: 2025-11-12
+-- Devuelve el Top 10 de artículos más valiosos para una categoría específica.
+-- Se usa para el drill-down del gráfico de inventario ABC.
+-- ===================================================================================
+DELIMITER $$
+
+-- 1. Eliminamos el procedimiento anterior para evitar conflictos
+DROP PROCEDURE IF EXISTS sp_Dashboard_Top10_PorTipo;
+$$
+
+-- 2. Creamos el nuevo procedimiento
+CREATE PROCEDURE sp_Dashboard_Top10_PorTipo(
+    IN p_NombreCategoria VARCHAR(50) -- Ahora acepta 'A', 'B', 'C', o 'A (Productos)', etc.
+)
+BEGIN
+    DECLARE v_TipoFiltro VARCHAR(50);
+
+    -- ===== ESTA ES LA CORRECCIÓN =====
+    -- 1. Traducir el 'name' usando SOLO LA PRIMERA LETRA
+    -- Usamos LEFT(p_NombreCategoria, 1) para extraer 'A'
+    CASE LEFT(p_NombreCategoria, 1)
+        WHEN 'A' THEN SET v_TipoFiltro = 'Producto';
+        WHEN 'B' THEN SET v_TipoFiltro = 'Accesorio';
+        WHEN 'C' THEN SET v_TipoFiltro = 'Insumo';
+        ELSE SET v_TipoFiltro = 'Error'; -- Maneja 'D', 'E', etc.
+    END CASE;
+    -- ===================================
+
+    -- 2. Consultar la vista (Esta parte no cambia y está perfecta)
+    SELECT
+        Codigo,
+        NombreArticulo,
+        PrecioBase,
+        Cantidad,
+        (PrecioBase * Cantidad) AS ValorTotal
+    FROM
+        VistaArticulosInventarioV3
+    WHERE
+        Tipo = v_TipoFiltro
+    ORDER BY
+        ValorTotal DESC -- "los 10 que más valen"
+    LIMIT 10; -- "Top 10"
+
+END$$
+
+DELIMITER ;
+
+-- ===================================================================================
+-- 9. PROCEDIMIENTO PARA DESCARGAR EL INVENTARIO COMPLETO POR CATEGORÍA ABC
+-- FECHA DE CREACIÓN: 2025-11-15
+-- Devuelve TODOS los artículos para una categoría específica,
+-- usando la misma lógica de filtrado que el gráfico ABC.
+-- ===================================================================================
+DELIMITER $$
+
+CREATE PROCEDURE sp_Dashboard_DescargarInventarioABC(
+    IN p_NombreCategoria VARCHAR(50) -- Acepta 'A', 'B', 'C', o 'A (Productos)', etc.
+)
+BEGIN
+    DECLARE v_TipoFiltro VARCHAR(50);
+
+    -- 1. Traducir el 'name' usando SOLO LA PRIMERA LETRA
+    CASE LEFT(p_NombreCategoria, 1)
+        WHEN 'A' THEN SET v_TipoFiltro = 'Producto';
+        WHEN 'B' THEN SET v_TipoFiltro = 'Accesorio';
+        WHEN 'C' THEN SET v_TipoFiltro = 'Insumo';
+        ELSE SET v_TipoFiltro = 'Error';
+    END CASE;
+
+    -- 2. Consultar la vista
+    SELECT
+        Codigo,
+        NombreArticulo,
+        PrecioBase,
+        Cantidad,
+        (PrecioBase * Cantidad) AS ValorTotal
+    FROM
+        VistaArticulosInventarioV3
+    WHERE
+        Tipo = v_TipoFiltro
+    ORDER BY
+        ValorTotal DESC; -- Ordenamos por valor, pero...
+    -- ¡SIN LIMIT 10!
+END$$
+
+DELIMITER ;
+
+-- ===================================================================================
+-- 10. PROCEDIMIENTO PARA EL MINI-DASHBOARD DE PEDIDOS
+-- FECHA DE CREACIÓN: 2025-11-15
+-- DESCRIPCIÓN: Devuelve un resumen de los pedidos activos, su estado, costo,
+-- y una alerta si no se han actualizado recientemente.
+-- ===================================================================================
+DELIMITER $$
+
+CREATE PROCEDURE sp_Dashboard_Pedidos(
+    IN p_DiasAlerta INT -- Número de días para considerar un pedido "antiguo"
+)
+BEGIN
+    -- Estados a excluir (5='Recibido', 6='Cancelado', 7='Eliminado')
+    DECLARE ESTADO_RECIBIDO INT DEFAULT 5;
+    DECLARE ESTADO_CANCELADO INT DEFAULT 6;
+    DECLARE ESTADO_ELIMINADO INT DEFAULT 7;
+
+    SELECT
+        pb.CodigoPedido,
+        pb.TotalPedido,
+        ep.DescripcionEstadoPedido AS EstadoPedido,
+        pb.EstadoPedidoFK,
+        pb.FechaIngreso AS FechaEstimadaRecepcion,
+        
+        -- Usamos una subconsulta para obtener la ÚLTIMA fecha de modificación
+        h.FechaUltimaModificacion,
+        
+        -- Calculamos los días transcurridos desde esa última modificación
+        DATEDIFF(NOW(), h.FechaUltimaModificacion) AS DiasDesdeModificacion,
+        
+        -- Generamos la bandera de alerta si los días transcurridos superan el parámetro
+        CASE
+            WHEN DATEDIFF(NOW(), h.FechaUltimaModificacion) > p_DiasAlerta THEN 1
+            ELSE 0
+        END AS AlertaAntiguedad
+        
+    FROM
+        PedidoBase pb
+    JOIN
+        EstadoPedido ep ON pb.EstadoPedidoFK = ep.CodigoEstadoPedido
+    
+    -- Hacemos un LEFT JOIN a una subconsulta que agrupa el historial
+    -- para obtener solo la ÚLTIMA fecha de cambio por cada pedido.
+    LEFT JOIN
+        (SELECT CodigoPedido, MAX(FechaCambio) AS FechaUltimaModificacion
+         FROM HistorialEstadoPedido
+         GROUP BY CodigoPedido) AS h ON pb.CodigoPedido = h.CodigoPedido
+         
+    WHERE
+        -- Excluimos los pedidos que ya no están activos
+        pb.EstadoPedidoFK NOT IN (ESTADO_RECIBIDO, ESTADO_CANCELADO, ESTADO_ELIMINADO)
+        
+    ORDER BY
+        -- Mostramos los pedidos con alerta primero
+        AlertaAntiguedad DESC, 
+        -- Luego, los más antiguos
+        DiasDesdeModificacion DESC;
+
 END$$
 
 DELIMITER ;

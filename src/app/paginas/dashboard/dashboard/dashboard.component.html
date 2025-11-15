@@ -16,7 +16,7 @@
   </div>
 
   <div *ngIf="dashboardData && !isLoading" class="dashboard-grid">
-    <mat-card class="kpi-card">
+    <mat-card class="kpi-card clickable-kpi" (click)="irAVentasFiltradas('hoy')">
       <div class="kpi-content">
         <div class="kpi-icon-wrapper icon-ventas">
           <mat-icon>today</mat-icon>
@@ -27,7 +27,7 @@
         </div>
       </div>
     </mat-card>
-    <mat-card class="kpi-card">
+    <mat-card class="kpi-card clickable-kpi" (click)="irAVentasFiltradas('semana')">
       <div class="kpi-content">
         <div class="kpi-icon-wrapper icon-semana">
           <mat-icon>calendar_view_week</mat-icon>
@@ -38,7 +38,7 @@
         </div>
       </div>
     </mat-card>
-    <mat-card class="kpi-card">
+    <mat-card class="kpi-card clickable-kpi" (click)="irAVentasFiltradas('mes')">
       <div class="kpi-content">
         <div class="kpi-icon-wrapper icon-mes">
           <mat-icon>calendar_month</mat-icon>
@@ -49,49 +49,160 @@
         </div>
       </div>
     </mat-card>
-    <mat-card class="kpi-card">
+    <mat-card class="kpi-card clickable-kpi" (click)="irAInventarioGarantia()">
+      <div class="kpi-content">
+        <div class="kpi-icon-wrapper icon-garantia">
+          <mat-icon>security</mat-icon>
+        </div>
+        <div class="kpi-text">
+          <span class="kpi-value">{{ dashboardData.kpis.ArticulosEnGarantia }}</span>
+          <span class="kpi-label">Artículos en Garantía</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card clickable-kpi" (click)="irAInventarioGeneral('A reparar', 'estado')">
       <div class="kpi-content">
         <div class="kpi-icon-wrapper icon-taller">
           <mat-icon>build</mat-icon>
         </div>
         <div class="kpi-text">
-          <span class="kpi-value">{{ dashboardData.kpis.ArticulosEnGarantia + dashboardData.kpis.ArticulosAReparar }}</span>
-          <span class="kpi-label">Artículos en Taller</span>
+          <span class="kpi-value">{{ dashboardData.kpis.ArticulosAReparar }}</span>
+          <span class="kpi-label">Artículos a Reparar</span>
         </div>
       </div>
     </mat-card>
 
-    <mat-card class="chart-card large-card">
-      <mat-card-title>Ventas de los Últimos 30 Días</mat-card-title>
-      <mat-card-content>
-        <ngx-charts-bar-vertical
-          [results]="dashboardData.ventas30Dias"
-          [xAxis]="true" [yAxis]="true" [legend]="false"
-          [showXAxisLabel]="true" [showYAxisLabel]="true"
-          xAxisLabel="Día" yAxisLabel="Total Vendido (USD)"
-          [scheme]="colorScheme"
-          [xAxisTickFormatting]="dateTickFormatting">
-        </ngx-charts-bar-vertical>
-      </mat-card-content>
-    </mat-card>
+<mat-card class="chart-card large-card">
+  
+  <div class="chart-header-grid">
+    <mat-card-title>Ventas por Período</mat-card-title>
+    
+    <mat-button-toggle-group 
+      class="chart-toggle-tipo"
+      [value]="tipoGraficoSeleccionado" 
+      (change)="onTipoGraficoChange($event)" 
+      aria-label="Seleccionar tipo de gráfico">
+        <mat-button-toggle value="bar"><mat-icon>bar_chart</mat-icon> Barras</mat-button-toggle>
+        <mat-button-toggle value="line"><mat-icon>show_chart</mat-icon> Líneas</mat-button-toggle>
+    </mat-button-toggle-group>
 
-    <mat-card class="chart-card abc-chart-card">
-      <mat-card-title>Valor de Inventario (Análisis ABC)</mat-card-title>
-      <mat-card-content>
-        <ngx-charts-pie-chart
-          [results]="dashboardData.valorInventarioABC"
-          [legend]="true" [labels]="true" [doughnut]="true"
-          [scheme]="colorScheme">
-        </ngx-charts-pie-chart>
-      </mat-card-content>
-    </mat-card>
+    <mat-button-toggle-group 
+      class="chart-toggle-fecha"
+      [value]="periodoSeleccionado" 
+      (change)="onPeriodoChange($event)" 
+      aria-label="Seleccionar período de ventas">
+        <mat-button-toggle value="7dias">7 Días</mat-button-toggle>
+        <mat-button-toggle value="30dias">30 Días</mat-button-toggle>
+        <mat-button-toggle value="90dias">90 Días</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <mat-card-content 
+    class="clickable-chart" 
+    (click)="irAListadoVentasPorPeriodo()">
+
+    <div *ngIf="isChartLoading" class="chart-spinner-container">
+      <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+      <p>Cargando datos del gráfico...</p>
+    </div>
+
+    <div [ngSwitch]="tipoGraficoSeleccionado" *ngIf="!isChartLoading">
+
+      <ngx-charts-bar-vertical *ngSwitchCase="'bar'"
+        [results]="ventasGraficoData"
+        [xAxis]="true" [yAxis]="true" [legend]="false"
+        [showXAxisLabel]="true" [showYAxisLabel]="true"
+        xAxisLabel="Día" yAxisLabel="Total Vendido (USD)"
+        [scheme]="colorScheme"
+        [xAxisTickFormatting]="dateTickFormatting"
+        [tooltipDisabled]="true"> <!-- Tooltip desactivado para evitar error -->
+      </ngx-charts-bar-vertical>
+
+      <ngx-charts-line-chart *ngSwitchCase="'line'"
+        [results]="[ { name: 'Ventas', series: ventasGraficoData } ]"
+        [xAxis]="true" [yAxis]="true" [legend]="false"
+        [showXAxisLabel]="true" [showYAxisLabel]="true"
+        xAxisLabel="Día" yAxisLabel="Total Vendido (USD)"
+        [scheme]="colorScheme"
+        [xAxisTickFormatting]="dateTickFormatting" [autoScale]="true"
+        [timeline]="false"
+        [tooltipDisabled]="true"> <!-- Tooltip desactivado para evitar error -->
+      </ngx-charts-line-chart>
+
+    </div>
+
+    <div *ngIf="!isChartLoading && ventasGraficoData.length === 0" class="chart-spinner-container">
+      <p>No se encontraron ventas en este período.</p>
+    </div>
+
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="chart-card abc-chart-card large-card">
+  
+  <div class="chart-header-grid">
+    <mat-card-title>Valor de Inventario (Análisis ABC)</mat-card-title>
+    
+    <mat-button-toggle-group 
+      class="chart-toggle-tipo"
+      [(ngModel)]="tipoGraficoABC" 
+      aria-label="Seleccionar tipo de gráfico ABC">
+        <mat-button-toggle value="pie"><mat-icon>pie_chart</mat-icon> Dona</mat-button-toggle>
+        <mat-button-toggle value="bar"><mat-icon>bar_chart</mat-icon> Barras</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+<mat-card-content>
+  
+  <div class="abc-chart-container">
+
+    <div [ngSwitch]="tipoGraficoABC">
+
+      <ngx-charts-pie-chart *ngSwitchCase="'pie'"
+        class="clickable-chart"
+        (select)="onAbcChartClick($event)"
+        [results]="dashboardData.valorInventarioABC"        
+        [legend]="true"
+        [legendPosition]="legendPosition"
+        [labels]="false"
+        [tooltipText]="abcTooltipFormatting"
+        [doughnut]="true"
+        [scheme]="colorScheme"> </ngx-charts-pie-chart>
+
+      <ngx-charts-bar-vertical *ngSwitchCase="'bar'"
+        class="clickable-chart"
+        (select)="onAbcChartClick($event)"
+        [results]="dashboardData.valorInventarioABC"
+        [legend]="true"
+        [legendPosition]="legendPosition"
+        [xAxis]="true"
+        [yAxis]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        xAxisLabel="Categoría"
+        yAxisLabel="Valor Total (USD)"
+        [scheme]="colorScheme">
+      </ngx-charts-bar-vertical>
+    </div>
+
+    <div *ngIf="tipoGraficoABC === 'pie' && abcChartTotal > 0" class="chart-total-label">
+      <span class="total-label-text">Valor Total</span>
+      <span class="total-label-value">{{ abcChartTotal | currency:'USD':'$' : '1.0-0' }}</span>
+    </div>
+
+  </div> </mat-card-content>
+</mat-card>
 
     <mat-card class="list-card">
       <mat-card-title>Top 5 Artículos más Vendidos</mat-card-title>
       <mat-divider></mat-divider>
       <mat-card-content>
         <ul class="dashboard-list">
-          <li *ngFor="let item of dashboardData.topArticulos">
+          <li *ngFor="let item of dashboardData.topArticulos"
+              class="clickable-list-item" 
+              (click)="irAInventarioGeneral(item.name, 'nombre')"
+              matTooltip="Filtrar '{{item.name}}' en Inventario General">
             <span>{{ item.name }}</span>
             <strong>{{ item.value | currency:'USD' }}</strong>
           </li>
@@ -100,11 +211,26 @@
     </mat-card>
     
     <mat-card class="list-card">
-      <mat-card-title>Alertas de Stock Bajo</mat-card-title>
+      <div class="card-title-container">
+        <mat-card-title>Alertas de Stock Bajo</mat-card-title>
+        
+        <button mat-icon-button 
+                (click)="descargarStockBajoExcel()" 
+                matTooltip="Descargar lista como Excel"
+                *ngIf="dashboardData.stockBajo.length > 0">
+            <mat-icon>file_download</mat-icon>
+        </button>
+      </div>
+
       <mat-divider></mat-divider>
       <mat-card-content>
         <ul class="dashboard-list" *ngIf="dashboardData.stockBajo.length > 0; else noStockBajo">
-          <li *ngFor="let item of dashboardData.stockBajo">
+          
+          <li *ngFor="let item of dashboardData.stockBajo"
+              class="clickable-list-item"
+              (click)="irAInsumo(item.CodigoInsumo)"
+              [matTooltip]="'Ir a ver insumo: ' + item.DescripcionInsumo">
+            
             <span>{{ item.DescripcionInsumo }}</span>
             <strong class="stock-alerta">{{ item.Cantidad }} / {{ item.StockMinimo }}</strong>
           </li>
@@ -114,11 +240,26 @@
     </mat-card>
 
     <mat-card class="list-card large-card">
-      <mat-card-title>Últimas Ventas Realizadas</mat-card-title>
+      
+      <div class="card-title-container">
+        <mat-card-title>Últimas Ventas Realizadas</mat-card-title>
+        
+        <button mat-icon-button 
+                (click)="descargarUltimasVentasExcel()" 
+                matTooltip="Descargar lista como Excel"
+                *ngIf="dashboardData.ultimasVentas.length > 0">
+            <mat-icon>file_download</mat-icon>
+        </button>
+      </div>
+      
       <mat-divider></mat-divider>
       <mat-card-content>
         <ul class="dashboard-list">
-           <li *ngFor="let venta of dashboardData.ultimasVentas">
+            <li *ngFor="let venta of dashboardData.ultimasVentas"
+                class="clickable-list-item"
+                (click)="irAFactura(venta.IdVentaPK)"
+                [matTooltip]="'Ver factura de ' + venta.NombreCliente + ' (ID: ' + venta.IdVentaPK + ')'">
+            
             <div class="venta-info">
               <strong>{{ venta.NombreCliente }}</strong>
               <small>{{ venta.FechaCreacion | date:'short' }} ({{ venta.NombreVendedor }})</small>
@@ -129,6 +270,68 @@
           <strong>{{ venta.TotalVenta | currency:'USD' }}</strong>
           </li>
         </ul>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ================================================= -->
+    <!-- ⭐️ NUEVO MINI-DASHBOARD DE PEDIDOS ACTIVOS ⭐️ -->
+    <!-- ================================================= -->
+    <mat-card class="list-card large-card pedidos-list-card">
+      <mat-card-title>Pedidos Activos</mat-card-title>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+
+        <div *ngIf="isPedidosLoading" class="chart-spinner-container" style="min-height: 200px;">
+          <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+          <p>Cargando pedidos...</p>
+        </div>
+
+        <div *ngIf="pedidosError && !isPedidosLoading" class="error-container" style="min-height: 200px;">
+          <mat-icon color="warn">warning_amber</mat-icon>
+          <p>{{ pedidosError }}</p>
+          <button mat-stroked-button color="primary" (click)="cargarPedidos()">Reintentar</button>
+        </div>
+
+        <ul class="dashboard-list" *ngIf="!isPedidosLoading && !pedidosError && pedidosData.length > 0">
+           <li *ngFor="let pedido of pedidosData"
+               class="clickable-list-item"
+               [class.pedido-alerta]="pedido.AlertaAntiguedad === 1"
+               [matTooltip]="getPedidoTooltip(pedido)"
+               (click)="irAPedido(pedido.CodigoPedido)">
+            
+            <div class="pedido-info">
+              <strong>{{ pedido.CodigoPedido }}</strong>
+              <span class="status-badge status-{{pedido.EstadoPedidoFK}}">
+                {{ pedido.EstadoPedido }}
+              </span>
+            </div>
+
+            <div class="pedido-status">
+              <strong>{{ pedido.TotalPedido | currency:'USD' }}</strong>
+              
+              <small *ngIf="pedido.AlertaAntiguedad === 1" class="alerta-text">
+                <mat-icon>warning</mat-icon>
+                {{ pedido.DiasDesdeModificacion }} días sin modif.
+              </small>
+
+              <small *ngIf="pedido.AlertaAntiguedad === 0" class="fecha-estimada">
+                 <mat-icon>calendar_today</mat-icon>
+                 Est. {{ pedido.FechaEstimadaRecepcion | date:'dd/MM/yy' }}
+              </small>
+            </div>
+
+          </li>
+        </ul>
+
+        <ng-template #noPedidos>
+          <div *ngIf="!isPedidosLoading && !pedidosError && pedidosData.length === 0" class="chart-spinner-container" style="min-height: 200px;">
+            <mat-icon color="primary">check_circle_outline</mat-icon>
+            <p>¡Excelente! No hay pedidos activos pendientes.</p>
+          </div>
+        </ng-template>
+        <div *ngIf="!isPedidosLoading && !pedidosError && pedidosData.length === 0">
+          <ng-container *ngTemplateOutlet="noPedidos"></ng-container>
+        </div>
       </mat-card-content>
     </mat-card>
   </div>

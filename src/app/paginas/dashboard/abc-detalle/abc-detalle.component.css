@@ -1,0 +1,42 @@
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 12px; /* Espacio para el botón de cerrar */
+}
+
+.modal-header h2 {
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.modal-content {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  min-width: 600px; /* Ancho mínimo del modal */
+  max-height: 60vh; /* Altura máxima, permite scroll */
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.col-numerica {
+  text-align: right;
+}
+
+.col-total {
+  font-weight: 500;
+}
+
+/* ⭐️ ESTILOS NUEVOS AÑADIDOS ⭐️ */
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  min-height: 200px;
+  color: var(--text-muted);
+}

@@ -17,6 +17,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+// ===== 1. IMPORTACIONES NUEVAS =====
+import * as XLSX from 'xlsx'; // Para el Excel
+import { DatePipe } from '@angular/common'; // Para formatear la fecha en el Excel
+
 import { VentasBaseService } from '../../../services/ventas-base.service';
 import { NotasCreditoService } from '../../../services/notas-credito.service';
 import { AuthService } from '../../../UI/session/auth.service';
@@ -27,7 +31,7 @@ import { DetalleVentaCompleta } from '../../interfaces/detalleventacompleta';
 import { DialogDescargarPdfProformaComponent } from '../dialog-descargar-pdf-proforma/dialog-descargar-pdf-proforma.component';
 import { DialogDescargarPdfVentaComponent } from '../dialog-descargar-pdf-venta/dialog-descargar-pdf-venta.component';
 import { CrearNotaCreditoComponent } from '../crear-nota-credito/crear-nota-credito.component';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router'; // <-- MODIFICAR ESTA LÍNEA
 import { DialogoConfirmacionComponent } from '../dialogo-confirmacion/dialogo-confirmacion.component';
 
 import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
@@ -40,9 +44,11 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule, FormsModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
     MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatDatepickerModule,
-    MatNativeDateModule, MatTooltipModule
+    MatNativeDateModule, MatTooltipModule,
+    DatePipe // <-- 2. AÑADE DATEPIPE A LOS IMPORTS
   ],
-  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
+  // ===== 3. AÑADE DATEPIPE A LOS PROVIDERS =====
+  providers: [DatePipe, { provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
   templateUrl: './listado-ventas.component.html',
   styleUrls: ['./listado-ventas.component.css']
 })
@@ -53,6 +59,9 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
 
   private readonly tableStateKey = 'ventasTableState';
   private subscriptions = new Subscription();
+
+  // Esta propiedad la usaremos para saber si un filtro ya vino de la URL
+  private filtroAplicadoPorQuery = false;
 
   isLoading = true;
   errorMessage: string | null = null;
@@ -71,10 +80,58 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
     private snackBar: MatSnackBar,
     private creditNotesService: NotasCreditoService,
     private router: Router,
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private route: ActivatedRoute, // <--- AÑADIR ESTO (ActivatedRoute)
+    private datePipe: DatePipe // <-- 4. INYECTA DATEPIPE
   ) { }
 
   ngOnInit(): void {
+    // --- LÓGICA MODIFICADA ---
+    // 1. Revisamos si la URL trae un filtro (ej. ?filtro=hoy)
+    const filtroQuery = this.route.snapshot.queryParamMap.get('filtro');
+
+    // ===== ESTA ES LA LÍNEA QUE FALTABA =====
+    const fechaQuery = this.route.snapshot.queryParamMap.get('fecha');
+    
+    if (filtroQuery) { // @ts-ignore
+      // 2. Si lo trae, calculamos las fechas y las establecemos
+      this.aplicarFiltroPorQuery(filtroQuery);
+      this.filtroAplicadoPorQuery = true; // Marcamos que ya filtramos
+
+      // 3. Limpiamos el parámetro de la URL para que no interfiera
+      // con la persistencia de estado si el usuario aplica otros filtros después.
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { filtro: null }, // Pone el filtro a null
+        queryParamsHandling: 'merge',  // Mantiene otros queryParams (si los hubiera)
+        replaceUrl: true             // Lo hace sin añadir al historial del navegador
+      });
+
+    } else if (fechaQuery) {
+      // ===== INICIO DE LA NUEVA LÓGICA =====
+      // Si viene una 'fecha' específica (ej. '2025-11-10')
+      
+      // Parseamos la fecha. 'YYYY-MM-DD' puede tener problemas de timezone con new Date().
+      // Esta forma es más segura para crear una fecha LOCAL.
+      const parts = fechaQuery.split('-').map(Number); // [2025, 11, 10]
+      const fecha = new Date(parts[0], parts[1] - 1, parts[2]);
+
+      // Establecemos el rango de filtro para ESE DÍA EXACTO
+      this.fechaInicio = new Date(fecha.setHours(0, 0, 0, 0));
+      this.fechaFin = new Date(fecha.setHours(23, 59, 59, 999));
+
+      this.filtroAplicadoPorQuery = true; // Marcamos que ya filtramos
+
+      // Limpiamos el parámetro 'fecha'
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { fecha: null }, 
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+    }
+
+    // El resto de ngOnInit se ejecuta normalmente
     this.cargarVentas();
     this.setupFilterPredicate();
   }
@@ -82,6 +139,24 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
   ngOnDestroy(): void {
     this.saveState();
     this.subscriptions.unsubscribe();
+  }
+
+  public resetearFiltros(): void {
+    // 1. Limpiamos las variables del modelo
+    this.fechaInicio = null;
+    this.fechaFin = null;
+
+    // 2. Limpiamos el valor del input de texto
+    if (this.inputElement) {
+      this.inputElement.nativeElement.value = '';
+    }
+
+    // 3. Marcamos que ya no hay un filtro de query
+    this.filtroAplicadoPorQuery = false;
+
+    // 4. Aplicamos los filtros (ahora vacíos)
+    this.aplicarFiltros(); 
+    // aplicarFiltros() ya guarda el estado, así que todo está cubierto.
   }
 
   private saveState(): void {
@@ -99,6 +174,47 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private loadAndApplyState(): void {
+    // --- LÓGICA MODIFICADA ---
+    // Si ya aplicamos un filtro desde la URL (en ngOnInit),
+    // no debemos cargar las fechas del estado guardado,
+    // porque el filtro de la URL tiene prioridad.
+    if (this.filtroAplicadoPorQuery) {
+      // Solo restauramos paginador, orden y filtro de TEXTO
+      const state = this.stateService.loadState(this.tableStateKey);
+      if (state) {
+        // Restaurar filtro de texto (si existe)
+        if (state.filter) {
+          this.dataSource.filter = state.filter;
+          const filterValues = JSON.parse(state.filter);
+          setTimeout(() => {
+            if (this.inputElement) {
+              this.inputElement.nativeElement.value = filterValues.text || '';
+            }
+            // NO restauramos las fechas, usamos las del query param
+          });
+        }
+        
+        // Restaurar paginador
+        if (this.paginator) { 
+          this.paginator.pageIndex = state.pageIndex;
+          this.paginator.pageSize = state.pageSize;
+        }
+        
+        // Restaurar ordenamiento
+        setTimeout(() => { 
+          if (this.sort) {
+            this.sort.active = state.sortColumn;
+            this.sort.direction = state.sortDirection;
+          }
+        });
+      }
+
+      // Aplicamos el filtro con las fechas del query param y el texto del state
+      this.aplicarFiltros();
+      return; // Salimos para no ejecutar la lógica de abajo
+    }
+
+    // --- LÓGICA ORIGINAL (si no vino filtro de la URL) ---
     const state = this.stateService.loadState(this.tableStateKey);
     if (!state) return;
 
@@ -135,11 +251,10 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-
-    this.loadAndApplyState();
-
+    // YA NO necesitamos vincular el paginator/sort aquí
+    // YA NO necesitamos llamar a loadAndApplyState() aquí
+    // Solo mantenemos las suscripciones que guardan el estado
+    // CUANDO el usuario interactúa
     this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
     this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }
@@ -199,7 +314,18 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
               });
               // --- FIN DE LA CORRECCIÓN ---
 
-              this.dataSource.data = processedData; // Usamos los datos procesados
+              this.dataSource.data = processedData; // ¡Datos cargados!
+
+              // ===== AÑADIR/MOVER ESTAS LÍNEAS AQUÍ =====
+              // 1. Conectamos el paginador y el sort a los datos
+              this.dataSource.paginator = this.paginator;
+              this.dataSource.sort = this.sort;
+
+              // 2. AHORA que los datos están listos, aplicamos el estado
+              // (que incluirá nuestro filtro de fecha de la URL)
+              this.loadAndApplyState();
+              // ===========================================
+
               this.isLoading = false;
             },
             error: (error) => {
@@ -346,6 +472,66 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
 
   applyFilter(event: Event) {
     this.aplicarFiltros();
+  }
+
+  // ===== FUNCIÓN NUEVA =====
+  /**
+   * Calcula y establece las fechas (fechaInicio, fechaFin) basadas
+   * en el token de filtro recibido ('hoy', 'semana', 'mes').
+   * en el token de filtro recibido (de KPIs o del gráfico).
+   */
+  private aplicarFiltroPorQuery(filtro: string): void {
+    const hoy_fin = new Date(new Date().setHours(23, 59, 59, 999));
+    const hoy_inicio = new Date(new Date().setHours(0, 0, 0, 0));
+
+    switch (filtro) {
+      // Filtro de KPI (Ventas de Hoy)
+      case 'hoy':
+        this.fechaInicio = hoy_inicio;
+        this.fechaFin = hoy_fin;
+        break;
+
+      // Filtro de KPI (Ventas de la Semana - Lunes a Hoy)
+      case 'semana':
+        const diaSemana = hoy_inicio.getDay() === 0 ? 6 : hoy_inicio.getDay() - 1; // Mon=0, Dom=6
+        const inicioSemana = new Date(new Date().setDate(hoy_inicio.getDate() - diaSemana));
+        inicioSemana.setHours(0, 0, 0, 0);
+        this.fechaInicio = inicioSemana;
+        this.fechaFin = hoy_fin;
+        break;
+
+      // Filtro de KPI (Ventas del Mes - Día 1 a Hoy)
+      case 'mes':
+        this.fechaInicio = new Date(hoy_inicio.getFullYear(), hoy_inicio.getMonth(), 1);
+        this.fechaFin = hoy_fin;
+        break;
+      
+      // --- NUEVOS FILTROS DEL GRÁFICO ---
+
+      // Filtro de Gráfico (Últimos 7 días)
+      case '7dias':
+        const inicio7 = new Date(new Date().setDate(hoy_inicio.getDate() - 6)); // 6 días atrás + hoy = 7
+        inicio7.setHours(0, 0, 0, 0);
+        this.fechaInicio = inicio7;
+        this.fechaFin = hoy_fin;
+        break;
+      
+      // Filtro de Gráfico (Últimos 30 días)
+      case '30dias':
+        const inicio30 = new Date(new Date().setDate(hoy_inicio.getDate() - 29));
+        inicio30.setHours(0, 0, 0, 0);
+        this.fechaInicio = inicio30;
+        this.fechaFin = hoy_fin;
+        break;
+      
+      // Filtro de Gráfico (Últimos 90 días)
+      case '90dias':
+        const inicio90 = new Date(new Date().setDate(hoy_inicio.getDate() - 89));
+        inicio90.setHours(0, 0, 0, 0);
+        this.fechaInicio = inicio90;
+        this.fechaFin = hoy_fin;
+        break;
+    }
   }
 
   getStatusClass(status: string): string {
@@ -752,6 +938,51 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
         this.snackBar.open('Error de comunicación al obtener los detalles.', 'Cerrar', { duration: 4000 });
       }
     });
+  }
+
+  // ===== 5. AÑADE LA NUEVA FUNCIÓN DE DESCARGA =====
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // Usamos .filteredData para obtener solo lo que el usuario está viendo (con filtros aplicados)
+    const data = this.dataSource.filteredData;
+
+    if (data.length === 0) {
+      this.snackBar.open('No hay datos para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Mapeamos los datos a un formato más legible para el Excel
+    const excelData = data.map(venta => ({
+      'N° Venta': venta.IdVentaPK,
+      'Fecha': this.datePipe.transform(venta.FechaCreacion, 'dd/MM/yyyy h:mm a'),
+      'Tipo Doc.': venta.TipoDocumento,
+      'N° Documento': venta.NumeroDocumento,
+      'Cliente': venta.Cliente,
+      'Total': venta.TotalVenta,
+      'Estado': venta.EstadoVenta
+    }));
+
+    // Creamos la hoja de cálculo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // (Opcional) Ajustar el ancho de las columnas
+    ws['!cols'] = [
+      { wch: 10 }, // N° Venta
+      { wch: 20 }, // Fecha
+      { wch: 15 }, // Tipo Doc.
+      { wch: 15 }, // N° Documento
+      { wch: 30 }, // Cliente
+      { wch: 12 }, // Total
+      { wch: 15 }  // Estado
+    ];
+
+    // Creamos el libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+
+    // Generamos el archivo y lo descargamos
+    XLSX.writeFile(wb, 'Reporte_Ventas.xlsx');
   }
 
 }
