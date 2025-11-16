@@ -212,6 +212,7 @@ DELIMITER $$
 CREATE PROCEDURE sp_Dashboard_Ultimas5Ventas()
 BEGIN
     SELECT
+		vb.IdVentaPK,
         vb.NumeroDocumento,
         c.NombreCliente,
         vb.TotalVenta,
@@ -495,6 +496,521 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+-- ===================================================================================
+-- 11. PROCEDIMIENTO PARA EL MINI-DASHBOARD DE REESTOCK
+-- FECHA DE CREACIÓN: 2025-11-15
+-- DESCRIPCIÓN: Devuelve una prediccion a futuro por modelo.
+-- y alerta si es necesario pedir.
+-- ===================================================================================
+DELIMITER $$
+
+-- Eliminamos el procedimiento anterior si existe
+DROP PROCEDURE IF EXISTS sp_Reporte_PronosticoPorModelo;
+$$
+
+-- Creamos la versión corregida
+CREATE PROCEDURE sp_Reporte_PronosticoPorModelo(
+    IN p_IdModelo INT,
+    IN p_TipoArticulo INT,
+    IN p_NumMesesHistorial INT
+)
+BEGIN
+    -- Declaración de variables (sin cambios)
+    DECLARE v_n INT DEFAULT 0;
+    DECLARE v_sum_x, v_sum_y, v_sum_xy, v_sum_x2 DECIMAL(20, 5) DEFAULT 0;
+    DECLARE v_avg_x, v_avg_y DECIMAL(20, 5) DEFAULT 0;
+    DECLARE v_a, v_b DECIMAL(20, 5) DEFAULT 0;
+    DECLARE v_pronostico_proximo_mes DECIMAL(20, 5) DEFAULT 0;
+    DECLARE v_stock_actual INT DEFAULT 0;
+    DECLARE v_nombre_modelo VARCHAR(500) DEFAULT 'Desconocido';
+    DECLARE v_recomendacion VARCHAR(500);
+    DECLARE v_diferencia DECIMAL(20, 5);
+    DECLARE v_estados_no_disponibles VARCHAR(50) DEFAULT '7,8,9,10,11';
+
+    -- ======================================================================
+    -- PASO 1: Obtener Datos Históricos (Sin cambios)
+    -- ======================================================================
+    DROP TEMPORARY TABLE IF EXISTS TempDatosLR;
+    CREATE TEMPORARY TABLE TempDatosLR (
+        Periodo_X INT,
+        Demanda_Y INT,
+        Anio INT,
+        Mes INT
+    );
+    
+    DROP TEMPORARY TABLE IF EXISTS TempVentasConsolidadas;
+    CREATE TEMPORARY TABLE TempVentasConsolidadas (
+        Anio INT,
+        Mes INT,
+        Demanda_Y_Consolidada INT
+    );
+
+    IF p_TipoArticulo = 3 THEN
+        -- Lógica de INSUMO (Sin cambios)
+        INSERT INTO TempVentasConsolidadas (Anio, Mes, Demanda_Y_Consolidada)
+        SELECT YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion), SUM(dv.Cantidad)
+        FROM DetalleVenta dv
+        JOIN VentasBase vb ON dv.IdVentaFK = vb.IdVentaPK
+        JOIN InsumosBase ib ON dv.CodigoArticulo = ib.CodigoInsumo
+        WHERE vb.IdEstadoVentaFK = 2 AND dv.TipoArticulo = 'Insumo'
+          AND vb.FechaCreacion >= DATE_SUB(CURDATE(), INTERVAL p_NumMesesHistorial MONTH)
+          AND ib.ModeloInsumo = p_IdModelo
+        GROUP BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion);
+
+        INSERT INTO TempVentasConsolidadas (Anio, Mes, Demanda_Y_Consolidada)
+        SELECT YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion), SUM(dv.Cantidad * ixs.CantidadDescargue)
+        FROM DetalleVenta dv
+        JOIN VentasBase vb ON dv.IdVentaFK = vb.IdVentaPK
+        JOIN InsumosXServicio ixs ON CAST(dv.CodigoArticulo AS UNSIGNED) = ixs.IdServicioFK
+        JOIN InsumosBase ib ON ixs.CodigoInsumoFK = ib.CodigoInsumo
+        WHERE vb.IdEstadoVentaFK = 2 AND dv.TipoArticulo = 'Servicio'
+          AND vb.FechaCreacion >= DATE_SUB(CURDATE(), INTERVAL p_NumMesesHistorial MONTH)
+          AND ib.ModeloInsumo = p_IdModelo AND ixs.Estado = 1
+        GROUP BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion);
+
+        INSERT INTO TempDatosLR (Periodo_X, Demanda_Y, Anio, Mes)
+        SELECT ROW_NUMBER() OVER(ORDER BY Anio, Mes), SUM(Demanda_Y_Consolidada), Anio, Mes
+        FROM TempVentasConsolidadas
+        GROUP BY Anio, Mes ORDER BY Anio, Mes;
+
+    ELSE
+        -- Lógica de PRODUCTO o ACCESORIO (Sin cambios)
+        INSERT INTO TempDatosLR (Periodo_X, Demanda_Y, Anio, Mes)
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion)) AS Periodo_X,
+            SUM(dv.Cantidad) AS Demanda_Y,
+            YEAR(vb.FechaCreacion) AS Anio,
+            MONTH(vb.FechaCreacion) AS Mes
+        FROM DetalleVenta dv
+        JOIN VentasBase vb ON dv.IdVentaFK = vb.IdVentaPK
+        LEFT JOIN ProductosBases pb ON dv.CodigoArticulo = pb.CodigoConsola AND p_TipoArticulo = 1
+        LEFT JOIN AccesoriosBase ab ON dv.CodigoArticulo = ab.CodigoAccesorio AND p_TipoArticulo = 2
+        WHERE
+            vb.IdEstadoVentaFK = 2
+            AND vb.FechaCreacion >= DATE_SUB(CURDATE(), INTERVAL p_NumMesesHistorial MONTH)
+            AND (
+                (p_TipoArticulo = 1 AND pb.Modelo = p_IdModelo) OR
+                (p_TipoArticulo = 2 AND ab.ModeloAccesorio = p_IdModelo)
+            )
+        GROUP BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion)
+        ORDER BY Anio, Mes;
+    END IF;
+    
+    DROP TEMPORARY TABLE IF EXISTS TempVentasConsolidadas;
+
+    -- ======================================================================
+    -- PASO 2: Calcular Regresión Lineal (Sin cambios)
+    -- ======================================================================
+    SELECT COUNT(*), SUM(Periodo_X), SUM(Demanda_Y), SUM(Periodo_X * Demanda_Y), SUM(Periodo_X * Periodo_X)
+    INTO v_n, v_sum_x, v_sum_y, v_sum_xy, v_sum_x2
+    FROM TempDatosLR;
+
+    IF v_n > 1 THEN
+        SET v_avg_x = v_sum_x / v_n;
+        SET v_avg_y = v_sum_y / v_n;
+        IF (v_sum_x2 - v_n * POW(v_avg_x, 2)) <> 0 THEN
+            SET v_b = (v_sum_xy - v_n * v_avg_x * v_avg_y) / (v_sum_x2 - v_n * POW(v_avg_x, 2));
+            SET v_a = v_avg_y - (v_b * v_avg_x);
+            SET v_pronostico_proximo_mes = v_a + (v_b * (v_n + 1));
+        ELSE
+            SET v_pronostico_proximo_mes = v_avg_y; 
+        END IF;
+    ELSEIF v_n = 1 THEN
+        SET v_pronostico_proximo_mes = v_sum_y; 
+    ELSE
+        SET v_pronostico_proximo_mes = 0; 
+    END IF;
+
+    IF v_pronostico_proximo_mes < 0 THEN
+        SET v_pronostico_proximo_mes = 0;
+    END IF;
+
+    -- ======================================================================
+    -- PASO 3: Calcular Stock Actual y Obtener Nombre (Sin cambios)
+    -- ======================================================================
+    IF p_TipoArticulo = 1 THEN -- Producto
+        SELECT CONCAT(f.NombreFabricante, ' - ', cp.NombreCategoria, ' - ', sp.NombreSubcategoria)
+        INTO v_nombre_modelo
+        FROM CatalogoConsolas cc
+        JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
+        JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
+        JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
+        WHERE cc.IdModeloConsolaPK = p_IdModelo LIMIT 1; 
+
+        SELECT COUNT(*) INTO v_stock_actual
+        FROM ProductosBases pb
+        WHERE pb.Modelo = p_IdModelo AND FIND_IN_SET(pb.Estado, v_estados_no_disponibles) = 0;
+
+    ELSEIF p_TipoArticulo = 2 THEN -- Accesorio
+        SELECT CONCAT(fa.NombreFabricanteAccesorio, ' - ', ca.NombreCategoriaAccesorio, ' - ', sa.NombreSubcategoriaAccesorio)
+        INTO v_nombre_modelo
+        FROM CatalogoAccesorios cacc
+        JOIN FabricanteAccesorios fa ON cacc.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
+        JOIN CategoriasAccesorios ca ON cacc.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
+        JOIN SubcategoriasAccesorios sa ON cacc.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+        WHERE cacc.IdModeloAccesorioPK = p_IdModelo LIMIT 1;
+        
+        SELECT COUNT(*) INTO v_stock_actual
+        FROM AccesoriosBase ab
+        WHERE ab.ModeloAccesorio = p_IdModelo AND FIND_IN_SET(ab.EstadoAccesorio, v_estados_no_disponibles) = 0;
+
+    ELSEIF p_TipoArticulo = 3 THEN -- Insumo
+        SELECT CONCAT(fi.NombreFabricanteInsumos, ' - ', ci.NombreCategoriaInsumos, ' - ', si.NombreSubcategoriaInsumos)
+        INTO v_nombre_modelo
+        FROM CatalogoInsumos cain
+        JOIN FabricanteInsumos fi ON cain.FabricanteInsumos = fi.IdFabricanteInsumosPK
+        JOIN CategoriasInsumos ci ON cain.CategoriaInsumos = ci.IdCategoriaInsumosPK
+        JOIN SubcategoriasInsumos si ON cain.SubcategoriaInsumos = si.IdSubcategoriaInsumos
+        WHERE cain.IdModeloInsumosPK = p_IdModelo LIMIT 1;
+            
+        SELECT IFNULL(SUM(ib.Cantidad), 0) INTO v_stock_actual
+        FROM InsumosBase ib
+        WHERE ib.ModeloInsumo = p_IdModelo AND FIND_IN_SET(ib.EstadoInsumo, v_estados_no_disponibles) = 0;
+    END IF;
+
+    -- ======================================================================
+    -- PASO 4: Generar Recomendación y Devolver Resultados (MODIFICADO)
+    -- ======================================================================
+    SET v_diferencia = v_pronostico_proximo_mes - v_stock_actual;
+
+    IF v_diferencia <= 0 THEN
+        SET v_recomendacion = 'Stock suficiente. No se requiere pedido.';
+    ELSE
+        SET v_recomendacion = CONCAT('Se sugiere pedir al menos ', CEILING(v_diferencia), ' unidades para cubrir la demanda pronosticada.');
+    END IF;
+
+    -- ----- RESULT SET 1: El Resumen (Sin cambios) -----
+    SELECT
+        v_nombre_modelo AS NombreModelo,
+        v_stock_actual AS StockActual,
+        CEILING(v_pronostico_proximo_mes) AS DemandaPronosticada,
+        v_recomendacion AS Recomendacion,
+        v_n AS MesesAnalizados;
+
+    -- ----- RESULT SET 2: Datos para la Gráfica (CORREGIDO) -----
+    
+    -- 1. Crear una segunda tabla temporal para los datos del gráfico
+    DROP TEMPORARY TABLE IF EXISTS TempGraphData;
+    CREATE TEMPORARY TABLE TempGraphData (
+        seriesName VARCHAR(20), 
+        name VARCHAR(10), 
+        value DECIMAL(20, 5), 
+        Anio INT, 
+        Mes INT
+    );
+
+    -- 2. Insertar los datos de Demanda (Y)
+    INSERT INTO TempGraphData (seriesName, name, value, Anio, Mes)
+    SELECT 
+        'Demanda (Y)', 
+        CONCAT(Mes, '/', Anio), 
+        Demanda_Y, 
+        Anio, 
+        Mes
+    FROM TempDatosLR;
+
+    -- 3. Insertar los datos calculados de Pronóstico (Y')
+    INSERT INTO TempGraphData (seriesName, name, value, Anio, Mes)
+    SELECT 
+        'Pronóstico (Y\')', 
+        CONCAT(Mes, '/', Anio), 
+        (v_a + (v_b * Periodo_X)), 
+        Anio, 
+        Mes
+    FROM TempDatosLR;
+
+    -- 4. Seleccionar de la nueva tabla temporal (esto evita el error 1137)
+    SELECT seriesName, name, value
+    FROM TempGraphData
+    ORDER BY 
+        FIELD(seriesName, 'Demanda (Y)', 'Pronóstico (Y\')'), 
+        Anio, 
+        Mes;
+
+    -- Limpieza
+    DROP TEMPORARY TABLE IF EXISTS TempDatosLR;
+    DROP TEMPORARY TABLE IF EXISTS TempGraphData;
+
+END$$
+
+DELIMITER ;
+
+-- ===================================================================================
+-- 12. PROCEDIMIENTO PARA LISTAR PRODUCTOS VENDIDOS Y SU MODELO PARA LA PREDICCION
+-- FECHA DE CREACIÓN: 2025-11-15
+-- DESCRIPCIÓN: Devuelve los modelos vendidos recientemente
+-- ===================================================================================
+DELIMITER $$
+
+CREATE PROCEDURE sp_ListarModelosParaPronostico()
+BEGIN
+    -- 1. Obtener Productos (Tipo 1)
+    SELECT
+        cc.IdModeloConsolaPK AS IdModelo,
+        1 AS TipoArticulo,
+        CONCAT('Producto: ', f.NombreFabricante, ' - ', cp.NombreCategoria, ' - ', sp.NombreSubcategoria) AS NombreModelo
+    FROM CatalogoConsolas cc
+    JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
+    JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
+    JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
+    WHERE cc.Activo = 1
+
+    UNION ALL
+
+    -- 2. Obtener Accesorios (Tipo 2)
+    SELECT
+        cacc.IdModeloAccesorioPK AS IdModelo,
+        2 AS TipoArticulo,
+        CONCAT('Accesorio: ', fa.NombreFabricanteAccesorio, ' - ', ca.NombreCategoriaAccesorio, ' - ', sa.NombreSubcategoriaAccesorio) AS NombreModelo
+    FROM CatalogoAccesorios cacc
+    JOIN FabricanteAccesorios fa ON cacc.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
+    JOIN CategoriasAccesorios ca ON cacc.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
+    JOIN SubcategoriasAccesorios sa ON cacc.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+    WHERE cacc.Activo = 1
+
+    UNION ALL
+
+    -- 3. Obtener Insumos (Tipo 3)
+    SELECT
+        cain.IdModeloInsumosPK AS IdModelo,
+        3 AS TipoArticulo,
+        CONCAT('Insumo: ', fi.NombreFabricanteInsumos, ' - ', ci.NombreCategoriaInsumos, ' - ', si.NombreSubcategoriaInsumos) AS NombreModelo
+    FROM CatalogoInsumos cain
+    JOIN FabricanteInsumos fi ON cain.FabricanteInsumos = fi.IdFabricanteInsumosPK
+    JOIN CategoriasInsumos ci ON cain.CategoriaInsumos = ci.IdCategoriaInsumosPK
+    JOIN SubcategoriasInsumos si ON cain.SubcategoriaInsumos = si.IdSubcategoriaInsumos
+    WHERE cain.Activo = 1
+
+    ORDER BY
+        TipoArticulo, NombreModelo;
+END$$
+
+DELIMITER ;
+
+-- ===================================================================================
+-- 13. PROCEDIMIENTO QUE PREDICE ;ASIVAMENTE LA DEMANDA DE MODELOS.
+-- FECHA DE CREACIÓN: 2025-11-15
+-- DESCRIPCIÓN: Devuelve los datos masivamente para su impresion en excel.
+-- ===================================================================================
+DELIMITER $$
+
+-- Eliminamos el procedimiento anterior si existe
+DROP PROCEDURE IF EXISTS sp_Reporte_PronosticoMasivo;
+$$
+
+CREATE PROCEDURE sp_Reporte_PronosticoMasivo(
+    IN p_NumMesesHistorial INT
+)
+BEGIN
+    -- ======================================================================
+    -- SECCIÓN DE DECLARACIONES
+    -- (Todas las DECLARE deben ir aquí, al inicio del bloque BEGIN)
+    -- ======================================================================
+    
+    -- Declaración de variables para el loop
+    DECLARE v_IdModelo INT;
+    DECLARE v_TipoArticulo INT;
+    DECLARE v_NombreModelo VARCHAR(500);
+    DECLARE done INT DEFAULT FALSE;
+
+    -- Declaración de variables para el cálculo
+    DECLARE v_n INT;
+    DECLARE v_sum_x, v_sum_y, v_sum_xy, v_sum_x2 DECIMAL(20, 5);
+    DECLARE v_avg_x, v_avg_y DECIMAL(20, 5);
+    DECLARE v_a, v_b DECIMAL(20, 5);
+    DECLARE v_pronostico_proximo_mes DECIMAL(20, 5);
+    DECLARE v_stock_actual INT;
+    DECLARE v_recomendacion VARCHAR(500);
+    DECLARE v_diferencia DECIMAL(20, 5);
+    DECLARE v_estados_no_disponibles VARCHAR(50) DEFAULT '7,8,9,10,11';
+
+    -- **MOVIDO AQUÍ:** Definir el cursor para iterar sobre los modelos
+    DECLARE cur_modelos CURSOR FOR
+        SELECT IdModelo, TipoArticulo, NombreModelo FROM TempModelosActivos;
+        
+    -- **MOVIDO AQUÍ:** Definir el handler para el cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- ======================================================================
+    -- FIN DE DECLARACIONES
+    -- (A partir de aquí comienzan las sentencias ejecutables)
+    -- ======================================================================
+
+    -- 1. Tabla para almacenar los modelos a iterar
+    DROP TEMPORARY TABLE IF EXISTS TempModelosActivos;
+    CREATE TEMPORARY TABLE TempModelosActivos (
+        IdModelo INT,
+        TipoArticulo INT,
+        NombreModelo VARCHAR(500)
+    );
+
+    -- 2. Tabla para almacenar los resultados finales
+    DROP TEMPORARY TABLE IF EXISTS TempResultadoFinal;
+    CREATE TEMPORARY TABLE TempResultadoFinal (
+        NombreModelo VARCHAR(500),
+        StockActual INT,
+        DemandaPronosticada INT,
+        Recomendacion VARCHAR(500),
+        MesesAnalizados INT
+    );
+    
+    -- Tablas para los cálculos de cada iteración
+    DROP TEMPORARY TABLE IF EXISTS TempDatosLR_Iteracion;
+    CREATE TEMPORARY TABLE TempDatosLR_Iteracion (
+        Periodo_X INT, Demanda_Y INT, Anio INT, Mes INT
+    );
+    
+    DROP TEMPORARY TABLE IF EXISTS TempVentasConsolidadas_Iteracion;
+    CREATE TEMPORARY TABLE TempVentasConsolidadas_Iteracion (
+        Anio INT, Mes INT, Demanda_Y_Consolidada INT
+    );
+
+    -- 3. Poblar la tabla de Modelos (usando la lógica de sp_ListarModelosParaPronostico)
+    INSERT INTO TempModelosActivos (IdModelo, TipoArticulo, NombreModelo)
+    SELECT cc.IdModeloConsolaPK, 1, CONCAT('Producto: ', f.NombreFabricante, ' - ', cp.NombreCategoria, ' - ', sp.NombreSubcategoria)
+    FROM CatalogoConsolas cc
+    JOIN Fabricantes f ON cc.Fabricante = f.IdFabricantePK
+    JOIN CategoriasProductos cp ON cc.Categoria = cp.IdCategoriaPK
+    JOIN SubcategoriasProductos sp ON cc.Subcategoria = sp.IdSubcategoria
+    WHERE cc.Activo = 1
+    UNION ALL
+    SELECT cacc.IdModeloAccesorioPK, 2, CONCAT('Accesorio: ', fa.NombreFabricanteAccesorio, ' - ', ca.NombreCategoriaAccesorio, ' - ', sa.NombreSubcategoriaAccesorio)
+    FROM CatalogoAccesorios cacc
+    JOIN FabricanteAccesorios fa ON cacc.FabricanteAccesorio = fa.IdFabricanteAccesorioPK
+    JOIN CategoriasAccesorios ca ON cacc.CategoriaAccesorio = ca.IdCategoriaAccesorioPK
+    JOIN SubcategoriasAccesorios sa ON cacc.SubcategoriaAccesorio = sa.IdSubcategoriaAccesorio
+    WHERE cacc.Activo = 1
+    UNION ALL
+    SELECT cain.IdModeloInsumosPK, 3, CONCAT('Insumo: ', fi.NombreFabricanteInsumos, ' - ', ci.NombreCategoriaInsumos, ' - ', si.NombreSubcategoriaInsumos)
+    FROM CatalogoInsumos cain
+    JOIN FabricanteInsumos fi ON cain.FabricanteInsumos = fi.IdFabricanteInsumosPK
+    JOIN CategoriasInsumos ci ON cain.CategoriaInsumos = ci.IdCategoriaInsumosPK
+    JOIN SubcategoriasInsumos si ON cain.SubcategoriaInsumos = si.IdSubcategoriaInsumos
+    WHERE cain.Activo = 1;
+
+    -- 4. Abrir el cursor (ya fue declarado)
+    OPEN cur_modelos;
+
+    -- 5. Iniciar el loop
+    read_loop: LOOP
+        FETCH cur_modelos INTO v_IdModelo, v_TipoArticulo, v_NombreModelo;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Limpiar tablas de iteración
+        TRUNCATE TABLE TempDatosLR_Iteracion;
+        TRUNCATE TABLE TempVentasConsolidadas_Iteracion;
+        
+        -- Resetear variables de cálculo
+        SET v_n = 0; SET v_sum_x = 0; SET v_sum_y = 0; SET v_sum_xy = 0; SET v_sum_x2 = 0;
+        SET v_a = 0; SET v_b = 0; SET v_pronostico_proximo_mes = 0; SET v_stock_actual = 0;
+        
+        -- ======================================================
+        -- 5.A. CALCULAR VENTAS (Paso 1 del SP anterior)
+        -- ======================================================
+        IF v_TipoArticulo = 3 THEN
+            -- Lógica de INSUMO (Directas + Indirectas)
+            INSERT INTO TempVentasConsolidadas_Iteracion (Anio, Mes, Demanda_Y_Consolidada)
+            SELECT YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion), SUM(dv.Cantidad)
+            FROM DetalleVenta dv
+            JOIN VentasBase vb ON dv.IdVentaFK = vb.IdVentaPK
+            JOIN InsumosBase ib ON dv.CodigoArticulo = ib.CodigoInsumo
+            WHERE vb.IdEstadoVentaFK = 2 AND dv.TipoArticulo = 'Insumo'
+              AND vb.FechaCreacion >= DATE_SUB(CURDATE(), INTERVAL p_NumMesesHistorial MONTH)
+              AND ib.ModeloInsumo = v_IdModelo
+            GROUP BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion);
+
+            INSERT INTO TempVentasConsolidadas_Iteracion (Anio, Mes, Demanda_Y_Consolidada)
+            SELECT YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion), SUM(dv.Cantidad * ixs.CantidadDescargue)
+            FROM DetalleVenta dv
+            JOIN VentasBase vb ON dv.IdVentaFK = vb.IdVentaPK
+            JOIN InsumosXServicio ixs ON CAST(dv.CodigoArticulo AS UNSIGNED) = ixs.IdServicioFK
+            JOIN InsumosBase ib ON ixs.CodigoInsumoFK = ib.CodigoInsumo
+            WHERE vb.IdEstadoVentaFK = 2 AND dv.TipoArticulo = 'Servicio'
+              AND vb.FechaCreacion >= DATE_SUB(CURDATE(), INTERVAL p_NumMesesHistorial MONTH)
+              AND ib.ModeloInsumo = v_IdModelo AND ixs.Estado = 1
+            GROUP BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion);
+
+            INSERT INTO TempDatosLR_Iteracion (Periodo_X, Demanda_Y, Anio, Mes)
+            SELECT ROW_NUMBER() OVER(ORDER BY Anio, Mes), SUM(Demanda_Y_Consolidada), Anio, Mes
+            FROM TempVentasConsolidadas_Iteracion
+            GROUP BY Anio, Mes ORDER BY Anio, Mes;
+        ELSE
+            -- Lógica de PRODUCTO o ACCESORIO
+            INSERT INTO TempDatosLR_Iteracion (Periodo_X, Demanda_Y, Anio, Mes)
+            SELECT ROW_NUMBER() OVER(ORDER BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion)), SUM(dv.Cantidad), YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion)
+            FROM DetalleVenta dv
+            JOIN VentasBase vb ON dv.IdVentaFK = vb.IdVentaPK
+            LEFT JOIN ProductosBases pb ON dv.CodigoArticulo = pb.CodigoConsola AND v_TipoArticulo = 1
+            LEFT JOIN AccesoriosBase ab ON dv.CodigoArticulo = ab.CodigoAccesorio AND v_TipoArticulo = 2
+            WHERE vb.IdEstadoVentaFK = 2
+              AND vb.FechaCreacion >= DATE_SUB(CURDATE(), INTERVAL p_NumMesesHistorial MONTH)
+              AND ( (v_TipoArticulo = 1 AND pb.Modelo = v_IdModelo) OR (v_TipoArticulo = 2 AND ab.ModeloAccesorio = v_IdModelo) )
+            GROUP BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion)
+            ORDER BY YEAR(vb.FechaCreacion), MONTH(vb.FechaCreacion);
+        END IF;
+
+        -- ======================================================
+        -- 5.B. CALCULAR REGRESIÓN (Paso 2 del SP anterior)
+        -- ======================================================
+        SELECT COUNT(*), SUM(Periodo_X), SUM(Demanda_Y), SUM(Periodo_X * Demanda_Y), SUM(Periodo_X * Periodo_X)
+        INTO v_n, v_sum_x, v_sum_y, v_sum_xy, v_sum_x2
+        FROM TempDatosLR_Iteracion;
+
+        IF v_n > 1 THEN
+            SET v_avg_x = v_sum_x / v_n; SET v_avg_y = v_sum_y / v_n;
+            IF (v_sum_x2 - v_n * POW(v_avg_x, 2)) <> 0 THEN
+                SET v_b = (v_sum_xy - v_n * v_avg_x * v_avg_y) / (v_sum_x2 - v_n * POW(v_avg_x, 2));
+                SET v_a = v_avg_y - (v_b * v_avg_x);
+                SET v_pronostico_proximo_mes = v_a + (v_b * (v_n + 1));
+            ELSE SET v_pronostico_proximo_mes = v_avg_y; END IF;
+        ELSEIF v_n = 1 THEN SET v_pronostico_proximo_mes = v_sum_y;
+        ELSE SET v_pronostico_proximo_mes = 0; END IF;
+        IF v_pronostico_proximo_mes < 0 THEN SET v_pronostico_proximo_mes = 0; END IF;
+
+        -- ======================================================
+        -- 5.C. CALCULAR STOCK (Paso 3 del SP anterior)
+        -- ======================================================
+        IF v_TipoArticulo = 1 THEN
+            SELECT COUNT(*) INTO v_stock_actual FROM ProductosBases pb WHERE pb.Modelo = v_IdModelo AND FIND_IN_SET(pb.Estado, v_estados_no_disponibles) = 0;
+        ELSEIF v_TipoArticulo = 2 THEN
+            SELECT COUNT(*) INTO v_stock_actual FROM AccesoriosBase ab WHERE ab.ModeloAccesorio = v_IdModelo AND FIND_IN_SET(ab.EstadoAccesorio, v_estados_no_disponibles) = 0;
+        ELSEIF v_TipoArticulo = 3 THEN
+            SELECT IFNULL(SUM(ib.Cantidad), 0) INTO v_stock_actual FROM InsumosBase ib WHERE ib.ModeloInsumo = v_IdModelo AND FIND_IN_SET(ib.EstadoInsumo, v_estados_no_disponibles) = 0;
+        END IF;
+        
+        -- ======================================================
+        -- 5.D. CALCULAR RECOMENDACIÓN Y GUARDAR RESULTADO
+        -- ======================================================
+        SET v_diferencia = v_pronostico_proximo_mes - v_stock_actual;
+        IF v_diferencia <= 0 THEN
+            SET v_recomendacion = 'Stock suficiente.';
+        ELSE
+            SET v_recomendacion = CONCAT('Pedir al menos ', CEILING(v_diferencia), ' unidades.');
+        END IF;
+
+        INSERT INTO TempResultadoFinal (NombreModelo, StockActual, DemandaPronosticada, Recomendacion, MesesAnalizados)
+        VALUES (v_NombreModelo, v_stock_actual, CEILING(v_pronostico_proximo_mes), v_recomendacion, v_n);
+
+    END LOOP;
+    CLOSE cur_modelos;
+
+    -- 6. Devolver el reporte completo
+    SELECT * FROM TempResultadoFinal
+    ORDER BY (DemandaPronosticada - StockActual) DESC; -- Ordenar por los más urgentes
+
+    -- 7. Limpieza
+    DROP TEMPORARY TABLE IF EXISTS TempModelosActivos;
+    DROP TEMPORARY TABLE IF EXISTS TempResultadoFinal;
+    DROP TEMPORARY TABLE IF EXISTS TempDatosLR_Iteracion;
+    DROP TEMPORARY TABLE IF EXISTS TempVentasConsolidadas_Iteracion;
+END$$
+
+DELIMITER ;
+
+
 
 /*
 ================================================================================

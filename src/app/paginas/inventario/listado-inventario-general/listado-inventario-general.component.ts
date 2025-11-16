@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -15,6 +15,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs'; // <- Añadido
 
+import * as XLSX from 'xlsx';
+
 import { InventarioGeneralService } from '../../../services/inventario-general.service';
 import { ArticuloInventario } from '../../interfaces/articuloinventario';
 import { HistorialArticuloDialogComponent } from '../historial-articulo-dialog/historial-articulo-dialog.component';
@@ -29,8 +31,10 @@ import { TableState } from '../../interfaces/table-state';
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
     MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-    MatProgressSpinnerModule, MatTooltipModule
+    MatProgressSpinnerModule, MatTooltipModule,
+    DatePipe
   ],
+  providers: [DatePipe],
   templateUrl: './listado-inventario-general.component.html',
   styleUrls: ['./listado-inventario-general.component.css']
 })
@@ -58,7 +62,8 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     private dialog: MatDialog,
     // --- CAMBIO 5: Inyectar el servicio de estado ---
     private stateService: TableStatePersistenceService,
-    private route: ActivatedRoute // <--- AÑADIR ESTA LÍNEA
+    private route: ActivatedRoute, // <--- AÑADIR ESTA LÍNEA
+    private datePipe: DatePipe
   ) { }
 
   ngOnInit(): void {
@@ -213,6 +218,75 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     }
     // --- CAMBIO 8: Guardar el estado al filtrar ---
     this.saveState();
+  }
+
+  /**
+   * Limpia el filtro de texto, resetea la paginación y guarda el estado.
+   */
+  public resetearFiltros(): void {
+    // 1. Limpiar el valor del input
+    if (this.inputElement) {
+      this.inputElement.nativeElement.value = '';
+    }
+
+    // 2. Limpiar el filtro del dataSource
+    this.dataSource.filter = '';
+
+    // 3. Resetear el paginador
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+
+    // 4. Guardar el estado limpio
+    this.saveState();
+  }
+
+  /**
+   * Exporta los datos actualmente filtrados y ordenados en la tabla a un archivo Excel.
+   */
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // Usamos .filteredData para obtener solo lo que el usuario está viendo
+    // (esto ya respeta el filtro y el orden del MatSort)
+    const data = this.dataSource.filteredData;
+
+    if (data.length === 0) {
+      this.snackBar.open('No hay datos para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Mapeamos los datos a un formato legible para el Excel
+    const excelData = data.map(item => ({
+      'Código': item.Codigo,
+      'Nombre del Artículo': item.NombreArticulo,
+      'Tipo': item.Tipo,
+      'Estado': item.Estado,
+      'Cantidad': item.Cantidad,
+      'Costo': item.PrecioBase, // Excel lo manejará como número
+      'Fecha Ingreso': this.datePipe.transform(item.FechaIngreso, 'dd/MM/yyyy')
+    }));
+
+    // Creamos la hoja de cálculo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // (Opcional) Ajustar el ancho de las columnas
+    ws['!cols'] = [
+      { wch: 15 }, // Código
+      { wch: 40 }, // Nombre del Artículo
+      { wch: 12 }, // Tipo
+      { wch: 15 }, // Estado
+      { wch: 10 }, // Cantidad
+      { wch: 12 }, // Costo
+      { wch: 15 }  // Fecha Ingreso
+    ];
+
+    // Creamos el libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventario_General');
+
+    // Generamos el archivo y lo descargamos
+    XLSX.writeFile(wb, 'Reporte_Inventario_General.xlsx');
   }
 
   // --- CAMBIO 9: Copiar los métodos 'saveState' y 'loadAndApplyState' ---

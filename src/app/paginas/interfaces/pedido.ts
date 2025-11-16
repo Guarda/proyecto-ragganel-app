@@ -20,5 +20,9 @@
     DescripcionEstadoPedido: string;
     DescripcionTipoPedido: string;
     Activo: boolean;
+    SubtotalArticulos: number;
+    TotalPedido: number;
+    FechaArriboEstadosUnidos?: Date | null;
+    FechaIngreso?: Date | null;
   };
   

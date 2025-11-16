@@ -14,7 +14,6 @@ router.post('/login', (req, res) => {
     }
 
     const sql = 'CALL VerificarUsuarioPorCorreo(?)';
-    // Cambiamos db.query por Basedatos.query
     Basedatos.query(sql, [Correo], (err, results) => {
         if (err) {
             console.error('Error en la base de datos:', err);
@@ -37,20 +36,24 @@ router.post('/login', (req, res) => {
                 return res.status(401).json({ message: 'Correo o contraseña incorrectos' });
             }
 
+            // ===== ⭐️ LA CORRECCIÓN ESTÁ AQUÍ ⭐️ =====
+            // Cambiamos 'rol' por 'IdRolFK' para que coincida con el guard y la BD
             const payload = {
                 usuarioId: usuario.IdUsuarioPK,
                 nombre: usuario.Nombre,
                 correo: usuario.Correo,
-                rol: usuario.IdRolFK,
-                avatarUrl: usuario.AvatarUrl  // Incluye el avatar del usuario
+                IdRolFK: usuario.IdRolFK, // <-- CAMBIO DE 'rol' A 'IdRolFK'
+                avatarUrl: usuario.AvatarUrl
             };
+            // ============================================
 
+            // Usamos la clave correcta que definiste aquí
             const token = jwt.sign(payload, config.JWT_SECRET_KEY, { expiresIn: '7d' });
 
             res.json({
                 message: 'Inicio de sesión exitoso',
                 token: 'Bearer ' + token,
-                user: {  // Enviar la información del usuario (nombre, correo, avatar)
+                user: {
                     id: usuario.IdUsuarioPK,
                     name: usuario.Nombre,
                     email: usuario.Correo,

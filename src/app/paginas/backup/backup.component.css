@@ -1,0 +1,60 @@
+.container {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.backup-card {
+  max-width: 600px;
+}
+
+.button-container {
+  padding: 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+button[mat-raised-button] {
+  padding: 0 24px;
+  height: 48px;
+  font-size: 1.1em;
+}
+
+button mat-icon, 
+button mat-progress-spinner {
+  margin-right: 12px;
+}
+
+/* ... (tus estilos existentes) ... */
+
+.resultado-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #f0f4f8;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+.resultado-container mat-icon {
+  font-size: 32px;
+  height: 32px;
+  width: 32px;
+  color: #28a745; /* Verde éxito */
+}
+
+.resultado-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultado-info strong {
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.resultado-info small {
+  color: #555;
+  font-family: 'Courier New', Courier, monospace;
+}

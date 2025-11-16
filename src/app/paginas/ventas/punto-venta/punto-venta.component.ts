@@ -32,12 +32,16 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { ConfirmacionReemplazarCarritoDialog } from '../confirmacion-reemplazar-carrito-dialog/confirmacion-reemplazar-carrito-dialog.component';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+// ===== ⭐️ 1. IMPORTA MATTOOLTIPMODULE AQUÍ ⭐️ =====
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-punto-venta',
     imports: [FormsModule, MatInputModule, MatIconButton, ReactiveFormsModule, TablaArticulosVentasComponent,
         CommonModule, MatIcon, MatButton, CrearClienteComponent, MatFormField, MatOption, MatAutocompleteModule,
-        MatSelect, MatSpinner, MatSlideToggleModule],
+        MatSelect, MatSpinner, MatSlideToggleModule,
+        MatTooltipModule // <-- ⭐️ 2. AÑÁDELO AL ARRAY DE IMPORTS
+    ],
     templateUrl: './punto-venta.component.html',
     styleUrl: './punto-venta.component.css'
 })
@@ -509,6 +513,23 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
   incrementarCantidad(articulo: ArticuloVenta): void {
     if (!this.usuario || !this.ClienteSeleccionado) return;
+
+    // ===== ⭐️ INICIO DE LA LÓGICA DE VALIDACIÓN ⭐️ =====
+    
+    // 1. Verificamos si el artículo tiene un stock definido.
+    if (articulo.StockDisponible !== null && articulo.StockDisponible !== undefined) {
+      
+      // 2. Comparamos la cantidad actual con el stock.
+      if ((articulo.Cantidad ?? 0) >= articulo.StockDisponible) {
+        
+        // 3. Si ya está al límite, mostramos un error y NO incrementamos.
+        this.snackBar.open(`No se pueden agregar más. Stock máximo: ${articulo.StockDisponible}`, 'Cerrar', { duration: 3000 });
+        return; // Detenemos la función aquí.
+      }
+    }
+    // ===== ⭐️ FIN DE LA LÓGICA DE VALIDACIÓN ⭐️ =====
+
+    // 4. Si pasa la validación, llamamos al servicio como antes.
     this.carritoService.solicitarIncrementoCantidad(articulo, this.usuario, this.ClienteSeleccionado);
   }
 
@@ -963,5 +984,3 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     doc.save(`Factura-${nombreClienteSanitizado}-${numeroFacturaSanitizado}.pdf`);
   }
 }
-
-

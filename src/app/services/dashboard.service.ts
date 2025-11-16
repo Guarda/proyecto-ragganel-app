@@ -1,13 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { DashboardData } from '../paginas/interfaces/dashboarddata';
 import { ChartData } from '../paginas/interfaces/chartdata';
 import { Top10Articulo } from '../paginas/interfaces/top10articulo';
 import { PedidoDashboardItem } from '../paginas/interfaces/pedidodashboarditem';
+import { PronosticoData } from '../paginas/interfaces/pronosticodata';
+import { PronosticoGraficoItem } from '../paginas/interfaces/pronosticodatoitem';
+import { PronosticoResponse } from '../paginas/interfaces/pronosticoresponse';
+import { ReportePronosticoMasivoItem } from '../paginas/interfaces/reportepronosticomasivoitem';
 // ===== NUEVA INTERFAZ (O MUEVELA A TU ARCHIVO DE INTERFACES) =====
-
+export interface ModeloPronostico {
+  IdModelo: number;
+  TipoArticulo: number;
+  NombreModelo: string;
+}
+// =================================================================
 
 
 @Injectable({
@@ -62,6 +71,60 @@ export class DashboardService {
     const params = new HttpParams().set('diasAlerta', diasAlerta.toString());
 
     return this.httpClient.get<PedidoDashboardItem[]>(`${this.apiURL}/dashboard/pedidos`, { params })
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+
+  // ===== INICIO DEL NUEVO MÉTODO (LISTA DE MODELOS) =====
+  /**
+   * Obtiene la lista unificada de todos los modelos (supercategorías)
+   * de productos, accesorios e insumos para el pronóstico.
+   */
+  getModelosParaPronostico(): Observable<ModeloPronostico[]> {
+    return this.httpClient.get<ModeloPronostico[]>(`${this.apiURL}/dashboard/modelos-pronostico`)
+      .pipe(
+        catchError(this.errorHandler)
+      );
+  }
+  // ===== FIN DEL NUEVO MÉTODO =====
+
+
+  getPronosticoPorModelo(idModelo: number, tipoArticulo: number, mesesHistorial: number): Observable<PronosticoResponse> {
+    
+    // Usamos HttpParams para enviar los parámetros de forma limpia y segura
+    let params = new HttpParams()
+      .set('idModelo', idModelo.toString())
+      .set('tipoArticulo', tipoArticulo.toString())
+      .set('mesesHistorial', mesesHistorial.toString());
+
+    // El tipo esperado de la respuesta del backend
+    type BackendResponse = [PronosticoData[], PronosticoGraficoItem[]];
+
+    // El backend devolverá un array de dos arrays: [ [Resumen], [DatosGrafico] ]
+    // Usamos 'map' de RxJS para transformar esta respuesta en nuestro objeto 'PronosticoResponse'.
+    return this.httpClient.get<BackendResponse>(`${this.apiURL}/dashboard/pronostico-modelo`, { params })
+      .pipe(
+        // Añadimos el tipo explícito 'BackendResponse' al parámetro 'response'
+        map((response: BackendResponse) => {
+          // El SP devuelve el resumen en response[0][0] y la gráfica en response[1]
+          if (!response || !response[0] || !response[0][0]) {
+            throw new Error('Respuesta inesperada del servidor al obtener pronóstico.');
+          }
+          return {
+            resumen: response[0][0], // El primer elemento del primer array
+            grafico: response[1]      // El segundo array completo
+          };
+        }),
+        catchError(this.errorHandler)
+      );
+  }
+
+  getReportePronosticoMasivo(mesesHistorial: number): Observable<ReportePronosticoMasivoItem[]> {
+    let params = new HttpParams()
+      .set('mesesHistorial', mesesHistorial.toString());
+
+    return this.httpClient.get<ReportePronosticoMasivoItem[]>(`${this.apiURL}/dashboard/reporte-pronostico-masivo`, { params })
       .pipe(
         catchError(this.errorHandler)
       );

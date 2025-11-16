@@ -9,6 +9,11 @@
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
@@ -22,6 +27,16 @@
   font-size: 1.2rem;
   color: #3f51b5;
   margin: 4px 0 0 0;
+}
+
+.actions-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn-accion-header {
+  height: 40px;
 }
 
 .table-container {

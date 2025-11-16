@@ -8,6 +8,7 @@ export interface Cliente {
     ruc: string;
     telefono?: string | null;
     correoElectronico?: string | null;
+    correo: string;
     direccion?: string | null;
     fechaRegistro: Date;
     estado: boolean;

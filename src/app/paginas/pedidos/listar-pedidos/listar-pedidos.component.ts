@@ -1,8 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -13,6 +12,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import * as XLSX from 'xlsx';
 
 import { TablaPedidosComponent } from '../tabla-pedidos/tabla-pedidos.component';
 import { AgregarPedidoComponent } from '../agregar-pedido/agregar-pedido.component';
@@ -21,17 +22,22 @@ import { Pedido } from '../../interfaces/pedido';
 
 @Component({
     selector: 'app-listar-pedidos',
+    standalone: true,
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
-        MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
-        MatTabsModule, TablaPedidosComponent, MatProgressSpinnerModule, MatTooltipModule
+        MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatTabsModule,
+        TablaPedidosComponent, MatProgressSpinnerModule, MatTooltipModule,
+        DatePipe,
+        MatSnackBarModule
     ],
+    providers: [DatePipe],
     templateUrl: './listar-pedidos.component.html',
     styleUrls: ['./listar-pedidos.component.css']
 })
 export class ListarPedidosComponent implements OnInit {
 
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  @ViewChild('input') inputElement!: ElementRef<HTMLInputElement>;
 
   displayedColumns: string[] = ['CodigoPedido', 'FechaCreacionPedido', 'FechaArriboEstadosUnidos', 'FechaIngreso', 'DescripcionEstadoPedido', 'NumeroTracking1', 'SubtotalArticulos', 'TotalPedido', 'Action'];
 
@@ -51,7 +57,9 @@ export class ListarPedidosComponent implements OnInit {
 
   constructor(
     private pedidoService: PedidoService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private datePipe: DatePipe
   ) { }
 
   ngOnInit(): void {
@@ -152,5 +160,78 @@ export class ListarPedidosComponent implements OnInit {
     } else if (this.pedidosCancelados.some(p => p.CodigoPedido.toLowerCase().includes(filterValue))) {
       this.tabGroup.selectedIndex = 5;
     }
+  }
+
+  /**
+   * Limpia el filtro de texto y lo propaga a las tablas hijas.
+   */
+  public resetearFiltros(): void {
+    if (this.inputElement) {
+      this.inputElement.nativeElement.value = '';
+    }
+    this.filterValue = '';
+    // La propiedad filterValue se pasa automáticamente a las tablas hijas,
+    // por lo que se actualizarán.
+  }
+
+  /**
+   * Exporta los datos de todas las pestañas (excepto "borrados", si los hubiera)
+   * aplicando el filtro de texto actual.
+   */
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // 1. Combinar todos los pedidos. Como dijiste, "cancelados pueden ir".
+    // No hay un estado "borrado", así que incluimos todos los arrays.
+    const todosLosPedidos = [
+      ...this.pedidosEnEspera,
+      ...this.pedidosEnTransito,
+      ...this.pedidosRecibidosUSA,
+      ...this.pedidosEnAduana,
+      ...this.pedidosRecibidos,
+      ...this.pedidosCancelados
+    ];
+
+    // 2. Aplicar el filtro de texto actual (que se usa para Código de Pedido)
+    const filtro = this.filterValue.trim().toLowerCase();
+    
+    const datosFiltrados = filtro
+      ? todosLosPedidos.filter(p => p.CodigoPedido.toLowerCase().includes(filtro))
+      : todosLosPedidos; // Si no hay filtro, exporta todo
+
+    if (datosFiltrados.length === 0) {
+      this.snackBar.open('No hay datos para exportar con el filtro actual.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // 3. Mapear a formato Excel
+    // Usamos los campos que ya procesaste
+    const excelData = datosFiltrados.map(p => ({
+      'Código': p.CodigoPedido,
+      'Estado': p.Estado, // El campo real que usas para filtrar
+      'Fecha Creación': this.datePipe.transform(p.FechaCreacionPedido, 'dd/MM/yyyy'),
+      'Fecha Arribo USA': this.datePipe.transform(p.FechaArriboEstadosUnidos, 'dd/MM/yyyy'),
+      'Fecha Ingreso Taller': this.datePipe.transform(p.FechaIngreso, 'dd/MM/yyyy'),
+      'Tracking': p.NumeroTracking1,
+      'Subtotal': p.SubtotalArticulos,
+      'Total': p.TotalPedido
+    }));
+
+    // 4. Crear y descargar el archivo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+    ws['!cols'] = [
+      { wch: 20 }, // Código
+      { wch: 25 }, // Estado
+      { wch: 15 }, // Fecha Creación
+      { wch: 18 }, // Fecha Arribo USA
+      { wch: 20 }, // Fecha Ingreso Taller
+      { wch: 25 }, // Tracking
+      { wch: 12 }, // Subtotal
+      { wch: 12 }  // Total
+    ];
+
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
+    XLSX.writeFile(wb, 'Reporte_Pedidos_General.xlsx');
   }
 }

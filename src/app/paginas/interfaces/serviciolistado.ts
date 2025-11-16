@@ -1,5 +1,6 @@
 // Define esta nueva interfaz que representa un servicio en la lista
 export interface ServicioListado {
+  CodigoServicio: number;
   IdServicioPK: number;
   DescripcionServicio: string;
   Estado: boolean; // O el tipo que corresponda

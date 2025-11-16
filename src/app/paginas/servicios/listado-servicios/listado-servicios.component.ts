@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -13,6 +13,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
 
+import * as XLSX from 'xlsx';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ServiciosService } from '../../../services/servicios.service';
 import { AgregarServicioComponent } from '../agregar-servicio/agregar-servicio.component';
 import { EliminarServicioComponent } from '../eliminar-servicio/eliminar-servicio.component';
@@ -26,9 +28,12 @@ import { TableState } from '../../interfaces/table-state';
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
         MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule,
+        DatePipe,
+        MatSnackBarModule
     ],
-    templateUrl: './listado-servicios.component.html',
+    providers: [DatePipe],
+    templateUrl: './listado-servicios.component.html', 
     styleUrls: ['./listado-servicios.component.css']
 })
 export class ListadoServiciosComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -48,7 +53,9 @@ export class ListadoServiciosComponent implements OnInit, AfterViewInit, OnDestr
   constructor(
     private dialog: MatDialog,
     private serviciosService: ServiciosService,
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private snackBar: MatSnackBar,
+    private datePipe: DatePipe
   ) { }
 
   ngOnInit() {
@@ -176,5 +183,59 @@ export class ListadoServiciosComponent implements OnInit, AfterViewInit, OnDestr
         this.getServiceList();
       }
     });
+  }
+
+  /**
+   * Limpia el filtro de texto, resetea la paginación y guarda el estado.
+   */
+  public resetearFiltros(): void {
+    // 1. Limpiar el valor del input
+    if (this.inputElement) {
+      this.inputElement.nativeElement.value = '';
+    }
+
+    // 2. Limpiar el filtro del dataSource
+    this.dataSource.filter = '';
+
+    // 3. Resetear el paginador
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+
+    // 4. Guardar el estado limpio
+    this.saveState();
+  }
+
+  /**
+   * Exporta los datos actualmente filtrados y ordenados en la tabla a un archivo Excel.
+   */
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // Usamos .filteredData para obtener solo lo que el usuario está viendo
+    const data = this.dataSource.filteredData;
+
+    if (data.length === 0) {
+      this.snackBar.open('No hay datos para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Mapeamos los datos a un formato legible para el Excel
+    const excelData = data.map(servicio => ({
+      'ID': servicio.CodigoServicio,
+      'Descripción': servicio.DescripcionServicio,
+      'Precio Base': servicio.PrecioBase, // Excel lo manejará como número
+      'Fecha Ingreso': this.datePipe.transform(servicio.FechaIngreso, 'dd/MM/yyyy')
+    }));
+
+    // Creamos la hoja de cálculo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Creamos el libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Servicios');
+
+    // Generamos el archivo y lo descargamos
+    XLSX.writeFile(wb, 'Reporte_Servicios.xlsx');
   }
 }

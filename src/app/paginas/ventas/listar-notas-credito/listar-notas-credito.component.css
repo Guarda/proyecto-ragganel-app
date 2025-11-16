@@ -37,9 +37,25 @@
   margin: 0;
 }
 
+/* ===== NUEVOS ESTILOS (Inspirados en listado-ventas.css) ===== */
+.actions-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-accion-header {
+  height: 48px; /* Para alinear con los campos de formulario "outline" */
+}
+/* ===== FIN DE NUEVOS ESTILOS ===== */
+
+
 .filtro-input {
   min-width: 300px; /* Ancho mínimo para el campo de búsqueda */
   max-width: 400px;
+  /* Hacemos que el mat-form-field no tenga margen inferior para que se alinee bien con los botones */
+  margin-bottom: -1.25em;
 }
 
 .table-container {

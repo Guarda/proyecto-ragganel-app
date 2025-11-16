@@ -150,6 +150,9 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
     // Los servicios se siguen agregando directamente.
     if (articulo.Tipo === 'Servicio') {
     const precioServicio = articulo.PrecioBase ?? 0;
+    // 1. Obtener el stock máximo del artículo de la lista.
+    // Para "Chipeo Switch", esto sería 10.
+    const stockMaximo = articulo.Cantidad;
     
     // Se construye el payload con margen 0, como lo necesitas.
     const datosServicio = {
@@ -162,7 +165,10 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
       Cantidad: 1,
       PrecioBaseOriginal: precioServicio, // El costo y la venta son lo mismo.
       MargenAplicado: 0, // Margen del 0%.
-      IdMargenFK: 5 // Se asocia al margen "Precio de Costo" (ID 5).
+      IdMargenFK: 5, // Se asocia al margen "Precio de Costo" (ID 5).
+      // ===== ⭐️ ESTA ES LA LÍNEA QUE FALTA ⭐️ =====
+      // Copiamos el stock máximo (10) a la propiedad 'StockDisponible'
+      StockDisponible: stockMaximo
     };
     
     // Se envía directamente al backend.
@@ -180,6 +186,13 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
 
       // --- INICIO DE LA LÓGICA MODIFICADA ---
       const precioCosto = articulo.PrecioBase ?? 0;
+      // 1. Obtener el stock máximo del artículo de la lista.
+      // Para un "Producto" o "Accesorio" único, esto será 1.
+      // Para un "Insumo" vendido individualmente, será su cantidad.
+      const stockMaximo = (articulo.Tipo === 'Producto' || articulo.Tipo === 'Accesorio')
+        ? 1
+        : articulo.Cantidad;
+
 
       // CASO 1: El vendedor eligió "Precio Personalizado"
       if (opcionSeleccionada.idMargen === 6) {
@@ -204,7 +217,10 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
               Cantidad: 1,
               PrecioBaseOriginal: precioCosto,
               MargenAplicado: opcionSeleccionada.porcentaje,
-              IdMargenFK: opcionSeleccionada.idMargen
+              IdMargenFK: opcionSeleccionada.idMargen,
+              // ===== ⭐️ ESTA ES LA LÍNEA QUE FALTA ⭐️ =====
+              // Copiamos el stock máximo a la propiedad 'StockDisponible'
+              StockDisponible: stockMaximo
             };
             this.enviarArticuloAlBackend(datosArticulo, articulo.NombreArticulo!);
           }
@@ -223,7 +239,10 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
           Cantidad: 1,
           PrecioBaseOriginal: articulo.PrecioBase!,
           MargenAplicado: opcionSeleccionada.porcentaje,
-          IdMargenFK: opcionSeleccionada.idMargen
+          IdMargenFK: opcionSeleccionada.idMargen,
+          // ===== ⭐️ ESTA ES LA LÍNEA QUE FALTA ⭐️ =====
+          // Copiamos el stock máximo a la propiedad 'StockDisponible'
+          StockDisponible: stockMaximo
         };
         this.enviarArticuloAlBackend(datosArticulo, articulo.NombreArticulo!);
       }

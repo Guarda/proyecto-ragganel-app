@@ -124,7 +124,14 @@
         <div class="control-cantidad">
           <button (click)="decrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>remove</mat-icon></button>
           <span class="cantidad-valor">{{ art.Cantidad }}</span>
-          <button (click)="incrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>add</mat-icon></button>
+          
+          <button 
+            (click)="incrementarCantidad(art)" 
+            class="btn-cantidad" 
+            mat-icon-button
+            [disabled]="art.StockDisponible != null && (art.Cantidad ?? 0) >= art.StockDisponible"
+            matTooltip="{{ (art.StockDisponible != null && (art.Cantidad ?? 0) >= art.StockDisponible) ? 'Stock máximo alcanzado' : 'Aumentar cantidad' }}"><mat-icon>add</mat-icon>
+          </button>
         </div>
       </td>
       <td>

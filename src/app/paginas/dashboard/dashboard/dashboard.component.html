@@ -334,5 +334,99 @@
         </div>
       </mat-card-content>
     </mat-card>
+
+
+    <mat-card class="chart-card large-card pronostico-card">
+      <mat-card-title>Pronóstico de Demanda (Regresión Lineal)</mat-card-title>
+      <mat-card-subtitle>Analiza ventas pasadas para predecir la demanda futura de un modelo.</mat-card-subtitle>
+      <mat-divider></mat-divider>
+      
+      <div class="pronostico-header">
+        <mat-form-field appearance="outline" class="pronostico-select">
+          <mat-label>Seleccionar Modelo (Análisis Individual)</mat-label>
+          <mat-select [(ngModel)]="modeloSeleccionado">
+            <mat-option *ngFor="let modelo of modelosParaPronostico" [value]="modelo.TipoArticulo + '-' + modelo.IdModelo">
+              {{ modelo.NombreModelo }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="pronostico-meses">
+          <mat-label>Meses de Historial</mat-label>
+          <input matInput type="number" [(ngModel)]="mesesHistorial" min="3" max="24">
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" 
+                (click)="generarPronostico()" 
+                [disabled]="!modeloSeleccionado || isPronosticoLoading"
+                class="pronostico-boton">
+          <mat-icon>insights</mat-icon>
+          Analizar
+        </button>
+
+        <button mat-stroked-button color="primary" 
+                (click)="descargarReportePronostico()" 
+                [disabled]="isPronosticoLoading"
+                class="pronostico-boton-descarga">
+          <mat-icon>download</mat-icon>
+          Descargar Reporte Completo
+        </button>
+      </div>
+
+      <mat-card-content>
+        <div *ngIf="isPronosticoLoading" class="chart-spinner-container">
+          <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+          <p>Calculando regresión lineal...</p>
+        </div>
+
+        <div *ngIf="pronosticoError && !isPronosticoLoading" class="error-container">
+          <mat-icon color="warn">error_outline</mat-icon>
+          <p>{{ pronosticoError }}</p>
+        </div>
+
+        <div *ngIf="pronosticoResumen && !isPronosticoLoading" class="pronostico-results-container">
+          
+          <div class="pronostico-resumen">
+            <h3>{{ pronosticoResumen.NombreModelo }}</h3>
+            <div class="pronostico-results-grid">
+              <div class="kpi-text">
+                <span class="kpi-value">{{ pronosticoResumen.StockActual }}</span>
+                <span class="kpi-label">Stock Actual</span>
+              </div>
+              <div class="kpi-text">
+                <span class="kpi-value pronostico-valor">{{ pronosticoResumen.DemandaPronosticada }}</span>
+                <span class="kpi-label">Demanda Pronosticada (Próx. Mes)</span>
+              </div>
+            </div>
+            <p class="pronostico-recomendacion" 
+               [class.alerta-stock]="pronosticoResumen.StockActual < pronosticoResumen.DemandaPronosticada"
+               [class.ok-stock]="pronosticoResumen.StockActual >= pronosticoResumen.DemandaPronosticada">
+              <mat-icon *ngIf="pronosticoResumen.StockActual < pronosticoResumen.DemandaPronosticada">warning</mat-icon>
+              <mat-icon *ngIf="pronosticoResumen.StockActual >= pronosticoResumen.DemandaPronosticada">check_circle</mat-icon>
+              <strong>Recomendación:</strong> {{ pronosticoResumen.Recomendacion }}
+            </p>
+            <small class="meses-analizados">Análisis basado en los últimos {{ pronosticoResumen.MesesAnalizados }} meses de ventas.</small>
+          </div>
+          
+          <div class="pronostico-grafico">
+            <ngx-charts-line-chart
+              [results]="pronosticoGraficoData"
+              [xAxis]="true"
+              [yAxis]="true"
+              [legend]="true"
+              legendTitle="Leyenda"
+              [showXAxisLabel]="true"
+              [showYAxisLabel]="true"
+              xAxisLabel="Período (Mes/Año)"
+              yAxisLabel="Unidades Vendidas"
+              [scheme]="pronosticoColorScheme"
+              [autoScale]="true"
+              [timeline]="false">
+            </ngx-charts-line-chart>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
   </div>
 </div>

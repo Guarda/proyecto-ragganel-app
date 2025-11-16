@@ -4,21 +4,19 @@ const { Basedatos, dbConfig } = require('../config/db'); // Asegúrate que la ru
 
 
 // ===================================================================
-// FUNCIÓN queryAsync MEJORADA (AHORA ACEPTA PARÁMETROS)
+// FUNCIÓN queryAsync (CORREGIDA PARA MÚLTIPLES RESULT SETS)
 // ===================================================================
-const queryAsync = (sql, params = []) => { // <-- Acepta un array de parámetros
+const queryAsync = (sql, params = []) => { 
   return new Promise((resolve, reject) => {
-    // Pasa los parámetros a la consulta de forma segura
     Basedatos.query(sql, params, (err, results) => { 
       if (err) return reject(err);
 
-      // La llamada a un SP devuelve los resultados en la posición [0]
-      // Verificamos si es un SP (suele devolver un array de arrays)
-      if (Array.isArray(results) && results.length > 0 && Array.isArray(results[0])) {
-          resolve(results[0]); // Es un SP, devolvemos el primer set de resultados
-      } else {
-          resolve(results); // Es una query simple o está vacío
-      }
+      // --- ESTA ES LA CORRECCIÓN IMPORTANTE ---
+      // El SP de pronóstico devuelve MÚLTIPLES result sets: [ [Resumen], [Grafico] ]
+      // Otros SPs devuelven solo uno: [ [Resultados] ]
+      // Esta lógica ahora devuelve CUALQUIER COSA que entregue MySQL (sea uno o más result sets)
+      // para que el frontend decida qué hacer.
+      resolve(results); 
     });
   });
 };
@@ -36,18 +34,19 @@ router.get('/', async (req, res) => {
             stockBajo,
             valorInventarioABC
         ] = await Promise.all([
-            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_KPIs\`()`),
-            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_Top5ArticulosVendidos\`()`),
-            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_VentasPorVendedor\`()`),
-            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_Ultimas5Ventas\`()`),
-            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_AlertasStockBajo\`()`),
-            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_ValorInventarioABC\`()`)
+            // queryAsync devolverá [ [Resultados] ], así que seleccionamos [0]
+            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_KPIs\`()`).then(r => r[0]),
+            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_Top5ArticulosVendidos\`()`).then(r => r[0]),
+            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_VentasPorVendedor\`()`).then(r => r[0]),
+            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_Ultimas5Ventas\`()`).then(r => r[0]),
+            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_AlertasStockBajo\`()`).then(r => r[0]),
+            queryAsync(`CALL \`${dbConfig.database}\`.\`sp_Dashboard_ValorInventarioABC\`()`).then(r => r[0])
         ]);
 
         res.status(200).json({
             success: true,
             data: {
-                kpis: kpis[0], // KPIs devuelve una sola fila
+                kpis: kpis[0], 
                 topArticulos,
                 ventasVendedor,
                 ultimasVentas,
@@ -65,8 +64,6 @@ router.get('/', async (req, res) => {
 // ===================================================================
 // NUEVA RUTA PARA EL GRÁFICO (CORREGIDA Y SEGURA)
 // ===================================================================
-
-// FIX 1: La ruta es '/ventas-grafico', no '/dashboard/ventas-grafico'
 router.get('/ventas-grafico', async (req, res) => {
     const { inicio, fin } = req.query;
 
@@ -75,14 +72,13 @@ router.get('/ventas-grafico', async (req, res) => {
     }
 
     try {
-        // FIX 2: Llamada segura usando parámetros '?'
         const sql = `CALL \`${dbConfig.database}\`.\`sp_Dashboard_VentasPorPeriodo\`(?, ?)`;
         const params = [inicio, fin];
         
-        // Pasamos la consulta y los parámetros a la función mejorada
+        // queryAsync devolverá [ [Resultados] ]
         const graficoData = await queryAsync(sql, params); 
         
-        res.status(200).json(graficoData); 
+        res.status(200).json(graficoData[0]); // Enviamos solo el primer result set
     
     } catch (error) {
         console.error("Error al cargar datos del gráfico:", error);
@@ -91,7 +87,6 @@ router.get('/ventas-grafico', async (req, res) => {
 });
 
 router.get('/top10-abc', async (req, res) => {
-    // Recibe el 'name' del gráfico, ej: 'A (Productos) (85 arts.)'
     const { categoria } = req.query;
     console.log("Categoría recibida:", categoria);
     if (!categoria) {
@@ -100,12 +95,12 @@ router.get('/top10-abc', async (req, res) => {
 
     try {
         const sql = `CALL \`${dbConfig.database}\`.\`sp_Dashboard_Top10_PorTipo\`(?)`;
-        const params = [categoria]; // El SP ya traduce el nombre
+        const params = [categoria]; 
         
         const top10Data = await queryAsync(sql, params); 
         
-        res.status(200).json(top10Data); 
-        console.log("datos recibidos del Top 10 ABC:", top10Data);
+        res.status(200).json(top10Data[0]); // Enviamos solo el primer result set
+        console.log("datos recibidos del Top 10 ABC:", top10Data[0]);
     
     } catch (error) {
         console.error("Error al cargar datos del Top 10 ABC:", error);
@@ -122,14 +117,13 @@ router.get('/descargar-abc', async (req, res) => {
     }
 
     try {
-        // 1. Llama al NUEVO Stored Procedure
         const sql = `CALL \`${dbConfig.database}\`.\`sp_Dashboard_DescargarInventarioABC\`(?)`;
         const params = [categoria];
         
         const fullData = await queryAsync(sql, params); 
         
-        res.status(200).json(fullData); 
-        console.log("Datos enviados para descarga:", fullData.length, "filas");
+        res.status(200).json(fullData[0]); // Enviamos solo el primer result set
+        console.log("Datos enviados para descarga:", fullData[0].length, "filas");
     
     } catch (error) {
         console.error("Error al cargar datos para descarga ABC:", error);
@@ -150,7 +144,7 @@ router.get('/pedidos', async (req, res) => {
         
         const pedidosData = await queryAsync(sql, params); 
         
-        res.status(200).json(pedidosData); 
+        res.status(200).json(pedidosData[0]); // Enviamos solo el primer result set
     
     } catch (error) {
         console.error("Error al cargar datos del dashboard de pedidos:", error);
@@ -158,5 +152,76 @@ router.get('/pedidos', async (req, res) => {
     }
 });
 
+// ===================================================================
+// ⭐️ RUTA QUE FALTABA ⭐️
+// ===================================================================
+router.get('/modelos-pronostico', async (req, res) => {
+    try {
+        const sql = `CALL \`${dbConfig.database}\`.\`sp_ListarModelosParaPronostico\`()`;
+        
+        // Esta llamada devolverá [ [Modelos] ]
+        const modelosData = await queryAsync(sql); 
+        
+        res.status(200).json(modelosData[0]); // Enviamos el array de modelos
+    
+    } catch (error) {
+        console.error("Error al cargar la lista de modelos para pronóstico:", error);
+        res.status(500).json({ success: false, mensaje: 'Error en el servidor.' });
+    }
+});
+
+// ===================================================================
+// RUTA DE PRONÓSTICO (AHORA FUNCIONA CON EL queryAsync CORREGIDO)
+// ===================================================================
+router.get('/pronostico-modelo', async (req, res) => {
+    const { idModelo, tipoArticulo, mesesHistorial } = req.query;
+
+    if (!idModelo || !tipoArticulo || !mesesHistorial) {
+        return res.status(400).json({ success: false, message: 'Los parámetros idModelo, tipoArticulo, y mesesHistorial son requeridos.' });
+    }
+
+    try {
+        const sql = `CALL \`${dbConfig.database}\`.\`sp_Reporte_PronosticoPorModelo\`(?, ?, ?)`;
+        
+        const params = [
+            parseInt(idModelo),
+            parseInt(tipoArticulo),
+            parseInt(mesesHistorial)
+        ];
+        
+        // queryAsync ahora devuelve [ [Resumen], [DatosGrafico] ]
+        const pronosticoData = await queryAsync(sql, params); 
+        
+        // Enviamos la respuesta cruda (los dos arrays) al frontend
+        res.status(200).json(pronosticoData); 
+    
+    } catch (error) {
+        console.error("Error al cargar datos del pronóstico por modelo:", error);
+        res.status(500).json({ success: false, mensaje: 'Error en el servidor.' });
+    }
+});
+
+router.get('/reporte-pronostico-masivo', async (req, res) => {
+    const { mesesHistorial } = req.query;
+
+    if (!mesesHistorial || isNaN(parseInt(mesesHistorial))) {
+        return res.status(400).json({ success: false, message: 'El parámetro "mesesHistorial" es requerido.' });
+    }
+
+    try {
+        const sql = `CALL \`${dbConfig.database}\`.\`sp_Reporte_PronosticoMasivo\`(?)`;
+        const params = [parseInt(mesesHistorial)];
+        
+        // Esta llamada devolverá [ [Resultados] ]
+        const reporteData = await queryAsync(sql, params); 
+        
+        // Devolvemos el primer (y único) result set, que es la lista de pronósticos
+        res.status(200).json(reporteData[0]); 
+    
+    } catch (error) {
+        console.error("Error al generar el reporte masivo de pronóstico:", error);
+        res.status(500).json({ success: false, mensaje: 'Error en el servidor.' });
+    }
+});
 
 module.exports = router;

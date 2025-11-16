@@ -131,7 +131,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
       icon: 'admin_panel_settings',
       subItems: [
         { label: 'Usuarios', route: '/home/administracion/listado-usuarios', roles: [1] },
-        { label: 'Crear Backup de BD', route: '/home/modulo-en-construccion', roles: [1] },
+        { label: 'Crear Backup de BD', route: '/home/administracion/backup', roles: [1] },
       ],
       roles: [1]
     }

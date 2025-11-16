@@ -466,3 +466,130 @@ grid-column: span 2; /* Ocupa 2 columnas en tablets */
 .pedido-alerta:hover {
   background-color: rgba(220, 53, 69, 0.1) !important; /* 10% de opacidad */
 }
+
+/* ==========================================================================
+   ⭐️ ESTILOS PARA LA NUEVA TARJETA DE PRONÓSTICO ⭐️
+   ========================================================================== */
+
+.pronostico-card {
+  /* Asegura que el contenido fluya verticalmente */
+  display: flex;
+  flex-direction: column;
+}
+
+.pronostico-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto; /* Actualizado a 4 columnas para el nuevo botón */
+  gap: 16px;
+  align-items: center; /* Alinea verticalmente los campos */
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.pronostico-select {
+  flex-grow: 1; /* El selector ocupa el máximo espacio */
+}
+
+.pronostico-meses {
+  width: 150px; /* Ancho fijo para el campo de meses */
+}
+
+.pronostico-boton,
+.pronostico-boton-descarga {
+  height: 56px; /* Misma altura que los campos 'outline' */
+}
+
+/* Responsividad para el header del pronóstico */
+@media (max-width: 960px) {
+  .pronostico-header {
+    grid-template-columns: 1fr; /* Todo en una columna */
+  }
+  .pronostico-meses {
+    width: 100%;
+  }
+  .pronostico-boton,
+  .pronostico-boton-descarga {
+    width: 100%;
+  }
+}
+
+.pronostico-results-container {
+  display: grid;
+  grid-template-columns: 350px 1fr; /* Columna de resumen | Columna de gráfico */
+  gap: 24px;
+  min-height: 400px;
+}
+
+/* Responsividad para los resultados */
+@media (max-width: 1200px) {
+  .pronostico-results-container {
+    grid-template-columns: 1fr; /* Una sola columna en pantallas pequeñas */
+  }
+}
+
+.pronostico-resumen h3 {
+  font-size: 1.25em;
+  font-weight: 500;
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 8px;
+}
+
+.pronostico-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pronostico-valor {
+  color: var(--primary-color) !important;
+}
+
+.pronostico-recomendacion {
+  font-size: 1.1em;
+  padding: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0;
+}
+
+.pronostico-recomendacion mat-icon {
+  font-size: 28px;
+  height: 28px;
+  width: 28px;
+}
+
+.pronostico-recomendacion.alerta-stock {
+  background-color: rgba(220, 53, 69, 0.1); /* Fondo rojo sutil */
+  color: #a52834; /* Texto rojo oscuro */
+}
+.pronostico-recomendacion.alerta-stock mat-icon {
+  color: var(--danger-color);
+}
+
+.pronostico-recomendacion.ok-stock {
+  background-color: rgba(40, 167, 69, 0.1); /* Fondo verde sutil */
+  color: #155724; /* Texto verde oscuro */
+}
+.pronostico-recomendacion.ok-stock mat-icon {
+  color: var(--success-color);
+}
+
+
+.meses-analizados {
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 16px;
+}
+
+.pronostico-grafico {
+  width: 100%;
+  height: 350px;
+}

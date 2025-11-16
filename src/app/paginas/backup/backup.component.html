@@ -1,0 +1,39 @@
+<div class="container">
+  <mat-card class="backup-card">
+    <mat-card-header>
+      <mat-card-title>Copia de Seguridad (Backup)</mat-card-title>
+      <mat-card-subtitle>Administración de la Base de Datos</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        Presione el botón para generar una copia de seguridad completa
+        de la base de datos (`.sql`).
+      </p>
+      <p>
+        El archivo se guardará en la carpeta `public/backups` del servidor.
+      </p>
+      
+      <div class="button-container">
+        <button mat-raised-button 
+                color="warn" 
+                (click)="crearBackup()" 
+                [disabled]="isLoading">
+          <mat-icon *ngIf="!isLoading">save</mat-icon>
+          <mat-progress-spinner *ngIf="isLoading" mode="indeterminate" diameter="20"></mat-progress-spinner>
+          <span *ngIf="!isLoading">Generar Backup</span>
+          <span *ngIf="isLoading">Generando...</span>
+        </button>
+      </div>
+
+      <div *ngIf="ultimoBackup" class="resultado-container">
+        <mat-icon color="primary">check_circle</mat-icon>
+        <div class="resultado-info">
+          <strong>¡Backup completado!</strong>
+          <small>Archivo: {{ ultimoBackup.filename }}</small>
+          <small>Guardado en: {{ ultimoBackup.path }}</small>
+        </div>
+      </div>
+      
+    </mat-card-content>
+  </mat-card>
+</div>

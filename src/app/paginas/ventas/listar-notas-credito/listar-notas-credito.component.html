@@ -2,11 +2,31 @@
 
   <div class="cabecera">
     <h1>Notas de Crédito</h1>
-    <mat-form-field appearance="outline" class="filtro-input">
-      <mat-label>Buscar...</mat-label>
-      <input matInput (keyup)="applyFilter($event)" placeholder="Escriba para filtrar por cualquier campo" #input>
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+
+    <div class="actions-header">
+      <mat-form-field appearance="outline" class="filtro-input">
+        <mat-label>Buscar...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Escriba para filtrar por cualquier campo" #input>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-icon-button 
+              color="warn" 
+              matTooltip="Resetear filtros"
+              (click)="resetearFiltros()"
+              class="btn-accion-header">
+        <mat-icon>filter_list_off</mat-icon>
+      </button>
+
+      <button mat-stroked-button 
+              color="primary"
+              (click)="descargarExcel()"
+              class="btn-accion-header">
+        <mat-icon>download</mat-icon>
+        Exportar
+      </button>
+    </div>
+    
   </div>
 
   <div class="table-container">

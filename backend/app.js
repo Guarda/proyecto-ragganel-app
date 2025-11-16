@@ -5,6 +5,7 @@ const fs = require('fs');
 
 const app = express();
 const port = 3000;
+require('dotenv').config();
 
 // Routers
 const productsRouter = require('./routes/products');
@@ -46,6 +47,7 @@ const costdistributionRouter = require('./routes/cost-distribution');
 const validationRoutes = require('./routes/validation');
 const producttypesRouter = require('./routes/product-types');
 const tiposAccesoriosRouter = require('./routes/accesories-list');
+const backupRouter = require('./routes/backup');
 // Middleware
 app.use(express.json());
 
@@ -142,6 +144,7 @@ app.use('/api/cost-distribution', costdistributionRouter);
 app.use('/api/validate', validationRoutes); 
 app.use('/api/tipos-producto', producttypesRouter);
 app.use('/api/tipos-accesorios', tiposAccesoriosRouter);
+app.use('/api/backup', backupRouter);
 // Rutas protegidas
 app.get('/protected', verifyToken, (req, res) => {
   res.json({ message: 'Acceso permitido' });

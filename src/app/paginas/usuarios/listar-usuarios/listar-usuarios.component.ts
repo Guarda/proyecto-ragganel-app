@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -13,6 +13,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
 
+import * as XLSX from 'xlsx';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
 import { Usuarios } from '../../interfaces/usuarios';
 import { UsuariosService } from '../../../services/usuarios.service';
 import { CrearUsuariosComponent } from '../crear-usuarios/crear-usuarios.component';
@@ -25,9 +28,12 @@ import { TableState } from '../../interfaces/table-state';
     standalone: true,
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
-        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
-        MatButtonModule, MatProgressSpinnerModule, MatTooltipModule
+        MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
+        MatProgressSpinnerModule, MatTooltipModule,
+        DatePipe,
+        MatSnackBarModule
     ],
+    providers: [DatePipe],
     templateUrl: './listar-usuarios.component.html',
     styleUrls: ['./listar-usuarios.component.css']
 })
@@ -48,7 +54,9 @@ export class ListarUsuariosComponent implements OnInit, AfterViewInit, OnDestroy
   constructor(
     public usuarioService: UsuariosService,
     private dialog: MatDialog,
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private snackBar: MatSnackBar,
+    private datePipe: DatePipe
   ) { }
 
   ngOnInit(): void {
@@ -195,5 +203,71 @@ export class ListarUsuariosComponent implements OnInit, AfterViewInit, OnDestroy
         this.getUsuarioList();
       }
     });    
+  }
+
+  /**
+   * Limpia el filtro de texto, resetea la paginación y guarda el estado.
+   */
+  public resetearFiltros(): void {
+    // 1. Limpiar el valor del input
+    if (this.inputElement) {
+      this.inputElement.nativeElement.value = '';
+    }
+
+    // 2. Limpiar el filtro del dataSource
+    this.dataSource.filter = '';
+
+    // 3. Resetear el paginador
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+
+    // 4. Guardar el estado limpio
+    this.saveState();
+  }
+
+  /**
+   * Exporta los datos actualmente filtrados y ordenados en la tabla a un archivo Excel.
+   */
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // Usamos .filteredData para obtener solo lo que el usuario está viendo
+    const data = this.dataSource.filteredData;
+
+    if (data.length === 0) {
+      this.snackBar.open('No hay datos para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Mapeamos los datos a un formato legible para el Excel
+    const excelData = data.map(usuario => ({
+      'Código': usuario.IdUsuarioPK,
+      'Nombre': usuario.Nombre,
+      'Correo': usuario.Correo,
+      'Rol': usuario.NombreRol,
+      'Estado': usuario.DescripcionEstado,
+      'Fecha Ingreso': this.datePipe.transform(usuario.FechaIngresoUsuario, 'dd/MM/yyyy')
+    }));
+
+    // Creamos la hoja de cálculo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // (Opcional) Ajustar el ancho de las columnas
+    ws['!cols'] = [
+      { wch: 10 }, // Código
+      { wch: 30 }, // Nombre
+      { wch: 25 }, // Correo
+      { wch: 18 }, // Rol
+      { wch: 12 }, // Estado
+      { wch: 15 }  // Fecha Ingreso
+    ];
+
+    // Creamos el libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Usuarios');
+
+    // Generamos el archivo y lo descargamos
+    XLSX.writeFile(wb, 'Reporte_Usuarios.xlsx');
   }
 }

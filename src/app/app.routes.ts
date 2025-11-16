@@ -40,6 +40,7 @@ import { ListadoInventarioGeneralComponent } from './paginas/inventario/listado-
 import { ListadoInventarioGarantiaComponent } from './paginas/inventario/listado-inventario-garantia/listado-inventario-garantia.component';
 import { ListadoTiposProductosComponent } from './paginas/categorias/tipos-productos/listado-tipos-productos/listado-tipos-productos.component';
 import { ListadoTipoAccesorioComponent } from './paginas/categorias/tipos-accesorios/listado-tipo-accesorio/listado-tipo-accesorio.component';
+import { BackupComponent } from './paginas/backup/backup.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -233,6 +234,12 @@ export const routes: Routes = [
         component: ListarUsuariosComponent,
         canActivate: [AuthGuard, RoleGuard],
         data: { expectedRoles: [1] } 
+      },
+      {
+        path: 'administracion/backup',
+        component: BackupComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: [1] }
       },
       {
         path: 'listado-clientes',

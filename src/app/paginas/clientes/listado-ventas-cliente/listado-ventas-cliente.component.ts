@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 
 // Imports de Angular Material
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -8,6 +8,8 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import * as XLSX from 'xlsx';
 
 import { ClientesService } from '../../../services/clientes.service';
 
@@ -15,6 +17,7 @@ import { VentaCliente } from '../../interfaces/ventacliente';
 
 @Component({
     selector: 'app-listado-ventas-cliente',
+    standalone: true,
     imports: [
         CommonModule,
         MatTableModule,
@@ -22,8 +25,11 @@ import { VentaCliente } from '../../interfaces/ventacliente';
         MatPaginatorModule,
         MatProgressSpinnerModule,
         MatIconModule,
-        MatButtonModule
+        MatButtonModule,
+        DatePipe,
+        MatSnackBarModule
     ],
+    providers: [DatePipe],
     templateUrl: './listado-ventas-cliente.component.html',
     styleUrls: ['./listado-ventas-cliente.component.css']
 })
@@ -41,7 +47,11 @@ export class ListadoVentasClienteComponent implements OnChanges, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private clientesService: ClientesService) {}
+  constructor(
+    private clientesService: ClientesService,
+    private snackBar: MatSnackBar,
+    private datePipe: DatePipe
+  ) {}
 
   // 2. Detecta cambios en el Input (cuando el padre le pasa el ID)
   ngOnChanges(changes: SimpleChanges): void {
@@ -79,5 +89,42 @@ export class ListadoVentasClienteComponent implements OnChanges, AfterViewInit {
       case 'anulado': return 'status-anulado';
       default: return 'status-pendiente';
     }
+  }
+
+  /**
+   * Exporta los datos actualmente mostrados (y ordenados) a un archivo Excel.
+   */
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // Usamos .filteredData para respetar el orden aplicado por MatSort
+    // (Aunque no hay filtro, MatSort usa esta propiedad)
+    const data = this.dataSource.filteredData;
+
+    if (data.length === 0) {
+      this.snackBar.open('No hay datos para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Mapeamos los datos a un formato legible
+    const excelData = data.map(venta => ({
+      'N° Factura': venta.NumeroDocumento,
+      'Fecha': this.datePipe.transform(venta.FechaCreacion, 'dd/MM/yyyy h:mm a'),
+      'Total': venta.TotalVenta,
+      'Estado': venta.EstadoVenta,
+      'Motivo Anulación': venta.MotivoAnulacion
+    }));
+
+    // Creamos la hoja de cálculo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Creamos el libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Historial_Ventas');
+
+    // Generamos el archivo y lo descargamos
+    // Usamos el ID del cliente para un nombre de archivo único
+    const nombreArchivo = `Reporte_Ventas_Cliente_${this.clienteId}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
   }
 }

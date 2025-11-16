@@ -8,6 +8,22 @@
         <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, DNI, RUC..." #input>
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
+
+      <button mat-icon-button 
+              color="warn" 
+              matTooltip="Resetear filtros"
+              (click)="resetearFiltros()"
+              class="btn-accion-header">
+        <mat-icon>filter_list_off</mat-icon>
+      </button>
+
+      <button mat-stroked-button 
+              color="primary"
+              (click)="descargarExcel()"
+              class="btn-accion-header">
+        <mat-icon>download</mat-icon>
+        Exportar
+      </button>
       <a mat-raised-button color="primary" class="button-crear" (click)="openDialogAgregar()">
         <mat-icon>add</mat-icon>
         Nuevo Cliente

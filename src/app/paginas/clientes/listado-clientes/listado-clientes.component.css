@@ -33,10 +33,17 @@
 
 .filtro-texto {
   width: 300px;
+  /* ===== AÑADIDO: Corrige el espacio inferior de mat-form-field para alinear botones ===== */
+  margin-bottom: -1.25em;
 }
 
 .button-crear {
   height: 56px;
+}
+
+/* ===== NUEVA CLASE AÑADIDA ===== */
+.btn-accion-header {
+  height: 56px; /* Coincide con .button-crear y el mat-form-field outline */
 }
 
 /* Contenedor de la tabla y estados de carga/error */

@@ -1,6 +1,15 @@
 <div class="container mat-elevation-z8">
   <header class="header">
     <h1>Historial de Ventas</h1>
+    <div class="actions-header">
+      <button mat-stroked-button 
+              color="primary"
+              (click)="descargarExcel()"
+              class="btn-accion-header">
+        <mat-icon>download</mat-icon>
+        Exportar
+      </button>
+    </div>
   </header>
   
   <div class="table-container">

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -14,6 +14,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
+
+import * as XLSX from 'xlsx';
 
 import { NotasCreditoService } from '../../../services/notas-credito.service';
 import { BorrarNotaCreditoComponent } from '../borrar-nota-credito/borrar-nota-credito.component';
@@ -36,10 +38,12 @@ import { TableState } from '../../interfaces/table-state';
         MatButtonModule,
         RouterModule,
         MatProgressSpinnerModule,
-        MatTooltipModule
+        MatTooltipModule,
+        DatePipe
     ],
+    providers: [DatePipe],
     templateUrl: './listar-notas-credito.component.html',
-    styleUrls: ['./listar-notas-credito.component.css']
+    styleUrls: ['./listar-notas-credito.component.css'],
 })
 export class ListarNotasCreditoComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -58,7 +62,8 @@ export class ListarNotasCreditoComponent implements OnInit, AfterViewInit, OnDes
     private notasCreditoService: NotasCreditoService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private stateService: TableStatePersistenceService
+    private stateService: TableStatePersistenceService,
+    private datePipe: DatePipe
   ) {}
 
   ngOnInit(): void {
@@ -139,6 +144,76 @@ export class ListarNotasCreditoComponent implements OnInit, AfterViewInit, OnDes
       this.dataSource.paginator.firstPage();
     }
     this.saveState();
+  }
+
+  /**
+   * Limpia el filtro de texto, resetea la paginación y guarda el estado.
+   */
+  public resetearFiltros(): void {
+    // 1. Limpiar el valor del input
+    if (this.inputBusqueda) {
+      this.inputBusqueda.nativeElement.value = '';
+    }
+
+    // 2. Limpiar el filtro del dataSource
+    this.dataSource.filter = '';
+
+    // 3. Resetear el paginador
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+
+    // 4. Guardar el estado limpio
+    this.saveState();
+  }
+
+  /**
+   * Exporta los datos actualmente filtrados en la tabla a un archivo Excel.
+   */
+  public descargarExcel(): void {
+    this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
+
+    // Usamos .filteredData para obtener solo lo que el usuario está viendo
+    const data = this.dataSource.filteredData;
+
+    if (data.length === 0) {
+      this.snackBar.open('No hay datos para exportar.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Mapeamos los datos a un formato legible
+    const excelData = data.map(nc => ({
+      'N° Nota': nc.IdNotaCreditoPK,
+      'Fecha Emisión': this.datePipe.transform(nc.FechaEmision, 'dd/MM/yyyy h:mm a'),
+      'Venta Original': nc.NumeroVentaOriginal,
+      'Cliente': nc.NombreCliente,
+      'Motivo': nc.Motivo,
+      'Total Crédito': nc.TotalCredito, // Excel lo manejará como número
+      'Emitido por': nc.UsuarioEmisor,
+      'Estado': nc.EstadoNota
+    }));
+
+    // Creamos la hoja de cálculo
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Ajustar el ancho de las columnas
+    ws['!cols'] = [
+      { wch: 10 }, // N° Nota
+      { wch: 20 }, // Fecha Emisión
+      { wch: 15 }, // Venta Original
+      { wch: 30 }, // Cliente
+      { wch: 25 }, // Motivo
+      { wch: 15 }, // Total Crédito
+      { wch: 20 }, // Emitido por
+      { wch: 12 }  // Estado
+    ];
+
+    // Creamos el libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Notas_Credito');
+
+    // Generamos el archivo y lo descargamos
+    XLSX.writeFile(wb, 'Reporte_Notas_Credito.xlsx');
   }
 
   getStatusClass(status: string): string {

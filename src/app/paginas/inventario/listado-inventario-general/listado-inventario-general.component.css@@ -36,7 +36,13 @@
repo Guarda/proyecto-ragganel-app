@@ -1,3 +1,7 @@
+/* ======================================================== */
+/* ESTILOS PARA LISTADO DE INVENTARIO - Basado en Listado Ventas */
+/* ======================================================== */
+
 /* Estructura principal y cabecera */
 .container {
   margin: 24px auto;
@@ -36,20 +40,15 @@
   /* ===== AÑADIDO: Corrige el espacio inferior de mat-form-field para alinear botones ===== */
   margin-bottom: -1.25em;
 }
-
-.button-crear {
-  height: 56px;
-}
-
 /* ===== NUEVA CLASE AÑADIDA ===== */
 .btn-accion-header {
-  height: 56px; /* Coincide con .button-crear y el mat-form-field outline */
+  height: 48px; /* Para alinear con el campo de búsqueda 'outline' */
 }
 
 /* Contenedor de la tabla y estados de carga/error */
 .table-container {
   position: relative;
-  overflow-x: auto;
+  overflow-x: auto; /* Permite scroll horizontal en tablas anchas */
   min-height: 400px;
   width: 100%;
 }
@@ -67,6 +66,12 @@
   gap: 16px;
 }
 
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
 /* Estilos de la tabla */
 table {
   width: 100%;
@@ -74,42 +79,65 @@ table {
 
 th.mat-header-cell, td.mat-cell {
   padding: 8px 16px;
-  white-space: nowrap;
+  white-space: nowrap; /* Evita que el texto se parta en varias líneas */
+}
+
+.col-imagen img {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  vertical-align: middle;
 }
 
 .col-nombre {
-  white-space: normal;
-  max-width: 300px;
+  max-width: 350px;
+  white-space: normal; /* Permite que el texto largo se ajuste */
+  font-weight: 500;
 }
 
-.actions-cell {
+.col-cantidad {
+  font-weight: bold;
   text-align: center;
 }
 
-/* Badges de Estado */
-.status-badge {
+/* Badges de Tipo y Estado */
+.tipo-badge, .estado-badge {
   padding: 5px 12px;
   border-radius: 16px;
   font-weight: 500;
   color: #fff;
   font-size: 12px;
-  text-transform: capitalize;
   display: inline-block;
+  text-transform: capitalize;
 }
 
-.status-activo { background-color: #28a745; }
-.status-inactivo { background-color: #6c757d; }
-.status-default { background-color: #adb5bd; }
+/* Colores para Tipo */
+.tipo-producto { background-color: #3f51b5; } /* Azul */
+.tipo-accesorio { background-color: #28a745; } /* Verde */
+.tipo-insumo { background-color: #ff9800; } /* Naranja */
+.tipo-default { background-color: #6c757d; } /* Gris */
 
-/* Media Query para responsividad */
+/* Colores para Estado */
+.estado-nuevo { background-color: #17a2b8; }      /* Cian */
+.estado-usado { background-color: #6c757d; }      /* Gris */
+.estado-garantia { background-color: #fd7e14; }   /* Naranja Oscuro */
+.estado-reparar { background-color: #ffc107; color: #333; } /* Amarillo */
+.estado-piezas { background-color: #dc3545; }     /* Rojo */
+.estado-default { background-color: #adb5bd; }    /* Gris Claro */
+
+/* Media Query para responsividad en pantallas pequeñas */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .actions-header {
     width: 100%;
   }
+
   .filtro-texto {
     width: 100%;
   }

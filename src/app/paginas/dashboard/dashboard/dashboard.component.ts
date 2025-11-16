@@ -13,17 +13,31 @@ import { FormsModule } from '@angular/forms'; // ⭐️ 1. IMPORTA FORMSMODULE
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AbcDetalleComponent } from '../abc-detalle/abc-detalle.component';
 import { LoadingDialogComponent } from '../loading-dialog.component';
+// ===== AÑADIR ESTOS IMPORTS =====
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input'; // Para el select
 // ===== IMPORTACIONES NUEVAS =====
 import { MatButtonToggleModule, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip'; // ⭐️ 1. IMPORTA ESTO
 // ===== IMPORTACIONES DE SERVICIO =====
-import { DashboardService } from '../../../services/dashboard.service';
+// ===== AÑADIR SNACKBAR =====
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+// ⭐️ 1. IMPORTA LA NUEVA INTERFAZ 'ModeloPronostico' DESDE EL SERVICIO ⭐️
+import { 
+  DashboardService, 
+  ModeloPronostico,
+} from '../../../services/dashboard.service';
+import { ReportePronosticoMasivoItem } from '../../interfaces/reportepronosticomasivoitem';
 import { Top10Articulo } from '../../interfaces/top10articulo';
 import { DashboardData } from '../../interfaces/dashboarddata';
 import { ChartData } from '../../interfaces/chartdata'; // Asumo que tienes esta interfaz
-
+import { PronosticoData } from '../../interfaces/pronosticodata';
+import { PronosticoGraficoItem } from '../../interfaces/pronosticodatoitem';
 // ⭐️ 1. IMPORTAR LA NUEVA INTERFAZ
 import { PedidoDashboardItem } from '../../interfaces/pedidodashboarditem';
+// ===== AÑADIR ESTAS INTERFACES (O IMPORTARLAS) =====
+import { PronosticoResponse } from '../../interfaces/pronosticoresponse';
 
 // ⭐️ 1. AÑADE ESTA IMPORTACIÓN
 import * as XLSX from 'xlsx';
@@ -37,7 +51,12 @@ import * as XLSX from 'xlsx';
         MatButtonToggleModule, 
         FormsModule, // ⭐️ 2. AÑÁDELO A LOS IMPORTS
         MatDialogModule,
-        MatTooltipModule // ⭐️ 2. AÑÁDELO A LOS IMPORTS
+        MatTooltipModule, // ⭐️ 2. AÑÁDELO A LOS IMPORTS
+        // ===== AÑADIR ESTOS MÓDULOS =====
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatSnackBarModule // <-- AÑADIR ESTE
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.css']
@@ -65,6 +84,26 @@ export class DashboardComponent implements OnInit {
   // Propiedad para la posición de la leyenda del gráfico ABC
   public legendPosition: LegendPosition = LegendPosition.Right;
 
+  // ===== INICIO DE NUEVAS PROPIEDADES PARA PRONÓSTICO =====
+  // ⭐️ 2. CORRECCIÓN DE TIPO: 
+  //    Debe ser un array de 'ModeloPronostico', no 'PronosticoResponse'.
+  public modelosParaPronostico: ModeloPronostico[] = [];
+  public modeloSeleccionado: string | null = null; // Usamos un string "tipo-id"
+  public mesesHistorial: number = 6; // Valor por defecto
+  public isPronosticoLoading = false;
+  public pronosticoError: string | null = null;
+  public pronosticoResumen: PronosticoData | null = null;
+  public pronosticoGraficoData: PronosticoGraficoItem[] = [];
+
+  // Esquema de color para el nuevo gráfico
+  pronosticoColorScheme: Color = {
+    name: 'pronostico',
+    selectable: true,
+    group: ScaleType.Ordinal,
+    domain: ['#28a745', '#3F51B5'], // Demanda (Verde), Pronóstico (Azul)
+  };
+  // ===== FIN DE NUEVAS PROPIEDADES =====
+
   // Opciones para los gráficos
   colorScheme: Color = {
     name: 'vivid',
@@ -76,7 +115,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private router: Router, // <--- AÑADIR ESTO
-    public dialog: MatDialog // <--- AÑADIR ESTO
+    public dialog: MatDialog, // <--- AÑADIR ESTO
+    private snackBar: MatSnackBar // <-- INYECTAR SNACKBAR
   ) { }
 
   ngOnInit(): void {
@@ -88,6 +128,10 @@ export class DashboardComponent implements OnInit {
 
     // ⭐️ 3. CARGAR LOS DATOS DEL NUEVO MINI-DASHBOARD
     this.cargarPedidos();
+
+    // 4. ===== NUEVA LLAMADA =====
+    // Carga la lista de modelos para el dropdown de pronóstico
+    this.cargarModelosParaPronostico();
   }
 
   // Esta función AHORA solo carga los KPIs y listas
@@ -521,4 +565,117 @@ export class DashboardComponent implements OnInit {
     }
     return tooltip;
   }
+
+  // ===== INICIO DE NUEVOS MÉTODOS =====
+
+  /**
+   * Carga la lista de todos los modelos (supercategorías)
+   * para poblar el dropdown de pronóstico.
+   */
+  cargarModelosParaPronostico(): void {
+    this.dashboardService.getModelosParaPronostico().subscribe({
+      // ⭐️ 3. CORRECCIÓN DE TIPO (ANY):
+      //    Añadimos tipos explícitos a 'data' y 'err'.
+      next: (data: ModeloPronostico[]) => {
+        this.modelosParaPronostico = data;
+      },
+      error: (err: any) => {
+        console.error("Error al cargar la lista de modelos para pronóstico:", err);
+      }
+    });
+  }
+
+  /**
+   * Se dispara al hacer clic en "Generar Pronóstico".
+   * Llama al servicio con los valores seleccionados.
+   */
+  generarPronostico(): void {
+    if (!this.modeloSeleccionado) {
+      this.pronosticoError = "Por favor, seleccione un modelo para analizar.";
+      return;
+    }
+
+    this.isPronosticoLoading = true;
+    this.pronosticoError = null;
+    this.pronosticoResumen = null;
+    this.pronosticoGraficoData = [];
+
+    // El valor de 'modeloSeleccionado' es un string "tipo-id", ej: "1-5"
+    const [tipo, id] = this.modeloSeleccionado.split('-').map(Number);
+    
+    this.dashboardService.getPronosticoPorModelo(id, tipo, this.mesesHistorial).subscribe({
+      next: (response: PronosticoResponse) => { // El tipo 'PronosticoResponse' aquí está bien
+        this.pronosticoResumen = response.resumen;
+        
+        // Formateamos los datos del gráfico para ngx-charts
+        this.pronosticoGraficoData = [
+          {
+            name: 'Demanda (Y)',
+            series: response.grafico.filter(d => d.seriesName === 'Demanda (Y)')
+          },
+          {
+            name: 'Pronóstico (Y\')',
+            series: response.grafico.filter(d => d.seriesName === 'Pronóstico (Y\')')
+          }
+        ] as any; // Usamos 'as any' para ngx-charts
+
+        this.isPronosticoLoading = false;
+      },
+      error: (err: any) => { // Añadimos tipo 'any' a 'err'
+        console.error("Error al generar el pronóstico:", err);
+        this.pronosticoError = "No se pudo generar el pronóstico. Revise la consola.";
+        this.isPronosticoLoading = false;
+      }
+    });
+  }
+
+  // ===== INICIO DEL NUEVO MÉTODO DE DESCARGA =====
+
+  /**
+   * Llama al servicio para generar el reporte masivo y lo descarga como Excel.
+   */
+  descargarReportePronostico(): void {
+    // 1. Mostrar notificación de carga
+    const loadingSnackbar = this.snackBar.open('Generando reporte masivo de pronóstico... Esto puede tardar un momento.', 'Cerrar');
+    this.isPronosticoLoading = true; // Reutilizamos el spinner de la tarjeta
+
+    // 2. Llamar al servicio con los meses del input
+    this.dashboardService.getReportePronosticoMasivo(this.mesesHistorial).subscribe({
+      next: (data: ReportePronosticoMasivoItem[]) => {
+        loadingSnackbar.dismiss();
+        this.isPronosticoLoading = false;
+
+        if (data.length === 0) {
+          this.snackBar.open('No se generaron datos para el reporte.', 'Cerrar', { duration: 3000 });
+          return;
+        }
+
+        // 3. Preparar y descargar el Excel
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+        
+        // Ajustar anchos de columna
+        ws['!cols'] = [
+          { wch: 60 }, // NombreModelo
+          { wch: 15 }, // StockActual
+          { wch: 20 }, // DemandaPronosticada
+          { wch: 40 }, // Recomendacion
+          { wch: 15 }  // MesesAnalizados
+        ];
+
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'PronosticoMasivo');
+        XLSX.writeFile(wb, `Reporte_Pronostico_Reabastecimiento_${new Date().toISOString().split('T')[0]}.xlsx`);
+        
+        this.snackBar.open('Reporte generado y descargado.', 'OK', { duration: 3000 });
+      },
+      error: (err: any) => {
+        loadingSnackbar.dismiss();
+        this.isPronosticoLoading = false;
+        console.error("Error al generar el reporte masivo:", err);
+        this.snackBar.open('Error al generar el reporte. Revise la consola.', 'Cerrar', { duration: 5000 });
+      }
+    });
+  }
+  // ===== FIN DEL NUEVO MÉTODO DE DESCARGA =====
+  // ===== FIN DE NUEVOS MÉTODOS =====
 }
