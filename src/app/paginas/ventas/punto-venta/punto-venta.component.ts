@@ -35,12 +35,15 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 // ===== ⭐️ 1. IMPORTA MATTOOLTIPMODULE AQUÍ ⭐️ =====
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+// ⭐️ AÑADIR IMPORTACIÓN DEL PIPE ⭐️
+import { CurrencyConverterPipe } from '../../pipes/currency-converter.pipe';
+
 @Component({
     selector: 'app-punto-venta',
     imports: [FormsModule, MatInputModule, MatIconButton, ReactiveFormsModule, TablaArticulosVentasComponent,
         CommonModule, MatIcon, MatButton, CrearClienteComponent, MatFormField, MatOption, MatAutocompleteModule,
-        MatSelect, MatSpinner, MatSlideToggleModule,
-        MatTooltipModule // <-- ⭐️ 2. AÑÁDELO AL ARRAY DE IMPORTS
+        MatSelect, MatSpinner, MatSlideToggleModule, MatTooltipModule,
+        CurrencyConverterPipe // <-- ⭐️ AÑADIDO AL ARRAY DE IMPORTS
     ],
     templateUrl: './punto-venta.component.html',
     styleUrl: './punto-venta.component.css'
@@ -70,6 +73,13 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
   metodoPagoSeleccionado: number | null = null;
   numeroReferenciaTransferencia: string = '';
   observacionesOtros: string = '';
+
+  // ⭐️ PROPIEDADES DE MONEDA AÑADIDAS ⭐️
+  public readonly EXCHANGE_RATE = 36.6243;
+  public selectedCurrency: 'USD' | 'NIO' = 'USD';
+
+  // ⭐️ INSTANCIA DEL PIPE PARA USO EN MÉTODOS PDF ⭐️
+  private currencyPipe: CurrencyConverterPipe = new CurrencyConverterPipe();
 
   @ViewChild(TablaArticulosVentasComponent) tablaArticulos!: TablaArticulosVentasComponent;
 
@@ -444,38 +454,36 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     const ventaData: VentaFinalData = {
       // Cabecera de la venta: Estos datos vienen de los getters (subtotal, iva, total).
       TipoDocumento: 3, // 3 = Factura
-      SubtotalVenta: this.subtotalNeto,
-      IVA: this.iva,
-      TotalVenta: this.total,
+      SubtotalVenta: this.subtotalNeto, // Estos getters ya devuelven USD
+      IVA: this.iva,                    // USD
+      TotalVenta: this.total,           // USD
       EstadoVenta: 2, // 2 = Pagado
       MetodoPago: this.metodoPagoSeleccionado,
       Usuario: this.usuario.id,
       Cliente: this.ClienteSeleccionado?.id!,
-      Observaciones: `Ref. Transferencia: ${this.numeroReferenciaTransferencia || 'N/A'}. Otros: ${this.observacionesOtros || 'N/A'}`,
+      Observaciones: `Ref: ${this.numeroReferenciaTransferencia || 'N/A'}. ${this.observacionesOtros || ''}`,
 
       // Detalle de la venta: Se mapea el carrito para generar los detalles.
       // Esta es la parte más crítica que hemos corregido.
       Detalles: this.carrito.map(art => {
-        // Se toman los datos base para asegurar la integridad de los cálculos.
-        const costoOriginal = art.PrecioOriginalSinMargen ?? 0;
-        const margenAplicado = art.MargenAplicado ?? 0;
-        const descuentoPorcentaje = art.DescuentoPorcentaje ?? 0;
-        const cantidad = art.Cantidad ?? 1;
-
-        // Se calcula el precio de venta unitario justo antes de enviar,
-        // basándose en el costo original y el margen, para evitar errores.
-        const precioVentaUnitario = costoOriginal * (1 + margenAplicado / 100);
-
-        // Se retorna el objeto con los NOMBRES DE CLAVE CORRECTOS que el SP espera.
+        // ⭐️ CORRECCIÓN: Usar art.PrecioBase directamente.
+        // Ya garantizamos que art.PrecioBase es siempre USD.
+        // No recalculamos (costo * margen) aquí porque eso borraría
+        // cualquier precio personalizado que hayas definido manualmente.
+        
         return {
           TipoArticulo: art.Tipo!,
           CodigoArticulo: art.Codigo!,
-          PrecioVenta: precioVentaUnitario,
-          Descuento: descuentoPorcentaje,
-          Cantidad: cantidad,
-          PrecioBaseOriginal: costoOriginal,
-          MargenAplicado: margenAplicado,
-          IdMargenFK: art.IdMargenFK ?? this.idMargenSeleccionado
+          
+          // Enviamos el precio base del carrito (que es USD)
+          PrecioVenta: art.PrecioBase ?? 0, 
+          
+          Descuento: art.DescuentoPorcentaje ?? 0,
+          Cantidad: art.Cantidad ?? 1,
+          PrecioBaseOriginal: art.PrecioOriginalSinMargen ?? 0,
+          MargenAplicado: art.MargenAplicado ?? 0,
+          // ⭐️ CORRECCIÓN AQUÍ: Añadir '?? 0' para evitar el error de 'null'
+          IdMargenFK: art.IdMargenFK ?? this.idMargenSeleccionado ?? 0
         };
       })
     };
@@ -485,7 +493,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       next: (respuesta) => {
         // Si la venta en el backend fue exitosa...
         if (respuesta.success && respuesta.numeroDocumento) {
-          this.snackBar.open(`Venta ${respuesta.numeroDocumento} registrada con éxito.`, 'OK', { duration: 4000 });
+          this.snackBar.open(`Venta ${respuesta.numeroDocumento} registrada.`, 'OK', { duration: 4000 });
           this.imprimirFacturaPDF(respuesta.numeroDocumento);
 
           // Se refresca el carrito. El SP ya lo marcó como 'Completado',
@@ -497,13 +505,13 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
           this.clienteControl.setValue('');
         } else {
           // Manejo de errores controlados desde el backend.
-          this.snackBar.open(`Error al procesar la venta: ${respuesta.error || 'No se recibió el número de documento.'}`, 'Cerrar', { duration: 5000 });
+          this.snackBar.open(`Error: ${respuesta.error}`, 'Cerrar', { duration: 5000 });
         }
       },
       error: (err) => {
         // Manejo de errores de comunicación o excepciones no controladas.
-        console.error('Error en la transacción de venta:', err);
-        this.snackBar.open('Error de comunicación con el servidor al finalizar la venta.', 'Cerrar', { duration: 5000 });
+        console.error('Error:', err);
+        this.snackBar.open('Error de comunicación.', 'Cerrar', { duration: 5000 });
       }
     }));
   }
@@ -588,6 +596,11 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ⭐️ NUEVO MÉTODO PARA CAMBIAR LA MONEDA ⭐️
+  public toggleCurrency(): void {
+      this.selectedCurrency = this.selectedCurrency === 'USD' ? 'NIO' : 'USD';
+  }
+
   // --- CÁLCULOS Y TOTALES ---
 
   /**
@@ -660,31 +673,59 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     }
   }
 
+  // 1. MODIFICAR ESTA FUNCIÓN
+  // Esta función maneja el cambio manual de precio en la tabla (si habilitas un input)
   onPrecioManualChange(articulo: ArticuloVenta, event: any): void {
-    // 1. Obtenemos y convertimos el nuevo precio a número.
-    const nuevoPrecio = parseFloat(event.target.value);
+    // Obtener el valor que el usuario escribió
+    const valorInput = parseFloat(event.target.value);
 
-    // 2. Obtenemos el costo original del artículo (precio sin margen).
-    const precioCosto = articulo.PrecioOriginalSinMargen ?? 0;
-
-    // 3. Validación: Si el nuevo precio es inválido o menor que el costo...
-    if (isNaN(nuevoPrecio) || nuevoPrecio < precioCosto) {
-      // Mostramos una alerta al usuario.
-      this.snackBar.open(`El precio no puede ser menor al costo base de $${precioCosto.toFixed(2)}`, 'Cerrar', {
-        duration: 4000,
-        panelClass: ['snackbar-error'] // (Opcional) Clase para un estilo de error
-      });
-      // Revertimos el valor en la UI al precio que tenía antes de la edición.
-      event.target.value = articulo.PrecioBase;
-      return; // Detenemos la ejecución.
+    // Validación básica
+    if (isNaN(valorInput) || valorInput < 0) {
+      // Revertir al valor original si es inválido
+      event.target.value = this.convertirAVisual(articulo.PrecioBase); 
+      return;
     }
 
-    // 4. Si el precio es válido, lo actualizamos en el objeto del carrito.
-    // Como `PrecioBase` es usado por los getters, toda la UI se actualizará automáticamente.
-    articulo.PrecioBase = nuevoPrecio;
+    let nuevoPrecioEnDolares: number;
 
-    // Opcional: Podrías llamar aquí a un servicio para persistir este cambio en el backend
-    // si necesitas que el carrito se guarde en tiempo real.
+    // ⭐️ LÓGICA DE PROTECCIÓN DE MONEDA ⭐️
+    // Si el usuario está viendo en Córdobas (NIO), el valor que ingresó (ej: 732) son córdobas.
+    // Debemos convertirlo a Dólares antes de guardarlo en el modelo.
+    if (this.selectedCurrency === 'NIO') {
+      nuevoPrecioEnDolares = valorInput / this.EXCHANGE_RATE;
+    } else {
+      // Si está en USD, el valor ya es correcto
+      nuevoPrecioEnDolares = valorInput;
+    }
+
+    // Validación de costo (siempre comparamos Dólar contra Dólar)
+    const precioCostoUSD = articulo.PrecioOriginalSinMargen ?? 0;
+    
+    if (nuevoPrecioEnDolares < precioCostoUSD) {
+        this.snackBar.open(`El precio ($${nuevoPrecioEnDolares.toFixed(2)}) no puede ser menor al costo ($${precioCostoUSD.toFixed(2)})`, 'Cerrar', {
+            duration: 4000,
+            panelClass: ['snackbar-error']
+        });
+        // Revertimos el input visual al valor correcto
+        event.target.value = this.convertirAVisual(articulo.PrecioBase);
+        return; 
+    }
+
+    // Finalmente, guardamos en el carrito SIEMPRE EN DÓLARES
+    articulo.PrecioBase = nuevoPrecioEnDolares;
+    
+    // Recalcular subtotal u otras propiedades si es necesario
+    // (Angular actualizará los pipes automáticamente)
+  }
+
+  // Helper para devolver el valor visual actual (para revertir cambios inválidos)
+  // ⭐️ CORRECCIÓN: Añadido '| null' al tipo del parámetro 'valorUSD'
+  private convertirAVisual(valorUSD: number | null | undefined): string {
+    const val = valorUSD ?? 0;
+    if (this.selectedCurrency === 'NIO') {
+      return (val * this.EXCHANGE_RATE).toFixed(2);
+    }
+    return val.toFixed(2);
   }
 
   public getNombreMargen(idMargen: number | null): string {
@@ -693,6 +734,25 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     }
     const margenEncontrado = this.margenesVenta.find(m => m.IdMargenPK === idMargen);
     return margenEncontrado ? margenEncontrado.NombreMargen : 'Desconocido';
+  }
+
+  // ⭐️ FUNCIÓN AUXILIAR PARA EL PDF ⭐️
+  private formatCurrencyForPdf(value: number): { value: number, symbol: string } {
+    const valueToFormat = value ?? 0;
+    let finalValue = valueToFormat;
+    let symbol: string;
+
+    if (this.selectedCurrency === 'NIO') {
+        finalValue = valueToFormat * this.EXCHANGE_RATE;
+        symbol = 'C$';
+    } else {
+        symbol = '$';
+    }
+
+    return {
+        value: finalValue,
+        symbol: symbol
+    };
   }
 
   generarProformaPDF(): void {
@@ -724,7 +784,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       Detalles: this.carrito.map(art => {
         // Obtenemos el ID del margen del artículo en el carrito.
         // Si no existe (caso improbable), usamos el margen seleccionado como fallback.
-        const idMargenDelArticulo = art.IdMargenFK ?? this.idMargenSeleccionado;
+        const idMargenDelArticulo = art.IdMargenFK ?? this.idMargenSeleccionado ?? 0;
 
         return {
           Tipo: art.Tipo,
@@ -781,6 +841,10 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       }
     }
 
+    // ⭐️ OBTENER UNIDAD DE MONEDA PARA ENCABEZADO Y PIE ⭐️
+    const totalPdf = this.formatCurrencyForPdf(this.total);
+    const currencyUnitText = totalPdf.symbol;
+
     // --- ENCABEZADO DEL DOCUMENTO (Sin cambios) ---
     doc.setFontSize(18);
     doc.text('PROFORMA DE VENTA', 105, 20, { align: 'center' });
@@ -806,21 +870,26 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
 
     // --- TABLA DE ARTÍCULOS (Encabezados actualizados) ---
     // CAMBIO: Encabezados de la tabla para coincidir con el otro PDF.
-    const head = [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. c/Desc.', 'Subtotal']];
+    const head = [['Cant.', 'Código', 'Artículo', `P. Unit. (${currencyUnitText})`, 'Desc. %', 'P. c/Desc.', 'Subtotal']];
     const body = this.carrito.map(art => {
       const precioUnitario = art.PrecioBase ?? 0;
       const cantidad = art.Cantidad ?? 1;
       const precioConDescuento = this.calcularPrecioConDescuento(art);
       const subtotal = precioConDescuento * cantidad;
 
+      // ⭐️ FORMATTING FOR TABLE CELLS ⭐️
+      const pUnitFormatted = this.formatCurrencyForPdf(precioUnitario);
+      const pDescFormatted = this.formatCurrencyForPdf(precioConDescuento);
+      const subtotalFormatted = this.formatCurrencyForPdf(subtotal);
+
       return [
         cantidad.toString(),
         art.Codigo || 'N/A',
         art.NombreArticulo || 'N/A',
-        precioUnitario.toFixed(2),
+        pUnitFormatted.value.toFixed(2), // Solo el valor, el símbolo está en el encabezado
         (art.DescuentoPorcentaje ?? 0).toFixed(2),
-        precioConDescuento.toFixed(2),
-        subtotal.toFixed(2)
+        pDescFormatted.value.toFixed(2),  
+        subtotalFormatted.value.toFixed(2) 
       ];
     });
 
@@ -838,6 +907,15 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     });
 
     // --- SECCIÓN DE TOTALES (Etiquetas actualizadas) ---
+    // ⭐️ FORMATTING FOR TOTALS ⭐️
+    const subtotalFormatted = this.formatCurrencyForPdf(this.subtotal);
+    const totalDescuentosFormatted = this.formatCurrencyForPdf(this.totalDescuentos);
+    const subtotalNetoFormatted = this.formatCurrencyForPdf(this.subtotalNeto);
+    const ivaFormatted = this.formatCurrencyForPdf(this.iva);
+    const totalFormattedValue = this.formatCurrencyForPdf(this.total);
+    const currencyLabel = totalFormattedValue.symbol + ' ' + (this.selectedCurrency === 'USD' ? 'USD' : 'NIO');
+
+
     let finalY = (doc as any).lastAutoTable.finalY + 10;
     if (finalY > 260) { doc.addPage(); finalY = 20; }
 
@@ -845,25 +923,25 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     doc.setFontSize(10);
     // CAMBIO: Etiqueta "Subtotal Bruto (s/desc):" a "Subtotal Bruto:".
     doc.text('Subtotal Bruto:', 140, finalY, { align: 'right' });
-    doc.text(`${this.subtotal.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
     doc.text('Total Descuentos:', 140, finalY, { align: 'right' });
-    doc.text(`-${this.totalDescuentos.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`-${totalDescuentosFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
     doc.text('Subtotal Neto (s/IVA):', 140, finalY, { align: 'right' });
-    doc.text(`${this.subtotalNeto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalNetoFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
     doc.text('IVA (15%):', 140, finalY, { align: 'right' });
-    doc.text(`${this.iva.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${ivaFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL A PAGAR:', 140, finalY, { align: 'right' });
-    doc.text(`${this.total.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${totalFormattedValue.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     doc.setFont('helvetica', 'normal');
 
     // --- PIE DE PÁGINA (Texto actualizado) ---
@@ -874,7 +952,7 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     doc.text('Esta proforma es válida por 15 días. Precios y disponibilidad sujetos a cambio.', 20, finalY);
 
     // --- GUARDAR EL DOCUMENTO (Sin cambios) ---
-    const nombreClienteSanitizado = this.ClienteSeleccionado?.nombre?.replace(/[\s\/\\?%*:|"<>]/g, '_') || 'Cliente';
+    const nombreClienteSanitizado = this.ClienteSeleccionado?.nombre?.replace(/[\s\/\\?%*:|"<>"<>]/g, '_') || 'Cliente';
     const codigoProformaSanitizado = codigoProforma.replace(/[\s\/\\?%*:|"<>]/g, '-');
     const nombreArchivo = `Proforma-${codigoProformaSanitizado}-${nombreClienteSanitizado}.pdf`;
     doc.save(nombreArchivo);
@@ -903,6 +981,10 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
       }
     }
 
+    // ⭐️ OBTENER UNIDAD DE MONEDA PARA ENCABEZADO Y PIE ⭐️
+    const totalPdf = this.formatCurrencyForPdf(this.total);
+    const currencyUnitText = totalPdf.symbol;
+
     // --- Cambios clave: Título y Número de Documento ---
     doc.setFontSize(18);
     doc.text('FACTURA DE VENTA', 105, 20, { align: 'center' }); // Título cambiado
@@ -926,20 +1008,26 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     doc.text(`Nombre del vendedor: ${this.usuario?.name || 'N/A'}`, 20, 82);
     doc.text(`Código vendedor: ${this.usuario?.id || 'N/A'}`, 20, 87);
 
-    const head = [['Cant.', 'Código', 'Artículo', 'P. Unit.', 'Desc. %', 'P. Desc.', 'Subtotal (sin IVA)']];
+    const head = [['Cant.', 'Código', 'Artículo', `P. Unit. (${currencyUnitText})`, 'Desc. %', 'P. Desc.', 'Subtotal (sin IVA)']];
     const body = this.carrito.map(art => {
       const precioUnitario = art.PrecioBase ?? 0;
       const cantidad = art.Cantidad ?? 1;
       const precioConDescuento = this.calcularPrecioConDescuento(art);
       const subtotal = precioConDescuento * cantidad;
+      
+      // ⭐️ FORMATTING FOR TABLE CELLS ⭐️
+      const pUnitFormatted = this.formatCurrencyForPdf(precioUnitario);
+      const pDescFormatted = this.formatCurrencyForPdf(precioConDescuento);
+      const subtotalFormatted = this.formatCurrencyForPdf(subtotal);
+
       return [
         cantidad.toString(),
         art.Codigo || 'N/A',
         art.NombreArticulo || 'N/A',
-        precioUnitario.toFixed(2),
+        pUnitFormatted.value.toFixed(2), // Solo el valor, el símbolo está en el encabezado
         (art.DescuentoPorcentaje ?? 0).toFixed(2),
-        precioConDescuento.toFixed(2),
-        subtotal.toFixed(2)
+        pDescFormatted.value.toFixed(2),
+        subtotalFormatted.value.toFixed(2)
       ];
     });
 
@@ -958,28 +1046,41 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     if (finalY > 260) { doc.addPage(); finalY = 20; }
     else { finalY += 10; }
 
-    // ... (cálculo de totales igual)
+    // ⭐️ FORMATTING FOR TOTALS ⭐️
+    const subtotalFormatted = this.formatCurrencyForPdf(this.subtotal);
+    const totalDescuentosFormatted = this.formatCurrencyForPdf(this.totalDescuentos);
+    const subtotalNetoFormatted = this.formatCurrencyForPdf(this.subtotalNeto);
+    const ivaFormatted = this.formatCurrencyForPdf(this.iva);
+    const totalFormattedValue = this.formatCurrencyForPdf(this.total);
+    const currencyLabel = totalFormattedValue.symbol + ' ' + (this.selectedCurrency === 'USD' ? 'USD' : 'NIO');
+
+
     const xAlignRight = 190;
     doc.setFontSize(10);
+    
     doc.text('Subtotal Bruto (s/desc):', 140, finalY, { align: 'right' });
-    doc.text(`${this.subtotal.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
+    
     doc.text('Total Descuentos:', 140, finalY, { align: 'right' });
-    doc.text(`-${this.totalDescuentos.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`-${totalDescuentosFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
+    
     doc.text('Subtotal Neto (s/IVA):', 140, finalY, { align: 'right' });
-    doc.text(`${this.subtotalNeto.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${subtotalNetoFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
+    
     doc.text('IVA (15%):', 140, finalY, { align: 'right' });
-    doc.text(`${this.iva.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${ivaFormatted.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     finalY += 7;
+    
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL PAGADO:', 140, finalY, { align: 'right' }); // Cambiado a PAGADO
-    doc.text(`${this.total.toFixed(2)} USD`, xAlignRight, finalY, { align: 'right' });
+    doc.text(`${totalFormattedValue.value.toFixed(2)} ${currencyLabel}`, xAlignRight, finalY, { align: 'right' });
     doc.setFont('helvetica', 'normal');
 
-    const nombreClienteSanitizado = this.ClienteSeleccionado?.nombre?.replace(/[\s\/\\?%*:|"<>]/g, '_') || 'Cliente';
+    const nombreClienteSanitizado = this.ClienteSeleccionado?.nombre?.replace(/[\s\/\\?%*:|"<>"<>]/g, '_') || 'Cliente';
     const numeroFacturaSanitizado = numeroFactura.replace(/[\s\/\\?%*:|"<>]/g, '-');
     doc.save(`Factura-${nombreClienteSanitizado}-${numeroFacturaSanitizado}.pdf`);
   }

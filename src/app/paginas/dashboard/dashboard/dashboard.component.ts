@@ -41,6 +41,9 @@ import { PronosticoResponse } from '../../interfaces/pronosticoresponse';
 
 // ⭐️ 1. AÑADE ESTA IMPORTACIÓN
 import * as XLSX from 'xlsx';
+// ⭐️ 1. IMPORTA EL NUEVO PIPE (DEBES CREAR ESTE ARCHIVO)
+import { CurrencyConverterPipe } from '../../pipes/currency-converter.pipe';
+
 @Component({
     selector: 'app-dashboard',
     standalone: true,
@@ -56,7 +59,9 @@ import * as XLSX from 'xlsx';
         MatFormFieldModule,
         MatSelectModule,
         MatInputModule,
-        MatSnackBarModule // <-- AÑADIR ESTE
+        MatSnackBarModule, // <-- AÑADIR ESTE
+        // ⭐️ 2. AÑADE EL NUEVO PIPE A LOS IMPORTS
+        CurrencyConverterPipe
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.css']
@@ -67,6 +72,11 @@ export class DashboardComponent implements OnInit {
   public isLoading = true;
   public abcChartTotal: number = 0; // ⭐️ 1. AÑADE ESTA NUEVA PROPIEDAD
   public errorMessage: string | null = null;
+
+  // ===== INICIO DE NUEVAS PROPIEDADES DE MONEDA =====
+  public readonly EXCHANGE_RATE = 36.6243; // Tasa de cambio: 1 USD = 36.6243 NIO
+  public selectedCurrency: 'USD' | 'NIO' = 'USD'; // Valor por defecto
+  // ===== FIN DE NUEVAS PROPIEDADES DE MONEDA =====
 
   // ===== NUEVAS PROPIEDADES PARA EL GRÁFICO =====
   public ventasGraficoData: ChartData[] = [];
@@ -504,22 +514,19 @@ export class DashboardComponent implements OnInit {
     return date.toLocaleDateString('es-NI', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   }
 
+  // ⭐️ 5. ACTUALIZA EL abcLabelFormatting (Asegúrate de que no use el pipe original de Angular)
   /**
    * Formatea las etiquetas del gráfico ABC para mostrar el valor en formato de moneda.
    */
   public abcLabelFormatting(data: any): string {
-    if (data.value) {
-      // Formatea el valor (ej. 5000) a '$5,000.00'
-      return data.value.toLocaleString('es-NI', { 
-        style: 'currency', 
-        currency: 'USD', 
-        maximumFractionDigits: 0 // Sin decimales
-      });
-    }
-    return data.name; // Fallback
+    const value = data.value;
+    const currencyPipe = new CurrencyConverterPipe();
+    
+    // Aquí el pipe hace el trabajo de conversión y formato
+    return currencyPipe.transform(value, 'USD', this.selectedCurrency, this.EXCHANGE_RATE, 0);
   }
 
-  // ⭐️ 3. AÑADE ESTA NUEVA FUNCIÓN COMPLETA
+  // ⭐️ 6. ACTUALIZA EL abcTooltipFormatting (Asegúrate de que no use el pipe original de Angular)
   /**
    * Formatea el texto del tooltip (hover) para el gráfico ABC.
    * @param data El objeto de datos de la porción del gráfico.
@@ -528,21 +535,20 @@ export class DashboardComponent implements OnInit {
     // 'data' es un objeto con { name: "...", value: ... }
     const name = data.name;
     const value = data.value;
+    const currencyPipe = new CurrencyConverterPipe();
+    
+    // Aquí el pipe hace el trabajo de conversión y formato
+    const formattedValue = currencyPipe.transform(value, 'USD', this.selectedCurrency, this.EXCHANGE_RATE, 0);
 
-    // Formateamos el valor como moneda
-    const formattedValue = value.toLocaleString('es-NI', { 
-      style: 'currency', 
-      currency: 'USD', 
-      maximumFractionDigits: 0 // Sin decimales
-    });
-
-    // Devolvemos la cadena para el tooltip
     return `${name}: ${formattedValue}`;
   }
 
-  // ⭐️ 6. FUNCIÓN HELPER PARA EL TOOLTIP DEL PEDIDO
+  // ⭐️ 7. ACTUALIZA EL getPedidoTooltip PARA USAR EL PIPE CONSTRUCTOR
   public getPedidoTooltip(pedido: PedidoDashboardItem): string {
-    let tooltip = `Ir al pedido ${pedido.CodigoPedido}\nEstado: ${pedido.EstadoPedido}\nTotal: ${pedido.TotalPedido.toLocaleString('es-NI', { style: 'currency', currency: 'USD' })}`;
+    const currencyPipe = new CurrencyConverterPipe();
+    const totalFormatted = currencyPipe.transform(pedido.TotalPedido, 'USD', this.selectedCurrency, this.EXCHANGE_RATE);
+
+    let tooltip = `Ir al pedido ${pedido.CodigoPedido}\nEstado: ${pedido.EstadoPedido}\nTotal: ${totalFormatted}`;
     
     // ⭐️ AÑADIDO: Muestra la fecha estimada si existe
     if (pedido.FechaEstimadaRecepcion) {
@@ -565,6 +571,20 @@ export class DashboardComponent implements OnInit {
     }
     return tooltip;
   }
+
+  // ⭐️ 3. NUEVA FUNCIÓN PARA ALTERNAR LA MONEDA
+  public toggleCurrency(): void {
+    this.selectedCurrency = this.selectedCurrency === 'USD' ? 'NIO' : 'USD';
+  }
+
+  // ⭐️ 4. FUNCIÓN PARA FORMATEAR EL VALOR TOTAL ABC (DEBE USAR EL PIPE)
+  public getAbcTotalFormatted(): string {
+    // Usamos el pipe para hacer la conversión aquí también, ya que se usa fuera del template.
+    // Creamos una instancia del pipe para usarlo en el componente.
+    const currencyPipe = new CurrencyConverterPipe();
+    return currencyPipe.transform(this.abcChartTotal, 'USD', this.selectedCurrency, this.EXCHANGE_RATE);
+  }
+  
 
   // ===== INICIO DE NUEVOS MÉTODOS =====
 

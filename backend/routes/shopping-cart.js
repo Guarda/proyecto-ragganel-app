@@ -25,23 +25,23 @@ router.get('/vigentes/:idUsuario', (req, res) => {
 
 router.delete('/:idCarrito', (req, res) => {
   const { idCarrito } = req.params;
+  // ⭐️ CORRECCIÓN CLAVE: Leemos idUsuario desde el query string
+  const { idUsuario } = req.query; 
 
-  if (!idCarrito) {
-    return res.status(400).json({ success: false, error: 'Se requiere el ID del carrito.' });
+  if (!idCarrito || !idUsuario) {
+    return res.status(400).json({ success: false, error: 'Se requiere el ID del carrito y el ID del usuario.' });
   }
 
-  // La nueva consulta ahora es una simple llamada al procedimiento almacenado.
-  const query = `CALL \`${dbConfig.database}\`.\`sp_LiberarCarrito\`(?)`;
-
-  Basedatos.query(query, [idCarrito], (err, result) => {
+  // ⭐️ CORRECCIÓN CLAVE: La consulta ahora espera dos parámetros
+  const query = `CALL \`${dbConfig.database}\`.\`sp_LiberarCarrito\`(?, ?)`;
+  
+  // ⭐️ CORRECCIÓN CLAVE: Pasamos ambos parámetros en el array
+  Basedatos.query(query, [idCarrito, idUsuario], (err, result) => {
     if (err) {
-      // Este error se activará si la conexión falla o si el procedimiento señala un error.
       console.error('Error al llamar al procedimiento sp_LiberarCarrito:', err);
       return res.status(500).json({ success: false, error: 'Error interno del servidor al liberar el carrito.' });
     }
 
-    // Si el procedimiento se ejecutó sin errores, la operación fue exitosa.
-    // La lógica de 'affectedRows' ya no es necesaria aquí, la ausencia de error es nuestro indicador.
     res.json({ success: true, message: 'Carrito liberado con éxito.' });
   });
 });

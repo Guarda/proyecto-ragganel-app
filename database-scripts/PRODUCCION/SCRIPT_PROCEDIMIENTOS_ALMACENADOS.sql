@@ -5048,100 +5048,177 @@ DELIMITER ;
 -- DESCRIPCIÓN: Crea el detalle de un carrito.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sp_Carrito_AgregarArticulo$$
+
 CREATE PROCEDURE sp_Carrito_AgregarArticulo(
     IN p_IdUsuario INT,
     IN p_IdCliente INT,
-    IN p_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio'),
+    IN p_TipoArticulo ENUM('Producto','Accesorio','Insumo','Servicio'),
     IN p_CodigoArticulo VARCHAR(25),
     IN p_PrecioVenta DECIMAL(10,2),
     IN p_Descuento DECIMAL(10,2),
     IN p_Cantidad INT,
     IN p_PrecioBaseOriginal DECIMAL(10,2),
     IN p_MargenAplicado DECIMAL(5,2),
-    IN p_IdMargenFK INT -- Se acepta el parámetro, pero no se usa en la inserción
+    IN p_IdMargenFK INT
 )
 BEGIN
+    -- Declaración de variables
     DECLARE v_IdCarrito INT;
     DECLARE v_IdDetalleCarrito INT;
-    DECLARE v_CantidadActual INT DEFAULT 0;
+    DECLARE v_CantidadActualEnCarrito INT DEFAULT 0;
+    
     DECLARE v_EstadoActual INT;
     DECLARE v_StockActual INT;
+    DECLARE v_IdServicio INT;
+    
+    DECLARE v_CantidadTotalRequerida INT;
+    DECLARE v_StockDisponible INT DEFAULT NULL;
+    DECLARE v_InsumoMasLimitante VARCHAR(25);
+    
+    -- Variable para mensajes de error
+    DECLARE v_MensajeError VARCHAR(255);
 
-    -- 1. Validar cantidad (sin cambios)
+    /* 1. Validación cantidad */
     IF p_Cantidad <= 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La cantidad debe ser un número positivo.';
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La cantidad debe ser un número positivo.';
     END IF;
-
-    -- 2. Buscar o crear carrito (sin cambios)
-    SELECT IdCarritoPK INTO v_IdCarrito
+    
+    /* 2. Buscar o crear carrito */
+    SELECT IdCarritoPK
+    INTO v_IdCarrito
     FROM CarritoVentas
-    WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente AND EstadoCarrito = 'En curso'
+    WHERE IdUsuarioFK = p_IdUsuario
+        AND IdClienteFK = p_IdCliente
+        AND EstadoCarrito = 'En curso'
     LIMIT 1;
-
+    
     IF v_IdCarrito IS NULL THEN
-        INSERT INTO CarritoVentas (IdUsuarioFK, IdClienteFK, EstadoCarrito)
-        VALUES (p_IdUsuario, p_IdCliente, 'En curso');
+        INSERT INTO CarritoVentas (IdUsuarioFK, IdClienteFK, EstadoCarrito, Comentario)
+        VALUES (p_IdUsuario, p_IdCliente, 'En curso', CONCAT('Carrito creado el ', NOW()));
         SET v_IdCarrito = LAST_INSERT_ID();
     END IF;
-
-    -- 3. Lógica de gestión de inventario para reservar artículos
+    
+    /* 3. Ver si el artículo ya estaba en el carrito */
+    SELECT IdDetalleCarritoPK, Cantidad
+    INTO v_IdDetalleCarrito, v_CantidadActualEnCarrito
+    FROM DetalleCarritoVentas
+    WHERE IdCarritoFK = v_IdCarrito
+        AND TipoArticulo = p_TipoArticulo
+        AND CodigoArticulo = p_CodigoArticulo
+    LIMIT 1;
+    
+    /* 4. Lógica de Inventario */
+    
+    /* PRODUCTO */
     IF p_TipoArticulo = 'Producto' THEN
-        -- Se verifica el estado actual
         SELECT Estado INTO v_EstadoActual FROM ProductosBases WHERE CodigoConsola = p_CodigoArticulo;
-        IF v_EstadoActual = 11 THEN -- 'En proceso de venta'
+        IF v_EstadoActual = 11 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Este producto ya está en un proceso de venta.';
         END IF;
-        -- Se cambia el estado para reservarlo
+        INSERT INTO HistorialEstadoProducto (CodigoConsola, EstadoAnterior, EstadoNuevo, IdUsuarioFK)
+        VALUES (p_CodigoArticulo, v_EstadoActual, 11, p_IdUsuario);
         UPDATE ProductosBases SET Estado = 11 WHERE CodigoConsola = p_CodigoArticulo;
-
+        
+    /* ACCESORIO */
     ELSEIF p_TipoArticulo = 'Accesorio' THEN
-        -- Se hace lo mismo para los accesorios
         SELECT EstadoAccesorio INTO v_EstadoActual FROM AccesoriosBase WHERE CodigoAccesorio = p_CodigoArticulo;
         IF v_EstadoActual = 11 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Este accesorio ya está en un proceso de venta.';
         END IF;
+        INSERT INTO HistorialEstadoAccesorio (CodigoAccesorio, EstadoAnterior, EstadoNuevo, IdUsuarioFK)
+        VALUES (p_CodigoArticulo, v_EstadoActual, 11, p_IdUsuario);
         UPDATE AccesoriosBase SET EstadoAccesorio = 11 WHERE CodigoAccesorio = p_CodigoArticulo;
-
+        
+    /* INSUMO */
     ELSEIF p_TipoArticulo = 'Insumo' THEN
-        -- Para insumos, se descuenta el stock inmediatamente para reservarlo
-        START TRANSACTION;
-            SELECT Cantidad INTO v_StockActual FROM InsumosBase WHERE CodigoInsumo = p_CodigoArticulo FOR UPDATE;
-            IF v_StockActual < p_Cantidad THEN
-                ROLLBACK;
-                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stock insuficiente para el insumo solicitado.';
-            END IF;
-            UPDATE InsumosBase SET Cantidad = Cantidad - p_Cantidad WHERE CodigoInsumo = p_CodigoArticulo;
-        COMMIT;
-
+        SET v_CantidadTotalRequerida = v_CantidadActualEnCarrito + p_Cantidad;
+        SELECT Cantidad INTO v_StockActual FROM InsumosBase WHERE CodigoInsumo = p_CodigoArticulo;
+        IF v_StockActual < v_CantidadTotalRequerida THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stock insuficiente para el insumo solicitado.';
+        END IF;
+        UPDATE InsumosBase SET Cantidad = Cantidad - p_Cantidad WHERE CodigoInsumo = p_CodigoArticulo;
+        
+    /* SERVICIO (AQUÍ ESTABA EL ERROR) */
+    ELSEIF p_TipoArticulo = 'Servicio' THEN
+        SET v_IdServicio = CAST(p_CodigoArticulo AS UNSIGNED);
+        SET v_CantidadTotalRequerida = v_CantidadActualEnCarrito + p_Cantidad;
+        
+        -- ✅ CORRECCIÓN: Usar ORDER BY y LIMIT 1 en lugar de MIN()
+        -- Esto selecciona el insumo que limita la cantidad de servicios posibles (cuello de botella)
+        SELECT 
+            FLOOR(I.Cantidad / NULLIF(S.CantidadDescargue, 0)),
+            S.CodigoInsumoFK
+        INTO
+            v_StockDisponible,
+            v_InsumoMasLimitante
+        FROM InsumosBase I
+        JOIN InsumosXServicio S ON I.CodigoInsumo = S.CodigoInsumoFK
+        WHERE S.IdServicioFK = v_IdServicio
+            AND S.Estado = 1
+        ORDER BY FLOOR(I.Cantidad / NULLIF(S.CantidadDescargue, 0)) ASC
+        LIMIT 1;
+        
+        -- Validación de stock disponible
+        -- Nota: Si v_StockDisponible es NULL, significa que el servicio no tiene insumos asociados (o no se encontraron).
+        -- Si tu lógica de negocio permite servicios sin insumos (solo mano de obra), deberías quitar la condición "OR v_StockDisponible IS NULL".
+        -- Pero mantengo tu lógica original de seguridad:
+        IF v_StockDisponible IS NOT NULL AND v_StockDisponible < v_CantidadTotalRequerida THEN
+            SET v_MensajeError = CONCAT('Stock insuficiente para el servicio. Solo quedan ', v_StockDisponible, ' unidades disponibles (Insumo limitante: ', COALESCE(v_InsumoMasLimitante, 'N/A'), ').');
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_MensajeError;
+        END IF;
+        
+        -- Descontar inventario
+        UPDATE InsumosBase I
+        JOIN InsumosXServicio S ON I.CodigoInsumo = S.CodigoInsumoFK
+        SET I.Cantidad = I.Cantidad - (S.CantidadDescargue * p_Cantidad)
+        WHERE S.IdServicioFK = v_IdServicio AND S.Estado = 1;
+        
     END IF;
     
-    -- 4. Insertar o actualizar el artículo en la tabla DetalleCarritoVentas
-    SELECT IdDetalleCarritoPK, Cantidad INTO v_IdDetalleCarrito, v_CantidadActual
-    FROM DetalleCarritoVentas
-    WHERE IdCarritoFK = v_IdCarrito AND TipoArticulo = p_TipoArticulo AND CodigoArticulo = p_CodigoArticulo
-    LIMIT 1;
-
+    /* 5. INSERTAR O ACTUALIZAR DETALLE */
     IF v_IdDetalleCarrito IS NOT NULL THEN
         UPDATE DetalleCarritoVentas
-        SET Cantidad = v_CantidadActual + p_Cantidad
+        SET
+            Cantidad = v_CantidadActualEnCarrito + p_Cantidad,
+            PrecioVenta = p_PrecioVenta,
+            Descuento = p_Descuento,
+            SubtotalSinIVA = (v_CantidadActualEnCarrito + p_Cantidad)* (p_PrecioVenta * (1 - p_Descuento/100)),
+            PrecioBaseOriginal = p_PrecioBaseOriginal,
+            MargenAplicado = p_MargenAplicado
         WHERE IdDetalleCarritoPK = v_IdDetalleCarrito;
     ELSE
-        -- La inserción sigue ignorando IdMargenFK como lo decidimos
         INSERT INTO DetalleCarritoVentas (
-            IdCarritoFK, TipoArticulo, CodigoArticulo, PrecioVenta, Descuento, 
-            SubtotalSinIVA, Cantidad, PrecioBaseOriginal, MargenAplicado
+            IdCarritoFK,
+            TipoArticulo,
+            CodigoArticulo,
+            PrecioVenta,
+            Descuento,
+            SubtotalSinIVA,
+            Cantidad,
+            PrecioBaseOriginal,
+            MargenAplicado
         )
         VALUES (
-            v_IdCarrito, p_TipoArticulo, p_CodigoArticulo, p_PrecioVenta, p_Descuento,
-            (p_PrecioVenta * (1 - p_Descuento/100) * p_Cantidad), 
-            p_Cantidad, p_PrecioBaseOriginal, p_MargenAplicado
+            v_IdCarrito,
+            p_TipoArticulo,
+            p_CodigoArticulo,
+            p_PrecioVenta,
+            p_Descuento,
+            p_PrecioVenta * (1 - p_Descuento/100) * p_Cantidad,
+            p_Cantidad,
+            p_PrecioBaseOriginal,
+            p_MargenAplicado
         );
     END IF;
-
+    
     SELECT v_IdCarrito AS IdCarritoUsado;
-END$$
-DELIMITER ;
 
+END$$
+
+DELIMITER ;
 /*------------------------------------------------------------------------------
 -- PROCEDIMIENTO: sp_Carrito_DisminuirArticulo
 -- AUTOR: Rommel Maltez
@@ -5149,6 +5226,9 @@ DELIMITER ;
 -- DESCRIPCIÓN: Disminuye la cantidad de articulos, accesorios o insumos en el detalle de un carrito.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
+
+-- DROP PROCEDURE IF EXISTS sp_Carrito_DisminuirArticulo$$
+
 CREATE PROCEDURE sp_Carrito_DisminuirArticulo(
     IN p_IdUsuario INT,
     IN p_IdCliente INT,
@@ -5164,7 +5244,7 @@ BEGIN
     -- 1. Validar que el tipo de artículo sea disminuible
     IF p_TipoArticulo NOT IN ('Insumo', 'Servicio') THEN
         SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = 'Este procedimiento solo puede disminuir Insumos o Servicios. Para Productos y Accesorios, use la eliminación completa.';
+            SET MESSAGE_TEXT = 'Para Productos y Accesorios, use la eliminación completa.';
     END IF;
 
     -- 2. Localizar el carrito activo
@@ -5174,7 +5254,7 @@ BEGIN
     LIMIT 1;
 
     IF v_IdCarrito IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontró un carrito activo para el usuario y cliente especificado.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontró un carrito activo.';
     END IF;
 
     -- 3. Localizar la línea de detalle
@@ -5187,7 +5267,7 @@ BEGIN
     LIMIT 1;
 
     IF v_IdDetalleCarritoPK IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El artículo especificado no existe en el carrito actual.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El artículo no existe en el carrito.';
     END IF;
     
     -- 4. Decidir si disminuir o eliminar
@@ -5201,7 +5281,7 @@ BEGIN
             UPDATE InsumosBase I
             JOIN InsumosXServicio S ON I.CodigoInsumo = S.CodigoInsumoFK
             SET I.Cantidad = I.Cantidad + S.CantidadDescargue
-            WHERE S.IdServicioFK = v_IdServicio;
+            WHERE S.IdServicioFK = v_IdServicio AND S.Estado = 1;
         END IF;
 
         -- Actualizar cantidad en el carrito
@@ -5213,12 +5293,15 @@ BEGIN
         SELECT 'Cantidad disminuida en 1.' AS 'Resultado';
 
     ELSE
-        -- Si solo queda uno, se llama al procedimiento de eliminar con los parámetros correctos.
-        CALL sp_Carrito_EliminarLinea(p_IdUsuario, p_IdCliente, p_TipoArticulo, p_CodigoArticulo);
-        SELECT 'Era el último artículo en la línea, se ha eliminado por completo.' AS 'Resultado';
+        -- Si solo queda uno, llamamos al procedimiento de eliminar COMPLETO
+        -- CORRECCIÓN: Se usa el nombre correcto y se pasan los 5 parámetros (el usuario 2 veces, como ejecutor)
+        CALL sp_Carrito_EliminarLineaCompleta(p_IdUsuario, p_IdCliente, p_TipoArticulo, p_CodigoArticulo, p_IdUsuario);
+        
+        SELECT 'Era el último artículo, se ha eliminado por completo.' AS 'Resultado';
     END IF;
 
 END$$
+
 DELIMITER ;
 
 /*------------------------------------------------------------------------------
@@ -5228,11 +5311,15 @@ DELIMITER ;
 -- DESCRIPCIÓN: Borra la linea completa de un articulo del pedido.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
+
+-- DROP PROCEDURE IF EXISTS sp_Carrito_EliminarLineaCompleta$$
+
 CREATE PROCEDURE sp_Carrito_EliminarLineaCompleta(
     IN p_IdUsuario INT,
     IN p_IdCliente INT,
     IN p_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio'),
-    IN p_CodigoArticulo VARCHAR(25)
+    IN p_CodigoArticulo VARCHAR(25),
+    IN p_IdUsuarioExecutor INT -- NUEVO PARÁMETRO: Para registrar quién hizo el cambio en el historial
 )
 BEGIN
     DECLARE v_IdCarrito INT;
@@ -5264,55 +5351,68 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El artículo especificado no se encontró en el carrito actual.';
     END IF;
 
-    -- 3. Revertir cambios en el inventario según el tipo de artículo
+    -- 3. Revertir cambios en el inventario y REGISTRAR HISTORIAL
     IF p_TipoArticulo = 'Producto' THEN
-        -- Buscar el estado original en el historial
+        -- Buscar el estado original en el historial (antes de ser 11 - En proceso de venta)
         SELECT EstadoAnterior INTO v_EstadoAnterior 
         FROM HistorialEstadoProducto 
         WHERE CodigoConsola = p_CodigoArticulo AND EstadoNuevo = 11
         ORDER BY FechaCambio DESC LIMIT 1;
         
         IF v_EstadoAnterior IS NOT NULL THEN
+            -- Actualizar estado
             UPDATE ProductosBases SET Estado = v_EstadoAnterior WHERE CodigoConsola = p_CodigoArticulo;
+            
+            -- AGREGADO: Insertar en el historial
+            INSERT INTO HistorialEstadoProducto (CodigoConsola, EstadoAnterior, EstadoNuevo, IdUsuarioFK)
+            VALUES (p_CodigoArticulo, 11, v_EstadoAnterior, p_IdUsuarioExecutor);
         END IF;
 
     ELSEIF p_TipoArticulo = 'Accesorio' THEN
+        -- Buscar el estado original en el historial
         SELECT EstadoAnterior INTO v_EstadoAnterior 
         FROM HistorialEstadoAccesorio 
         WHERE CodigoAccesorio = p_CodigoArticulo AND EstadoNuevo = 11
         ORDER BY FechaCambio DESC LIMIT 1;
         
         IF v_EstadoAnterior IS NOT NULL THEN
+            -- Actualizar estado
             UPDATE AccesoriosBase SET EstadoAccesorio = v_EstadoAnterior WHERE CodigoAccesorio = p_CodigoArticulo;
+            
+            -- AGREGADO: Insertar en el historial
+            INSERT INTO HistorialEstadoAccesorio (CodigoAccesorio, EstadoAnterior, EstadoNuevo, IdUsuarioFK)
+            VALUES (p_CodigoArticulo, 11, v_EstadoAnterior, p_IdUsuarioExecutor);
         END IF;
 
     ELSEIF p_TipoArticulo = 'Insumo' THEN
-        -- Devolver la cantidad total de la línea al stock
+        -- Devolver la cantidad total de la línea al stock (Los insumos no cambian de estado global, solo cantidad)
+        -- Nota: Podrías querer agregar un historial de movimiento de stock aquí si lo deseas, 
+        -- pero tu requerimiento principal era sobre el estado (Producto/Accesorio).
         UPDATE InsumosBase SET Cantidad = Cantidad + v_CantidadEnCarrito WHERE CodigoInsumo = p_CodigoArticulo;
 
     ELSEIF p_TipoArticulo = 'Servicio' THEN
-        -- Devolver la cantidad total de insumos asociados a todas las unidades del servicio en la línea
+        -- Devolver la cantidad total de insumos asociados
         UPDATE InsumosBase I
         JOIN InsumosXServicio S ON I.CodigoInsumo = S.CodigoInsumoFK
         SET I.Cantidad = I.Cantidad + (S.CantidadDescargue * v_CantidadEnCarrito)
         WHERE S.IdServicioFK = CAST(p_CodigoArticulo AS UNSIGNED);
     END IF;
 
-    -- 4. Eliminar la línea del detalle del carrito usando el ID que localizamos
+    -- 4. Eliminar la línea del detalle del carrito
     DELETE FROM DetalleCarritoVentas WHERE IdDetalleCarritoPK = v_IdDetalleCarritoPK;
 
-    -- 5. Verificar si el carrito quedó vacío y eliminarlo si es necesario
+    -- 5. Verificar si el carrito quedó vacío
     SELECT COUNT(*) INTO v_ItemsRestantes FROM DetalleCarritoVentas WHERE IdCarritoFK = v_IdCarrito;
     
     IF v_ItemsRestantes = 0 THEN
         DELETE FROM CarritoVentas WHERE IdCarritoPK = v_IdCarrito;
     END IF;
     
-    SELECT 'Línea de artículo eliminada y inventario restaurado correctamente.' AS 'Resultado';
+    SELECT 'Línea de artículo eliminada, inventario restaurado e historial actualizado.' AS 'Resultado';
 
 END$$
-DELIMITER ;
 
+DELIMITER ;
 /*------------------------------------------------------------------------------
 -- PROCEDIMIENTO: sp_Carrito_LimpiarDetallesPostVenta
 -- AUTOR: Rommel Maltez
@@ -5337,7 +5437,13 @@ DELIMITER ;
 -- DESCRIPCIÓN: Este procedimiento elimina de forma segura un carrito y devuelve el inventario al estado o stock anterior.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
-CREATE PROCEDURE sp_Carrito_LimpiarPorUsuarioCliente(IN p_IdUsuario INT, IN p_IdCliente INT)
+
+-- DROP PROCEDURE IF EXISTS sp_Carrito_LimpiarPorUsuarioCliente$$
+
+CREATE PROCEDURE sp_Carrito_LimpiarPorUsuarioCliente(
+    IN p_IdUsuario INT, 
+    IN p_IdCliente INT
+)
 BEGIN
     -- Declaramos variables
     DECLARE v_IdCarrito INT;
@@ -5345,9 +5451,11 @@ BEGIN
     DECLARE v_CodigoArticulo VARCHAR(25);
     DECLARE v_Cantidad INT;
     DECLARE v_EstadoAnterior INT; 
+    DECLARE v_StockAnterior INT;
+    DECLARE v_EstadoInsumo INT;
     DECLARE done INT DEFAULT FALSE;
 
-    -- Cursor (sin cambios)
+    -- Cursor
     DECLARE cur_articulos CURSOR FOR
         SELECT TipoArticulo, CodigoArticulo, Cantidad
         FROM DetalleCarritoVentas
@@ -5355,7 +5463,7 @@ BEGIN
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    -- Encontrar el ID del carrito activo (sin cambios)
+    -- Encontrar el ID del carrito activo
     SELECT IdCarritoPK INTO v_IdCarrito
     FROM CarritoVentas
     WHERE IdUsuarioFK = p_IdUsuario AND IdClienteFK = p_IdCliente AND EstadoCarrito = 'En curso'
@@ -5374,33 +5482,48 @@ BEGIN
 
             CASE v_TipoArticulo
                 WHEN 'Producto' THEN                    
-                    -- PASO 1: Leer el estado anterior y guardarlo en una variable
+                    -- 1. Obtener estado anterior
                     SELECT EstadoAnterior INTO v_EstadoAnterior
                     FROM HistorialEstadoProducto
-                    WHERE CodigoConsola = v_CodigoArticulo AND EstadoNuevo = 11 -- 'En proceso de venta'
-                    ORDER BY FechaCambio DESC
-                    LIMIT 1;
+                    WHERE CodigoConsola = v_CodigoArticulo AND EstadoNuevo = 11
+                    ORDER BY FechaCambio DESC LIMIT 1;
                     
-                    -- PASO 2: Usar la variable para actualizar la tabla.
-                    -- Si no se encontró historial, se usa 2 ('Usado') por defecto.
+                    -- 2. Restaurar estado
                     UPDATE ProductosBases
                     SET Estado = COALESCE(v_EstadoAnterior, 2)
                     WHERE CodigoConsola = v_CodigoArticulo;
 
+                    -- 3. NUEVO: Guardar en historial
+                    INSERT INTO HistorialEstadoProducto (CodigoConsola, EstadoAnterior, EstadoNuevo, IdUsuarioFK)
+                    VALUES (v_CodigoArticulo, 11, COALESCE(v_EstadoAnterior, 2), p_IdUsuario);
+
                 WHEN 'Accesorio' THEN
-                    -- Se aplica la misma lógica de dos pasos para los accesorios
+                    -- 1. Obtener estado anterior
                     SELECT EstadoAnterior INTO v_EstadoAnterior
                     FROM HistorialEstadoAccesorio
                     WHERE CodigoAccesorio = v_CodigoArticulo AND EstadoNuevo = 11
-                    ORDER BY FechaCambio DESC
-                    LIMIT 1;
+                    ORDER BY FechaCambio DESC LIMIT 1;
                     
+                    -- 2. Restaurar estado
                     UPDATE AccesoriosBase
                     SET EstadoAccesorio = COALESCE(v_EstadoAnterior, 2)
                     WHERE CodigoAccesorio = v_CodigoArticulo;                    
 
+                    -- 3. NUEVO: Guardar en historial
+                    INSERT INTO HistorialEstadoAccesorio (CodigoAccesorio, EstadoAnterior, EstadoNuevo, IdUsuarioFK)
+                    VALUES (v_CodigoArticulo, 11, COALESCE(v_EstadoAnterior, 2), p_IdUsuario);
+
                 WHEN 'Insumo' THEN
+                    -- 1. Obtener datos actuales para historial
+                    SELECT Cantidad, EstadoInsumo INTO v_StockAnterior, v_EstadoInsumo 
+                    FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
+
+                    -- 2. Restaurar stock
                     UPDATE InsumosBase SET Cantidad = Cantidad + v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+
+                    -- 3. NUEVO: Guardar en historial (opcional para insumos, pero recomendado)
+                    INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK)
+                    VALUES (v_CodigoArticulo, v_EstadoInsumo, v_EstadoInsumo, v_StockAnterior, (v_StockAnterior + v_Cantidad), p_IdUsuario);
 
                 WHEN 'Servicio' THEN
                     UPDATE InsumosBase i
@@ -5409,20 +5532,20 @@ BEGIN
                     WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
             END CASE;
 
-            -- Resetear la variable para la siguiente iteración del bucle
             SET v_EstadoAnterior = NULL;
 
         END LOOP;
 
         CLOSE cur_articulos;
 
-        -- Eliminar los registros del carrito (sin cambios)
+        -- Eliminar los registros del carrito
         DELETE FROM DetalleCarritoVentas WHERE IdCarritoFK = v_IdCarrito;
         DELETE FROM CarritoVentas WHERE IdCarritoPK = v_IdCarrito;
 
         COMMIT;
     END IF;
 END$$
+
 DELIMITER ;
 
 /*------------------------------------------------------------------------------
@@ -5489,9 +5612,15 @@ DELIMITER ;
 -- DESCRIPCIÓN: Este procedimiento elimina de forma segura un carrito y devuelve el inventario al estado o stock anterior, se usa en la pantalla de listado de carritos.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
+
+-- 1. Eliminamos el procedimiento existente para poder recrearlo.
+-- DROP PROCEDURE IF EXISTS sp_LiberarCarrito;
+
+
+-- 2. Creamos la versión corregida con dos parámetros.
 CREATE PROCEDURE sp_LiberarCarrito(
     IN p_IdCarrito INT,
-    IN p_IdUsuarioFK INT -- PARÁMETRO AÑADIDO
+    IN p_IdUsuarioFK INT -- ⭐️ ¡NUEVO PARÁMETRO DE AUDITORÍA!
 )
 BEGIN
     DECLARE v_TipoArticulo ENUM('Producto', 'Accesorio', 'Insumo', 'Servicio');
@@ -5502,9 +5631,12 @@ BEGIN
     DECLARE v_EstadoAnteriorInsumo INT;
     DECLARE done INT DEFAULT FALSE;
 
+    -- Declaración del cursor
     DECLARE cur_articulos CURSOR FOR
         SELECT TipoArticulo, CodigoArticulo, Cantidad
         FROM DetalleCarritoVentas WHERE IdCarritoFK = p_IdCarrito;
+    
+    -- Declaración del handler
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -5514,37 +5646,58 @@ BEGIN
 
     START TRANSACTION;
     OPEN cur_articulos;
+    
     read_loop: LOOP
         FETCH cur_articulos INTO v_TipoArticulo, v_CodigoArticulo, v_Cantidad;
         IF done THEN LEAVE read_loop; END IF;
 
         CASE v_TipoArticulo
             WHEN 'Producto' THEN
+                -- 1. Obtener el estado original (de antes de ir a 'En Venta')
                 SELECT EstadoAnterior INTO v_EstadoOriginal FROM HistorialEstadoProducto WHERE CodigoConsola = v_CodigoArticulo AND EstadoNuevo = 11 ORDER BY FechaCambio DESC LIMIT 1;
+                
+                -- 2. Revertir el estado en la tabla base
                 UPDATE ProductosBases SET Estado = COALESCE(v_EstadoOriginal, 2) WHERE CodigoConsola = v_CodigoArticulo;
-                -- ✅ LÓGICA DE HISTORIAL AÑADIDA
-                INSERT INTO HistorialEstadoProducto (CodigoConsola, EstadoAnterior, EstadoNuevo, IdUsuarioFK) VALUES (v_CodigoArticulo, 11, COALESCE(v_EstadoOriginal, 2), p_IdUsuarioFK);
+                
+                -- 3. Registrar la liberación en el historial, usando p_IdUsuarioFK
+                INSERT INTO HistorialEstadoProducto (CodigoConsola, EstadoAnterior, EstadoNuevo, IdUsuarioFK) 
+                VALUES (v_CodigoArticulo, 11, COALESCE(v_EstadoOriginal, 2), p_IdUsuarioFK); -- ⭐️ USO DEL ID DE USUARIO
 
             WHEN 'Accesorio' THEN
+                -- 1. Obtener el estado original
                 SELECT EstadoAnterior INTO v_EstadoOriginal FROM HistorialEstadoAccesorio WHERE CodigoAccesorio = v_CodigoArticulo AND EstadoNuevo = 11 ORDER BY FechaCambio DESC LIMIT 1;
+                
+                -- 2. Revertir el estado en la tabla base
                 UPDATE AccesoriosBase SET EstadoAccesorio = COALESCE(v_EstadoOriginal, 2) WHERE CodigoAccesorio = v_CodigoArticulo;
-                -- ✅ LÓGICA DE HISTORIAL AÑADIDA
-                INSERT INTO HistorialEstadoAccesorio (CodigoAccesorio, EstadoAnterior, EstadoNuevo, IdUsuarioFK) VALUES (v_CodigoArticulo, 11, COALESCE(v_EstadoOriginal, 2), p_IdUsuarioFK);
+                
+                -- 3. Registrar la liberación en el historial, usando p_IdUsuarioFK
+                INSERT INTO HistorialEstadoAccesorio (CodigoAccesorio, EstadoAnterior, EstadoNuevo, IdUsuarioFK) 
+                VALUES (v_CodigoArticulo, 11, COALESCE(v_EstadoOriginal, 2), p_IdUsuarioFK); -- ⭐️ USO DEL ID DE USUARIO
 
             WHEN 'Insumo' THEN
+                -- 1. Obtener stock y estado antes de revertir
                 SELECT Cantidad, EstadoInsumo INTO v_StockAnterior, v_EstadoAnteriorInsumo FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
+                
+                -- 2. Revertir el stock en la tabla base
                 UPDATE InsumosBase SET Cantidad = Cantidad + v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
-                -- ✅ LÓGICA DE HISTORIAL AÑADIDA
-                INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK) VALUES (v_CodigoArticulo, v_EstadoAnteriorInsumo, v_EstadoAnteriorInsumo, v_StockAnterior, (v_StockAnterior + v_Cantidad), p_IdUsuarioFK);
+                
+                -- 3. Registrar la liberación en el historial, usando p_IdUsuarioFK
+                INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK) 
+                VALUES (v_CodigoArticulo, v_EstadoAnteriorInsumo, v_EstadoAnteriorInsumo, v_StockAnterior, (v_StockAnterior + v_Cantidad), p_IdUsuarioFK); -- ⭐️ USO DEL ID DE USUARIO
 
             WHEN 'Servicio' THEN
-                UPDATE InsumosBase i JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK SET i.Cantidad = i.Cantidad + (ixs.CantidadDescargue * v_Cantidad) WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+                -- Revertir insumos consumidos por el servicio.
+                UPDATE InsumosBase i 
+                JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK 
+                SET i.Cantidad = i.Cantidad + (ixs.CantidadDescargue * v_Cantidad) 
+                WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
         END CASE;
 
         SET v_EstadoOriginal = NULL;
     END LOOP;
     CLOSE cur_articulos;
 
+    -- Eliminar los registros del carrito
     DELETE FROM DetalleCarritoVentas WHERE IdCarritoFK = p_IdCarrito;
     DELETE FROM CarritoVentas WHERE IdCarritoPK = p_IdCarrito;
 

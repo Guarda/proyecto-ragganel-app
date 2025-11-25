@@ -10,15 +10,21 @@
 
 <mat-dialog-content>
   <p class="subtitle">Artículo: <strong>{{ nombreArticulo }}</strong></p>
-  <p class="costo-info">El precio de costo es: <strong>{{ precioCosto | currency:'USD' }}</strong></p>
+  
+  <p class="costo-info">
+    El precio de costo es: 
+    <strong>{{ precioCostoBase | currencyConvert:'USD':currency:exchangeRate:2 }}</strong>
+  </p>
 
   <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Precio Final de Venta</mat-label>
-    <span matTextPrefix>$&nbsp;</span>
+    <mat-label>Precio Final de Venta ({{ currency }})</mat-label>
+    
+    <span matTextPrefix>{{ currency === 'USD' ? '$' : 'C$' }}&nbsp;</span>
+    
     <input
       matInput
       type="number"
-      [(ngModel)]="precioIngresado"
+      [(ngModel)]="precioIngresadoVisual"
       (keyup.enter)="confirmar()"
       placeholder="0.00"
       cdkFocusInitial>
@@ -32,7 +38,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-stroked-button (click)="cancelar()">Cancelar</button>
-  <button mat-flat-button color="primary" (click)="confirmar()" [disabled]="!precioIngresado">
+  <button mat-flat-button color="primary" (click)="confirmar()" [disabled]="!precioIngresadoVisual">
     <mat-icon>check_circle</mat-icon>
     <span>Confirmar Precio</span>
   </button>

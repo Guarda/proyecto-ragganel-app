@@ -200,12 +200,33 @@ export class VentasBaseService {
   }
 
   errorHandler(error: any) {
-    let errorMessage = '';
+    let errorMessage = 'Ocurrió un error inesperado al procesar tu solicitud.'; // Mensaje genérico
+
     if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
+      // Error del lado del cliente/red (poco probable con CORS bien configurado)
+      errorMessage = 'Error de red: no se pudo conectar con el servidor.';
     } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      // Error del lado del servidor (4xx o 5xx)
+
+      // Caso 1: Error 400 con mensaje de negocio limpio (ej: Stock insuficiente)
+      if (error.status === 400 && error.error && error.error.error) {
+        // Tu backend lo devuelve como: { success: false, error: "Stock insuficiente..." }
+        errorMessage = error.error.error;
+      }
+      // Caso 2: Error 500 interno (usar el mensaje genérico)
+      else if (error.status === 500) {
+        // Si el servidor envía un dbError (Stack Trace), lo logueamos pero no lo mostramos al usuario.
+        console.error('Error 500 detectado. Detalles:', error);
+        errorMessage = 'Hubo un fallo interno en el servidor. Intenta de nuevo más tarde.';
+      } 
+      // Caso 3: Otros errores HTTP (404, 403, etc.)
+      else {
+        console.error(`Error HTTP ${error.status} detectado. Detalles:`, error);
+        errorMessage = `Error de comunicación (${error.status}). Verifica tu conexión.`;
+      }
     }
-    return throwError(errorMessage);
+    
+    // Devolvemos el mensaje limpio a la suscripción.
+    return throwError(() => errorMessage);
   }
 }

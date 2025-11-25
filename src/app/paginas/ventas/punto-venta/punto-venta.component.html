@@ -13,7 +13,12 @@
         Agregar
       </button>
     </div>
-  </header>
+    <button mat-stroked-button color="accent" (click)="toggleCurrency()" 
+            matTooltip="Cambiar a {{ selectedCurrency === 'USD' ? 'Córdobas (NIO)' : 'Dólares (USD)' }}">
+      <mat-icon>paid</mat-icon>
+      Ver en {{ selectedCurrency === 'USD' ? 'C$' : '$' }}
+    </button>
+    </header>
 
   <main class="main-content">
     <section class="productos">
@@ -23,7 +28,9 @@
           #tablaArticulos
           [articulosEnCarrito]="carrito"
           [listaDeMargenes]="margenesVenta" [clienteSeleccionado]="ClienteSeleccionado"
-          [usuario]="usuario">
+          [usuario]="usuario"
+          
+          [selectedCurrency]="selectedCurrency"  [exchangeRate]="EXCHANGE_RATE">        
         </app-tabla-articulos-ventas>
       </div>
     </section>
@@ -122,20 +129,37 @@
       </td>
       <td>
         <div class="control-cantidad">
-          <button (click)="decrementarCantidad(art)" class="btn-cantidad" mat-icon-button><mat-icon>remove</mat-icon></button>
+          
+          <button 
+            (click)="decrementarCantidad(art)" 
+            class="btn-cantidad" 
+            mat-icon-button
+            [disabled]="art.Tipo === 'Producto' || art.Tipo === 'Accesorio'"
+            matTooltip="Disminuir cantidad">
+            <mat-icon>remove</mat-icon>
+          </button>
+      
           <span class="cantidad-valor">{{ art.Cantidad }}</span>
           
           <button 
             (click)="incrementarCantidad(art)" 
             class="btn-cantidad" 
             mat-icon-button
-            [disabled]="art.StockDisponible != null && (art.Cantidad ?? 0) >= art.StockDisponible"
-            matTooltip="{{ (art.StockDisponible != null && (art.Cantidad ?? 0) >= art.StockDisponible) ? 'Stock máximo alcanzado' : 'Aumentar cantidad' }}"><mat-icon>add</mat-icon>
+            [disabled]="(art.Tipo === 'Producto' || art.Tipo === 'Accesorio') || (art.StockDisponible != null && (art.Cantidad ?? 0) >= art.StockDisponible)"
+            matTooltip="{{ (art.Tipo === 'Producto' || art.Tipo === 'Accesorio') ? 'Artículo único (serializado)' : ((art.StockDisponible != null && (art.Cantidad ?? 0) >= art.StockDisponible) ? 'Stock máximo alcanzado' : 'Aumentar cantidad') }}">
+            <mat-icon>add</mat-icon>
           </button>
+      
         </div>
       </td>
       <td>
-        {{ art.PrecioBase | currency:'USD' }}
+        <input 
+          type="number"
+          class="input-precio"
+          [value]="art.PrecioBase | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE:2"
+          (change)="onPrecioManualChange(art, $event)"
+          [disabled]="art.IdMargenFK === 5"
+          matTooltip="{{ art.IdMargenFK === 5 ? 'El precio de costo no se puede editar' : 'Editar precio manualmente' }}">
       </td>
       <td>
         <input 
@@ -149,7 +173,7 @@
           matTooltip="Descuento deshabilitado para precios de costo o personalizados">
       </td>
       <td>
-        {{ art ? (calcularPrecioConDescuento(art) * (art?.Cantidad ?? 0) | currency:'USD') : '' }}
+        {{ art ? (calcularPrecioConDescuento(art) * (art?.Cantidad ?? 0) | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE) : '' }}
       </td>
       <td>
         <button (click)="eliminarLineaArticulo(art)" mat-icon-button color="warn" matTooltip="Eliminar artículo">
@@ -171,29 +195,29 @@
         <div class="totales">
   <div class="total-row">
     <span>Subtotal Bruto:</span>
-    <span>{{ subtotal | currency:'USD':'symbol':'1.2-2' }}</span>
+    <span>{{ subtotal | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE:2 }}</span>
   </div>
 
   <div class="total-row discount">
     <span>Descuentos:</span>
-    <span>-{{ totalDescuentos | currency:'USD':'symbol':'1.2-2' }}</span>
+    <span>-{{ totalDescuentos | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE:2 }}</span>
   </div>
   
   <hr class="total-divider">
 
   <div class="total-row">
     <strong>Subtotal Neto (sin IVA):</strong>
-    <strong>{{ subtotalNeto | currency:'USD':'symbol':'1.2-2' }}</strong>
+    <strong>{{ subtotalNeto | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE:2 }}</strong>
   </div>
 
   <div class="total-row">
     <span>IVA (15%):</span>
-    <span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
+    <span>{{ iva | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE:2 }}</span>
   </div>
   
   <div class="total-row grand-total">
     <strong>TOTAL A PAGAR:</strong>
-    <strong>{{ total | currency:'USD':'symbol':'1.2-2' }}</strong>
+    <strong>{{ total | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE:2 }}</strong>
   </div>
 </div>
 

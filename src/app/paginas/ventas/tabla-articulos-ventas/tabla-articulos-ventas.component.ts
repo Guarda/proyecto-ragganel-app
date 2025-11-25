@@ -26,7 +26,8 @@ import { DialogIngresarPrecioArticuloComponent } from '../dialog-ingresar-precio
 
 @Component({
     selector: 'app-tabla-articulos-ventas',
-    imports: [TarjetaDeArticulosComponent, CommonModule, FormsModule, DialogIngresarPrecioArticuloComponent],
+    standalone: true,
+    imports: [TarjetaDeArticulosComponent, CommonModule, FormsModule], // No es necesario importar DialogIngresarPrecioArticuloComponent aquí si solo se usa en el TS
     templateUrl: './tabla-articulos-ventas.component.html',
     styleUrls: ['./tabla-articulos-ventas.component.css']
 })
@@ -44,6 +45,11 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
   @Input() clienteSeleccionado: Cliente | null = null;
   @Input() usuario: Usuarios | null = null;
   @Input() articulosEnCarrito: ArticuloVenta[] = [];
+
+  // ⭐️⭐️ CORRECCIÓN 1: AGREGADOS LOS INPUTS DE MONEDA ⭐️⭐️
+  // Estos son necesarios para que el HTML del padre [selectedCurrency]="..." no de error.
+  @Input() selectedCurrency: 'USD' | 'NIO' = 'USD';
+  @Input() exchangeRate: number = 36.6243;
 
   // --- PROPIEDADES DEL COMPONENTE ---
   gruposDeArticulos: GrupoArticulos[] = [];
@@ -141,94 +147,93 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
   }
 
   public iniciarProcesoDeAgregarArticulo(articulo: ArticuloVenta): void {
-    // ... (validación de cliente y usuario sin cambios)
-
     if (!this.clienteSeleccionado || !this.usuario) {
       this.snackBar.open('Por favor, seleccione un cliente primero.', 'Cerrar', { duration: 3000 });
       return;
     }
-    // Los servicios se siguen agregando directamente.
-    if (articulo.Tipo === 'Servicio') {
-    const precioServicio = articulo.PrecioBase ?? 0;
-    // 1. Obtener el stock máximo del artículo de la lista.
-    // Para "Chipeo Switch", esto sería 10.
-    const stockMaximo = articulo.Cantidad;
-    
-    // Se construye el payload con margen 0, como lo necesitas.
-    const datosServicio = {
-      IdUsuario: this.usuario!.id,
-      IdCliente: this.clienteSeleccionado!.id,
-      TipoArticulo: articulo.Tipo!,
-      CodigoArticulo: articulo.Codigo!,
-      PrecioVenta: precioServicio, // El precio base es el precio final de venta.
-      Descuento: 0, // El descuento se aplica en el carrito si es necesario.
-      Cantidad: 1,
-      PrecioBaseOriginal: precioServicio, // El costo y la venta son lo mismo.
-      MargenAplicado: 0, // Margen del 0%.
-      IdMargenFK: 5, // Se asocia al margen "Precio de Costo" (ID 5).
-      // ===== ⭐️ ESTA ES LA LÍNEA QUE FALTA ⭐️ =====
-      // Copiamos el stock máximo (10) a la propiedad 'StockDisponible'
-      StockDisponible: stockMaximo
-    };
-    
-    // Se envía directamente al backend.
-    this.enviarArticuloAlBackend(datosServicio, articulo.NombreArticulo!);
-    return; // Importante para detener la ejecución aquí.
-  }
 
+    // Lógica para Servicios
+    if (articulo.Tipo === 'Servicio') {
+      const precioServicio = articulo.PrecioBase ?? 0;
+      const stockMaximo = articulo.Cantidad;
+      
+      const datosServicio = {
+        IdUsuario: this.usuario!.id,
+        IdCliente: this.clienteSeleccionado!.id,
+        TipoArticulo: articulo.Tipo!,
+        CodigoArticulo: articulo.Codigo!,
+        PrecioVenta: precioServicio,
+        Descuento: 0,
+        Cantidad: 1,
+        PrecioBaseOriginal: precioServicio,
+        MargenAplicado: 0,
+        IdMargenFK: 5, // Precio de Costo
+        StockDisponible: stockMaximo
+      };
+      
+      this.enviarArticuloAlBackend(datosServicio, articulo.NombreArticulo!);
+      return;
+    }
+
+    // Lógica para Productos/Accesorios/Insumos
     const dialogRef = this.dialog.open(SeleccionarPrecioDialogComponent, {
       width: '450px',
-      data: { articulo: articulo, margenes: this.listaDeMargenes }
+      data: { 
+        articulo: articulo, 
+        margenes: this.listaDeMargenes,
+        currency: this.selectedCurrency, // Pasamos la moneda
+        exchangeRate: this.exchangeRate  // Pasamos la tasa
+      }
     });
 
     dialogRef.afterClosed().subscribe((opcionSeleccionada: PrecioOpcion | undefined) => {
       if (!opcionSeleccionada) return;
 
-      // --- INICIO DE LA LÓGICA MODIFICADA ---
       const precioCosto = articulo.PrecioBase ?? 0;
-      // 1. Obtener el stock máximo del artículo de la lista.
-      // Para un "Producto" o "Accesorio" único, esto será 1.
-      // Para un "Insumo" vendido individualmente, será su cantidad.
       const stockMaximo = (articulo.Tipo === 'Producto' || articulo.Tipo === 'Accesorio')
         ? 1
         : articulo.Cantidad;
 
-
-      // CASO 1: El vendedor eligió "Precio Personalizado"
+      // CASO 1: Precio Personalizado (ID 6)
       if (opcionSeleccionada.idMargen === 6) {
 
-        // 2. ABRIMOS EL NUEVO DIÁLOGO PERSONALIZADO
         const precioDialogRef = this.dialog.open(DialogIngresarPrecioArticuloComponent, {
           width: '400px',
-          disableClose: true, // Evita que se cierre al hacer clic fuera
-          data: { costo: precioCosto, nombre: articulo.NombreArticulo }
+          disableClose: true,
+          data: { 
+            costo: precioCosto, 
+            nombre: articulo.NombreArticulo,
+            currency: this.selectedCurrency,
+            exchangeRate: this.exchangeRate
+          }
         });
 
-        precioDialogRef.afterClosed().subscribe((precioIngresado: number | undefined) => {
-          // Si el usuario confirmó y devolvió un precio...
-          if (precioIngresado) {
+        // ⭐️ AQUÍ ESTABA EL ERROR: Definimos el tipo explícito y cuidamos las llaves
+        precioDialogRef.afterClosed().subscribe((precioIngresadoEnUSD: number | undefined) => {
+          
+          // El if va DENTRO del subscribe, pero FUERA de la definición del objeto
+          if (precioIngresadoEnUSD) {
+            
             const datosArticulo = {
               IdUsuario: this.usuario!.id,
               IdCliente: this.clienteSeleccionado!.id,
               TipoArticulo: articulo.Tipo!,
               CodigoArticulo: articulo.Codigo!,
-              PrecioVenta: precioIngresado, // Usamos el precio del diálogo
+              PrecioVenta: precioIngresadoEnUSD, // Usamos el precio que viene del diálogo
               Descuento: 0,
               Cantidad: 1,
               PrecioBaseOriginal: precioCosto,
               MargenAplicado: opcionSeleccionada.porcentaje,
               IdMargenFK: opcionSeleccionada.idMargen,
-              // ===== ⭐️ ESTA ES LA LÍNEA QUE FALTA ⭐️ =====
-              // Copiamos el stock máximo a la propiedad 'StockDisponible'
               StockDisponible: stockMaximo
             };
+
             this.enviarArticuloAlBackend(datosArticulo, articulo.NombreArticulo!);
           }
-          // Si el usuario canceló (precioIngresado es undefined), no hacemos nada.
         });
 
       } else {
-        // CASO 2: El vendedor eligió un margen normal (sin cambios)
+        // CASO 2: Margen Normal
         const datosArticulo = {
           IdUsuario: this.usuario!.id,
           IdCliente: this.clienteSeleccionado!.id,
@@ -240,8 +245,6 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
           PrecioBaseOriginal: articulo.PrecioBase!,
           MargenAplicado: opcionSeleccionada.porcentaje,
           IdMargenFK: opcionSeleccionada.idMargen,
-          // ===== ⭐️ ESTA ES LA LÍNEA QUE FALTA ⭐️ =====
-          // Copiamos el stock máximo a la propiedad 'StockDisponible'
           StockDisponible: stockMaximo
         };
         this.enviarArticuloAlBackend(datosArticulo, articulo.NombreArticulo!);
@@ -269,7 +272,9 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
         },
         error: (err) => {
           console.error("Error al agregar artículo:", err);
-          this.snackBar.open('Error de comunicación al agregar el artículo.', 'Cerrar', { duration: 4000 });
+          // Manejo específico si el backend envía el mensaje de error en err.error.error
+          const mensajeError = err.error?.error || 'Error de comunicación al agregar el artículo.';
+          this.snackBar.open(mensajeError, 'Cerrar', { duration: 4000 });
         }
       })
     );

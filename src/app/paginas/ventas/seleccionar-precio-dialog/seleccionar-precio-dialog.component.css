@@ -1,39 +1,101 @@
-.opcion-item {
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-  margin-bottom: 8px; /* Espacio entre las opciones */
-  border-radius: 4px; /* Bordes ligeramente redondeados */
+/* seleccionar-precio-dialog.component.css */
+
+/* --- CABECERA DEL ARTÍCULO --- */
+.header-articulo {
+  background-color: #f8f9fa;
+  padding: 16px;
+  margin: -24px -24px 16px -24px; /* Truco para pegar al borde del diálogo */
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.opcion-item:hover {
-  background-color: #f0f0f0; /* Un gris claro al pasar el ratón */
+.header-articulo h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  color: #333;
 }
 
-.precio-calculado {
-  font-size: 1.2em;
-  font-weight: 500; /* Ligeramente menos bold para un look más moderno */
-  color: var(--mdc-theme-primary); /* Usa el color primario del tema Material */
-  margin-left: 10px;
+.costo-info {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
 }
 
-.margen-porcentaje {
-  color: gray;
-  font-size: 0.9em;
+.costo-info strong {
+  color: #d32f2f; /* Rojo discreto para resaltar el costo */
 }
 
-
-mat-dialog-content {
-  padding: 16px; /* Más padding para respiración */
-}
-
+/* --- LISTA DE OPCIONES --- */
 mat-list {
-  padding: 0;
+  padding-top: 0;
 }
 
-mat-list-item {
-  padding: 8px 0;
+/* Estilo del botón que envuelve cada opción */
+.btn-opcion {
+  width: 100%;
+  padding: 12px 16px; /* Buen espacio para el dedo/mouse */
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  text-align: left; /* Alineación importante para mat-button */
+  line-height: normal;
 }
 
-mat-icon {
-  margin-right: 16px;
+.btn-opcion:hover {
+  background-color: #e3f2fd; /* Azul muy claro al pasar el mouse */
+  border-color: #2196f3;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transform: translateY(-1px); /* Pequeño efecto de elevación */
+}
+
+/* Layout interno del botón (Nombre a la izquierda, Precio a la derecha) */
+.contenido-opcion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* --- INFORMACIÓN DEL MARGEN (Izquierda) --- */
+.info-margen {
+  display: flex;
+  flex-direction: column;
+}
+
+.nombre {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.porcentaje {
+  font-size: 0.8rem;
+  color: #757575;
+  margin-top: 2px;
+}
+
+/* --- VISUALIZACIÓN DEL PRECIO (Derecha) --- */
+.precio-display {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1976d2; /* Azul primario para el precio */
+}
+
+.precio-display span {
+  display: block;
+  text-align: right;
+}
+
+/* Estilo especial para "Definir manual" */
+.manual {
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 500;
+  color: #f57c00; /* Naranja para diferenciar */
+}
+
+/* Ajuste para el mat-list-item de Angular Material */
+::ng-deep .mat-mdc-list-item-unscoped-content {
+  width: 100%; /* Asegura que el contenido llene el ancho */
 }

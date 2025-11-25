@@ -172,6 +172,13 @@ export class ListadoCarritosComponent implements OnInit, AfterViewInit, OnDestro
   liberarCarrito(idCarrito: number, event: MouseEvent): void {
     event.stopPropagation();
 
+    // ⭐️ CORRECCIÓN 1: Validar que el usuario esté disponible
+    if (!this.usuario || !this.usuario.id) {
+        this.snackBar.open('Error: Usuario no identificado para liberar el carrito.', 'Cerrar', { duration: 4000 });
+        return;
+    }
+    const idUsuario = this.usuario.id; // ⭐️ OBTENEMOS EL ID DEL USUARIO
+
     const dialogRef = this.dialog.open(ConfirmarLiberacionDialogComponent, {
       width: '400px',
       data: { idCarrito: idCarrito }
@@ -180,7 +187,9 @@ export class ListadoCarritosComponent implements OnInit, AfterViewInit, OnDestro
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
         this.isLoading = true;
-        this.carritoService.liberarCarrito(idCarrito).subscribe({
+        // ⭐️ CORRECCIÓN 2: Pasamos el ID del carrito Y el ID del usuario al servicio.
+        // Asumes que la firma del método `liberarCarrito` en el servicio es `liberarCarrito(idCarrito: number, idUsuario: number)`.
+        this.carritoService.liberarCarrito(idCarrito, idUsuario).subscribe({
           next: (response) => {
             if (response.success) {
               this.snackBar.open('Carrito liberado con éxito.', 'Cerrar', { duration: 2000 });

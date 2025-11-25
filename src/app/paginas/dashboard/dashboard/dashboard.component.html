@@ -1,8 +1,14 @@
 <div class="container">
   <header class="dashboard-header">
-    <h1>Resumen General</h1>
+    <div class="card-title-container"> <h1>Resumen General</h1>
+      <button mat-stroked-button color="primary" (click)="toggleCurrency()" matTooltip="Cambiar a Córdobas (C$ 36.6243)">
+        <mat-icon>paid</mat-icon>
+        Ver en {{ selectedCurrency === 'USD' ? 'C$' : '$' }}
+      </button>
+    </div>
     <p>Vista rápida del rendimiento de ventas e inventario.</p>
   </header>
+  
   
   <div *ngIf="isLoading" class="spinner-container">
     <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
@@ -22,7 +28,7 @@
           <mat-icon>today</mat-icon>
         </div>
         <div class="kpi-text">
-          <span class="kpi-value">{{ dashboardData.kpis.VentasHoy | currency:'USD' }}</span>
+          <span class="kpi-value">{{ dashboardData.kpis.VentasHoy | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE }}</span>
           <span class="kpi-label">Ventas de Hoy</span>
         </div>
       </div>
@@ -33,7 +39,7 @@
           <mat-icon>calendar_view_week</mat-icon>
         </div>
         <div class="kpi-text">
-          <span class="kpi-value">{{ dashboardData.kpis.VentasSemana | currency:'USD' }}</span>
+          <span class="kpi-value">{{ dashboardData.kpis.VentasSemana | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE }}</span>
           <span class="kpi-label">Ventas de la Semana</span>
         </div>
       </div>
@@ -44,7 +50,7 @@
           <mat-icon>calendar_month</mat-icon>
         </div>
         <div class="kpi-text">
-          <span class="kpi-value">{{ dashboardData.kpis.VentasMes | currency:'USD' }}</span>
+          <span class="kpi-value">{{ dashboardData.kpis.VentasMes | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE }}</span>
           <span class="kpi-label">Ventas del Mes</span>
         </div>
       </div>
@@ -188,7 +194,7 @@
 
     <div *ngIf="tipoGraficoABC === 'pie' && abcChartTotal > 0" class="chart-total-label">
       <span class="total-label-text">Valor Total</span>
-      <span class="total-label-value">{{ abcChartTotal | currency:'USD':'$' : '1.0-0' }}</span>
+      <span class="total-label-value">{{ getAbcTotalFormatted() }}</span>
     </div>
 
   </div> </mat-card-content>
@@ -204,7 +210,7 @@
               (click)="irAInventarioGeneral(item.name, 'nombre')"
               matTooltip="Filtrar '{{item.name}}' en Inventario General">
             <span>{{ item.name }}</span>
-            <strong>{{ item.value | currency:'USD' }}</strong>
+            <strong>{{ item.value | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE }}</strong>
           </li>
         </ul>
       </mat-card-content>
@@ -267,7 +273,7 @@
                 {{ venta.ArticulosVendidos }}
               </div>
             </div>
-          <strong>{{ venta.TotalVenta | currency:'USD' }}</strong>
+          <strong>{{ venta.TotalVenta | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE }}</strong>
           </li>
         </ul>
       </mat-card-content>
@@ -307,7 +313,7 @@
             </div>
 
             <div class="pedido-status">
-              <strong>{{ pedido.TotalPedido | currency:'USD' }}</strong>
+              <strong>{{ pedido.TotalPedido | currencyConvert:'USD':selectedCurrency:EXCHANGE_RATE }}</strong>
               
               <small *ngIf="pedido.AlertaAntiguedad === 1" class="alerta-text">
                 <mat-icon>warning</mat-icon>

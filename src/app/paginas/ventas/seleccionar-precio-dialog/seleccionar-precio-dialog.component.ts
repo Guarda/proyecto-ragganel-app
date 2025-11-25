@@ -1,58 +1,59 @@
+// src/app/paginas/ventas/seleccionar-precio-dialog/seleccionar-precio-dialog.component.ts
+
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
-import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
+import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
-import { DialogMargenData } from '../../interfaces/dialogmargendata';
+// 1. IMPORTAR TU PIPE
+import { CurrencyConverterPipe } from '../../pipes/currency-converter.pipe';
+import { ArticuloVenta } from '../../interfaces/articuloventa';
+import { MargenesVentas } from '../../interfaces/margenes-ventas';
 import { PrecioOpcion } from '../../interfaces/precioopcion';
 
-
-// Define una interfaz para las opciones de precio que se mostrarán
-
-
 @Component({
-    selector: 'app-seleccionar-precio-dialog',
-    imports: [CommonModule, MatListModule, MatButtonModule, MatIconModule, MatDividerModule, MatDialogContent, MatDialogActions, MatDialogClose],
-    templateUrl: './seleccionar-precio-dialog.component.html',
-    styleUrls: ['./seleccionar-precio-dialog.component.css']
+  selector: 'app-seleccionar-precio-dialog',
+  standalone: true,
+  // 2. AGREGAR EL PIPE A LOS IMPORTS
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatListModule, MatIconModule, CurrencyConverterPipe],
+  templateUrl: './seleccionar-precio-dialog.component.html',
+  styleUrls: ['./seleccionar-precio-dialog.component.css']
 })
 export class SeleccionarPrecioDialogComponent implements OnInit {
   opcionesDePrecio: PrecioOpcion[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<SeleccionarPrecioDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogMargenData
-  ) { }
+    @Inject(MAT_DIALOG_DATA) public data: { 
+      articulo: ArticuloVenta, 
+      margenes: MargenesVentas[],
+      // 3. RECIBIR DATOS DE MONEDA
+      currency: 'USD' | 'NIO',
+      exchangeRate: number
+    }
+  ) {}
 
   ngOnInit(): void {
-    const precioCosto = this.data.articulo.PrecioBase;
+    const precioBaseCosto = this.data.articulo.PrecioBase ?? 0; // Siempre USD
 
     this.opcionesDePrecio = this.data.margenes.map(margen => {
-      let precioFinalCalculado = 0; // Inicializamos
-
-      // Si el margen NO es el personalizado, calculamos el precio.
-      if (margen.IdMargenPK !== 6) { // Usamos el ID para identificarlo
-        precioFinalCalculado = precioCosto * (1 + margen.Porcentaje / 100);
+      // Calculamos el precio final en Dólares
+      let precioFinalUSD = 0; 
+      if (margen.Porcentaje !== -1) { // Si no es personalizado
+        precioFinalUSD = precioBaseCosto * (1 + (margen.Porcentaje / 100));
       }
 
       return {
         idMargen: margen.IdMargenPK,
         nombreMargen: margen.NombreMargen,
-        porcentaje: margen.Porcentaje,
-        // Si es personalizado, precioFinal será 0, pero lo manejaremos en la lógica principal.
-        precioFinal: precioFinalCalculado
+        precioFinal: precioFinalUSD, // Guardamos USD
+        porcentaje: margen.Porcentaje
       };
     });
   }
 
-  seleccionarPrecio(opcion: PrecioOpcion): void {
-    // Cierra el diálogo y devuelve la opción de precio seleccionada
+  seleccionar(opcion: PrecioOpcion): void {
     this.dialogRef.close(opcion);
-  }
-
-  cancelar(): void {
-    this.dialogRef.close();
   }
 }

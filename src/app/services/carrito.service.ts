@@ -116,25 +116,22 @@ export class CarritoService {
           // ya que la recarga completa desde el servidor es más precisa.
           // Se puede comentar o eliminar la siguiente sección:
           /*
-          if (datosParaBackend.Cantidad === 1 || datosParaBackend.Cantidad === -1) {
-            if (datosParaBackend.TipoArticulo !== 'Servicio') {
-              this.solicitarAjusteStockInventarioSubject.next({
-                codigoArticulo: datosParaBackend.CodigoArticulo,
-                cantidadDelta: -datosParaBackend.Cantidad,
-                tipoArticulo: datosParaBackend.TipoArticulo
-              });
-            }
-          }
           */
 
         } else {
-          this.snackBar.open(`Error del servidor: ${respuesta.error}`, 'Cerrar', { duration: 4000 });
-          console.error('El backend no pudo procesar la solicitud:', respuesta.error);
+          // Si el backend lanzó un error 400 con un mensaje de negocio
+          let errorMessage = respuesta.error || 'Error desconocido del servidor.';
+          if (respuesta.dbError) { // Si el backend pasa el dbError (Stock insuficiente)
+              errorMessage = respuesta.dbError;
+          }
+          this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', { duration: 4000 });
+          console.error('El backend no pudo procesar la solicitud:', respuesta);
         }
       },
       error: (err) => {
-        this.snackBar.open('No se pudo comunicar con el servidor.', 'Cerrar', { duration: 4000 });
-        console.error('Error de conexión:', err);
+        // Aquí 'err' ya es el string limpio devuelto por errorHandler
+        this.snackBar.open(err, 'Cerrar', { duration: 4000 });
+        // Ya no necesitas loguear el error aquí porque el errorHandler lo hizo.
       }
     });
   }
@@ -213,8 +210,9 @@ export class CarritoService {
         }
       },
       error: (err) => {
-        this.snackBar.open('Error de conexión al disminuir la cantidad.', 'Cerrar', { duration: 4000 });
-        console.error('Error de conexión:', err);
+        // Aquí 'err' ya es el string limpio devuelto por errorHandler
+        this.snackBar.open(err, 'Cerrar', { duration: 4000 });
+        // Ya no necesitas loguear el error aquí porque el errorHandler lo hizo.
       }
     });
   }
@@ -250,8 +248,9 @@ export class CarritoService {
         }
       },
       error: (err) => {
-        this.snackBar.open('Error de conexión al eliminar la línea.', 'Cerrar', { duration: 4000 });
-        console.error('Error de conexión:', err);
+        // Aquí 'err' ya es el string limpio devuelto por errorHandler
+        this.snackBar.open(err, 'Cerrar', { duration: 4000 });
+        // Ya no necesitas loguear el error aquí porque el errorHandler lo hizo.
       }
     });
   }
@@ -288,8 +287,9 @@ export class CarritoService {
         }
       },
       error: (err) => {
-        this.snackBar.open('Error de conexión al actualizar el descuento.', 'Cerrar', { duration: 4000 });
-        console.error('Error de conexión:', err);
+        // Aquí 'err' ya es el string limpio devuelto por errorHandler
+        this.snackBar.open(err, 'Cerrar', { duration: 4000 });
+        // Ya no necesitas loguear el error aquí porque el errorHandler lo hizo.
       }
     });
   }
@@ -315,7 +315,9 @@ export class CarritoService {
         }
       },
       error: (err) => {
-        this.snackBar.open('Error de conexión al limpiar el carrito.', 'Cerrar', { duration: 3000 });
+        // Aquí 'err' ya es el string limpio devuelto por errorHandler
+        this.snackBar.open(err, 'Cerrar', { duration: 4000 });
+        // Ya no necesitas loguear el error aquí porque el errorHandler lo hizo.
       }
     });
   }
@@ -354,9 +356,15 @@ export class CarritoService {
     this.solicitarCargaCarritoSubject.next(carrito);
   }
 
-  public liberarCarrito(idCarrito: number): Observable<any> {
+  // En tu CarritoService (o el servicio correspondiente)
+
+ public liberarCarrito(idCarrito: number, idUsuario: number): Observable<any> {
+    const params = {
+      idUsuario: idUsuario.toString() 
+    };
+    // ⭐️ 2. Construir la URL base
     const url = `http://localhost:3000/carrito/${idCarrito}`;
-    return this.httpClient.delete(url).pipe(
+    return this.httpClient.delete(url, { params: params }).pipe(
       catchError(this.errorHandler)
     );
   }

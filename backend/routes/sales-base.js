@@ -104,7 +104,7 @@ router.post('/ingresar-venta', (req, res) => {
 });
 
 router.post('/agregar-al-carrito', (req, res) => {
-  // 1. Extraemos TODOS los campos del cuerpo de la solicitud, incluyendo IdMargenFK
+  // 1. Extraemos TODOS los campos del cuerpo de la solicitud...
   const {
     IdUsuario, IdCliente,
     TipoArticulo, CodigoArticulo,
@@ -112,9 +112,10 @@ router.post('/agregar-al-carrito', (req, res) => {
     Cantidad,
     PrecioBaseOriginal,
     MargenAplicado,
-    IdMargenFK // <-- SE AÑADE EL PARÁMETRO QUE FALTABA
+    IdMargenFK 
   } = req.body;
   console.log('payload recibido:', req.body);
+  
   // 2. La consulta ahora debe esperar 10 parámetros
   const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_AgregarArticulo\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`; 
   
@@ -129,15 +130,26 @@ router.post('/agregar-al-carrito', (req, res) => {
     Cantidad,
     PrecioBaseOriginal,
     MargenAplicado,
-    IdMargenFK // <-- SE AÑADE EL PARÁMETRO AL ARRAY
+    IdMargenFK 
   ];
 
   Basedatos.query(query, params, (err, results) => {
     if (err) {
       console.error('Error al agregar artículo al carrito:', err);
+      
+      // ⭐️ CORRECCIÓN CLAVE: Manejo del error lanzado por el SP (SIGNAL) ⭐️
+      if (err.sqlState === '45000') {
+          // Es un error de negocio lanzado intencionalmente por el SP
+          return res.status(400).json({ // 400 Bad Request
+              success: false, 
+              error: err.sqlMessage // Devolvemos el mensaje limpio del SP
+          });
+      }
+
+      // Si es otro error de la base de datos o interno (500)
       return res.status(500).json({ 
           success: false, 
-          error: 'Error del servidor al procesar la solicitud.',
+          error: 'Error interno del servidor al procesar la solicitud.',
           dbError: err.sqlMessage || err.message
       });
     }
@@ -152,37 +164,42 @@ router.post('/agregar-al-carrito', (req, res) => {
   });
 });
 
-router.delete('/eliminar-del-carrito', (req, res) => {
-  // CAMBIO CLAVE: Se leen los parámetros desde req.query
-  const { IdUsuario, IdCliente, TipoArticulo, CodigoArticulo } = req.query;
+router.post('/eliminar-linea-del-carrito', (req, res) => {
+  const { IdUsuario, IdCliente, TipoArticulo, CodigoArticulo } = req.body;
 
-  console.log('INTENTO DE DISMINUIR. Query Params recibidos:', req.query);
+  console.log('Intentando eliminar línea del carrito con:', req.body);
 
+  // Validación básica
   if (!IdUsuario || !IdCliente || !TipoArticulo || !CodigoArticulo) {
     return res.status(400).json({
       success: false,
-      mensaje: 'Faltan parámetros requeridos (IdUsuario, IdCliente, TipoArticulo, CodigoArticulo) en la URL.'
+      mensaje: 'Faltan parámetros requeridos (IdUsuario, IdCliente, TipoArticulo, CodigoArticulo).'
     });
   }
 
-  // La lógica de la base de datos no cambia.
-  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_DisminuirArticulo\`(?, ?, ?, ?);`;
-  const params = [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo];
+  // 1. CORRECCIÓN: Agregamos el 5to signo de interrogación (?)
+  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_EliminarLineaCompleta\`(?, ?, ?, ?, ?)`;
+  
+  // 2. CORRECCIÓN: Pasamos 'IdUsuario' dos veces.
+  // La primera es para encontrar el carrito (dueño de la sesión).
+  // La segunda es para el nuevo parámetro p_IdUsuarioExecutor (quién guarda en el historial).
+  const params = [IdUsuario, IdCliente, TipoArticulo, CodigoArticulo, IdUsuario];
 
-  Basedatos.query(query, params, (err, results) => {
-    if (err) {
-      console.error('Error al disminuir/eliminar artículo del carrito:', err);
+  Basedatos.query(query, params, (error, results) => {
+    if (error) {
+      console.error('Error al ejecutar sp_Carrito_EliminarLineaCompleta:', error);
       return res.status(500).json({
         success: false,
-        mensaje: 'Error al ejecutar el procedimiento almacenado.',
-        error: err
+        mensaje: 'Error al eliminar línea del carrito.',
+        error
       });
     }
 
-    res.json({
+    console.log('Resultado:', results);
+    return res.json({
       success: true,
-      mensaje: 'Artículo disminuido o eliminado correctamente del carrito.',
-      resultado: results[0]
+      mensaje: 'Línea del carrito eliminada correctamente.',
+      resultado: results[0] || []
     });
   });
 });

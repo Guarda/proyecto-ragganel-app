@@ -21,6 +21,9 @@ import 'jspdf-autotable';
 import * as XLSX from 'xlsx'; // Para el Excel
 import { DatePipe } from '@angular/common'; // Para formatear la fecha en el Excel
 
+// 1. IMPORTA EL PIPE DE CONVERSIÓN
+import { CurrencyConverterPipe } from '../../pipes/currency-converter.pipe'; 
+
 import { VentasBaseService } from '../../../services/ventas-base.service';
 import { NotasCreditoService } from '../../../services/notas-credito.service';
 import { AuthService } from '../../../UI/session/auth.service';
@@ -45,7 +48,8 @@ import { Subscription } from 'rxjs';
     CommonModule, FormsModule, RouterModule, MatTableModule, MatFormFieldModule, MatInputModule,
     MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule, MatDatepickerModule,
     MatNativeDateModule, MatTooltipModule,
-    DatePipe // <-- 2. AÑADE DATEPIPE A LOS IMPORTS
+    DatePipe,
+    CurrencyConverterPipe // 2. AÑADE EL PIPE AQUÍ
   ],
   // ===== 3. AÑADE DATEPIPE A LOS PROVIDERS =====
   providers: [DatePipe, { provide: MAT_DATE_LOCALE, useValue: 'es-NI' }],
@@ -56,6 +60,10 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
   displayedColumns: string[] = ['IdVentaPK', 'FechaCreacion', 'TipoDocumento', 'NumeroDocumento', 'Cliente', 'TotalVenta', 'EstadoVenta', 'Action'];
   dataSource = new MatTableDataSource<Ventas>();
   usuario!: Usuarios;
+
+  // 3. AÑADE LAS VARIABLES DE MONEDA (Igual que en el Dashboard)
+  public readonly EXCHANGE_RATE = 36.6243; 
+  public selectedCurrency: 'USD' | 'NIO' = 'USD';
 
   private readonly tableStateKey = 'ventasTableState';
   private subscriptions = new Subscription();
@@ -983,6 +991,11 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
 
     // Generamos el archivo y lo descargamos
     XLSX.writeFile(wb, 'Reporte_Ventas.xlsx');
+  }
+
+  // 4. AÑADE LA FUNCIÓN PARA ALTERNAR MONEDA
+  public toggleCurrency(): void {
+    this.selectedCurrency = this.selectedCurrency === 'USD' ? 'NIO' : 'USD';
   }
 
 }

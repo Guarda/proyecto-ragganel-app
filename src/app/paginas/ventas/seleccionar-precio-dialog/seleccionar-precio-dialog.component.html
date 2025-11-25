@@ -1,18 +1,38 @@
-<h2 mat-dialog-title>Seleccionar Precio para:</h2>
+<h2 mat-dialog-title>Seleccionar Precio</h2>
 <mat-dialog-content>
-  <p><strong>Artículo:</strong> {{ data.articulo.Nombre }}</p>
-  <mat-list role="list">
-    <mat-list-item *ngFor="let opcion of opcionesDePrecio" (click)="seleccionarPrecio(opcion)" class="opcion-item" matRipple>
-      <mat-icon matListItemIcon color="primary">attach_money</mat-icon>
-      <div matListItemTitle>{{ opcion.nombreMargen }}</div>
-      <div matListItemLine>
-        <span class="margen-porcentaje" *ngIf="opcion.idMargen !== 6">({{ opcion.porcentaje }}%)</span>
-        <span class="precio-calculado" *ngIf="opcion.idMargen !== 6">{{ opcion.precioFinal | currency:'NIO' }}</span>
+  <div class="header-articulo">
+    <h3>{{ data.articulo.NombreArticulo }}</h3>
+    <p class="costo-info">
+      Costo: 
+      <strong>{{ data.articulo.PrecioBase | currencyConvert:'USD':data.currency:data.exchangeRate:2 }}</strong>
+    </p>
+  </div>
+
+  <mat-list>
+    <mat-list-item *ngFor="let opcion of opcionesDePrecio">
+      <button mat-button class="btn-opcion" (click)="seleccionar(opcion)">
+        <div class="contenido-opcion">
+          <div class="info-margen">
+            <span class="nombre">{{ opcion.nombreMargen }}</span>
+            <span class="porcentaje" *ngIf="opcion.idMargen !== 6">
+              ({{ opcion.porcentaje }}%)
+            </span>
+          </div>
+          
+          <div class="precio-display">
+            <span *ngIf="opcion.idMargen !== 6; else textoManual">
+              {{ opcion.precioFinal | currencyConvert:'USD':data.currency:data.exchangeRate:2 }}
+            </span>
+            <ng-template #textoManual>
+              <span class="manual">Definir manual</span>
+            </ng-template>
+          </div>
         </div>
+      </button>
     </mat-list-item>
-    <mat-divider></mat-divider>
   </mat-list>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancelar</button>
 </mat-dialog-actions>
