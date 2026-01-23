@@ -11,8 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-// En la parte superior de listar-insumos.component.ts
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // <-- Añade el Módulo
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; 
 import { Subscription } from 'rxjs';
 
 import { InsumosBase } from '../../interfaces/insumosbase';
@@ -30,7 +29,7 @@ import { AgregarInsumosComponent } from '../agregar-insumos/agregar-insumos.comp
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
         MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule, MatButtonModule,
-        MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule // <-- ✅ AÑADE ESTO
+        MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule 
     ],
     templateUrl: './listar-insumos.component.html',
     styleUrls: ['./listar-insumos.component.css']
@@ -53,7 +52,7 @@ export class ListarInsumosComponent implements OnInit, AfterViewInit, OnDestroy 
     public insumosService: InsumosBaseService,
     private dialog: MatDialog,
     private stateService: TableStatePersistenceService,
-    private snackBar: MatSnackBar // <-- ✅ AÑADE ESTO
+    private snackBar: MatSnackBar 
   ) {}
 
   ngOnInit(): void {

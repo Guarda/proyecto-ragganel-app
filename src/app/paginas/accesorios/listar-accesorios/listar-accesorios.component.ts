@@ -19,13 +19,13 @@ import { AgregarAccesoriosComponent } from '../agregar-accesorios/agregar-acceso
 import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-accesorios.component';
 import { HistorialAccesorioComponent } from '../historial-accesorio/historial-accesorio.component';
 
-// --- CAMBIO 2: Importar el servicio de estado y la interfaz ---
+
 import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
 import { TableState } from '../../interfaces/table-state';
 
 @Component({
     selector: 'app-listar-accesorios',
-    standalone: true, // Se asume standalone por los imports
+    standalone: true, 
     imports: [
         CommonModule, RouterModule, MatTableModule, MatFormFieldModule,
         MatInputModule, MatSortModule, MatPaginatorModule, MatIconModule,
@@ -41,8 +41,7 @@ export class ListarAccesoriosComponent implements OnInit, AfterViewInit, OnDestr
   isLoading = true;
   errorMessage: string | null = null;
 
-  // --- CAMBIO 4: Añadir propiedades para la gestión del estado ---
-  private readonly tableStateKey = 'accesoriosTableState'; // ¡Clave única para accesorios!
+  private readonly tableStateKey = 'accesoriosTableState'; 
   private subscriptions = new Subscription();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -52,7 +51,6 @@ export class ListarAccesoriosComponent implements OnInit, AfterViewInit, OnDestr
   constructor(
     public accesorioService: AccesorioBaseService,
     private dialog: MatDialog,
-    // --- CAMBIO 5: Inyectar el servicio de estado ---
     private stateService: TableStatePersistenceService
   ) {}
 
@@ -63,8 +61,6 @@ export class ListarAccesoriosComponent implements OnInit, AfterViewInit, OnDestr
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-
-    // --- CAMBIO 6: Cargar estado y suscribirse a los cambios ---
     this.loadAndApplyState();
     this.subscriptions.add(this.sort.sortChange.subscribe(() => this.saveState()));
     this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));

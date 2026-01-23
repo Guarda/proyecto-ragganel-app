@@ -87,10 +87,23 @@ export class VerFacturaComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.venta = response.data.venta;
-          this.detalles = response.data.detalles;
-          this.totalDescuentos = this.detalles.reduce((acc, item) =>
-            acc + (item.PrecioUnitario * item.Cantidad - item.SubtotalLinea), 0);
-          this.subtotalBruto = (this.venta?.SubtotalVenta || 0) + this.totalDescuentos;
+          
+          // Convertimos explícitamente a números para evitar concatenaciones
+          this.detalles = response.data.detalles.map((item: any) => ({
+            ...item,
+            PrecioUnitario: Number(item.PrecioUnitario),
+            Cantidad: Number(item.Cantidad),
+            SubtotalLinea: Number(item.SubtotalLinea)
+          }));
+
+          // Ahora el cálculo de descuentos será seguro
+          this.totalDescuentos = this.detalles.reduce((acc, item) => {
+            const precioTotalBruto = item.PrecioUnitario * item.Cantidad;
+            const descuentoDeEstaLinea = precioTotalBruto - item.SubtotalLinea;
+            return acc + descuentoDeEstaLinea;
+          }, 0);
+
+          this.subtotalBruto = Number(this.venta?.SubtotalVenta || 0) + this.totalDescuentos;
         } else {
           this.errorMessage = 'No se pudieron cargar los datos de la factura.';
         }

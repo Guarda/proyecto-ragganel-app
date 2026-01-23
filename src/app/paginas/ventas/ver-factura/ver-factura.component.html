@@ -96,7 +96,7 @@
                 <span class="item-cantidad">{{ item.Cantidad }}x</span>
                 <span class="item-nombre">{{ item.NombreArticulo }}</span>
                <span class="item-precio">
-                &#64; {{ (item.SubtotalLinea / item.Cantidad) | currency:'USD' }}
+                &#64; {{ (+item.SubtotalLinea / +item.Cantidad) | currency:'USD' }}
                 </span>
                 <span class="item-subtotal">
                 {{ item.SubtotalLinea | currency:'USD' }}

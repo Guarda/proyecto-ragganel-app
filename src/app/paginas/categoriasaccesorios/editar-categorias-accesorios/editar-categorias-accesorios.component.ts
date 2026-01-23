@@ -154,14 +154,28 @@ export class EditarCategoriasAccesoriosComponent {
   }
 
   onSubmit(): void {
-    // AÑADE ESTA LÍNEA PARA DEPURAR
-    console.log('Estado del formulario al intentar guardar:', this.categoriaForm);
+    // Depuración para ver el estado real del formulario
+    console.log('Estado del formulario:', this.categoriaForm);
 
     if (this.categoriaForm.invalid) {
+      this.categoriaForm.markAllAsTouched(); // Resalta errores visualmente
       return;
     }
-    this.categoriaService.update(this.categoriaForm.value).subscribe(() => {
-      this.dialogRef.close(true); // Cierra el diálogo y devuelve 'true' para indicar éxito
+
+    // ✅ SOLUCIÓN: getRawValue() recupera los campos deshabilitados (Fabricante, Categoria, Modelo)
+    const dataToSend = this.categoriaForm.getRawValue();
+
+    console.log('Datos que se enviarán al servidor:', dataToSend);
+
+    // Usamos 'as any' para que TypeScript no reclame por las propiedades faltantes de la interfaz
+    this.categoriaService.update(dataToSend as any).subscribe({
+      next: (response) => {
+        console.log('Actualización exitosa:', response);
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        console.error('Error al intentar actualizar la categoría de accesorio:', err);
+      }
     });
   }
 }

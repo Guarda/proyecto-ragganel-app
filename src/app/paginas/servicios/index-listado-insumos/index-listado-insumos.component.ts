@@ -90,8 +90,7 @@ export class IndexListadoInsumosComponent {
 
     /*PARA REVISAR SI HAY CAMBIOS EN EL FORM, PARA MANDAR A LLAMAR NUEVAMENTE LA LISTA DE LAS CATEGORIAS ACORDE AL FABRICANTE*/
     this.insumoForm.get('Fabricante')?.valueChanges.subscribe(selectedId => {
-      // this.insumoForm.get('Cate')?.reset();
-      // this.insumoForm.get('SubCategoria')?.reset();
+
       this.categoriainsumoService.findWithModel(selectedId).subscribe((data: categoriasInsumos[]) => {
         this.selectedCategoria = data;
       })
@@ -106,7 +105,7 @@ export class IndexListadoInsumosComponent {
     });
 
     this.insumoForm.get('Subcategoria')?.valueChanges.subscribe(selectedId => {
-      // console.log(this.insumoForm.value.Fabricante, this.insumoForm.value.Categoria, this.insumoForm.get('SubCategoria')?.value);
+
       if (this.insumoForm.value.Fabricante != undefined && this.insumoForm.value.Categoria != undefined && this.insumoForm.get('Subcategoria')?.value != undefined) {
         this.cateinsumoService.getbymanufacturerb(this.insumoForm.value.Fabricante, this.insumoForm.value.Categoria, this.insumoForm.get('Subcategoria')?.value).subscribe((data) => {
           this.idModeloInsumoPK = data[0].IdModeloInsumosPK;
@@ -128,8 +127,7 @@ export class IndexListadoInsumosComponent {
             this.ImagePath = this.getimagePath(this.categoria.LinkImagen);
             this.cdr.detectChanges();
             this.insumoForm.get('IdModeloInsumosPK')?.setValue(this.idModeloInsumoPK);
-            // this.insumoForm.get('PrecioBase')?.setValue(this.categoria.PrecioBase);
-            //  this.insumoForm.get('Cantidad')?.setValue(this.categoria.Cantidad);
+
           });
         })
       }

@@ -59,20 +59,20 @@ export class CrearUsuariosComponent {
       this.selectedRol = data;
     });
 
-    // --- INICIO DE CAMBIOS ---
+
     this.usuarioForm = new FormGroup({
       Nombre: new FormControl('', [
         Validators.required,
-        Validators.maxLength(100) // Límite de 100 caracteres
+        Validators.maxLength(100) 
       ]),
       Correo: new FormControl('', [
         Validators.required,
-        Validators.email, // Validador de formato de email
-        Validators.maxLength(100) // Límite de 100 caracteres
+        Validators.email, 
+        Validators.maxLength(100) 
       ]),
       Password: new FormControl('', [
         Validators.required,
-        Validators.maxLength(255) // Límite de 255 caracteres
+        Validators.maxLength(255) 
       ]),
       IdEstadoFK: new FormControl('',Validators.required),
       IdRolFK: new FormControl('', Validators.required) 
@@ -81,10 +81,9 @@ export class CrearUsuariosComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = 'http://localhost:3000';
   
-    // Tu HTML usa 'assets/img/default-user.png' como fallback.
-    // Alineamos la lógica para que coincida.
+
     if (l == null || l === '') return 'assets/img/default-user.png';
     
     return `${baseUrl}/assets/${l}`;
@@ -92,7 +91,7 @@ export class CrearUsuariosComponent {
 
   onSubmit() {
     if (this.usuarioForm.invalid) {
-      return; // No hacer nada si el formulario es inválido
+      return; 
     }
 
     console.log(this.usuarioForm.value);
@@ -100,7 +99,7 @@ export class CrearUsuariosComponent {
 
     this.usuariosService.create(this.usuarioForm.value).subscribe({
       next: (res: any) => {
-        // Envía 'true' al cerrar para que el componente padre (la lista) sepa que debe recargar.
+
         this.dialogRef.close(true);
       },
       error: (err) => {

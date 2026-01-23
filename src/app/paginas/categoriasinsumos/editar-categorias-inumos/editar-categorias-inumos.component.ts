@@ -65,18 +65,18 @@ export class EditarCategoriasInumosComponent implements OnInit {
     // Usamos los nombres en plural que coinciden con la base de datos
     this.categoriaForm = this.fb.group({
       IdModeloInsumosPK: [''],
-      
+
       // --- ✅ CAMBIO: Se inicializan como deshabilitados ---
       FabricanteInsumos: [{ value: '', disabled: true }, Validators.required],
       CategoriaInsumos: [{ value: '', disabled: true }, Validators.required],
       SubcategoriaInsumos: [{ value: '', disabled: true }, Validators.required],
-      
+
       CodigoModeloInsumos: ['',
         // --- ✅ CAMBIO: Se añade maxLength(25) ---
         [Validators.required, Validators.maxLength(25)],
         [this.validationService.codeExistsValidator(() => this.originalCodigoModeloInsumos)]
       ],
-      
+
       // --- ✅ CAMBIO: Se añade maxLength(100) ---
       LinkImagen: ['', [Validators.required, Validators.maxLength(100)]]
     });
@@ -119,7 +119,14 @@ export class EditarCategoriasInumosComponent implements OnInit {
 
           // Ahora que todas las listas están cargadas, llenamos el formulario.
           // Esto previene que los selects se queden en blanco.
-          this.categoriaForm.patchValue(insumo);
+          this.categoriaForm.patchValue({
+            IdModeloInsumosPK: insumo.IdModeloInsumosPK || insumo.IdModeloInsumoPK, // Asegurar el ID
+            FabricanteInsumos: insumo.FabricanteInsumos,
+            CategoriaInsumos: insumo.CategoriaInsumos,
+            SubcategoriaInsumos: insumo.SubcategoriaInsumos,
+            CodigoModeloInsumos: insumo.CodigoModeloInsumos,
+            LinkImagen: insumo.LinkImagen
+          });
         });
       });
     });
@@ -150,22 +157,33 @@ export class EditarCategoriasInumosComponent implements OnInit {
 
   onSubmit(): void {
     if (this.categoriaForm.invalid) {
-      return; // Si el formulario es inválido, no hacer nada
+      this.categoriaForm.markAllAsTouched();
+      return;
     }
 
-    console.log('Formulario a enviar:', this.categoriaForm.value);
+    // ✅ SOLUCIÓN: getRawValue() incluye los campos 'disabled' (Fabricante, Categoria, etc.)
+    const formValues = this.categoriaForm.getRawValue();
 
-    // El formulario ya tiene la estructura correcta que el backend espera
-    this.categoriaService.update(this.categoriaForm.value).subscribe({
+    // Mapeo explícito para asegurar que los nombres coincidan con tu Backend
+    const dataToSend = {
+      IdModeloInsumosPK: formValues.IdModeloInsumosPK,
+      CodigoModeloInsumos: formValues.CodigoModeloInsumos,
+      LinkImagen: formValues.LinkImagen,
+      // Enviamos estos aunque estén deshabilitados para evitar el NULL en la DB
+      FabricanteInsumos: formValues.FabricanteInsumos,
+      CategoriaInsumos: formValues.CategoriaInsumos,
+      SubcategoriaInsumos: formValues.SubcategoriaInsumos
+    };
+
+    console.log('Formulario a enviar (con datos deshabilitados):', dataToSend);
+
+    // Usamos 'as any' para evitar el error de propiedades faltantes en la interfaz
+    this.categoriaService.update(dataToSend as any).subscribe({
       next: (response) => {
         console.log('Actualización exitosa:', response);
-        // Cerrar el diálogo SÓLO si la actualización fue exitosa
         this.dialogRef.close(true);
       },
-      error: (err) => {
-        console.error('Error al intentar actualizar la categoría:', err);
-        // Aquí podrías mostrar una alerta de error al usuario
-      }
+      error: (err) => console.error('Error:', err)
     });
   }
 }

@@ -34,13 +34,12 @@ router.post('/crear-servicio', (req, res) => {
         DescripcionServicio,
         PrecioBase,
         Comentario,
-        JSON.stringify(insumos) // Puede ser array vacío
+        JSON.stringify(insumos) 
     ], (err, result) => {
         if (err) {
             console.error('Error al insertar servicio:', err);
             return res.status(500).send('Error al insertar servicio');
         }
-        //es.status(200).json({ message: 'Servicio e insumos eliminados correctamente (soft delete).' });
         res.send({ message: 'Servicio agregado correctamente' });
     });
 });

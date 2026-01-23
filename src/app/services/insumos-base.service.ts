@@ -12,7 +12,7 @@ export class InsumosBaseService {
   private insumosSubject = new BehaviorSubject<any[]>([]);
   insumos$: Observable<any[]> = this.insumosSubject.asObservable();
 
-  private apiURL = "http://localhost:3000"; // Cambia esta URL según tu configuración
+  private apiURL = "http://localhost:3000";
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -56,13 +56,12 @@ export class InsumosBaseService {
 
   // Eliminar un insumo (lógica de eliminación)
   eliminar(data: InsumoEliminarData): Observable<any> { // Change parameter type
-  console.log('Data being sent to delete:', data); // Log the correct data object
-  // Pass the 'data' object directly, it already contains CodigoInsumo and IdUsuario
+  console.log('Data being sent to delete:', data); 
   return this.httpClient.put(this.apiURL + '/insumos-base/insumo-eliminar/' + data.CodigoInsumo, JSON.stringify(data), this.httpOptions)
     .pipe(
       catchError(this.errorHandler)
     );
-} // --- FIN DEL CAMBIO ---
+} 
 
   // Obtener el historial de cambios de un insumo
   getInsumosStateLog(id: string): Observable<any> {

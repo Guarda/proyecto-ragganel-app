@@ -6486,6 +6486,9 @@ BEGIN
         SET v_Descuento      = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].Descuento'));
         SET v_MargenAplicado = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].MargenAplicado'));
         SET v_IdMargenFK     = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].IdMargenFK'));
+        
+        -- NUEVA LÓGICA: Extraer el precio que ya calculó el frontend
+        SET v_PrecioVentaCalculado = JSON_EXTRACT(p_Detalles, CONCAT('$[', i, '].PrecioVenta'));
 
         -- Obtener precio base y recalcular (sin cambios)
         SET v_PrecioBaseReal = 0;
@@ -6499,7 +6502,6 @@ BEGIN
             SELECT PrecioBase INTO v_PrecioBaseReal FROM ServiciosBase WHERE IdServicioPK = CAST(v_CodigoArticulo AS UNSIGNED);
         END IF;
 
-        SET v_PrecioVentaCalculado = v_PrecioBaseReal * (1 + (v_MargenAplicado / 100));
         SET v_SubtotalCalculado = v_PrecioVentaCalculado * (1 - (v_Descuento / 100)) * v_Cantidad;
 
         -- Insertar en DetalleVenta (sin cambios)
