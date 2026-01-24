@@ -43,11 +43,6 @@ export class CostoDistribucionService {
     return this.costosTotalesSource.getValue().total;
   }
 
-  // ✅ PASO 1: AÑADIR ESTE MÉTODO
-  /**
-   * Resetea los observables a su estado inicial.
-   * Se debe llamar cuando el diálogo de ingreso de inventario se cierra.
-   */
   reset(): void {
     this.costosTotalesSource.next(estadoInicialCostos);
     this.costosDistribuidosSource.next(estadoInicialDistribuidos);

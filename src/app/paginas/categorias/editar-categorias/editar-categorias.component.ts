@@ -180,14 +180,30 @@ export class EditarCategoriasComponent {
     }
   }
 
-  onSubmit() {    // TODO: Use EventEmitter with form value 
-    //console.log(this.productoForm.value); 
-    this.categoriaForm.value.CodigoConsola = this.idCategory.value;
-    console.log(this.categoriaForm.value);
-    this.categoriaService.update(this.categoriaForm.value).subscribe((res: any) => {
-      this.dialogRef.close(true);
-    })
+  onSubmit() {
+    if (this.categoriaForm.invalid) {
+      this.categoriaForm.markAllAsTouched();
+      return;
+    }
 
+    // ✅ SOLUCIÓN: getRawValue() recupera los campos deshabilitados (Fabricante, Cate, SubCategoria)
+    const dataToSend = this.categoriaForm.getRawValue();
+
+    // Aseguramos que el ID de la consola esté presente si el servicio lo requiere
+    dataToSend.CodigoConsola = this.idCategory.value;
+
+    console.log('Datos de consola a enviar:', dataToSend);
+
+    // Usamos 'as any' para evitar conflictos con la interfaz estricta de CategoriasConsolas
+    this.categoriaService.update(dataToSend as any).subscribe({
+      next: (res: any) => {
+        console.log('Actualización de consola exitosa');
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        console.error('Error al actualizar la categoría de consola:', err);
+      }
+    });
   }
 
 }

@@ -23,17 +23,16 @@ router.post('/crear-pedido', (req, res) => {
         ViaPedido,
         PrecioEstimadoDelPedido,
         articulos,
-        IdUsuario // Se espera el ID del usuario desde el frontend
+        IdUsuario 
     } = req.body;
 
-    // Asegúrate de que los valores enviados sean los correctos
-    // CAMBIO: La llamada al SP ahora tiene 16 parámetros
+
     const sql = `CALL \`${dbConfig.database}\`.\`IngresarPedidoATablaPedidos\`(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     Basedatos.query(sql, [
         FechaCreacionPedido,
         FechaArrivoUSA,
-        FechaEstimadaRecepcion,  // Asegúrate de que se pase correctamente
+        FechaEstimadaRecepcion,  
         NumeroTracking1,
         NumeroTracking2,
         SitioWeb,
@@ -56,18 +55,13 @@ router.post('/crear-pedido', (req, res) => {
     });
 });
 
-/**
- * @route   GET /imagenes-existentes-productos
- * @desc    Devuelve una lista de los nombres de archivo de las imágenes en la carpeta public/img-consolas
- * @access  Public
- */
 router.get('/imagenes-existentes-productos', (req, res) => {
-    // Construimos la ruta absoluta al directorio de imágenes de productos (consolas)
+
     const directoryPath = path.join(__dirname, '..', 'public', 'img-consolas');
   
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
-        // Si la carpeta no existe, devolvemos un array vacío en lugar de un error 500
+
         if (err.code === 'ENOENT') {
           console.warn(`Directorio no encontrado: ${directoryPath}. Devolviendo lista vacía.`);
           return res.json([]);

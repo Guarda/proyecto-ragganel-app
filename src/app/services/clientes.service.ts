@@ -11,7 +11,7 @@ export class ClientesService {
   private clientesSubject = new BehaviorSubject<any[]>([]);
   clientes$: Observable<any[]> = this.clientesSubject.asObservable();
 
-  private apiURL = 'http://localhost:3000'; // Cambia esta URL por la de tu API
+  private apiURL = 'http://localhost:3000';
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -21,16 +21,15 @@ export class ClientesService {
 
   constructor(private httpClient: HttpClient) { }
 
-  // Listar todos los clientes
   getAll(): Observable<any> {
-    //console.log(this.httpClient.get(this.apiURL + '/productos/'))   
+
     return this.httpClient.get(this.apiURL + '/clientes/')
       .pipe(
         catchError(this.errorHandler)
       )
   }
 
-  // Obtener cliente por ID
+
   getClienteById(id: number): Observable<Cliente> {
     if (!id || isNaN(id)) {
       console.error('El ID proporcionado es inválido:', id);

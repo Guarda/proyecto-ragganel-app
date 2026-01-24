@@ -18,7 +18,7 @@ export class ImageUploadInsumoService {
   uploadImage(image: File): Observable<{ message: string, filename: string }> {
     const formData = new FormData();
     formData.append('image', image);
-    return this.http.post<{ message: string, filename: string }>(`${this.apiUrl}/upload-imagen-insumo`, formData);
+    return this.http.post<{ message: string, filename: string }>(`${this.apiUrl}/upload-imagen-insumos`, formData);
   }
 
   /**

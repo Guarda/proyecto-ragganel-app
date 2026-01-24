@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { Basedatos, dbConfig } = require('../config/db');
 
-// Endpoint para obtener todos los clientes
+
 router.get('/', (req, res) => {
     Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTodosLosClientes\`();`, (err, results) => {
         if (err) {
             res.status(500).send('Error fetching posts');
-            // console.log(err); // Comentado
+
             return;
         }
         res.json(results[0]);
@@ -17,7 +17,6 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const id = req.params.id;
 
-    // Verifica si el ID es un número válido
     if (!id || isNaN(id)) {
         return res.status(400).json({ error: 'ID inválido o no proporcionado' });
     }
@@ -30,17 +29,15 @@ router.get('/:id', (req, res) => {
             return res.status(500).json({ error: 'Error al buscar cliente' });
         }
 
-        // Verificar si el resultado tiene datos
         if (!result || result.length === 0 || !Array.isArray(result[0]) || result[0].length === 0) {
             return res.status(404).json({ error: 'Cliente no encontrado' });
         }
 
-        res.json(result[0][0]); // Retorna el primer objeto dentro del primer array
+        res.json(result[0][0]); 
     });
 });
 
-// Endpoint para crear un nuevo cliente
-// Endpoint para crear un nuevo cliente
+
 router.post('/crear-cliente/', (req, res) => {
     const { Nombre, DNI, RUC, Telefono, Correo, Direccion, Comentarios } = req.body;
 
@@ -53,12 +50,9 @@ router.post('/crear-cliente/', (req, res) => {
             return res.status(500).json({ error: 'Error en la base de datos al crear el cliente.' });
         }
 
-        // El resultado de un `CALL` a un SP que devuelve filas es un array donde
-        // el primer elemento (result[0]) contiene las filas de datos.
+
         const rows = result[0];
 
-        // Verificación robusta: Si `rows` no es un array o está vacío, significa que
-        // el SP no devolvió el cliente, probablemente porque no está actualizado en la BD.
         if (!rows || !Array.isArray(rows) || rows.length === 0) {
             console.error(
                 'El procedimiento IngresarCliente no devolvió el cliente esperado. ' +
@@ -68,7 +62,6 @@ router.post('/crear-cliente/', (req, res) => {
             return res.status(500).json({ error: 'Error al obtener los datos del cliente recién creado.' });
         }
 
-        // Devolver el cliente completo, que es la primera fila del resultado.
         res.status(201).json({
             message: 'Cliente creado exitosamente',
             nuevoCliente: rows[0]
@@ -76,7 +69,7 @@ router.post('/crear-cliente/', (req, res) => {
     });
 });
 
-// Endpoint para actualizar un cliente
+
 router.put('/actualizar-cliente/:id', (req, res) => {
     const id = req.params.id;  // Captura el ID desde la ruta
 

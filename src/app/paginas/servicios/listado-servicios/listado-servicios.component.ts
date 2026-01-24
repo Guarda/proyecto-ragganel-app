@@ -81,10 +81,9 @@ export class ListadoServiciosComponent implements OnInit, AfterViewInit, OnDestr
     this.errorMessage = null;
 
     this.serviciosService.getAll().subscribe({
-      next: (data: ServicioListado[]) => { // <-- Usa la nueva interfaz
+      next: (data: ServicioListado[]) => { 
         const datosProcesados = data.map(servicio => ({
           ...servicio,
-          // La propiedad ahora existe y el código es válido
           FechaIngreso: this.parsearFecha(servicio.FechaIngreso)
         }));
         this.dataSource.data = datosProcesados;

@@ -41,7 +41,6 @@ router.post('/crear-servicio', (req, res) => {
             console.error('Error al insertar servicio:', err);
             return res.status(500).send('Error al insertar servicio');
         }
-        //es.status(200).json({ message: 'Servicio e insumos eliminados correctamente (soft delete).' });
         res.send({ message: 'Servicio agregado correctamente' });
     });
 });

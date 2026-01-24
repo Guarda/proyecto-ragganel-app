@@ -2,11 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Basedatos, dbConfig } = require('../config/db');
 
-/**
- * @route   GET /api/cost-distribution/:idPedido
- * @desc    Obtiene los modelos únicos de un pedido y su porcentaje de distribución de costos.
- * @access  Private
- */
+
 router.get('/:idPedido', (req, res) => {
     const { idPedido } = req.params;
 
@@ -25,13 +21,9 @@ router.get('/:idPedido', (req, res) => {
     });
 });
 
-/**
- * @route   POST /api/cost-distribution/
- * @desc    Guarda o actualiza los porcentajes de distribución de costos para una lista de modelos.
- * @access  Private
- */
+
 router.post('/', (req, res) => {
-    const distribuciones = req.body; // Se espera un array de objetos: [{ IdModeloFK, TipoArticuloFK, PorcentajeAsignado }, ...]
+    const distribuciones = req.body; 
 
     if (!Array.isArray(distribuciones) || distribuciones.length === 0) {
         return res.status(400).json({ error: 'Se requiere un array de distribuciones.' });
