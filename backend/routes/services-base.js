@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { Basedatos, dbConfig } = require('../config/db');
 
-// Example endpoint: Health check
+// Health check
 router.get('/health', (req, res) => {
     res.status(200).json({ message: 'Service is up and running!' });
 });
 
-// List all products
+// List all services
 router.get('/', (req, res) => {
     Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarTablaServiciosBase\`();`, (err, results) => {
         if (err) {
@@ -19,6 +19,7 @@ router.get('/', (req, res) => {
     });
 });
 
+// Create service
 router.post('/crear-servicio', (req, res) => {
     const { servicio, insumos } = req.body;
 
@@ -34,7 +35,7 @@ router.post('/crear-servicio', (req, res) => {
         DescripcionServicio,
         PrecioBase,
         Comentario,
-        JSON.stringify(insumos) // Puede ser array vacío
+        JSON.stringify(insumos)
     ], (err, result) => {
         if (err) {
             console.error('Error al insertar servicio:', err);
@@ -45,7 +46,7 @@ router.post('/crear-servicio', (req, res) => {
     });
 });
 
-// Get a specific active service
+// Get specific service
 router.get('/:id', (req, res) => {
     const id = req.params.id;
     const sql = `CALL \`${dbConfig.database}\`.\`ListarTablaServiciosBaseXId\` (?)`;
@@ -62,80 +63,100 @@ router.get('/:id', (req, res) => {
     });
 });
 
-//get supplies by service id
+// Get supplies by service id
 router.get('/insumos/:id', (req, res) => {
     const id = req.params.id;
     const sql = `CALL \`${dbConfig.database}\`.\`ListarInsumosxServicio\` (?)`;
     Basedatos.query(sql, id, (err, result) => {
         if (err) {
-            res.status(500).send('Error al buscar los insumos del servicio');
-            return;
+            return res.status(500).send('Error al buscar los insumos del servicio');
         }
-        if (result.length === 0) {
-            res.status(404).send('Insumos no encontrados');
-            return;
+        // If no supplies are found, result[0] might be empty. Return an empty array to prevent frontend errors.
+        if (!result[0]) {
+             return res.json([]);
         }
         res.json(result[0]);
     });
 });
 
+// Update Service (CORRECTED ROUTE)
 router.put('/actualizar-servicio', (req, res) => {
-  const {
-    CodigoServicio,
-    DescripcionServicio,
-    PrecioBase,
-    EstadoServicioFK,
-    Comentario,
-    InsumosAgregados
-  } = req.body;
-  console.log(req.body);
-  // 1. Llamar al primer procedimiento
-  Basedatos.query(
-    `CALL \`${dbConfig.database}\`.\`ActualizarServicioConInsumos\`(?, ?, ?, ?, ?)`,
-    [
-      CodigoServicio,
-      DescripcionServicio,
-      PrecioBase,
-      Comentario,
-      //new Date(Fecha_Ingreso), // O convierte según tu formato
-      EstadoServicioFK
-    ],
-    (err) => {
-      if (err) {
-        console.error('Error al actualizar el servicio:', err);
-        return res.status(500).json({ error: 'Error al actualizar el servicio base' });
-      }
+    // 1. Destructure as sent from the Frontend
+    const { servicio, insumos } = req.body;
 
-      // 2. Procesar los insumos uno por uno (de forma secuencial para evitar sobrecarga)
-      insertarInsumosRecursivo(0, InsumosAgregados, CodigoServicio, res);
+    if (!servicio) {
+        return res.status(400).json({ error: "Service data is missing." });
     }
-  );
+
+    // 2. Extract data from the 'servicio' object
+    const {
+        CodigoServicio,
+        DescripcionServicio,
+        PrecioBase,
+        EstadoServicioFK,
+        Comentario
+    } = servicio;
+
+    // 3. Update the service header
+    Basedatos.query(
+        `CALL \`${dbConfig.database}\`.\`ActualizarServicioConInsumos\`(?, ?, ?, ?, ?)`,
+        [
+            CodigoServicio,
+            DescripcionServicio,
+            PrecioBase,
+            Comentario,
+            EstadoServicioFK
+        ],
+        (err) => {
+            if (err) {
+                console.error('Error updating base service:', err);
+                return res.status(500).json({ error: 'Error al actualizar el servicio base' });
+            }
+
+            // 4. Process supplies. If 'insumos' is undefined or null, use an empty array.
+            const listaInsumos = insumos || [];
+            insertarInsumosRecursivo(0, listaInsumos, CodigoServicio, res);
+        }
+    );
 });
 
+// Recursive Function (CORRECTED: Variable names)
 function insertarInsumosRecursivo(index, insumos, CodigoServicio, res) {
-  if (index >= insumos.length) {
-    // Cuando termina
-    return res.status(200).json({ message: 'Servicio actualizado con insumos.' });
-  }
-
-  const insumo = insumos[index];
-
-  Basedatos.query(
-    `CALL \`${dbConfig.database}\`.\`InsertarOActualizarInsumoXServicio\`(?, ?, ?)`,
-    [CodigoServicio, insumo.Codigo, insumo.Cantidad],
-    (err) => {
-      if (err) {
-        console.error('Error al insertar insumo:', err);
-        return res.status(500).json({ error: 'Error al insertar insumo ' + insumo.Codigo });
-      }
-
-      // Llamar al siguiente
-      insertarInsumosRecursivo(index + 1, insumos, CodigoServicio, res);
+    // Base case: Finished iterating through the array
+    if (!insumos || index >= insumos.length) {
+        return res.status(200).json({ message: 'Servicio actualizado con insumos.' });
     }
-  );
+
+    const insumoActual = insumos[index];
+
+    // IMPORTANT: This is where the error was. The frontend sends CodigoInsumoFK and CantidadDescargue
+    const codigoInsumo = insumoActual.CodigoInsumoFK;
+    const cantidad = insumoActual.CantidadDescargue;
+
+    // Extra validation to avoid sending NULL to the DB
+    if (!codigoInsumo || cantidad === undefined || cantidad === null) {
+        console.error("Invalid data in supply:", insumoActual);
+        // We can skip this corrupt supply and continue, or return an error.
+        // Here, we choose to return an error so you notice it.
+        return res.status(400).json({ error: `Incomplete data for supply at index ${index}` });
+    }
+
+    Basedatos.query(
+        `CALL \`${dbConfig.database}\`.\`InsertarOActualizarInsumoXServicio\`(?, ?, ?)`,
+        [CodigoServicio, codigoInsumo, cantidad],
+        (err) => {
+            if (err) {
+                console.error('SQL error when inserting supply:', err);
+                return res.status(500).json({ error: 'Error al insertar insumo ' + codigoInsumo });
+            }
+
+            // Recursive call to the next one
+            insertarInsumosRecursivo(index + 1, insumos, CodigoServicio, res);
+        }
+    );
 }
 
-// Endpoint DELETE (soft delete)
+// Delete service
 router.delete('/eliminar-servicio/:id', (req, res) => {
     const idServicio = req.params.id;
 
@@ -148,8 +169,5 @@ router.delete('/eliminar-servicio/:id', (req, res) => {
         res.status(200).json({ message: 'Servicio e insumos eliminados correctamente (soft delete).' });
     });
 });
-
-
-// Add your endpoints here
 
 module.exports = router;
