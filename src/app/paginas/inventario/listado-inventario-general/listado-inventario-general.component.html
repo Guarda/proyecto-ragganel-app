@@ -24,10 +24,12 @@
         Exportar
       </button>
       
-      <a mat-raised-button color="primary" class="button-crear" routerLink="/ruta/a/tu/formulario-de-articulo">
+      <div class="actions-header">
+      <button mat-raised-button color="primary" (click)="abrirSelectorNuevo()">
         <mat-icon>add</mat-icon>
         Nuevo Artículo
-      </a>
+      </button>
+      </div>
     </div>
   </header>
 

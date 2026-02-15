@@ -20,6 +20,7 @@ import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/success
 import { EliminarClienteComponent } from '../eliminar-cliente/eliminar-cliente.component';
 import { MatDivider } from '@angular/material/divider';
 import { ListadoVentasClienteComponent } from '../listado-ventas-cliente/listado-ventas-cliente.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 
 @Component({
@@ -124,7 +125,7 @@ export class VerClienteComponent {
 
   // Método para obtener la ruta de la imagen
   getimagePath(l: string | null): string {
-    const baseUrl = 'http://localhost:3000'; // Asegúrate de que este es el puerto correcto de tu servidor
+    const baseUrl = environment.apiUrl;
     return l ? `${baseUrl}/assets/${l}` : `${baseUrl}/assets/avatardefault.png`;
   }
 

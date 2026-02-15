@@ -29,6 +29,7 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CategoriasAccesoriosBase } from '../../../interfaces/categoriasaccesoriosbase';
 import { AccesoriosBase } from '../../../interfaces/accesoriosbase';
 import { MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import { environment } from '../../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-ingresar-accesorios-pedido',
@@ -204,7 +205,7 @@ export class IngresarAccesoriosPedidoComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
     console.log("kkkkkk",l);
     if (l == null || l === '') {
       return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;

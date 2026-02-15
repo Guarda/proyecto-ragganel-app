@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../auth.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-login',
@@ -30,7 +31,7 @@ export class LoginComponent {
       Password: this.password
     };
   
-    this.http.post('http://localhost:3000/auth/login', loginData)
+    this.http.post(`${environment.apiUrl}/auth/login`, loginData)
     .subscribe({
       next: (response: any) => {
         localStorage.setItem('token', response.token);

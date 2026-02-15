@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Usuarios } from '../paginas/interfaces/usuarios';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class RolesUsuariosService {
   private accessoriesSubject = new BehaviorSubject<any[]>([]);
   accessories$: Observable<any[]> = this.accessoriesSubject.asObservable();
 
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({

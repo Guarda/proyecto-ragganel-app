@@ -15,6 +15,7 @@ import { EstadosConsolas } from '../../interfaces/estados';
 import { CategoriasConsolasService } from '../../../services/categorias-consolas.service';
 import { EstadoConsolasService } from '../../../services/estado-consolas.service';
 import { CategoriaProductoService } from '../../../services/categoria-producto.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-editar-productos',
@@ -128,7 +129,7 @@ export class EditarProductosComponent {
   }
   
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
   
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;

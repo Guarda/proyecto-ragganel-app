@@ -36,6 +36,7 @@ import { TareasProducto } from '../../interfaces/tareasproductos';
 import { MatCheckbox, MatCheckboxModule } from '@angular/material/checkbox';
 import { EliminarProductosComponent } from '../eliminar-productos/eliminar-productos.component';
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 
 @Component({
@@ -243,7 +244,7 @@ export class VerProductoComponent implements OnInit {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
 
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;

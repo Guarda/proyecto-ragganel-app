@@ -3,13 +3,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TipoAccesorio } from '../paginas/interfaces/tipoaccesorio';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ListadoTipoAccesorioService {
   // URL base de tu API Node.js
-  private apiURL = "http://localhost:3000/api/tipos-accesorios";
+  private apiURL = `${environment.apiUrl}/api/tipos-accesorios`;
 
   httpOptions = {
     headers: new HttpHeaders({

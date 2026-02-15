@@ -56,6 +56,7 @@ import { SubcategoriasInsumos } from '../../../interfaces/subcategoriasinsumos';
 import { TipoArticuloService } from '../../../../services/tipo-articulo.service';
 import { TipoArticulo } from '../../../interfaces/tipoarticulos';
 import { MatIcon } from '@angular/material/icon';
+import { environment } from '../../../../../enviroments/enviroments';
 
 
 @Component({
@@ -354,7 +355,7 @@ export class IndexListadoArticulosComponent {
   getImagePath(link: string | null, tipoArticulo: number | null) {
     // console.log(link)
     // console.log(tipoArticulo)
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     let folder = '';
 
     switch (tipoArticulo) {

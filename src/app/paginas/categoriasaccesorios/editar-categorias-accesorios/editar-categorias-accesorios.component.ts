@@ -21,6 +21,7 @@ import { CategoriaAccesorioService } from '../../../services/categoria-accesorio
 import { SubcategoriaAccesorioService } from '../../../services/subcategoria-accesorio.service';
 import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosbase';
 import { CategoriasAccesoriosService } from '../../../services/categorias-accesorios.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-editar-categorias-accesorios',
@@ -146,7 +147,7 @@ export class EditarCategoriasAccesoriosComponent {
   }
 
   getimagePath(l: string | null): string {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     if (!l) {
       return `${baseUrl}/img-accesorios/default.png`; 
     }

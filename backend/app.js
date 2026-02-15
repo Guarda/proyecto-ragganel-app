@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); 
+const path = require('path');
 const fs = require('fs');
 
 const app = express();
@@ -53,7 +53,11 @@ app.use(express.json());
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: [
+    'http://localhost:4200',          // Tu PC servidor
+    'http://192.168.1.21:4200',       // Acceso por IP local
+    'http://192.168.1.XXX:4200'       // IP de tu teléfono si es fija
+  ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
 }));
@@ -111,37 +115,37 @@ app.use('/categorias', categoriesRouter);
 app.use('/fabricantes', manufacturerRouter);
 app.use('/catesubcate', catesubcateRouter);
 app.use('/accesorios', accesroriesRouter);
-app.use('/tareas', tasksRouter); 
+app.use('/tareas', tasksRouter);
 app.use('/upload-imagen-producto', uploadRouter); // <-- CORREGIDO: Ruta renombrada para consistencia
 app.use('/accesorios-base', accessoriesbaseRouter);
 app.use('/fabricantes-accesorios', accessoriesmanufacturerRouter);
 app.use('/catesubcate-accesorios', accesoriescatesubcateRouter);
-app.use('/tareas-accesorios',accesoriestasksRouter);
+app.use('/tareas-accesorios', accesoriestasksRouter);
 app.use('/upload-imagen-accesorios', uploadimageaccesoriesRouter);
 app.use('/upload-imagen-insumos', uploadimageinsumosRouter);
 app.use('/categorias-accesorios', categoriesaccesoriesRouter);
-app.use('/pedidos-dropdown',ordersdropdownRouter);
+app.use('/pedidos-dropdown', ordersdropdownRouter);
 app.use('/articulos', articletypeRouter);
 app.use('/pedidos', ordersbaseRouter);
-app.use('/usuarios',usersRouter);
-app.use('/roles',userrolesRouter);
-app.use('/estados-usuarios',userstates)
-app.use('/insumos-base', suppliesRouter); 
-app.use('/fabricantes-insumos', suppliesmanufacturerRouter); 
-app.use('/catesubcate-insumos', suppliescatesubcateRouter); 
+app.use('/usuarios', usersRouter);
+app.use('/roles', userrolesRouter);
+app.use('/estados-usuarios', userstates)
+app.use('/insumos-base', suppliesRouter);
+app.use('/fabricantes-insumos', suppliesmanufacturerRouter);
+app.use('/catesubcate-insumos', suppliescatesubcateRouter);
 app.use('/categorias-insumos', categoriessuppliesRouter);
-app.use('/clientes', clientesRouter); 
-app.use('/servicios-base', servicesbaseRouter); 
-app.use('/articulo-lista', articlelistRouter); 
-app.use('/ventas-base', salesbaseRouter); 
-app.use('/notas-credito', creditnotesRouter); 
-app.use('/auth', authRoutes); 
-app.use('/carrito', shoppingCartRouter); 
-app.use('/inventario', inventoryRouter); 
-app.use('/dashboard', dashboardRouter); 
+app.use('/clientes', clientesRouter);
+app.use('/servicios-base', servicesbaseRouter);
+app.use('/articulo-lista', articlelistRouter);
+app.use('/ventas-base', salesbaseRouter);
+app.use('/notas-credito', creditnotesRouter);
+app.use('/auth', authRoutes);
+app.use('/carrito', shoppingCartRouter);
+app.use('/inventario', inventoryRouter);
+app.use('/dashboard', dashboardRouter);
 app.use('/api/pre-ingreso', preIngresoRoutes);
-app.use('/api/cost-distribution', costdistributionRouter); 
-app.use('/api/validate', validationRoutes); 
+app.use('/api/cost-distribution', costdistributionRouter);
+app.use('/api/validate', validationRoutes);
 app.use('/api/tipos-producto', producttypesRouter);
 app.use('/api/tipos-accesorios', tiposAccesoriosRouter);
 app.use('/api/backup', backupRouter);
@@ -152,5 +156,5 @@ app.get('/protected', verifyToken, (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });

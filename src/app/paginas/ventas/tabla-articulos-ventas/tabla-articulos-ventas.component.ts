@@ -23,6 +23,7 @@ import { CarritoService } from '../../../services/carrito.service';
 import { VentasBaseService } from '../../../services/ventas-base.service';
 
 import { DialogIngresarPrecioArticuloComponent } from '../dialog-ingresar-precio-articulo/dialog-ingresar-precio-articulo.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-tabla-articulos-ventas',
@@ -335,7 +336,7 @@ export class TablaArticulosVentasComponent implements OnInit, OnDestroy, OnChang
   // En tabla-articulos-ventas.component.ts
 
 getImagePath(link: string | null, tipo: string | null): string {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = environment.apiUrl;
   let folder = 'img-genericas';
   switch (tipo) {
     case 'Producto': folder = 'img-consolas'; break;

@@ -38,6 +38,7 @@ import { ResultadoPedidoDialogComponent } from '../resultado-pedido-dialog/resul
 import { debounceTime, merge, Subscription } from 'rxjs';
 import { AuthService } from '../../../UI/session/auth.service';
 import { Usuarios } from '../../interfaces/usuarios';
+import { environment } from '../../../../enviroments/enviroments';
 
 
 @Component({
@@ -202,7 +203,7 @@ export class AgregarPedidoComponent implements OnInit, AfterViewInit {
   }
 
   getimagePath(l: string | null): string {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     return l ? `${baseUrl}/img-accesorios/${l}` : `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
   }
 

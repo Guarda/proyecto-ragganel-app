@@ -40,6 +40,7 @@ import { AuthService } from '../../../UI/session/auth.service'; // ✅ AÑADIDO
 
 // Components
 import { EliminarAccesoriosComponent } from '../eliminar-accesorios/eliminar-accesorios.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 
 
@@ -243,7 +244,7 @@ export class VerAccesorioComponent implements OnInit, OnDestroy {
 
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     return l ? `${baseUrl}/img-accesorios/${l}` : `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
   }
 

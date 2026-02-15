@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedService } from '../../../services/shared.service';
 import { ImageUploadAccesorioService } from '../../../services/image-upload-accesorio.service'; // 1. Importar el nuevo servicio
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-image-upload-accesorio',
@@ -22,7 +23,7 @@ export class ImageUploadAccesorioComponent implements OnInit {
   // 4. Propiedades para la galería
   existingImages: string[] = [];
   isLoadingImages: boolean = true;
-  readonly imagePath = 'http://localhost:3000/img-accesorios/'; // 5. Ruta a las imágenes de accesorios
+  readonly imagePath = `${environment.apiUrl}/img-accesorios/`; // 5. Ruta a las imágenes de accesorios
 
   constructor(
     private sharedService: SharedService,

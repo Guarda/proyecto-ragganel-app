@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedService } from '../../../services/shared.service';
 import { ImageUploadInsumoService } from '../../../services/image-upload-insumo.service'; // 1. Importar el nuevo servicio
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-image-upload-insumo',
@@ -22,7 +23,7 @@ export class ImageUploadInsumoComponent implements OnInit {
   // 4. Propiedades para la galería
   existingImages: string[] = [];
   isLoadingImages: boolean = true;
-  readonly imagePath = 'http://localhost:3000/img-insumos/'; // 5. Ruta a las imágenes de insumos
+  readonly imagePath = `${environment.apiUrl}/img-insumos/`; // 5. Ruta a las imágenes de insumos
 
   constructor(
     private sharedService: SharedService,

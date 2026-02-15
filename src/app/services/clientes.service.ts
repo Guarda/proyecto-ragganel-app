@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Cliente } from '../paginas/interfaces/clientes';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class ClientesService {
   private clientesSubject = new BehaviorSubject<any[]>([]);
   clientes$: Observable<any[]> = this.clientesSubject.asObservable();
 
-  private apiURL = 'http://localhost:3000';
+  private apiURL = environment.apiUrl;
 
   private httpOptions = {
     headers: new HttpHeaders({

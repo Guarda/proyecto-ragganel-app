@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, OnInit, Output, signal } from '@angular/core'; // Added OnInit
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, OnInit, Optional, Output, signal } from '@angular/core'; // Added OnInit
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -29,6 +29,7 @@ import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosb
 
 // **** 1. IMPORT AuthService ****
 import { AuthService } from '../../../UI/session/auth.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-agregar-accesorios',
@@ -94,7 +95,8 @@ export class AgregarAccesoriosComponent implements OnInit {
     // **** 3. INJECT AuthService ****
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private router: Router // Keep Router if navigation might be needed elsewhere, but not in onSubmit for dialog
+    private router: Router, // Keep Router if navigation might be needed elsewhere, but not in onSubmit for dialog
+    @Optional() private dialogRef: MatDialogRef<AgregarAccesoriosComponent>
   ) {}
 
   // ✅ AÑADIDO: Validador personalizado para la longitud de los chips
@@ -319,7 +321,7 @@ export class AgregarAccesoriosComponent implements OnInit {
 
   // --- Image Path ---
   getimagePath(l: string | null): string { // Ensure return type is string
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     // Use a more generic default image if specific one isn't found
     const defaultImage = `${baseUrl}/assets/placeholder.png`; // Example default image in assets
 
@@ -376,9 +378,11 @@ export class AgregarAccesoriosComponent implements OnInit {
     this.accesorioService.create(accesorioData).subscribe({
       next: (res: any) => {
         this.Agregado.emit();
-        // Assuming this is used in a dialog, the parent component handles closing/refreshing.
-        // If it's a standalone page, re-add navigation:
-        // this.router.navigateByUrl('home/listado-accesorios');
+        
+        if (this.dialogRef) {
+          this.dialogRef.close(true);
+        }
+        // Si es página independiente, la navegación se manejaría aquí si fuera necesario
       },
       error: (err) => {
         console.error("Error creating accesorio:", err);

@@ -21,6 +21,7 @@ import { UsuariosService } from '../../../services/usuarios.service';
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 import { DesactivarUsuarioComponent } from '../desactivar-usuario/desactivar-usuario.component';
 import { CambiarPasswordDialogComponent } from '../cambiar-password-dialog/cambiar-password-dialog.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 
 @Component({
@@ -123,7 +124,7 @@ export class VerUsuarioComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Asegúrate de que este es el puerto correcto de tu servidor
+    const baseUrl = environment.apiUrl;
     return l ? `${baseUrl}/assets/${l}` : `${baseUrl}/assets/avatardefault.png`;
   }
 

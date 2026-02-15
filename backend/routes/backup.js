@@ -1,6 +1,3 @@
-// Archivo: routes/backup.js
-// VERSIÓN CORREGIDA
-
 const express = require('express');
 const router = express.Router();
 const { spawn } = require('child_process');
@@ -9,9 +6,6 @@ const path = require('path');
 const { dbConfig } = require('../config/db');
 const verifyToken = require('../middleware/authMiddleware');
 const adminOnlyGuard = require('../middleware/admin.guard.js');
-
-// Cargar dotenv ya no se hace aquí, se hace en app.js
-// require('dotenv').config(); 
 
 router.get('/create', verifyToken, adminOnlyGuard, (req, res) => {
     
@@ -31,9 +25,8 @@ router.get('/create', verifyToken, adminOnlyGuard, (req, res) => {
 
         const writeStream = fs.createWriteStream(backupFilePath);
 
-        // Ahora process.env.MYSQLDUMP_PATH debería estar cargado
         const command = process.env.MYSQLDUMP_PATH || 'mysqldump';
-        console.log(`Ejecutando comando: ${command}`); // <-- ¡Queremos ver la ruta completa aquí!
+        console.log(`Ejecutando comando: ${command}`);
 
         const mysqldumpArgs = [
             '--host', dbConfig.host,

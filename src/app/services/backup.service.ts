@@ -4,6 +4,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../enviroments/enviroments';
 
 // Interfaz para la respuesta del backend
 export interface BackupResponse {
@@ -17,7 +18,7 @@ export interface BackupResponse {
   providedIn: 'root'
 })
 export class BackupService {
-  private apiURL = "http://localhost:3000/api/backup";
+  private apiURL = `${environment.apiUrl}/api/backup`;
 
   constructor(private http: HttpClient) { }
 

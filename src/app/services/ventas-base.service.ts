@@ -8,6 +8,7 @@ import { Cliente } from '../paginas/interfaces/clientes';
 import { VentaFinalData } from '../paginas/interfaces/ventafinal';
 import { VentaCompletaResponse } from '../paginas/interfaces/ventacompletaresponse';
 import { ProformaResponse } from '../paginas/interfaces/proformaresponse';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,7 @@ export class VentasBaseService {
 
   private accessoriesSubject = new BehaviorSubject<any[]>([]);
 
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -101,6 +102,16 @@ export class VentasBaseService {
       .pipe(catchError(this.errorHandler));
   }
 
+  limpiarCarritoProforma(idUsuario: number, idCliente: number): Observable<any> {
+    const url = `${this.apiURL}/ventas-base/limpiar-carrito-proforma`;
+    const body = {
+      IdUsuario: idUsuario,
+      IdCliente: idCliente
+    };
+    return this.httpClient.post(url, body, this.httpOptions)
+      .pipe(catchError(this.errorHandler));
+  }
+
   eliminarArticuloDelCarrito(datos: {
     IdUsuario: number,
     IdCliente: number,
@@ -154,12 +165,16 @@ export class VentasBaseService {
       );
   }
 
-  getProformaDetails(idProforma: number): Observable<ProformaResponse> {
+  getProformaDetails(idProforma: number, idUsuario: number): Observable<ProformaResponse> {
     const url = `${this.apiURL}/ventas-base/proforma/${idProforma}`;
     console.log(`[VentasBaseService] Solicitando detalles de proforma desde: ${url}`);
 
+    // Agregamos el idUsuario como parámetro de consulta
+    const params = new HttpParams().set('idUsuario', idUsuario.toString());
+
     // Realiza una petición GET y espera una respuesta que coincida con la interfaz ProformaResponse.
-    return this.httpClient.get<ProformaResponse>(url, this.httpOptions)
+    // Combinamos las opciones existentes (headers) con los nuevos params
+    return this.httpClient.get<ProformaResponse>(url, { ...this.httpOptions, params })
       .pipe(
         catchError(this.errorHandler)
       );

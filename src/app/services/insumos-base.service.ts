@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { InsumosBase } from '../paginas/interfaces/insumosbase';
 import { InsumoEliminarData } from '../paginas/interfaces/insumoeliminardata';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class InsumosBaseService {
   private insumosSubject = new BehaviorSubject<any[]>([]);
   insumos$: Observable<any[]> = this.insumosSubject.asObservable();
 
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({

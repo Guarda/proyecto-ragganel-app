@@ -565,11 +565,62 @@ export class ListadoVentasComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   continuarVentaDesdeProforma(venta: Ventas): void {
-    // Navegamos al punto de venta y pasamos el ID de la proforma
-    // a través del "state" del router. Es una forma limpia de pasar datos
-    // temporales durante la navegación.
-    this.router.navigate(['/home/punto-venta'], {
-      state: { idProformaACargar: venta.IdVentaPK }
+    // 1. Validar que tengamos el usuario actual
+    if (!this.usuario || !this.usuario.id) {
+      this.snackBar.open('Error: No se pudo identificar al usuario activo.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // 1. Preguntar al usuario si desea reemplazar su progreso actual
+    const dialogRef = this.dialog.open(DialogoConfirmacionComponent, {
+      width: '450px',
+      data: {
+        title: 'Cargar Proforma',
+        message: 'Al cargar esta proforma, se reemplazará cualquier venta en curso que tengas con este cliente. ¿Deseas continuar?'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmado => {
+      if (confirmado) {
+        this.snackBar.open('Preparando entorno de venta...', undefined, { duration: 2000 });
+
+        // 2. Limpiar el carrito existente en la base de datos
+        this.ventasService.limpiarCarritoProforma(this.usuario.id, venta.IdClienteFK).subscribe({
+          next: () => {
+            // 3. Una vez limpio (ítems en Estado 1), cargamos la proforma
+            this.ejecutarCargaProforma(venta);
+          },
+          error: (err) => this.snackBar.open('Error al liberar inventario: ' + err, 'Cerrar')
+        });
+      }
+    });
+  }
+
+  private ejecutarCargaProforma(venta: Ventas): void {
+    this.ventasService.getProformaDetails(venta.IdVentaPK, this.usuario.id).subscribe({
+      next: (res) => {
+        // Verificamos si hay items no disponibles en la respuesta
+        // La estructura esperada es res.data.itemsNoDisponibles
+        const itemsBloqueados = res.data?.itemsNoDisponibles;
+
+        if (itemsBloqueados && itemsBloqueados.length > 0) {
+          // Si hay items bloqueados por OTROS usuarios (o sin stock real), mostramos alerta
+          let mensaje = 'No se puede cargar la proforma. Los siguientes artículos no están disponibles:\n';
+          itemsBloqueados.forEach((item: any) => {
+            mensaje += `- ${item.CodigoArticulo}: ${item.Motivo}\n`;
+          });
+          
+          alert(mensaje); // Usamos alert para asegurar que el usuario lea el mensaje completo si es largo
+        } else {
+          // 3. Si todo está bien (o los items bloqueados son míos y el SP los liberó), procedemos
+          this.router.navigate(['/home/punto-venta'], {
+            state: { idProformaACargar: venta.IdVentaPK }
+          });
+        }
+      },
+      error: (err) => {
+        this.snackBar.open('Error al validar la proforma: ' + err, 'Cerrar', { duration: 5000 });
+      }
     });
   }
 

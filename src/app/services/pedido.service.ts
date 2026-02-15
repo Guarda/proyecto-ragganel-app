@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from '../../enviroments/enviroments';
 
 
 @Injectable({
@@ -10,7 +11,7 @@ import { catchError } from 'rxjs/operators';
 })
 export class PedidoService {
 
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
 
   httpOptions = {

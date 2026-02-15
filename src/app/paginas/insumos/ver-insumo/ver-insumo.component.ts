@@ -31,6 +31,7 @@ import { CategoriasInsumosService } from '../../../services/categorias-insumos.s
 import { SuccessdialogComponent } from '../../../UI/alerts/successdialog/successdialog.component';
 import { EliminarInsumosComponent } from '../eliminar-insumos/eliminar-insumos.component';
 import { AuthService } from '../../../UI/session/auth.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-ver-insumo',
@@ -217,7 +218,7 @@ export class VerInsumoComponent {
 
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
 
     if (l == null || l === '') {
       return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;

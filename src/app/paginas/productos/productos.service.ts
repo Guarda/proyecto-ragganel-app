@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Producto } from '../interfaces/producto';
+import { environment } from '../../../enviroments/enviroments';
 
 
 @Injectable({
@@ -14,7 +15,7 @@ export class ProductosService {
   products$: Observable<any[]> = this.productsSubject.asObservable();
 
 
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({

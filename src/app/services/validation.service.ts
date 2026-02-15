@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 import { Observable, of, timer } from 'rxjs';
 import { map, catchError, debounceTime, switchMap, first } from 'rxjs/operators';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ValidationService {
-  private apiUrl = 'http://localhost:3000/api/validate';
+  private apiUrl = `${environment.apiUrl}/api/validate`;
 
   constructor(private http: HttpClient) { }
 

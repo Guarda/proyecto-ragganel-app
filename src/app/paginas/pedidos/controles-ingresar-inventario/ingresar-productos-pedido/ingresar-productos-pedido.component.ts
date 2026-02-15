@@ -31,6 +31,7 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { TiposAccesoriosService } from '../../../../services/tipos-accesorios.service';
 import { Producto } from '../../../interfaces/producto';
 import { MatCardActions, MatCardContent } from '@angular/material/card';
+import { environment } from '../../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-ingresar-productos-pedido',
@@ -285,7 +286,7 @@ get precioFinalIngreso(): number {
 }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
 
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;

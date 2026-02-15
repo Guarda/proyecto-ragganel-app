@@ -157,8 +157,8 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
     this.cargandoCarrito = true;
     this.snackBar.open('Cargando datos de la proforma...', undefined, { duration: 2000 });
 
-    this.ventasBaseService.getProformaDetails(idProforma).subscribe({
-      next: (response) => {
+    this.ventasBaseService.getProformaDetails(idProforma, this.usuario.id).subscribe({
+      next: async (response) => {
         if (response.success) {
           const { proforma, detalles, itemsNoDisponibles } = response.data;
 
@@ -180,47 +180,41 @@ export class PuntoVentaComponent implements OnInit, OnDestroy {
           this.observacionesOtros = proforma.Observaciones;
 
           // ==============================================================
-          //  4. POBLAR EL CARRITO (LÓGICA CORREGIDA)
+          //  4. POBLAR EL CARRITO (LÓGICA SECUENCIAL)
           // ==============================================================
 
-          const detallesDisponibles = detalles.filter(detalle =>
-            !itemsNoDisponibles.some(noDisp => noDisp.CodigoArticulo === detalle.CodigoArticulo)
+          const detallesDisponibles = detalles.filter((detalle: any) =>
+            !itemsNoDisponibles.some((noDisp: any) => noDisp.CodigoArticulo === detalle.CodigoArticulo)
           );
 
-          // Se crea un array de Observables para todas las llamadas a la API
-          const llamadasApi = detallesDisponibles.map(item => {
-            // Preparamos el cuerpo de la solicitud con TODOS los datos requeridos
-            const datosArticulo = {
-              IdUsuario: this.usuario.id,
-              IdCliente: this.ClienteSeleccionado!.id,
-              TipoArticulo: item.TipoArticulo,
-              CodigoArticulo: item.CodigoArticulo,
-              Cantidad: item.Cantidad,
-              PrecioVenta: item.PrecioVenta,
-              Descuento: item.Descuento,
-              PrecioBaseOriginal: item.PrecioBaseOriginal ?? 0, // Garantiza que sea number
-              MargenAplicado: item.MargenAplicado ?? 0,         // Garantiza que sea number
-              IdMargenFK: item.IdMargenFK
-            };
-            // Llamamos al servicio correcto que envía todos los datos al backend
-            return this.ventasBaseService.agregarArticuloAlCarrito(datosArticulo);
-          });
+          if (detallesDisponibles.length > 0) {
+            try {
+              // Iteramos secuencialmente para evitar condiciones de carrera en la creación del carrito
+              for (const item of detallesDisponibles) {
+                const datosArticulo = {
+                  IdUsuario: this.usuario.id,
+                  IdCliente: this.ClienteSeleccionado!.id,
+                  TipoArticulo: item.TipoArticulo,
+                  CodigoArticulo: item.CodigoArticulo,
+                  Cantidad: item.Cantidad,
+                  PrecioVenta: item.PrecioVenta,
+                  Descuento: item.Descuento,
+                  PrecioBaseOriginal: item.PrecioBaseOriginal ?? 0,
+                  MargenAplicado: item.MargenAplicado ?? 0,
+                  IdMargenFK: item.IdMargenFK
+                };
+                // Esperamos a que cada inserción termine antes de la siguiente
+                await this.ventasBaseService.agregarArticuloAlCarrito(datosArticulo).toPromise();
+              }
 
-          // Si hay artículos para agregar, los ejecutamos y luego refrescamos el carrito
-          if (llamadasApi.length > 0) {
-            // forkJoin(llamadasApi).subscribe({...}) // (Una forma más avanzada)
-            // Por simplicidad, ejecutaremos una por una y al final refrescaremos.
-            // Para este caso, como `agregarArticuloAlCarrito` ya debe manejar la cantidad, no hace falta un bucle.
-            Promise.all(llamadasApi.map(obs => obs.toPromise())).then(() => {
               this.snackBar.open(`Proforma N° ${proforma.NumeroDocumento} cargada.`, 'OK', { duration: 3000 });
-              // Al final de todas las operaciones, refrescamos el carrito para sincronizar la UI
               this.carritoService.refrescarCarrito(this.usuario, this.ClienteSeleccionado!).subscribe();
-              this.cargandoCarrito = false;
-            }).catch(error => {
+            } catch (error) {
               console.error("Error al agregar artículos de la proforma", error);
               this.snackBar.open('Uno o más artículos no se pudieron agregar.', 'Cerrar', { duration: 4000 });
+            } finally {
               this.cargandoCarrito = false;
-            });
+            }
           } else {
             this.snackBar.open('No hay artículos disponibles para cargar de esta proforma.', 'OK', { duration: 4000 });
             this.cargandoCarrito = false;

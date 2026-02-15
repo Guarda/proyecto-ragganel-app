@@ -13,6 +13,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { AuthService } from '../session/auth.service';
+import { environment } from '../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-menu-sidebar',
@@ -206,7 +207,7 @@ export class MenuSidebarComponent implements OnInit, OnDestroy {
   }
 
   getimagePath(avatarUrl: string | null): string {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     return avatarUrl ? `${baseUrl}/assets/${avatarUrl}` : `${baseUrl}/assets/avatardefault.png`;
   }
 

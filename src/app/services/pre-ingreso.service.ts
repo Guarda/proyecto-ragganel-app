@@ -1,13 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { forkJoin, Observable, tap } from 'rxjs';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PreIngresoService {
   // Se define la URL completa, siguiendo el patrón de los otros servicios.
-  private apiUrl = `http://localhost:3000/api/pre-ingreso`;
+  private apiUrl = `${environment.apiUrl}/api/pre-ingreso`;
 
   constructor(private http: HttpClient) { }
 

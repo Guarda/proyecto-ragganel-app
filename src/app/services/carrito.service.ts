@@ -8,6 +8,7 @@ import { Cliente } from '../paginas/interfaces/clientes';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { environment } from '../../enviroments/enviroments';
 
 
 @Injectable({ providedIn: 'root' })
@@ -345,7 +346,7 @@ export class CarritoService {
   }
 
   public listarCarritosActivosPorUsuario(idUsuario: number): Observable<any[]> {
-    const url = `http://localhost:3000/carrito/vigentes/${idUsuario}`;
+    const url = `${environment.apiUrl}/carrito/vigentes/${idUsuario}`;
     return this.httpClient.get<any>(url).pipe( // Cambiado a get<any>
       map(respuesta => respuesta.data || respuesta), // Extrae la propiedad 'data' o devuelve la respuesta si no existe
       catchError(this.errorHandler)
@@ -363,7 +364,7 @@ export class CarritoService {
       idUsuario: idUsuario.toString() 
     };
     // ⭐️ 2. Construir la URL base
-    const url = `http://localhost:3000/carrito/${idCarrito}`;
+    const url = `${environment.apiUrl}/carrito/${idCarrito}`;
     return this.httpClient.delete(url, { params: params }).pipe(
       catchError(this.errorHandler)
     );

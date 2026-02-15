@@ -10,10 +10,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Router, ActivatedRoute } from '@angular/router'; // <-- MODIFICAR ESTA LÍNEA
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Subscription } from 'rxjs'; // <- Añadido
+import { Subscription } from 'rxjs';
 
 import * as XLSX from 'xlsx';
 
@@ -21,33 +21,36 @@ import { InventarioGeneralService } from '../../../services/inventario-general.s
 import { ArticuloInventario } from '../../interfaces/articuloinventario';
 import { HistorialArticuloDialogComponent } from '../historial-articulo-dialog/historial-articulo-dialog.component';
 
-// --- CAMBIO 2: Importar el servicio de estado y la interfaz ---
 import { TableStatePersistenceService } from '../../../services/table-state-persistence.service';
 import { TableState } from '../../interfaces/table-state';
+import { environment } from '../../../../enviroments/enviroments';
+import { AgregarProdutosComponent } from '../../productos/agregar-produtos/agregar-produtos.component';
+import { AgregarAccesoriosComponent } from '../../accesorios/agregar-accesorios/agregar-accesorios.component';
+import { AgregarInsumosComponent } from '../../insumos/agregar-insumos/agregar-insumos.component';
+import { SelectorTipoArticuloComponent } from '../selector-tipo-articulo/selector-tipo-articulo.component';
 
 @Component({
   selector: 'app-listado-inventario-general',
-  standalone: true, // Se asume standalone
+  standalone: true,
   imports: [
     CommonModule, MatTableModule, MatPaginatorModule, MatSortModule,
     MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
     MatProgressSpinnerModule, MatTooltipModule,
-    DatePipe
+    DatePipe,
+    SelectorTipoArticuloComponent
   ],
   providers: [DatePipe],
   templateUrl: './listado-inventario-general.component.html',
   styleUrls: ['./listado-inventario-general.component.css']
 })
 export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit, OnDestroy {
-  // Define las columnas que se mostrarán en la tabla
   displayedColumns: string[] = ['LinkImagen', 'Codigo', 'NombreArticulo', 'Tipo', 'Estado', 'Cantidad', 'PrecioBase', 'FechaIngreso', 'Action'];
   dataSource = new MatTableDataSource<ArticuloInventario>();
 
   isLoading = true;
   errorMessage: string | null = null;
 
-  // --- CAMBIO 4: Añadir propiedades para la gestión del estado ---
-  private readonly tableStateKey = 'inventarioGeneralTableState'; // ¡Clave única!
+  private readonly tableStateKey = 'inventarioGeneralTableState';
   private subscriptions = new Subscription();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -60,9 +63,8 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    // --- CAMBIO 5: Inyectar el servicio de estado ---
     private stateService: TableStatePersistenceService,
-    private route: ActivatedRoute, // <--- AÑADIR ESTA LÍNEA
+    private route: ActivatedRoute,
     private datePipe: DatePipe
   ) { }
 
@@ -75,25 +77,19 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     this.dataSource.sort = this.sort;
 
     this.dataSource.filterPredicate = (data: ArticuloInventario, filter: string) => {
-      // Función helper para normalizar los strings de forma segura
       const safeTrim = (val: string | null) => (val || '').trim().toLowerCase();
       
-      // 1. Lógica para FILTRO DE COLUMNA ESPECÍFICA (desde Dashboard)
       if (filter.startsWith('estado:')) {
-        const searchTerm = safeTrim(filter.substring(7)); // 'estado:'.length = 7
-        // Coincidencia exacta para el Estado
+        const searchTerm = safeTrim(filter.substring(7));
         return safeTrim(data.Estado) === searchTerm;
       
       } else if (filter.startsWith('nombre:')) {
-        const searchTerm = safeTrim(filter.substring(7)); // 'nombre:'.length = 7
-        // ⭐️ ESTA ES LA SOLUCIÓN: Usamos .includes() en lugar de ===
-        // Esto encontrará "Mica 2DS" dentro de "Mica Protectora para Nintendo 2DS"
+        const searchTerm = safeTrim(filter.substring(7));
         return safeTrim(data.NombreArticulo).includes(searchTerm);
       }
 
-      // 2. Lógica para el FILTRO GENÉRICO (de la barra de búsqueda)
       const lowerCaseFilter = safeTrim(filter);
-      if (lowerCaseFilter === '') return true; // Mostrar todo si el filtro está vacío
+      if (lowerCaseFilter === '') return true;
 
       const dataStr = safeTrim(data.Codigo) + safeTrim(data.NombreArticulo) + safeTrim(data.Tipo) + safeTrim(data.Estado);
       return dataStr.includes(lowerCaseFilter);
@@ -104,7 +100,6 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     this.subscriptions.add(this.paginator.page.subscribe(() => this.saveState()));
   }
 
-  // --- CAMBIO 7: Añadir ngOnDestroy para limpiar y guardar el estado final ---
   ngOnDestroy(): void {
     this.saveState();
     this.subscriptions.unsubscribe();
@@ -113,7 +108,6 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
   public editarArticulo(articulo: ArticuloInventario): void {
     let rutaBase = '';
 
-    // Determinamos la ruta base según el tipo de artículo
     switch (articulo.Tipo?.toLowerCase()) {
       case 'producto':
         rutaBase = '/home/listado-productos/ver-producto';
@@ -125,25 +119,19 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
         rutaBase = '/home/listado-insumos/ver-insumo';
         break;
       default:
-        // Opcional: manejar un tipo desconocido o mostrar un error
         console.error(`Tipo de artículo desconocido: ${articulo.Tipo}`);
-        return; // Salimos de la función si el tipo no es válido
+        return;
     }
 
-    // Navegamos a la ruta construida
     this.router.navigate([rutaBase, articulo.Codigo, 'view']);
   }
 
-  /**
-   * Llama al servicio para obtener los datos del inventario y los carga en la tabla.
-   */
   cargarInventario(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
     this.inventarioService.getInventarioGeneral().subscribe({
       next: (data) => {
-        // Procesamos los datos para construir la ruta completa de la imagen
         const datosProcesados = data.map(item => ({
           ...item,
           ImagePath_full: this.getImagePath(item.Tipo, item.LinkImagen)
@@ -161,9 +149,9 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
   }
 
   private getImagePath(tipo: string, linkImagen: string | null): string {
-    const baseUrl = 'http://localhost:3000'; // La dirección de tu backend
+    const baseUrl = environment.apiUrl;
 
-    let folder = 'img-defaults'; // Carpeta por defecto
+    let folder = 'img-defaults';
     switch (tipo?.toLowerCase()) {
       case 'producto':
         folder = 'img-consolas';
@@ -172,15 +160,14 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
         folder = 'img-accesorios';
         break;
       case 'insumo':
-        folder = 'img-insumos'; // Asumiendo que tienes esta carpeta en el backend
+        folder = 'img-insumos';
         break;
     }
 
     if (linkImagen) {
       return `${baseUrl}/${folder}/${linkImagen}`;
     } else {
-      // Si no hay imagen, devuelve una por defecto desde el backend
-      return `${baseUrl}/img-consolas/2ds.jpg`; // Asegúrate de que esta imagen exista
+      return `${baseUrl}/img-consolas/2ds.jpg`;
     }
   }
 
@@ -205,10 +192,6 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     }
   }
 
-  /**
-   * Aplica un filtro de texto a la tabla.
-   * @param event El evento del input del filtro.
-   */
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -216,39 +199,26 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
-    // --- CAMBIO 8: Guardar el estado al filtrar ---
     this.saveState();
   }
 
-  /**
-   * Limpia el filtro de texto, resetea la paginación y guarda el estado.
-   */
   public resetearFiltros(): void {
-    // 1. Limpiar el valor del input
     if (this.inputElement) {
       this.inputElement.nativeElement.value = '';
     }
 
-    // 2. Limpiar el filtro del dataSource
     this.dataSource.filter = '';
 
-    // 3. Resetear el paginador
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
 
-    // 4. Guardar el estado limpio
     this.saveState();
   }
 
-  /**
-   * Exporta los datos actualmente filtrados y ordenados en la tabla a un archivo Excel.
-   */
   public descargarExcel(): void {
     this.snackBar.open('Generando reporte Excel...', undefined, { duration: 2000 });
 
-    // Usamos .filteredData para obtener solo lo que el usuario está viendo
-    // (esto ya respeta el filtro y el orden del MatSort)
     const data = this.dataSource.filteredData;
 
     if (data.length === 0) {
@@ -256,40 +226,34 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
       return;
     }
 
-    // Mapeamos los datos a un formato legible para el Excel
     const excelData = data.map(item => ({
       'Código': item.Codigo,
       'Nombre del Artículo': item.NombreArticulo,
       'Tipo': item.Tipo,
       'Estado': item.Estado,
       'Cantidad': item.Cantidad,
-      'Costo': item.PrecioBase, // Excel lo manejará como número
+      'Costo': item.PrecioBase,
       'Fecha Ingreso': this.datePipe.transform(item.FechaIngreso, 'dd/MM/yyyy')
     }));
 
-    // Creamos la hoja de cálculo
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
 
-    // (Opcional) Ajustar el ancho de las columnas
     ws['!cols'] = [
-      { wch: 15 }, // Código
-      { wch: 40 }, // Nombre del Artículo
-      { wch: 12 }, // Tipo
-      { wch: 15 }, // Estado
-      { wch: 10 }, // Cantidad
-      { wch: 12 }, // Costo
-      { wch: 15 }  // Fecha Ingreso
+      { wch: 15 },
+      { wch: 40 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 15 }
     ];
 
-    // Creamos el libro de trabajo
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Inventario_General');
 
-    // Generamos el archivo y lo descargamos
     XLSX.writeFile(wb, 'Reporte_Inventario_General.xlsx');
   }
 
-  // --- CAMBIO 9: Copiar los métodos 'saveState' y 'loadAndApplyState' ---
   private saveState(): void {
     if (!this.paginator || !this.sort) return;
 
@@ -304,29 +268,23 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
   }
 
   private loadAndApplyState(): void {
-    // 1. Revisamos si un filtro viene de la URL (ej. ?filtro=exact:Nintendo...)
     const filtroQuery = this.route.snapshot.queryParamMap.get('filtro');
 
     if (filtroQuery) {
 
-      // 2. Si existe, lo pasamos TAL CUAL (con el prefijo)
-      //    al 'filterPredicate' que definimos arriba.
       this.dataSource.filter = filtroQuery;
 
-      // 3. Mostramos el valor "limpio" en la barra de búsqueda
       if (this.inputElement) {
         if (filtroQuery.startsWith('estado:')) {
           this.inputElement.nativeElement.value = filtroQuery.substring(7);
         } else if (filtroQuery.startsWith('nombre:')) {
           this.inputElement.nativeElement.value = filtroQuery.substring(7);
         } else {
-          // Comportamiento normal para filtros guardados (genéricos)
           this.inputElement.nativeElement.value = filtroQuery;
         }
       }
 
 
-      // 4. Limpiamos el query param de la URL (esto está bien)
       this.router.navigate([], {
         relativeTo: this.route,
         queryParams: { filtro: null },
@@ -334,7 +292,6 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
         replaceUrl: true
       });
 
-      // 5. Cargamos el resto del estado (sort, paginación) pero OMITIMOS el filtro guardado
       const state = this.stateService.loadState(this.tableStateKey);
       if (state) {
         if (this.paginator) {
@@ -348,11 +305,9 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
           }
         });
       }
-      return; // ¡Importante! Salimos para no cargar el filtro del 'state'
+      return;
     }
 
-    // --- LÓGICA ORIGINAL ---
-    // (Esta parte no cambia)
     const state = this.stateService.loadState(this.tableStateKey);
     if (!state) return;
 
@@ -376,20 +331,11 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
     });
   }
 
-  // ... (resto de tu componente) ...
-
-  /**
-   * Devuelve una clase CSS basada en el tipo de artículo para darle un estilo visual.
-   * @param tipo El tipo de artículo ('Producto', 'Accesorio', 'Insumo').
-   */
   public getTipoClass(tipo: string): string {
-    // --- LÍNEA AÑADIDA (LA SOLUCIÓN) ---
-    // Si 'tipo' no tiene un valor (es undefined o null), devuelve una clase por defecto inmediatamente.
     if (!tipo) {
       return 'tipo-default';
     }
 
-    // El resto del código solo se ejecuta si 'tipo' tiene un valor.
     switch (tipo.toLowerCase()) {
       case 'producto': return 'tipo-producto';
       case 'accesorio': return 'tipo-accesorio';
@@ -420,7 +366,56 @@ export class ListadoInventarioGeneralComponent implements OnInit, AfterViewInit,
   }
 
   public onImageError(event: Event): void {
-    // Si una imagen falla, la reemplaza con una imagen por defecto DEL BACKEND
-    (event.target as HTMLImageElement).src = 'http://localhost:3000/img-consolas/2ds.jpg';
+    (event.target as HTMLImageElement).src = `${environment.apiUrl}/img-consolas/2ds.jpg`;
+  }
+
+  /**
+   * Abre el selector intermedio para elegir el tipo de artículo
+   */
+  public abrirSelectorNuevo(): void {
+    const dialogRef = this.dialog.open(SelectorTipoArticuloComponent, {
+      width: '350px'
+    });
+
+    dialogRef.afterClosed().subscribe(tipo => {
+      if (tipo) {
+        this.abrirDialogoNuevo(tipo);
+      }
+    });
+  }
+
+  /**
+   * Abre el diálogo correspondiente según el tipo seleccionado
+   */
+  private abrirDialogoNuevo(tipo: 'producto' | 'accesorio' | 'insumo'): void {
+    let component: any;
+    const config = {
+      width: '70%',
+      height: '85%',
+      disableClose: true
+    };
+
+    switch (tipo) {
+      case 'producto':
+        component = AgregarProdutosComponent;
+        break;
+      case 'accesorio':
+        component = AgregarAccesoriosComponent;
+        break;
+      case 'insumo':
+        component = AgregarInsumosComponent;
+        break;
+    }
+
+    if (component) {
+      const dialogRef = this.dialog.open(component, config);
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.cargarInventario();
+          this.snackBar.open('Artículo registrado correctamente', 'Cerrar', { duration: 3000 });
+        }
+      });
+    }
   }
 }

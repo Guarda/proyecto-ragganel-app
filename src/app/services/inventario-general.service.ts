@@ -5,6 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { ArticuloInventario } from '../paginas/interfaces/articuloinventario';
 import { ArticuloGarantia } from '../paginas/interfaces/articulogarantia';
 import { HistorialArticulo } from '../paginas/interfaces/historialarticulo';
+import { environment } from '../../enviroments/enviroments';
 
 /**
  * Interfaz que define la estructura de un artículo en el inventario.
@@ -17,7 +18,7 @@ import { HistorialArticulo } from '../paginas/interfaces/historialarticulo';
 })
 export class InventarioGeneralService {
   // Asegúrate de que esta URL base sea la correcta para tu entorno.
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({

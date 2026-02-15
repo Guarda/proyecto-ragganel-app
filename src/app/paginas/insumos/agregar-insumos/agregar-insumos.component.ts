@@ -26,6 +26,7 @@ import { CategoriasInsumosService } from '../../../services/categorias-insumos.s
 import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { MatChipsModule } from '@angular/material/chips';
 import { AuthService } from '../../../UI/session/auth.service'; // ✅ 1. IMPORTACIÓN AÑADIDA
+import { environment } from '../../../../enviroments/enviroments';
 
 
 @Component({
@@ -155,7 +156,7 @@ export class AgregarInsumosComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
 
     if (l == null || l === '') {
       return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;

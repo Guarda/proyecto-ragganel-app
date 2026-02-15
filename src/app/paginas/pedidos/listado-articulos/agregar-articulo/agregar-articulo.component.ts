@@ -53,6 +53,7 @@ import { SubcategoriasInsumos } from '../../../interfaces/subcategoriasinsumos';
 import { debounceTime, merge, Subscription } from 'rxjs';
 import { MatButtonToggleModule } from '@angular/material/button-toggle'; // <-- AÑADIR ESTE IMPORT
 import { Articulo } from '../../../interfaces/articulo-pedido';
+import { environment } from '../../../../../enviroments/enviroments';
 
 
 @Component({
@@ -433,7 +434,7 @@ export class AgregarArticuloComponent {
   getImagePath(link: string | null, tipoArticulo: number | null) {
     console.log(link)
     console.log(tipoArticulo)
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     let folder = '';
 
     switch (tipoArticulo) {

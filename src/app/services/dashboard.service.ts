@@ -10,6 +10,7 @@ import { PronosticoData } from '../paginas/interfaces/pronosticodata';
 import { PronosticoGraficoItem } from '../paginas/interfaces/pronosticodatoitem';
 import { PronosticoResponse } from '../paginas/interfaces/pronosticoresponse';
 import { ReportePronosticoMasivoItem } from '../paginas/interfaces/reportepronosticomasivoitem';
+import { environment } from '../../enviroments/enviroments';
 // ===== NUEVA INTERFAZ (O MUEVELA A TU ARCHIVO DE INTERFACES) =====
 export interface ModeloPronostico {
   IdModelo: number;
@@ -23,7 +24,7 @@ export interface ModeloPronostico {
   providedIn: 'root'
 })
 export class DashboardService {
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   constructor(private httpClient: HttpClient) { }
 

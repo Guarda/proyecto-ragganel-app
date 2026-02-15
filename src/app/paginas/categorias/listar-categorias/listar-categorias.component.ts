@@ -21,6 +21,7 @@ import { CategoriasConsolas } from '../../interfaces/categorias';
 import { AgregarCategoriasComponent } from '../agregar-categorias/agregar-categorias.component';
 import { EditarCategoriasComponent } from '../editar-categorias/editar-categorias.component';
 import { EliminarCategoriasComponent } from '../eliminar-categorias/eliminar-categorias.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-listar-categorias',
@@ -95,7 +96,7 @@ export class ListarCategoriasComponent implements AfterViewInit {
   }
 
   getimagePath(link: string | null): string {
-    const baseUrl = 'http://localhost:3000'; // Asegúrate que el puerto es correcto
+    const baseUrl = environment.apiUrl;
     if (!link) {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;
     }

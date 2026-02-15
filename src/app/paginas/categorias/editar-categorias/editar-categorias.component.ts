@@ -27,6 +27,7 @@ import { ValidationService } from '../../../services/validation.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { environment } from '../../../../enviroments/enviroments';
 @Component({
     selector: 'app-editar-categorias',
     standalone: true,
@@ -171,7 +172,7 @@ export class EditarCategoriasComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
   
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;

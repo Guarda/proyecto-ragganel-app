@@ -18,6 +18,7 @@ import { CategoriasAccesoriosBase } from '../../interfaces/categoriasaccesoriosb
 import { AgregarCategoriasAccesoriosComponent } from '../agregar-categorias-accesorios/agregar-categorias-accesorios.component';
 import { EditarCategoriasAccesoriosComponent } from '../editar-categorias-accesorios/editar-categorias-accesorios.component';
 import { EliminarCategoriasAccesoriosComponent } from '../eliminar-categorias-accesorios/eliminar-categorias-accesorios.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-listar-categorias-accesorios',
@@ -87,7 +88,7 @@ export class ListarCategoriasAccesoriosComponent implements OnInit, AfterViewIni
   }
 
   getimagePath(link: string | null): string {
-    const baseUrl = 'http://localhost:3000'; // Asegúrate de que el puerto sea correcto
+    const baseUrl = environment.apiUrl;
     if (!link) {
       return `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
     }

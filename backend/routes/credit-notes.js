@@ -143,6 +143,10 @@ router.put('/anular/:id', (req, res) => {
     Basedatos.query(sql, [idNotaCredito, usuarioId, motivo], (err, result) => {
         if (err) {
             console.error('Error al anular nota de crédito:', err);
+            // Si el error es el 45000 (validación de garantía)
+            if (err.sqlState === '45000') {
+                return res.status(400).json({ success: false, mensaje: err.sqlMessage });
+            }
             return res.status(500).json({ success: false, error: 'Error al ejecutar la consulta en la base de datos.' });
         }
 

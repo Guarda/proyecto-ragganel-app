@@ -18,6 +18,7 @@ import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { AgregarCategoriasInsumosComponent } from '../agregar-categorias-insumos/agregar-categorias-insumos.component';
 import { EditarCategoriasInumosComponent } from '../editar-categorias-inumos/editar-categorias-inumos.component';
 import { EliminarCategoriasInsumosComponent } from '../eliminar-categorias-insumos/eliminar-categorias-insumos.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-listar-categorias-insumos',
@@ -86,7 +87,7 @@ export class ListarCategoriasInsumosComponent implements OnInit, AfterViewInit {
   }
 
   getimagePath(link: string | null): string {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     if (!link) {
       return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;
     }

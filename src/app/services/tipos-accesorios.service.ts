@@ -3,13 +3,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TipoAccesorio } from '../paginas/interfaces/tipoaccesorio';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TiposAccesoriosService {
 
-  private apiURL = "http://localhost:3000/api/tipos-accesorios";
+  private apiURL = `${environment.apiUrl}/api/tipos-accesorios`;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -37,7 +38,7 @@ export class TiposAccesoriosService {
   }
   
   findbyIdProductType(id: string): Observable<any> {
-    return this.httpClient.get('http://localhost:3000/accesorios/accesorio/' + id)
+    return this.httpClient.get(`${environment.apiUrl}/accesorios/accesorio/` + id)
       .pipe(catchError(this.errorHandler));
   }
 

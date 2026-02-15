@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ export class ListadoArticulosVentaService {
   private insumosSubject = new BehaviorSubject<any[]>([]);
   insumos$: Observable<any[]> = this.insumosSubject.asObservable();
 
-  private apiURL = "http://localhost:3000"; // Cambia esta URL según tu configuración
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({

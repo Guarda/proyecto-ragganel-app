@@ -30,6 +30,7 @@ import { Articulo } from '../../interfaces/articulo-pedido';
 import { EstadoPedido } from '../../interfaces/estadopedido';
 import { TipoPedido } from '../../interfaces/tipopedido';
 import { SitioWeb } from '../../interfaces/sitioweb';
+import { environment } from '../../../../enviroments/enviroments';
 
 
 @Component({
@@ -251,7 +252,7 @@ export class VerPedidoComponent implements OnInit {
   };
 
   getimagePath(l: string | null): string {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
     return l ? `${baseUrl}/img-accesorios/${l}` : `${baseUrl}/img-accesorios/GameCube_controller-1731775589376.png`;
   }
 

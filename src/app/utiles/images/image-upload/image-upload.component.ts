@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core'; // 1. Importar Input
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { CommonModule } from '@angular/common';
 import { SharedService } from '../../../services/shared.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-image-upload',
@@ -21,7 +22,7 @@ export class ImageUploadComponent implements OnInit {
 
   existingImages: string[] = [];
   isLoadingImages: boolean = true;
-  readonly imagePath = 'http://localhost:3000/img-consolas/';
+  readonly imagePath = `${environment.apiUrl}/img-consolas/`;
 
   constructor(
     private sharedService: SharedService,

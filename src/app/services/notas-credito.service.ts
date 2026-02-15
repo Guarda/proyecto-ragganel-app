@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../enviroments/enviroments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotasCreditoService {
 
-  private apiURL = "http://localhost:3000";
+  private apiURL = environment.apiUrl;
 
   httpOptions = {
     headers: new HttpHeaders({
@@ -58,7 +59,6 @@ export class NotasCreditoService {
   // Asegúrate de que la URL incluye el prefijo
 anularNotaCredito(idNota: number, motivo: string, usuarioId: number): Observable<any> {
     const body = { motivo, usuarioId };
-    // La URL debe ser: http://localhost:3000/notas-credito/anular/ID_DE_LA_NOTA
     return this.httpClient.put(`${this.apiURL}/notas-credito/anular/${idNota}`, body); 
 }
 

@@ -23,6 +23,7 @@ import { SubcategoriasInsumos } from '../../interfaces/subcategoriasinsumos';
 import { FormGroup } from '@angular/forms';
 import { CategoriasInsumosBase } from '../../interfaces/categoriasinsumosbase';
 import { TarjetaInsumoComponent } from '../tarjeta-insumo/tarjeta-insumo.component';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-index-listado-insumos-editar',
@@ -214,7 +215,7 @@ export class IndexListadoInsumosEditarComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
 
     if (l == null || l === '') {
       return `${baseUrl}/img-insumos/kingston-32gb-clase10.jpg`;

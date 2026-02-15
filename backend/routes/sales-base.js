@@ -30,6 +30,18 @@ router.post('/limpiar-carrito', (req, res) => {
   });
 });
 
+router.post('/limpiar-carrito-proforma', (req, res) => {
+  const { IdUsuario, IdCliente } = req.body;
+  
+  // Invocamos el SP que elimina los registros temporales y devuelve ítems a 'Disponible' (Estado 1)
+  const query = `CALL \`${dbConfig.database}\`.\`sp_Carrito_LimpiarPorUsuarioCliente\`(?, ?);`;
+  
+  Basedatos.query(query, [IdUsuario, IdCliente], (err, results) => {
+      if (err) return res.status(500).json({ success: false, error: err.message });
+      res.json({ success: true, mensaje: 'Inventario liberado para carga de proforma.' });
+  });
+});
+
 // List all sales margins types
 router.get('/margenes-venta', (req, res) => {
   Basedatos.query(`CALL \`${dbConfig.database}\`.\`ListarPreciosVenta\`();`, (err, results) => {
@@ -425,17 +437,18 @@ router.get('/venta-completa/:idVenta', (req, res) => {
 router.get('/proforma/:idProforma', (req, res) => {
   // 1. Extraer el ID de los parámetros de la URL.
   const { idProforma } = req.params;
+  const { idUsuario } = req.query; // Obtenemos el usuario que intenta cargar la proforma
 
   // 2. Validación básica para asegurar que se proporcionó un ID.
-  if (!idProforma) {
-    return res.status(400).json({ success: false, error: 'ID de proforma no proporcionado.' });
+  if (!idProforma || !idUsuario) {
+    return res.status(400).json({ success: false, error: 'Faltan parámetros: ID de proforma o ID de usuario.' });
   }
 
   // 3. La consulta para llamar al procedimiento almacenado.
-  const query = `CALL \`${dbConfig.database}\`.\`sp_GetProformaDetailsYValidarStock\`(?);`;
+  const query = `CALL \`${dbConfig.database}\`.\`sp_GetProformaDetailsYValidarStock\`(?, ?);`;
 
   // 4. Ejecutar la consulta en la base de datos.
-  Basedatos.query(query, [idProforma], (err, results) => {
+  Basedatos.query(query, [idProforma, idUsuario], (err, results) => {
     // Manejo de errores de conexión o sintaxis SQL.
     if (err) {
       console.error('Error al ejecutar sp_GetProformaDetailsYValidarStock:', err);

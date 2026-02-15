@@ -28,6 +28,7 @@ import { CategoriasInsumosBase } from '../../../interfaces/categoriasinsumosbase
 import { MatChipsModule } from '@angular/material/chips';
 import { InsumosBase } from '../../../interfaces/insumosbase';
 import { MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import { environment } from '../../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-ingresar-insumos-pedido',
@@ -194,7 +195,7 @@ export class IngresarInsumosPedidoComponent {
   }
 
   private getImagePath(imageName: string | null): string {
-    const baseUrl = 'http://localhost:3000/img-insumos';
+    const baseUrl = `${environment.apiUrl}/img-insumos`;
     return imageName ? `${baseUrl}/${imageName}` : `${baseUrl}/kingston-32gb-clase10.jpg`;
   }
 

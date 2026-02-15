@@ -13,6 +13,7 @@ import { CommonModule, NgFor } from '@angular/common';
 
 import { Cliente } from '../../interfaces/clientes';
 import { ClientesService } from '../../../services/clientes.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-crear-cliente',
@@ -78,7 +79,7 @@ export class CrearClienteComponent {
 
   // Método para obtener la ruta de la imagen
   getimagePath(l: string | null): string {
-    const baseUrl = 'http://localhost:3000'; // Asegúrate de que este es el puerto correcto de tu servidor
+    const baseUrl = environment.apiUrl;
     return l ? `${baseUrl}/assets/${l}` : `${baseUrl}/assets/avatardefault.png`;
   }
 

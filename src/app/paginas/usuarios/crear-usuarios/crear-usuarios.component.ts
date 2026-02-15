@@ -19,6 +19,7 @@ import { RolesUsuarios } from '../../interfaces/roles-usuarios';
 import { EstadosUsuarios } from '../../interfaces/estados-usuarios';
 import { EstadosUsuariosService } from '../../../services/estados-usuarios.service';
 import { RolesUsuariosService } from '../../../services/roles-usuarios.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
     selector: 'app-crear-usuarios',
@@ -81,7 +82,7 @@ export class CrearUsuariosComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = environment.apiUrl;
   
 
     if (l == null || l === '') return 'assets/img/default-user.png';

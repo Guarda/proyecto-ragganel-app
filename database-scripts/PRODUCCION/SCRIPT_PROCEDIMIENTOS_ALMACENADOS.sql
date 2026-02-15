@@ -5080,6 +5080,14 @@ BEGIN
     -- Variable para mensajes de error
     DECLARE v_MensajeError VARCHAR(255);
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
     /* 1. Validación cantidad */
     IF p_Cantidad <= 0 THEN
         SIGNAL SQLSTATE '45000'
@@ -5215,6 +5223,8 @@ BEGIN
     END IF;
     
     SELECT v_IdCarrito AS IdCarritoUsado;
+
+    COMMIT;
 
 END$$
 
@@ -5954,6 +5964,24 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La Nota de Crédito ya se encuentra anulada.';
     END IF;
 
+    -- 1. Validar que los artículos de la NC sigan en Garantía (Estado 9)
+    -- Esto evita duplicidad de inventario si el artículo ya fue vendido nuevamente.
+    IF EXISTS (
+        SELECT 1 
+        FROM DetalleNotaCredito dnc
+        LEFT JOIN ProductosBases p ON dnc.CodigoArticulo = p.CodigoConsola AND dnc.TipoArticulo = 'Producto'
+        LEFT JOIN AccesoriosBase a ON dnc.CodigoArticulo = a.CodigoAccesorio AND dnc.TipoArticulo = 'Accesorio'
+        WHERE dnc.IdNotaCreditoFK = p_IdNotaCreditoPK
+        AND (
+            (dnc.TipoArticulo = 'Producto' AND p.Estado != 9)
+            OR
+            (dnc.TipoArticulo = 'Accesorio' AND a.EstadoAccesorio != 9)
+        )
+    ) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Error: Uno o más artículos ya no están en garantía. No se puede anular la NC.';
+    END IF;
+
     UPDATE NotasCredito SET Estado = 0 WHERE IdNotaCreditoPK = p_IdNotaCreditoPK;
 
     OPEN cur_detalles;
@@ -6534,16 +6562,18 @@ BEGIN
         ELSEIF v_TipoArticulo = 'Insumo' THEN
             -- Lógica añadida para completar la auditoría de insumos
             SELECT Cantidad, EstadoInsumo INTO v_stock_anterior, v_estado_anterior FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
-            UPDATE InsumosBase SET Cantidad = Cantidad - v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo;
+            -- UPDATE InsumosBase SET Cantidad = Cantidad - v_Cantidad WHERE CodigoInsumo = v_CodigoArticulo; -- CORRECCIÓN: Ya se descargó al agregar al carrito
             
             INSERT INTO HistorialEstadoInsumo (CodigoInsumo, EstadoAnterior, EstadoNuevo, StockAnterior, StockNuevo, IdUsuarioFK)
-            VALUES (v_CodigoArticulo, v_estado_anterior, v_estado_anterior, v_stock_anterior, (v_stock_anterior - v_Cantidad), p_IdUsuario);
+            VALUES (v_CodigoArticulo, v_estado_anterior, v_estado_anterior, v_stock_anterior, v_stock_anterior, p_IdUsuario);
 
         ELSEIF v_TipoArticulo = 'Servicio' THEN
-            UPDATE InsumosBase i
-            JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK
-            SET i.Cantidad = i.Cantidad - (ixs.CantidadDescargue * v_Cantidad)
-            WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+            -- CORRECCIÓN: Ya se descargó al agregar al carrito
+            -- UPDATE InsumosBase i
+            -- JOIN InsumosXServicio ixs ON i.CodigoInsumo = ixs.CodigoInsumoFK
+            -- SET i.Cantidad = i.Cantidad - (ixs.CantidadDescargue * v_Cantidad)
+            -- WHERE ixs.IdServicioFK = CAST(v_CodigoArticulo AS UNSIGNED);
+            BEGIN END;
         END IF;
 
         SET i = i + 1;
@@ -6611,7 +6641,10 @@ DELIMITER ;
 -- la disponibilidad de stock de sus artículos.
 ------------------------------------------------------------------------------*/
 DELIMITER $$
-CREATE PROCEDURE sp_GetProformaDetailsYValidarStock(IN p_IdVentaPK INT)
+CREATE PROCEDURE sp_GetProformaDetailsYValidarStock(
+    IN p_IdVentaPK INT,
+    IN p_IdUsuarioFK INT
+)
 BEGIN
     DECLARE v_FechaCreacion DATETIME;
     DECLARE v_IdTipoDocumento INT;
@@ -6622,6 +6655,7 @@ BEGIN
     DECLARE v_Cantidad INT;
     DECLARE v_EstadoArticulo INT;
     DECLARE v_StockInsumo INT;
+    DECLARE v_EstaEnMiCarrito INT; -- Variable para verificar si el item ya es del usuario
 
     DECLARE cur_DetallesVenta CURSOR FOR
         SELECT CodigoArticulo, TipoArticulo, Cantidad FROM DetalleVenta WHERE IdVentaFK = p_IdVentaPK;
@@ -6657,23 +6691,31 @@ BEGIN
             IF done THEN
                 LEAVE read_loop;
             END IF;
+            
+            -- LÓGICA DE EXCEPCIÓN: ¿El artículo ya está en un carrito de este usuario?
+            SELECT COUNT(*) INTO v_EstaEnMiCarrito
+            FROM DetalleCarritoVentas dcv
+            JOIN CarritoVentas cv ON dcv.IdCarritoFK = cv.IdCarritoPK
+            WHERE dcv.CodigoArticulo = v_CodigoArticulo 
+              AND cv.IdUsuarioFK = p_IdUsuarioFK;
 
             CASE v_TipoArticulo
                 WHEN 'Producto' THEN
                     SELECT Estado INTO v_EstadoArticulo FROM ProductosBases WHERE CodigoConsola = v_CodigoArticulo;
-                    IF v_EstadoArticulo IN (7, 8, 9, 10, 11) THEN
+                    -- Si está en (7,8,9,10) o si está en 11 pero NO es mío, bloqueamos.
+                    IF v_EstadoArticulo IN (7, 8, 9, 10) OR (v_EstadoArticulo = 11 AND v_EstaEnMiCarrito = 0) THEN
                         INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
                         VALUES (v_CodigoArticulo, CONCAT('Producto no disponible para la venta. Estado actual ID: ', v_EstadoArticulo));
                     END IF;
                 WHEN 'Accesorio' THEN
                     SELECT EstadoAccesorio INTO v_EstadoArticulo FROM AccesoriosBase WHERE CodigoAccesorio = v_CodigoArticulo;
-                    IF v_EstadoArticulo IN (7, 8, 9, 10, 11) THEN
+                    IF v_EstadoArticulo IN (7, 8, 9, 10) OR (v_EstadoArticulo = 11 AND v_EstaEnMiCarrito = 0) THEN
                         INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
                         VALUES (v_CodigoArticulo, CONCAT('Accesorio no disponible para la venta. Estado actual ID: ', v_EstadoArticulo));
                     END IF;
                 WHEN 'Insumo' THEN
                     SELECT EstadoInsumo, Cantidad INTO v_EstadoArticulo, v_StockInsumo FROM InsumosBase WHERE CodigoInsumo = v_CodigoArticulo;
-                    IF v_EstadoArticulo IN (7, 8, 9, 10, 11) THEN
+                    IF v_EstadoArticulo IN (7, 8, 9, 10) OR (v_EstadoArticulo = 11 AND v_EstaEnMiCarrito = 0) THEN
                         INSERT INTO TempUnavailableItems (CodigoArticulo, Motivo)
                         VALUES (v_CodigoArticulo, CONCAT('Insumo no disponible para la venta. Estado actual ID: ', v_EstadoArticulo));
                     ELSEIF v_StockInsumo < v_Cantidad THEN

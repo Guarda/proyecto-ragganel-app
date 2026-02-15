@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Optional, Output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogActions, MatDialogContent, MatDialogClose, MatDialogTitle } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogActions, MatDialogContent, MatDialogClose, MatDialogTitle, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -33,6 +33,7 @@ import { TiposAccesoriosService } from '../../../services/tipos-accesorios.servi
 import { TipoAccesorio } from '../../interfaces/tipoaccesorio';
 // ✅ AÑADIDO: Importación del servicio de autenticación
 import { AuthService } from '../../../UI/session/auth.service';
+import { environment } from '../../../../enviroments/enviroments';
 
 @Component({
   selector: 'app-agregar-produtos',
@@ -87,7 +88,8 @@ export class AgregarProdutosComponent {
     // ✅ AÑADIDO: Inyección del servicio de autenticación
     private authService: AuthService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef, private router: Router) {
+    private cdr: ChangeDetectorRef, private router: Router,
+    @Optional() private dialogRef: MatDialogRef<AgregarProdutosComponent>) {
   }
 
   // ✅ AÑADIDO: Validador personalizado para la longitud de accesorios
@@ -282,7 +284,7 @@ export class AgregarProdutosComponent {
   }
 
   getimagePath(l: string | null) {
-    const baseUrl = 'http://localhost:3000'; // Updated to match the Express server port
+    const baseUrl = environment.apiUrl;
 
     if (l == null || l === '') {
       return `${baseUrl}/img-consolas/nestoploader.jpg`;
@@ -350,8 +352,12 @@ export class AgregarProdutosComponent {
     // Llamar al servicio con los datos completos
     this.productoService.create(productoData).subscribe((res: any) => {
       this.Agregado.emit();
-      // ✅ AÑADIDO: Navegación que faltaba en la nueva versión
-      this.router.navigateByUrl('home/listado-productos');
+      
+      if (this.dialogRef) {
+        this.dialogRef.close(true);
+      } else {
+        this.router.navigateByUrl('home/listado-productos');
+      }
     });
   }
 }
